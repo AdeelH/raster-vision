@@ -1,19 +1,8 @@
-from typing import Optional
-
-
 class CRSTransformer():
     """Transforms map points in some CRS into pixel coordinates.
 
     Each transformer is associated with a particular RasterSource.
     """
-
-    def __init__(self,
-                 image_crs: Optional[str] = None,
-                 map_crs: Optional[str] = None,
-                 transform=None):
-        self.image_crs = image_crs
-        self.map_crs = map_crs
-        self.transform = transform
 
     def map_to_pixel(self, map_point):
         """Transform point from map to pixel-based coordinates.

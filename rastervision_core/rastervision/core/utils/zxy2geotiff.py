@@ -16,13 +16,13 @@ from rastervision.core.utils.cog import create_cog
 def lnglat2merc(lng, lat):
     """Convert lng, lat point to x/y Web Mercator tuple."""
     return pyproj.transform(
-        pyproj.Proj(init='epsg:4326'), pyproj.Proj(init='epsg:3857'), lng, lat)
+        pyproj.Proj('epsg:4326'), pyproj.Proj('epsg:3857'), lng, lat)
 
 
 def merc2lnglat(x, y):
     """Convert x, y Web Mercator point to lng/lat tuple."""
     return pyproj.transform(
-        pyproj.Proj(init='epsg:3857'), pyproj.Proj(init='epsg:4326'), x, y)
+        pyproj.Proj('epsg:3857'), pyproj.Proj('epsg:4326'), x, y)
 
 
 def merc2pixel(tile_x, tile_y, zoom, merc_x, merc_y, tile_sz=256):
