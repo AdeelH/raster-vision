@@ -57,7 +57,7 @@ class PyTorchSemanticSegmentationSampleWriter(PyTorchLearnerSampleWriter):
         label_arr = sample.labels.get_label_arr(sample.window).astype(np.uint8)
 
         img_fmt, label_fmt = self.img_format, self.label_format
-        sample_name = f'{sample.scene_id}-{self.sample_ind}'
+        sample_name = f'{sample.scene_id}---{self.sample_ind:06d}'
 
         # write image
         img_filename = f'{sample_name}.{img_fmt}'
