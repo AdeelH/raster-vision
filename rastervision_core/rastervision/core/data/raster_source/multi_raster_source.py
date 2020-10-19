@@ -1,11 +1,11 @@
-from typing import Optional, Sequence, Tuple
+from typing import Optional, Sequence
 from pydantic import conint
 
 import numpy as np
 
 from rastervision.core.box import Box
 from rastervision.core.data import ActivateMixin
-from rastervision.core.data.raster_source import RasterSource
+from rastervision.core.data.raster_source import (RasterSource, CropOffsets)
 from rastervision.core.data.crs_transformer import CRSTransformer
 from rastervision.core.data.utils import all_equal
 
@@ -19,16 +19,15 @@ class MultiRasterSource(ActivateMixin, RasterSource):
     their output along the channel dimension (assumed to be the last dimension).
     """
 
-    def __init__(
-            self,
-            raster_sources: Sequence[RasterSource],
-            raw_channel_order: Sequence[conint(ge=0)],
-            allow_different_extents: bool = False,
-            force_same_dtype: bool = False,
-            channel_order: Optional[Sequence[conint(ge=0)]] = None,
-            crs_source: conint(ge=0) = 0,
-            raster_transformers: Sequence = [],
-            extent_crop: Optional[Tuple[float, float, float, float]] = None):
+    def __init__(self,
+                 raster_sources: Sequence[RasterSource],
+                 raw_channel_order: Sequence[conint(ge=0)],
+                 allow_different_extents: bool = False,
+                 force_same_dtype: bool = False,
+                 channel_order: Optional[Sequence[conint(ge=0)]] = None,
+                 crs_source: conint(ge=0) = 0,
+                 raster_transformers: Sequence = [],
+                 extent_crop: Optional[CropOffsets] = None):
         """Constructor.
 
         Args:
@@ -49,7 +48,7 @@ class MultiRasterSource(ActivateMixin, RasterSource):
                 that will be used by .get_chip(). Defaults to None.
             raster_transformers (Sequence, optional): Sequence of transformers.
                 Defaults to [].
-            extent_crop (Tuple[float, float, float, float], optional): Relative
+            extent_crop (CropOffsets, optional): Relative
                 offsets (top, left, bottom, right) for cropping the extent.
                 Useful for using splitting a scene into different datasets.
                 Defaults to None i.e. no cropping.

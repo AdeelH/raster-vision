@@ -50,8 +50,9 @@ class TestRasterioSource(unittest.TestCase):
         f = 1 / 4
         cfg_crop = make_cfg('small-rgb-tile.tif', extent_crop=(f, f, f, f))
         rs_crop = cfg_crop.build(tmp_dir=self.tmp_dir)
-        extent_crop = rs_crop.get_extent()
 
+        # test extent box
+        extent_crop = rs_crop.get_extent()
         self.assertEqual(extent_crop.ymin, 64)
         self.assertEqual(extent_crop.xmin, 64)
         self.assertEqual(extent_crop.ymax, 192)
@@ -86,6 +87,12 @@ class TestRasterioSource(unittest.TestCase):
         self.assertRaises(
             ValidationError,
             lambda: make_cfg('small-rgb-tile.tif', extent_crop=extent_crop))
+
+        # test extent_crop=None
+        try:
+            _ = make_cfg('small-rgb-tile.tif', extent_crop=None)  # noqa
+        except Exception:
+            self.fail('extent_crop=None caused an error.')
 
 
 if __name__ == '__main__':
