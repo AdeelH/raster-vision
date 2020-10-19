@@ -1,5 +1,5 @@
-from typing import List, Optional, NamedTuple
-from pydantic.utils import sequence_like
+from typing import List, Optional
+from pydantic.dataclasses import dataclass
 
 from rastervision.pipeline.config import (Config, register_config, Field,
                                           validator, ConfigError)
@@ -7,7 +7,8 @@ from rastervision.core.data.raster_transformer import RasterTransformerConfig
 from rastervision.core.utils.misc import Proportion
 
 
-class CropOffsets(NamedTuple):
+@dataclass
+class CropOffsets:
     """Tuple of relative offsets.
 
     Args:
@@ -21,6 +22,10 @@ class CropOffsets(NamedTuple):
     skip_left: Proportion = 0.
     skip_bottom: Proportion = 0.
     skip_right: Proportion = 0.
+
+    def __iter__(self):
+        return iter((self.skip_top, self.skip_left, self.skip_bottom,
+                     self.skip_right))
 
 
 @register_config('raster_source')
@@ -53,14 +58,7 @@ class RasterSourceConfig(Config):
     def validate_extent_crop(cls, v):
         if v is None:
             return v
-
-        # Workaround to make pydantic's serialization/de-serialization
-        # work correctly.
-        if sequence_like(v[0]):
-            v = tuple(v[0])
-
         skip_top, skip_left, skip_bottom, skip_right = v
-
         if skip_top + skip_bottom >= 1:
             raise ConfigError(
                 'Invalid crop. skip_top + skip_bottom must be less than 1.')
