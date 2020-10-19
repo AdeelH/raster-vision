@@ -1,4 +1,5 @@
 from typing import List, Optional, NamedTuple
+from pydantic.utils import sequence_like
 
 from rastervision.pipeline.config import (Config, register_config, Field,
                                           validator, ConfigError)
@@ -52,11 +53,18 @@ class RasterSourceConfig(Config):
     def validate_extent_crop(cls, v):
         if v is None:
             return v
+
+        # Workaround to make pydantic's serialization/de-serialization
+        # work correctly.
+        if sequence_like(v[0]):
+            v = tuple(v[0])
+
         skip_top, skip_left, skip_bottom, skip_right = v
+
         if skip_top + skip_bottom >= 1:
             raise ConfigError(
                 'Invalid crop. skip_top + skip_bottom must be less than 1.')
         if skip_left + skip_right >= 1:
             raise ConfigError(
                 'Invalid crop. skip_left + skip_right must be less than 1.')
-        return v
+        return CropOffsets(*v)
