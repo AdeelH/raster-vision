@@ -1,7 +1,6 @@
 from os.path import join
 from pathlib import Path
 import uuid
-from typing import Optional
 
 import numpy as np
 
@@ -21,7 +20,7 @@ class PyTorchSemanticSegmentationSampleWriter(PyTorchLearnerSampleWriter):
                  tmp_dir: str,
                  img_format: str = 'png',
                  label_format: str = 'png',
-                 img_dtype: Optional[str] = None):
+                 img_dtype: type = None):
         """Constructor.
 
         Args:
@@ -64,7 +63,7 @@ class PyTorchSemanticSegmentationSampleWriter(PyTorchLearnerSampleWriter):
         img_path = img_dir / img_filename
 
         if self.img_dtype is not None:
-            new_dtype = np.dtype(self.img_dtype)
+            new_dtype = self.img_dtype
             if np.issubdtype(new_dtype, np.unsignedinteger):
                 max_val = np.iinfo(new_dtype).max
                 img = img.clip(max=max_val)
