@@ -91,7 +91,7 @@ class RVPipeline(Pipeline):
                     log.info('Making {} chips for scene: {}'.format(
                         split, scene.id))
                     windows = self.get_train_windows(scene)
-                    for window in windows:
+                    for i, window in enumerate(windows):
                         chip = scene.raster_source.get_chip(window)
                         labels = self.get_train_labels(window, scene)
                         sample = DataSample(
@@ -102,6 +102,8 @@ class RVPipeline(Pipeline):
                             is_train=split == TRAIN)
                         sample = self.post_process_sample(sample)
                         writer.write_sample(sample)
+                        if (i + 1) % 500 == 0:
+                            log.info(f'chip count: {i + 1}')
 
             for s in dataset.train_scenes:
                 chip_scene(s.build(class_cfg, self.tmp_dir), TRAIN)
