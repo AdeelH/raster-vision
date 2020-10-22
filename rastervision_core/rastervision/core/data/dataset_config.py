@@ -32,7 +32,10 @@ class DatasetConfig(Config):
             for s in self.test_scenes:
                 s.update(pipeline=pipeline)
 
-        channel_order = self.train_scenes[0].raster_source.channel_order
+        channel_order = None
+        scenes = self.get_all_scenes()
+        if len(scenes) > 0:
+            channel_order = scenes[0].raster_source.channel_order
         if channel_order is not None:
             self.img_channels = len(channel_order)
 
