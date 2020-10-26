@@ -1,0 +1,4 @@
+#!/bin/bash
+
+export RV_ECR_IMAGE=raster-vision-ahassan;
+docker/build && docker/ecr_publish
