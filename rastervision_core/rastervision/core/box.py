@@ -35,9 +35,6 @@ class Box():
         """Return true if other has same coordinates."""
         return self.tuple_format() == other.tuple_format()
 
-    def __hash__(self):
-        return hash(self.tuple_format())
-
     def __ne__(self, other):
         """Return true if other has different coordinates."""
         return self.tuple_format() != other.tuple_format()
@@ -246,7 +243,7 @@ class Box():
     def make_copy(self):
         return Box(*(self.tuple_format()))
 
-    def get_windows(self, chip_sz, stride, allow_overflow=False):
+    def get_windows(self, chip_sz, stride):
         """Return list of grid of boxes within this box.
 
         Args:
@@ -255,11 +252,8 @@ class Box():
 
         """
         result = []
-        ymax, xmax = self.ymax, self.xmax
-        if not allow_overflow:
-            ymax, xmax = ymax - stride, xmax - stride
-        for row_start in range(self.ymin, ymax, stride):
-            for col_start in range(self.xmin, xmax, stride):
+        for row_start in range(self.ymin, self.ymax, stride):
+            for col_start in range(self.xmin, self.xmax, stride):
                 result.append(Box.make_square(row_start, col_start, chip_sz))
         return result
 
