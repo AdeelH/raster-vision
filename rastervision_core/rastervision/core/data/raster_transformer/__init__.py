@@ -10,3 +10,5 @@ from rastervision.core.data.raster_transformer.cast_transformer import *
 from rastervision.core.data.raster_transformer.cast_transformer_config import *
 from rastervision.core.data.raster_transformer.reclass_transformer import *
 from rastervision.core.data.raster_transformer.reclass_transformer_config import *
+from rastervision.core.data.raster_transformer.channel_transformer import *
+from rastervision.core.data.raster_transformer.channel_transformer_config import *
