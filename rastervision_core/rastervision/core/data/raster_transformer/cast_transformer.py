@@ -1,28 +1,24 @@
-import re
-
 from rastervision.core.data.raster_transformer.raster_transformer \
     import RasterTransformer
 
-import numpy as np  # noqa
+import numpy as np
 
 
 class CastTransformer(RasterTransformer):
-    """Removes Cast values from float raster
-    """
+    """ Casts chips to the specified dtype. """
 
-    def __init__(self, to_dtype: str = 'np.uint8'):
+    def __init__(self, to_dtype: str = 'uint8'):
         """Construct a new CastTransformer.
 
         Args:
             to_dtype: (str) Chips are casted to this dtype
         """
-        mo = re.search(r'np\.(u|)(int|float)[0-9]+', to_dtype)
-        if mo:
-            self.to_dtype = eval(mo.group(0))
-        else:
-            raise ValueError(f'Unsupported to_dtype {to_dtype}')
+        self.to_dtype = np.dtype(to_dtype)
 
-    def transform(self, chip, channel_order=None):
+    def __repr__(self):
+        return f'CastTransformer(to_dtype={self.to_dtype})'
+
+    def transform(self, chip: np.ndarray, channel_order=None):
         """Transform a chip.
 
         Cast chip to the specified dtype.

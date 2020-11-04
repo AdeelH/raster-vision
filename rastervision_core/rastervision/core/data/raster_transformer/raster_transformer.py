@@ -4,6 +4,9 @@ from abc import (ABC, abstractmethod)
 class RasterTransformer(ABC):
     """Transforms raw chips to be input to a neural network."""
 
+    def __call__(self, *args, **kwargs):
+        return self.transform(*args, **kwargs)
+
     @abstractmethod
     def transform(self, chip, channel_order=None):
         """Transform a chip of a raster source.
