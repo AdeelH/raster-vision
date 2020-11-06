@@ -1,4 +1,5 @@
 from typing import Optional, Sequence
+
 import numpy as np
 
 from rastervision.core.data.raster_transformer.raster_transformer \
@@ -41,22 +42,18 @@ class ChannelTransformer(RasterTransformer):
                 np.array(c)[np.newaxis, np.newaxis, :] for c in denom_coeffs
             ]
 
-    def transform(self, chip, channel_order=None):
+    def transform(self,
+                  chip: np.ndarray,
+                  channel_order: Optional[Sequence[int]] = None):
         """Transform a chip.
 
-        Applies the channel transformation.
-
         Args:
-            chip: ndarray of shape [height, width, channels] This is assumed to
-                already have the channel_order applied to it if channel_order
-                is set. In other words, channels should be equal to
-                len(channel_order).
+            chip (np.ndarray): uint8 array of shape [height, width, channels].
 
         Returns:
             [height, width, channels] numpy array
 
         """
-        dtype = chip.dtype
         chip = chip.astype(np.float32) / 255
 
         h, w = chip.shape[:2]
@@ -65,8 +62,12 @@ class ChannelTransformer(RasterTransformer):
         for i, (nc, dc) in enumerate(zip(numer_coeffs, denom_coeffs)):
             numer = (nc * chip).sum(axis=-1)
             denom = (dc * chip).sum(axis=-1) if dc is not None else 1.
-            out_chip[..., i] = numer / denom
+            out_slice = numer / (denom + 1e-6)
+            # normalize to [0, 1]
+            out_slice = (out_slice - out_slice.min()) / (
+                out_slice.max() - out_slice.min())
+            out_chip[..., i] = out_slice
 
         out_chip *= 255
-        out_chip = out_chip.astype(dtype)
+        out_chip = out_chip.astype(np.uint8)
         return out_chip
