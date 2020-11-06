@@ -53,4 +53,5 @@ def rgb_to_int_array(rgb_array):
 
 def all_equal(it: list):
     ''' Returns true if all elements are equal to each other '''
-    return it.count(it[0]) == len(it)
+    n = len(it)
+    return n == 0 or it.count(it[0]) == n

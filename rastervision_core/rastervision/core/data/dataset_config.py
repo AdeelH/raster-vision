@@ -40,6 +40,11 @@ class DatasetConfig(Config):
             self.img_channels = len(channel_order)
 
     def validate_config(self):
+        if len(self.get_all_scenes()) == 0:
+            raise ConfigError(
+                'train_scenes, validation_scenes, test_scenes cannot all be '
+                'empty.')
+
         ids = [s.id for s in self.train_scenes]
         if len(set(ids)) != len(ids):
             raise ConfigError('All training scene ids must be unique.')
@@ -52,7 +57,7 @@ class DatasetConfig(Config):
         self.ensure_same_channel_order()
 
     def ensure_same_channel_order(self):
-        all_scenes = self.train_scenes + self.validation_scenes + self.test_scenes
+        all_scenes = self.get_all_scenes()
         channel_orders = [s.raster_source.channel_order for s in all_scenes]
         if not all_equal(channel_orders):
             raise ConfigError('channel_order must be same for all scenes.')
