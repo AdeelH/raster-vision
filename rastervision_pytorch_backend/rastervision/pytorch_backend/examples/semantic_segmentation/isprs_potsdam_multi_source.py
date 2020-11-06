@@ -15,7 +15,8 @@ from rastervision.core.data import (
 
 from rastervision.pytorch_backend import (PyTorchSemanticSegmentationConfig,
                                           SemanticSegmentationModelConfig)
-from rastervision.pytorch_learner import (Backbone, SolverConfig)
+from rastervision.pytorch_learner import (Backbone, SolverConfig,
+                                          ExternalModuleConfig)
 from rastervision.pytorch_backend.examples.utils import (get_scene_info,
                                                          save_image_crop)
 
@@ -77,6 +78,9 @@ def get_config(runner,
                raw_uri: str,
                processed_uri: str,
                root_uri: str,
+               analyze_uri: str = None,
+               chip_uri: str = None,
+               external_model: bool = False,
                test: bool = False) -> SemanticSegmentationConfig:
     """Generate the pipeline config for this task. This function will be called
     by RV, with arguments from the command line, when this example is run.
@@ -113,6 +117,7 @@ def get_config(runner,
         make_scene, raw_uri, processed_uri, class_config, test_mode=test)
 
     dataset_config = DatasetConfig(
+        img_channels=5,
         class_config=class_config,
         train_scenes=[_make_scene(scene_id) for scene_id in train_ids],
         validation_scenes=[_make_scene(scene_id) for scene_id in val_ids])
@@ -120,7 +125,33 @@ def get_config(runner,
     # --------------------------------------------
     # Configure PyTorch backend and training
     # --------------------------------------------
-    model_config = SemanticSegmentationModelConfig(backbone=Backbone.resnet50)
+    img_sz = 256
+    BATCH_SIZE = 8
+    NUM_EPOCHS = 20
+    if external_model:
+        model_config = SemanticSegmentationModelConfig(
+            external_def=ExternalModuleConfig(
+                # github_repo='AdeelH/pytorch-efficientnet-deeplabv3',
+                # github_repo='AdeelH/pytorch-fpn',
+                uri='/home/adeel/pytorch-fpn',
+                force_reload=True,
+                name='pytorch-fpn',
+                # entrypoint='make_segm_fpn_efficientnet',
+                entrypoint='make_segm_fpn_resnet',
+                entrypoint_kwargs={
+                    # 'name': 'efficientnet_b4',
+                    'name': 'resnet18',
+                    'fpn_type': 'panoptic',
+                    'num_classes': len(class_config.names) + 1,
+                    # 'pretrained': 'imagenet',
+                    # 'pretrained': True,
+                    'fpn_channels': 256,
+                    'in_channels': 5,
+                    'out_size': (img_sz, img_sz)
+                }))
+    else:
+        model_config = SemanticSegmentationModelConfig(
+            backbone=Backbone.resnet50)
 
     solver_config = SolverConfig(
         lr=LR,
@@ -133,6 +164,7 @@ def get_config(runner,
     backend_config = PyTorchSemanticSegmentationConfig(
         model=model_config,
         solver=solver_config,
+        img_sz=img_sz,
         log_tensorboard=LOG_TENSORBOARD,
         run_tensorboard=RUN_TENSORBOARD,
         test_mode=test)
@@ -142,6 +174,8 @@ def get_config(runner,
     # -----------------------------------------------
     pipeline_config = SemanticSegmentationConfig(
         root_uri=root_uri,
+        analyze_uri=analyze_uri,
+        chip_uri=chip_uri,
         train_chip_sz=CHIP_SIZE,
         predict_chip_sz=CHIP_SIZE,
         chip_options=chip_options,

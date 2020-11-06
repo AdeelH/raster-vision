@@ -16,8 +16,12 @@ def get_config(runner,
                raw_uri,
                processed_uri,
                root_uri,
+               analyze_uri=None,
+               chip_uri=None,
+               bundle_uri=None,
                multiband=False,
                augment=False,
+               external_model=False,
                test=False):
     train_ids = [
         '2-10', '2-11', '3-10', '3-11', '4-10', '4-11', '4-12', '5-10', '5-11',
@@ -99,93 +103,84 @@ def get_config(runner,
     chip_options = SemanticSegmentationChipOptions(
         window_method=SemanticSegmentationWindowMethod.sliding, stride=chip_sz)
 
+    img_sz = 256
+    batch_sz = 8
+    if external_model:
+        model = SemanticSegmentationModelConfig(
+            external_def=ExternalModuleConfig(
+                # github_repo='AdeelH/pytorch-efficientnet-deeplabv3',
+                # github_repo='AdeelH/pytorch-fpn',
+                # uri='/home/adeel/pytorch-efficientnet-deeplabv3',
+                uri='/home/adeel/pytorch-fpn',
+                force_reload=True,
+                name='pytorch-fpn',
+                # entrypoint='make_segmentation_model',
+                # entrypoint='make_segm_fpn_efficientnet',
+                entrypoint='make_segm_fpn_resnet',
+                entrypoint_kwargs={
+                    'name': 'resnet18',
+                    # 'backbone_name': 'efficientnet_b4',
+                    # 'name': 'resnet50',
+                    'fpn_type': 'panoptic',
+                    'num_classes': len(class_config.names) + 1,
+                    # 'pretrained': 'imagenet',
+                    # 'pretrained': False,
+                    'fpn_channels': 256,
+                    'out_size': (img_sz, img_sz)
+                }))
+    else:
+        model = SemanticSegmentationModelConfig(backbone=Backbone.resnet50)
+
     if augment:
-        mu = np.array((0.485, 0.456, 0.406, 0.485))[:len(channel_order)]
-        std = np.array((0.229, 0.224, 0.225, 0.229))[:len(channel_order)]
-
-        if multiband:
-            # not all transforms work with more than 3 channels, here are
-            # some of the ones that do
-            aug_transform = A.Compose([
-                A.Flip(),
-                A.Transpose(),
-                A.RandomRotate90(),
-                A.ShiftScaleRotate(),
-                A.FancyPCA(),
+        aug_transform = A.Compose([
+            A.Flip(),
+            A.Transpose(),
+            A.RandomRotate90(),
+            A.ShiftScaleRotate(),
+            A.CLAHE(p=.2),
+            A.FancyPCA(p=.2),
+            A.ColorJitter(p=.5),
+            A.OneOf([
                 A.GaussNoise(),
-                A.OneOf([
-                    A.Blur(),
-                    A.MotionBlur(),
-                    A.Downscale(),
-                ]),
-                A.OneOf([
-                    A.GridDistortion(),
-                ]),
-                A.CoarseDropout(max_height=32, max_width=32, max_holes=5)
-            ])
-        else:
-            aug_transform = A.Compose([
-                A.Flip(),
-                A.Transpose(),
-                A.RandomRotate90(),
-                A.ShiftScaleRotate(),
-                A.OneOf([
-                    A.CLAHE(),
-                    A.FancyPCA(),
-                    A.HueSaturationValue(hue_shift_limit=10),
-                    A.RGBShift(),
-                    A.ToGray(),
-                    A.ToSepia(),
-                ]),
-                A.OneOf([
-                    A.RandomBrightness(),
-                    A.RandomGamma(),
-                ]),
-                A.OneOf([
-                    A.GaussNoise(),
-                    A.ISONoise(),
-                    A.RandomFog(),
-                ]),
-                A.OneOf([
-                    A.Blur(),
-                    A.MotionBlur(),
-                    A.ImageCompression(),
-                    A.Downscale(),
-                ]),
-                A.OneOf([
-                    A.GridDistortion(),
-                ]),
-                A.CoarseDropout(max_height=32, max_width=32, max_holes=5)
-            ])
+                A.ISONoise(),
+                A.RandomFog(),
+                A.Blur(),
+                A.MotionBlur(),
+                A.ImageCompression(),
+                A.Downscale(),
+            ]),
+            A.CoarseDropout(max_height=8, max_width=8, max_holes=5)
+        ])
 
-        base_transform = A.Normalize(mean=mu.tolist(), std=std.tolist())
-        plot_transform = A.Normalize(
-            mean=(-mu / std).tolist(),
-            std=(1 / std).tolist(),
-            max_pixel_value=1.)
         aug_transform = A.to_dict(aug_transform)
-        base_transform = A.to_dict(base_transform)
-        plot_transform = A.to_dict(plot_transform)
+        base_transform = None
+        plot_transform = None
     else:
         aug_transform = None
         base_transform = None
         plot_transform = None
 
     backend = PyTorchSemanticSegmentationConfig(
-        model=SemanticSegmentationModelConfig(backbone=Backbone.resnet50),
+        model=model,
         solver=SolverConfig(
-            lr=1e-4,
-            num_epochs=10,
-            test_num_epochs=2,
-            batch_sz=8,
-            test_batch_sz=2,
+            lr=1e-14,
+            num_epochs=1,
+            # test_num_epochs=1,
+            batch_sz=2,
+            # test_batch_sz=2,
             one_cycle=True),
         log_tensorboard=True,
         run_tensorboard=False,
         test_mode=test,
+        img_sz=img_sz,
         base_transform=base_transform,
         aug_transform=aug_transform,
-        plot_options=PlotOptions(transform=plot_transform))
+        plot_options=PlotOptions(transform=plot_transform),
+        group_uris=[
+            'rvexp/data/ss/output/chip/c855e319-134f-4d9c-85e2-93923a7470f0.zip',
+            'rvexp/data/ss/output/chip/fedd08d8-0098-40f1-9fb1-915d7ef43d3a.zip'
+        ],
+        group_train_sz_rel=[.25, .5])
 
     if multiband:
         channel_display_groups = {'RGB': (0, 1, 2), 'IR': (3, )}
@@ -194,9 +189,12 @@ def get_config(runner,
 
     return SemanticSegmentationConfig(
         root_uri=root_uri,
+        analyze_uri=analyze_uri,
+        chip_uri=chip_uri,
         dataset=dataset,
         backend=backend,
         channel_display_groups=channel_display_groups,
         train_chip_sz=chip_sz,
         predict_chip_sz=chip_sz,
-        chip_options=chip_options)
+        chip_options=chip_options,
+        chip_nodata_threshold=.5)
