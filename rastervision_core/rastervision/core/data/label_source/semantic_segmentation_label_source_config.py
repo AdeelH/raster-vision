@@ -25,6 +25,9 @@ class SemanticSegmentationLabelSourceConfig(LabelSourceConfig):
                                           extent)
         else:
             rs = self.raster_source.build(tmp_dir)
+
+        self.rgb_class_config.ensure_null_class()
+
         return SemanticSegmentationLabelSource(
             rs,
             class_config.get_null_class_id(),
