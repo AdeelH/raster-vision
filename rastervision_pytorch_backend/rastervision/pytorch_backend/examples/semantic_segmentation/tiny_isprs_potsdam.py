@@ -23,7 +23,7 @@ def get_config(runner: Runner, root_uri: str) -> SemanticSegmentationConfig:
         id='2_10',
         # configure the imagery raster data
         raster_source=RasterioSourceConfig(
-            uris=['img/2_10_RGBIR.tif'], channel_order=[0, 1, 2, 3]),
+            uris=['img/2_10_RGBIR.tif'], channel_order=[0, 1, 2]),
         # configure the ground truth label source - here, the labels are
         # specified as RGB images with colors identifying the class for each
         # pixel
@@ -35,7 +35,7 @@ def get_config(runner: Runner, root_uri: str) -> SemanticSegmentationConfig:
     val_scene = SceneConfig(
         id='6_12',
         raster_source=RasterioSourceConfig(
-            uris=['img/6_12_RGBIR.tif'], channel_order=[0, 1, 2, 3]),
+            uris=['img/6_12_RGBIR.tif'], channel_order=[0, 1, 2]),
         label_source=SemanticSegmentationLabelSourceConfig(
             rgb_class_config=class_config,
             raster_source=RasterioSourceConfig(uris=['label/6_12_label.tif'])),
@@ -57,11 +57,7 @@ def get_config(runner: Runner, root_uri: str) -> SemanticSegmentationConfig:
         # stride of 300 pixels
         # Tip: you can also specify different window opts for each scene!
         window_opts=GeoDataWindowConfig(
-            method=GeoDataWindowMethod.sliding, size=300, stride=300),
-        channel_display_groups={
-            'RGB': [0, 1, 2],
-            'IR': [3]
-        })
+            method=GeoDataWindowMethod.sliding, size=300, stride=300))
 
     # configure the pytorch backend
     backend_config = PyTorchSemanticSegmentationConfig(
