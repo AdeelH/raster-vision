@@ -1,6 +1,5 @@
 # flake8: noqa
 
-import os
 from os.path import join
 
 from rastervision.core.rv_pipeline import *
@@ -9,8 +8,6 @@ from rastervision.core.data import *
 from rastervision.core.analyzer import *
 from rastervision.pytorch_backend import *
 from rastervision.pytorch_learner import *
-from rastervision.pytorch_backend.examples.utils import (get_scene_info,
-                                                         save_image_crop)
 
 TRAIN_IDS = ['2_10']
 UNLABELED_IDS = [
@@ -41,7 +38,7 @@ def get_config(runner, raw_uri: str, processed_uri: str, root_uri: str,
     one_cycle = kwargs.get('one_cycle', True)
     external_loss = kwargs.get('external_loss', False)
 
-    num_workers = int(kwargs.get('batch_size', 4))
+    num_workers = int(kwargs.get('num_workers', 4))
 
     train_ids = kwargs.get('train_ids', TRAIN_IDS)
     if isinstance(train_ids, str):
@@ -52,7 +49,7 @@ def get_config(runner, raw_uri: str, processed_uri: str, root_uri: str,
 
     aoi_uris = kwargs.get('aoi_uris', '').split(',')
 
-    chip_sz = int(kwargs.get('batch_size', 300))
+    chip_sz = int(kwargs.get('chip_sz', 300))
     img_sz = chip_sz
 
     def make_scene(id: str, **kwargs) -> SceneConfig:
