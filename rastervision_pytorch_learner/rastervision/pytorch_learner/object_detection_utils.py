@@ -408,7 +408,12 @@ class MyFasterRCNN(nn.Module):
         # class_ids must start at 1, and there is an extra null class, so
         # that's why we add 2 to the num_class_ids
         self.model = FasterRCNN(
-            backbone, num_class_ids + 2, min_size=img_sz, max_size=img_sz)
+            backbone,
+            num_class_ids + 2,
+            min_size=img_sz,
+            max_size=img_sz,
+            image_mean=[0, 0, 0],
+            image_std=[1, 1, 1])
         self.subloss_names = [
             'total_loss', 'loss_box_reg', 'loss_classifier', 'loss_objectness',
             'loss_rpn_box_reg'
