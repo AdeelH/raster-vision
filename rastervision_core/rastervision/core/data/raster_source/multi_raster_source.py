@@ -7,6 +7,7 @@ from rastervision.core.box import Box
 from rastervision.core.data import ActivateMixin
 from rastervision.core.data.raster_source import (RasterSource, CropOffsets)
 from rastervision.core.data.crs_transformer import CRSTransformer
+from rastervision.core.data.raster_source.rasterio_source import RasterioSource
 from rastervision.core.data.utils import all_equal
 
 
@@ -59,12 +60,14 @@ class MultiRasterSource(ActivateMixin, RasterSource):
 
         super().__init__(channel_order, num_channels, raster_transformers)
 
-        self.allow_different_extents = allow_different_extents
         self.force_same_dtype = force_same_dtype
         self.raster_sources = raster_sources
         self.raw_channel_order = list(raw_channel_order)
         self.crs_source = crs_source
         self.extent_crop = extent_crop
+
+        self.extents = [rs.get_extent() for rs in self.raster_sources]
+        self.all_extents_equal = all_equal(self.extents)
 
         self.validate_raster_sources()
 
@@ -75,13 +78,13 @@ class MultiRasterSource(ActivateMixin, RasterSource):
                 'dtypes of all sub raster sources must be equal. '
                 f'Got: {dtypes} '
                 '(carfully consider using force_same_dtype)')
-
-        extents = [rs.get_extent() for rs in self.raster_sources]
-        if not self.allow_different_extents and not all_equal(extents):
-            raise MultiRasterSourceError(
-                'extents of all sub raster sources must be equal. '
-                f'Got: {extents} '
-                '(carefully consider using allow_different_extents)')
+        if not self.all_extents_equal:
+            all_rasterio_sources = all(
+                isinstance(rs, RasterioSource) for rs in self.raster_sources)
+            if not all_rasterio_sources:
+                raise MultiRasterSourceError(
+                    'Different extents are only supported '
+                    'for RasterioSource raster sources.')
 
         sub_num_channels = sum(
             len(rs.channel_order) for rs in self.raster_sources)
@@ -125,11 +128,26 @@ class MultiRasterSource(ActivateMixin, RasterSource):
         Returns:
             [height, width, channels] numpy array
         """
-        chip_slices = [rs._get_chip(window) for rs in self.raster_sources]
+        if self.all_extents_equal:
+            chip_slices = [rs._get_chip(window) for rs in self.raster_sources]
+        else:
+            primary_rs = self.raster_sources[0]
+            chip_slice = primary_rs._get_chip(window)
+            out_shape = chip_slice.shape
+            world_window = primary_rs.get_transformed_window(window)
+            local_windows = [
+                rs.get_transformed_window(world_window, inverse=True)
+                for rs in self.raster_sources[1:]
+            ]
+            chip_slices = [chip_slice] + [
+                rs._get_chip(w, out_shape=out_shape)
+                for rs, w in zip(self.raster_sources[1:], local_windows)
+            ]
 
         if self.force_same_dtype:
+            dtype = chip_slices[0].dtype
             for i in range(1, len(chip_slices)):
-                chip_slices[i] = chip_slices[i].astype(chip_slices[0].dtype)
+                chip_slices[i] = chip_slices[i].astype(dtype)
 
         chip = np.concatenate(chip_slices, axis=-1)
         chip = chip[..., self.raw_channel_order]
@@ -148,11 +166,26 @@ class MultiRasterSource(ActivateMixin, RasterSource):
         Returns:
             np.ndarray with shape [height, width, channels]
         """
-        chip_slices = [rs.get_chip(window) for rs in self.raster_sources]
+        if self.all_extents_equal:
+            chip_slices = [rs.get_chip(window) for rs in self.raster_sources]
+        else:
+            primary_rs = self.raster_sources[0]
+            chip_slice = primary_rs.get_chip(window)
+            out_shape = chip_slice.shape[:2]
+            world_window = primary_rs.get_transformed_window(window)
+            local_windows = [
+                rs.get_transformed_window(world_window, inverse=True)
+                for rs in self.raster_sources[1:]
+            ]
+            chip_slices = [chip_slice] + [
+                rs.get_chip(w, out_shape=out_shape)
+                for rs, w in zip(self.raster_sources[1:], local_windows)
+            ]
 
         if self.force_same_dtype:
+            dtype = chip_slices[0].dtype
             for i in range(1, len(chip_slices)):
-                chip_slices[i] = chip_slices[i].astype(chip_slices[0].dtype)
+                chip_slices[i] = chip_slices[i].astype(dtype)
 
         chip = np.concatenate(chip_slices, axis=-1)
         chip = chip[..., self.raw_channel_order]
