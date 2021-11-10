@@ -969,7 +969,10 @@ class Learner(ABC):
         plt.savefig(output_path)
         plt.close()
 
-    def plot_predictions(self, split: str, batch_limit: Optional[int] = None):
+    def plot_predictions(self,
+                         split: str,
+                         batch_limit: Optional[int] = None,
+                         epoch: Optional[int] = None):
         """Plot predictions for a split.
 
         Uses the first batch for the corresponding DataLoader.
@@ -980,7 +983,11 @@ class Learner(ABC):
         """
         log.info('Plotting predictions...')
         dl = self.get_dataloader(split)
-        output_path = join(self.output_dir, '{}_preds.png'.format(split))
+        if epoch is not None and split in ('train', 'valid'):
+            output_path = join(self.output_dir, f'{split}_preds',
+                               f'{epoch:03d}.png')
+        else:
+            output_path = join(self.output_dir, '{}_preds.png'.format(split))
         x, y, z = self.predict_dataloader(dl, one_batch=True)
         self.plot_batch(x, y, output_path, z=z, batch_limit=batch_limit)
 
@@ -1253,6 +1260,11 @@ class Learner(ABC):
 
         if (curr_epoch + 1) % self.cfg.solver.sync_interval == 0:
             self.sync_to_cloud()
+
+        self.plot_predictions(
+            'train', self.preview_batch_limit, epoch=curr_epoch)
+        self.plot_predictions(
+            'valid', self.preview_batch_limit, epoch=curr_epoch)
 
     def eval_model(self, split: str):
         """Evaluate model using a particular dataset split.
