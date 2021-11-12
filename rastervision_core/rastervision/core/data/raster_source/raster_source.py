@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 
+from rastervision.core.box import Box
+
 
 class ChannelOrderError(Exception):
     def __init__(self, channel_order, num_channels):
@@ -116,3 +118,24 @@ class RasterSource(ABC):
         Not safe to call on very large RasterSources.
         """
         return self.get_raw_chip(self.get_extent())
+
+    def get_transformed_window(self, window: Box,
+                               inverse: bool = False) -> Box:
+        """Apply the CRS transform to the window.
+
+        Args:
+            window (Box): A window in pixel coordinates.
+
+        Returns:
+            Box: A window in world coordinates.
+        """
+        crs_transformer = self.get_crs_transformer()
+        if inverse:
+            tf = crs_transformer.map_to_pixel
+        else:
+            tf = crs_transformer.pixel_to_map
+        ymin, xmin, ymax, xmax = window
+        xmin, ymin = tf((xmin, ymin))
+        xmax, ymax = tf((xmax, ymax))
+        window = Box(ymin, xmin, ymax, xmax)
+        return window
