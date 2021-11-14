@@ -41,6 +41,8 @@ class Scene(ActivateMixin):
 
     def __getitem__(self, window: Box) -> Tuple[Any, Any]:
         x = self.raster_source[window]
+        if self.label_source is None:
+            return x
         y = self.label_source[window]
         return x, y
 
