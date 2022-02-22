@@ -80,7 +80,7 @@ do
         ;;
         --jupyter)
         JUPYTER="-v ${RASTER_VISION_NOTEBOOK_DIR}:/opt/notebooks -p 8888:8888"
-        CMD=(jupyter notebook --ip 0.0.0.0 --port 8888 --no-browser --allow-root --notebook-dir=/opt/notebooks)
+        CMD=(jupyter notebook --ip 0.0.0.0 --port 8888 --no-browser --allow-root --notebook-dir=/opt/notebooks --NotebookApp.token='ogc2022')
         shift
         ;;
         --docs)
