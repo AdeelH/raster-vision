@@ -191,7 +191,7 @@ class Learner(ABC):
             if cfg.overfit_mode:
                 self.overfit()
             else:
-                if self.sys_info['CUDA device count'] <= 0:
+                if self.sys_info['CUDA device count'] <= 1:
                     self.setup_model(
                         model_def_path=self.model_def_path,
                         model_weights_path=self.get_model_weights_path())
@@ -200,7 +200,7 @@ class Learner(ABC):
                 else:
                     mp.spawn(
                         self.train_worker,
-                        nprocs=torch.cuda.current_device(),
+                        nprocs=self.sys_info['CUDA device count'],
                         join=True)
 
             if cfg.save_model_bundle:
