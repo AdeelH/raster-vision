@@ -1,6 +1,8 @@
 from os.path import join, isfile, basename, isdir
 import csv
 import warnings
+
+from rastervision.pipeline.file_system.utils import file_exists
 warnings.filterwarnings('ignore')  # noqa
 import time
 import datetime
@@ -32,6 +34,11 @@ from torch.utils.data import DataLoader, Subset, Dataset, ConcatDataset, Sampler
 import albumentations as A
 import numpy as np
 
+import torch.multiprocessing as mp
+import torch.distributed as dist
+from torch.nn.parallel import DistributedDataParallel as DDP
+from torch.distributed.algorithms.join import Join
+
 from rastervision.pipeline.file_system import (
     sync_to_dir, json_to_file, file_to_json, make_dir, zipdir,
     download_if_needed, sync_from_dir, get_local_path, unzip, list_paths,
@@ -52,43 +59,38 @@ log = logging.getLogger(__name__)
 MetricDict = Dict[str, float]
 
 
-def log_system_details():
+def get_system_details() -> dict:
     """Log some system details."""
+    info = {}
     # CPUs
-    log.info(f'Physical CPUs: {psutil.cpu_count(logical=False)}')
-    log.info(f'Logical CPUs: {psutil.cpu_count(logical=True)}')
+    info['Physical CPUs'] = psutil.cpu_count(logical=False)
+    info['Logical CPUs'] = psutil.cpu_count(logical=True)
     # memory usage
     mem_stats = psutil.virtual_memory()._asdict()
-    log.info(f'Total memory: {mem_stats["total"] / 2**30: .2f} GB')
+    info['Total memory'] = f'{mem_stats["total"] / 2**30: .2f} GB'
     # disk usage
     disk_stats = psutil.disk_usage('/opt/data')._asdict()
-    log.info(
-        f'Size of /opt/data volume: {disk_stats["total"] / 2**30: .2f} GB')
+    info['Size of /opt/data volume'] = (
+        f'{disk_stats["total"] / 2**30: .2f} GB')
     # python
-    log.info(f'Python version: {sys.version}')
-    # nvidia GPU
+    info['Python version'] = sys.version
+    # pytorch and CUDA
+    info['PyTorch version'] = torch.__version__
+    info['CUDA available'] = torch.cuda.is_available()
+    if info['CUDA available']:
+        info['CUDA version'] = torch.version.cuda
+        info['CUDNN version'] = torch.backends.cudnn.version()
+        info['CUDA device count'] = torch.cuda.device_count()
+        info['Active CUDA Device'] = f'GPU {torch.cuda.current_device()}'
+    # nvidia
     try:
         with os.popen('nvcc --version') as f:
-            log.info(f.read())
+            info['nvcc --version'] = (f.read())
         with os.popen('nvidia-smi') as f:
-            log.info(f.read())
-        log.info('Devices:')
-        device_query = ' '.join([
-            'nvidia-smi', '--format=csv',
-            '--query-gpu=index,name,driver_version,memory.total,memory.used,memory.free'
-        ])
-        with os.popen(device_query) as f:
-            log.info(f.read())
+            info['nvidia-smi'] = (f.read())
     except FileNotFoundError:
         pass
-    # pytorch and CUDA
-    log.info(f'PyTorch version: {torch.__version__}')
-    log.info(f'CUDA available: {torch.cuda.is_available()}')
-    log.info(f'CUDA version: {torch.version.cuda}')
-    log.info(f'CUDNN version: {torch.backends.cudnn.version()}')
-    log.info(f'Number of CUDA devices: {torch.cuda.device_count()}')
-    if torch.cuda.is_available():
-        log.info(f'Active CUDA Device: GPU {torch.cuda.current_device()}')
+    return info
 
 
 class Learner(ABC):
@@ -117,6 +119,7 @@ class Learner(ABC):
             cfg (LearnerConfig): Configuration.
             tmp_dir (str): Root of temp dirs.
             model_path (str, optional): A local path to model weights.
+                Takes precedence over LearnerConfig.init_weights_path.
                 Defaults to None.
             model_def_path (str, optional): A local path to a directory with a
                 hubconf.py. If provided, the model definition is imported from
@@ -129,17 +132,22 @@ class Learner(ABC):
                 and the loss function, optimizer, etc. are not initialized.
                 Defaults to True.
         """
-        log_system_details()
+        self.sys_info = get_system_details()
+        for k, v in self.sys_info.items():
+            log.info(f'{k}: {v}')
 
         self.cfg = cfg
         self.tmp_dir = tmp_dir
 
         self.preview_batch_limit = self.cfg.data.preview_batch_limit
+        self.model_weights_path = model_path
+        self.model_def_path = model_def_path
+        self.loss_def_path = loss_def_path
 
         # TODO make cache dirs configurable
         torch_cache_dir = '/opt/data/torch-cache'
         os.environ['TORCH_HOME'] = torch_cache_dir
-        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        self.device = 'cuda' if self.sys_info['CUDA device count'] else 'cpu'
         self.data_cache_dir = '/opt/data/data-cache'
         make_dir(self.data_cache_dir)
 
@@ -154,21 +162,12 @@ class Learner(ABC):
                 self.sync_from_cloud()
 
         self.modules_dir = join(self.output_dir, MODULES_DIRNAME)
-
-        self.setup_model(model_def_path=model_def_path)
-
-        if model_path is not None:
-            if isfile(model_path):
-                log.info(f'Loading model weights from: {model_path}')
-                self.model.load_state_dict(
-                    torch.load(model_path, map_location=self.device))
-            else:
-                raise Exception(
-                    'Model could not be found at {}'.format(model_path))
-        if training:
-            self.setup_training(loss_def_path=loss_def_path)
-        else:
-            self.model.eval()
+        self.config_path = join(self.output_dir, 'learner-config.json')
+        self.log_path = join(self.output_dir, 'log.csv')
+        self.train_state_path = join(self.output_dir, 'train-state.json')
+        self.model_bundle_path = join(
+            self.output_dir, basename(self.cfg.get_model_bundle_uri()))
+        self.last_model_path = join(self.output_dir, 'last-model.pth')
 
     def main(self):
         """Main training sequence.
@@ -176,57 +175,65 @@ class Learner(ABC):
         This plots the dataset, runs a training and validation loop (which will resume if
         interrupted), logs stats, plots predictions, and syncs results to the cloud.
         """
-        self.run_tensorboard()
         cfg = self.cfg
+        log.info(cfg)
+        log.info(f'Using device: {self.device}')
+        str_to_file(cfg.json(), self.config_path)
+
+        self.setup_data()
         self.log_data_stats()
+
+        self.setup_tensorboard()
+        self.run_tensorboard()
+
         if not cfg.predict_mode:
             self.plot_dataloaders(self.preview_batch_limit)
             if cfg.overfit_mode:
                 self.overfit()
             else:
-                self.train()
-                if cfg.save_model_bundle:
-                    self.save_model_bundle()
+                if self.sys_info['CUDA device count'] <= 0:
+                    self.setup_model(
+                        model_def_path=self.model_def_path,
+                        model_weights_path=self.get_model_weights_path())
+                    self.setup_training(loss_def_path=self.loss_def_path)
+                    self.train()
+                else:
+                    mp.spawn(
+                        self.train_worker,
+                        nprocs=torch.cuda.current_device(),
+                        join=True)
 
-        self.load_checkpoint()
+            if cfg.save_model_bundle:
+                self.save_model_bundle()
+
         if cfg.eval_train:
             self.eval_model('train')
         self.eval_model('test')
+
         self.sync_to_cloud()
         self.stop_tensorboard()
 
+    def train_worker(self, rank: int):
+        os.environ['MASTER_ADDR'] = 'localhost'
+        os.environ['MASTER_PORT'] = '29500'
+        dist.init_process_group(
+            "nccl", rank=rank, world_size=self.sys_info['CUDA device count'])
+        self.setup_model(
+            model_def_path=self.model_def_path,
+            model_weights_path=self.get_model_weights_path())
+        self.model = DDP(self.model, device_ids=[rank])
+        self.setup_training(loss_def_path=self.loss_def_path)
+        with Join([self.model]):
+            self.train()
+
     def setup_training(self, loss_def_path=None):
-        log.info(self.cfg)
-        log.info(f'Using device: {self.device}')
-
-        # ds = dataset, dl = dataloader
-        self.train_ds = None
-        self.train_dl = None
-        self.valid_ds = None
-        self.valid_dl = None
-        self.test_ds = None
-        self.test_dl = None
-
-        self.config_path = join(self.output_dir, 'learner-config.json')
-        str_to_file(self.cfg.json(), self.config_path)
-
-        self.log_path = join(self.output_dir, 'log.csv')
-        self.train_state_path = join(self.output_dir, 'train-state.json')
-        model_bundle_fname = basename(self.cfg.get_model_bundle_uri())
-        self.model_bundle_path = join(self.output_dir, model_bundle_fname)
         self.metric_names = self.build_metric_names()
-
-        self.last_model_path = join(self.output_dir, 'last-model.pth')
-        self.load_checkpoint()
-
         self.setup_loss(loss_def_path=loss_def_path)
         self.opt = self.build_optimizer()
-        self.setup_data()
         self.start_epoch = self.get_start_epoch()
         self.steps_per_epoch = len(self.train_ds) // self.cfg.solver.batch_sz
         self.step_scheduler = self.build_step_scheduler()
         self.epoch_scheduler = self.build_epoch_scheduler()
-        self.setup_tensorboard()
 
     def sync_to_cloud(self):
         """Sync any output to the cloud at output_uri."""
@@ -261,7 +268,9 @@ class Learner(ABC):
             if self.cfg.run_tensorboard:
                 self.tb_process.terminate()
 
-    def setup_model(self, model_def_path: Optional[str] = None) -> None:
+    def setup_model(self,
+                    model_def_path: Optional[str] = None,
+                    model_weights_path: Optional[str] = None) -> None:
         """Setup self.model.
 
         Args:
@@ -272,9 +281,33 @@ class Learner(ABC):
         if ext_cfg is not None:
             self.model = self.load_external_model(ext_cfg, model_def_path)
         else:
+            if model_weights_path is not None:
+                log.warn(
+                    f'Model weights will be loaded from {model_weights_path} '
+                    'and ModelConfig.pretrained will be ignored while '
+                    'building the model.')
+                self.cfg.model.pretrained = False
             self.model = self.build_model()
         self.model.to(self.device)
-        self.load_init_weights()
+
+        if model_weights_path is not None:
+            self.load_weights(
+                model_weights_path,
+                load_sd_kwargs={'strict': self.cfg.model.load_strict})
+
+    def get_model_weights_path(self) -> Optional[str]:
+        if (self.last_model_path is not None
+                and file_exists(self.last_model_path)):
+            # from checkpoint
+            return self.last_model_path
+        elif self.model_weights_path is not None:
+            # from model bundle
+            return self.model_weights_path
+        elif self.cfg.model.init_weights is not None:
+            # from learner config
+            return self.cfg.model.init_weights
+        else:
+            return None
 
     @abstractmethod
     def build_model(self) -> nn.Module:
@@ -610,6 +643,14 @@ class Learner(ABC):
         cfg = self.cfg
         batch_sz = self.cfg.solver.batch_sz
         num_workers = self.cfg.data.num_workers
+
+        # ds = dataset, dl = dataloader
+        self.train_ds = None
+        self.train_dl = None
+        self.valid_ds = None
+        self.valid_dl = None
+        self.test_ds = None
+        self.test_dl = None
 
         train_ds, valid_ds, test_ds = self.get_datasets()
         if len(train_ds) < batch_sz:
@@ -1148,21 +1189,16 @@ class Learner(ABC):
             start_epoch = last_epoch + 1
         return start_epoch
 
-    def load_init_weights(self):
-        """Load the weights to initialize model."""
-        if self.cfg.model.init_weights:
-            weights_path = download_if_needed(self.cfg.model.init_weights,
-                                              self.tmp_dir)
-            self.model.load_state_dict(
-                torch.load(weights_path, map_location=self.device),
-                strict=self.cfg.model.load_strict)
+    def load_weights(self, path: str, **kwargs) -> None:
+        log.info(f'Loading model weights from {self.last_model_path}')
 
-    def load_checkpoint(self):
-        """Load last weights from previous run if available."""
-        if isfile(self.last_model_path):
-            log.info('Loading checkpoint from {}'.format(self.last_model_path))
-            self.model.load_state_dict(
-                torch.load(self.last_model_path, map_location=self.device))
+        load_kwargs = kwargs.get('load_kwargs', {})
+        load_sd_kwargs = kwargs.get('load_sd_kwargs', {})
+
+        local_path = download_if_needed(path, self.tmp_dir)
+        self.model.load_state_dict(
+            torch.load(local_path, map_location=self.device, **load_kwargs),
+            **load_sd_kwargs)
 
     def to_device(self, x: Any, device: str) -> Any:
         """Load Tensors onto a device.
