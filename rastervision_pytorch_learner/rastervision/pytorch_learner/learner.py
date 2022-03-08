@@ -180,14 +180,10 @@ class Learner(ABC):
         log.info(f'Using device: {self.device}')
         str_to_file(cfg.json(), self.config_path)
 
-        self.setup_data()
-        self.log_data_stats()
-
         self.setup_tensorboard()
         self.run_tensorboard()
 
         if not cfg.predict_mode:
-            self.plot_dataloaders(self.preview_batch_limit)
             if cfg.overfit_mode:
                 self.overfit()
             else:
@@ -198,6 +194,7 @@ class Learner(ABC):
                     self.setup_training(loss_def_path=self.loss_def_path)
                     self.train()
                 else:
+                    self.cfg = self.cfg.dict()
                     mp.spawn(
                         self.train_worker,
                         nprocs=self.sys_info['CUDA device count'],
@@ -218,6 +215,9 @@ class Learner(ABC):
         os.environ['MASTER_PORT'] = '29500'
         dist.init_process_group(
             "nccl", rank=rank, world_size=self.sys_info['CUDA device count'])
+        self.setup_data()
+        self.log_data_stats()
+        self.cfg = build_config(self.cfg)
         self.setup_model(
             model_def_path=self.model_def_path,
             model_weights_path=self.get_model_weights_path())
