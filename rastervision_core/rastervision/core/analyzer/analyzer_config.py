@@ -1,4 +1,4 @@
-from typing import List, TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Iterable, Tuple
 
 from rastervision.pipeline.config import register_config, Config
 
@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 
 @register_config('analyzer')
 class AnalyzerConfig(Config):
-    def build(self) -> 'Analyzer':
+    def build(self, scene_group: Tuple[str, Iterable[str]]) -> 'Analyzer':
         pass
 
     def get_bundle_filenames(self) -> List[str]:
