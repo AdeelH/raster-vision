@@ -17,7 +17,9 @@ from rastervision.core.data.label_source import SegmentationClassTransformer
 from rastervision.core.data.raster_source import RasterioSourceConfig
 
 if TYPE_CHECKING:
-    from rastervision.core.data import VectorOutputConfig
+    from rastervision.core.data import (VectorOutputConfig,
+                                        SemanticSegmentationDiscreteLabels,
+                                        SemanticSegmentationSmoothLabels)
 
 log = logging.getLogger(__name__)
 
@@ -116,6 +118,17 @@ class SemanticSegmentationLabelStore(LabelStore):
         Returns:
             SemanticSegmentationLabels
         """
+        if self.smooth_output:
+            return self.get_scores()
+        else:
+            return self.get_discrete_labels()
+
+    def get_discrete_labels(self) -> 'SemanticSegmentationDiscreteLabels':
+        """Get all labels.
+
+        Returns:
+            SemanticSegmentationLabels
+        """
         if self.label_raster_source is None:
             raise FileNotFoundError(
                 f'Raster source at {self.label_uri} does not exist.')
@@ -127,11 +140,11 @@ class SemanticSegmentationLabelStore(LabelStore):
         else:
             label_arr = self.class_transformer.rgb_to_class(raw_labels)
 
-        labels = self.empty_labels()
+        labels = self.empty_labels(smooth=False)
         labels[extent] = label_arr
         return labels
 
-    def get_scores(self) -> SemanticSegmentationLabels:
+    def get_scores(self) -> 'SemanticSegmentationSmoothLabels':
         """Get all scores.
 
         Returns:
@@ -158,7 +171,7 @@ class SemanticSegmentationLabelStore(LabelStore):
             score_arr = score_arr.astype(np.float16)
             score_arr /= 255
 
-        labels = self.empty_labels()
+        labels: 'SemanticSegmentationSmoothLabels' = self.empty_labels()
         labels.pixel_scores = score_arr * hits_arr
         labels.pixel_hits = hits_arr
         return labels
@@ -332,12 +345,15 @@ class SemanticSegmentationLabelStore(LabelStore):
                 str_to_file(geojson, uri)
                 upload_or_copy(uri, vo.uri)
 
-    def empty_labels(self) -> SemanticSegmentationLabels:
+    def empty_labels(self, **kwargs) -> SemanticSegmentationLabels:
         """Returns an empty SemanticSegmentationLabels object."""
-        labels = SemanticSegmentationLabels.build(
-            smooth=self.smooth_output,
-            extent=self.extent,
-            num_classes=len(self.class_config))
+        args = {
+            'smooth': self.smooth_output,
+            'extent': self.extent,
+            'num_classes': len(self.class_config),
+        }
+        args.update(**kwargs)
+        labels = SemanticSegmentationLabels.build(**args)
         return labels
 
     def _write_array(self, dataset: rio.DatasetReader, window: Box,
