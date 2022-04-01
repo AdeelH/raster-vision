@@ -65,16 +65,21 @@ class RVPipeline(Pipeline):
 
     def analyze(self):
         """Run each analyzer over training scenes."""
-        class_config = self.config.dataset.class_config
-        scenes = [
+        dataset = self.config.dataset
+        class_config = dataset.class_config
+        all_scenes = [
             s.build(class_config, self.tmp_dir, use_transformers=False)
-            for s in self.config.dataset.train_scenes
+            for s in dataset.all_scenes
         ]
-        analyzers = [a.build() for a in self.config.analyzers]
-        for analyzer in analyzers:
-            log.info('Running analyzers: {}...'.format(
-                type(analyzer).__name__))
-            analyzer.process(scenes, self.tmp_dir)
+        # build and run each AnalyzerConfig for each scene group
+        for a in self.config.analyzers:
+            for group_name, group_ids in dataset.scene_groups.items():
+                group_scenes = [s for s in all_scenes if s.id in group_ids]
+                analyzer = a.build(scene_group=(group_name, group_scenes))
+
+                log.info(f'Running {type(analyzer).__name__} on '
+                         f'scene group {group_name}...')
+                analyzer.process(group_scenes, self.tmp_dir)
 
     def get_train_windows(self, scene: Scene) -> List[Box]:
         """Return the training windows for a Scene.
@@ -230,16 +235,31 @@ class RVPipeline(Pipeline):
 
     def eval(self):
         """Evaluate predictions against ground truth."""
-        class_config = self.config.dataset.class_config
-        scenes = [
-            s.build(class_config, self.tmp_dir)
-            for s in self.config.dataset.validation_scenes
+        dataset = self.config.dataset
+        class_config = dataset.class_config
+        all_scenes = [
+            s.build(class_config, self.tmp_dir, use_transformers=False)
+            for s in dataset.all_scenes
         ]
-        evaluators = [e.build(class_config) for e in self.config.evaluators]
-        for evaluator in evaluators:
-            log.info('Running evaluator: {}...'.format(
-                type(evaluator).__name__))
-            evaluator.process(scenes, self.tmp_dir)
+        # it might make sense to make excluded_groups a field in an EvalConfig
+        # in the future
+        excluded_groups = ['all_scenes', 'train_scenes']
+        # build and run each EvaluatorConfig for each scene group
+        for e in self.config.evaluators:
+            for group_name, group_ids in dataset.scene_groups.items():
+                if group_name in excluded_groups:
+                    continue
+                group_scenes = [s for s in all_scenes if s.id in group_ids]
+                evaluator = e.build(
+                    class_config, scene_group=(group_name, group_scenes))
+
+                log.info(f'Running {type(evaluator).__name__} on '
+                         f'scene group {group_name}...')
+                try:
+                    evaluator.process(group_scenes, self.tmp_dir)
+                except FileNotFoundError:
+                    log.warn(f'Skipping scene group {group_name}. '
+                             'Either labels or predictions are missing.')
 
     def bundle(self):
         """Save a model bundle with whatever is needed to make predictions.
