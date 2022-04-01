@@ -78,7 +78,7 @@ class RVPipeline(Pipeline):
                 analyzer = a.build(scene_group=(group_name, group_scenes))
 
                 log.info(f'Running {type(analyzer).__name__} on '
-                         f'scene group {group_name}...')
+                         f'scene group "{group_name}"...')
                 analyzer.process(group_scenes, self.tmp_dir)
 
     def get_train_windows(self, scene: Scene) -> List[Box]:
@@ -254,12 +254,13 @@ class RVPipeline(Pipeline):
                     class_config, scene_group=(group_name, group_scenes))
 
                 log.info(f'Running {type(evaluator).__name__} on '
-                         f'scene group {group_name}...')
+                         f'scene group "{group_name}"...')
                 try:
                     evaluator.process(group_scenes, self.tmp_dir)
                 except FileNotFoundError:
-                    log.warn(f'Skipping scene group {group_name}. '
-                             'Either labels or predictions are missing.')
+                    log.warn(f'Skipping scene group "{group_name}". '
+                             'Either labels or predictions are missing for '
+                             'some scene.')
 
     def bundle(self):
         """Save a model bundle with whatever is needed to make predictions.
