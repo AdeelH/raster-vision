@@ -23,13 +23,14 @@ def is_geojson(data):
         return retval
 
 
-def get_class_eval_item(conf_mat, class_id, class_name, null_class_id):
+def get_class_eval_item(conf_mat, class_id, class_name, null_class_id=None):
     if conf_mat.ravel().sum() == 0:
         return ClassEvaluationItem(None, None, None, 0, 0, class_id,
                                    class_name)
 
     non_null_class_ids = list(range(conf_mat.shape[0]))
-    non_null_class_ids.remove(null_class_id)
+    if null_class_id is not None:
+        non_null_class_ids.remove(null_class_id)
 
     true_pos = conf_mat[class_id, class_id]
     false_pos = conf_mat[non_null_class_ids, class_id].sum() - true_pos
@@ -76,11 +77,9 @@ class SemanticSegmentationEvaluation(ClassificationEvaluation):
             conf_mat += confusion_matrix(gt_arr, pred_arr, labels=labels)
 
         for class_id, class_name in enumerate(self.class_config.names):
-            if class_id != self.class_config.get_null_class_id():
-                class_name = self.class_config.names[class_id]
-                self.class_to_eval_item[class_id] = get_class_eval_item(
-                    conf_mat, class_id, class_name,
-                    self.class_config.get_null_class_id())
+            class_name = self.class_config.names[class_id]
+            self.class_to_eval_item[class_id] = get_class_eval_item(
+                conf_mat, class_id, class_name)
 
         self.compute_avg()
 
