@@ -176,14 +176,15 @@ class SemanticSegmentationLabelStore(LabelStore):
         local_root = get_local_path(self.root_uri, self.tmp_dir)
         make_dir(local_root)
 
+        height, width = self.extent.ymax, self.extent.xmax
         out_profile = {
             'driver': 'GTiff',
-            'height': self.extent.ymax,
-            'width': self.extent.xmax,
+            'height': height,
+            'width': width,
             'transform': self.crs_transformer.get_affine_transform(),
             'crs': self.crs_transformer.get_image_crs(),
-            'blockxsize': self.rasterio_block_size,
-            'blockysize': self.rasterio_block_size
+            'blockxsize': min(self.rasterio_block_size, width),
+            'blockysize': min(self.rasterio_block_size, height)
         }
 
         # if old scores exist, combine them with the new ones
