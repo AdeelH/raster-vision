@@ -75,6 +75,9 @@ class RVPipeline(Pipeline):
         for a in self.config.analyzers:
             for group_name, group_ids in dataset.scene_groups.items():
                 group_scenes = [s for s in all_scenes if s.id in group_ids]
+                if len(group_scenes) == 0:
+                    log.info(f'Skipping empty scene group "{group_name}"...')
+                    continue
                 analyzer = a.build(scene_group=(group_name, group_scenes))
 
                 log.info(f'Running {type(analyzer).__name__} on '
@@ -250,6 +253,9 @@ class RVPipeline(Pipeline):
                 if group_name in excluded_groups:
                     continue
                 group_scenes = [s for s in all_scenes if s.id in group_ids]
+                if len(group_scenes) == 0:
+                    log.info(f'Skipping empty scene group "{group_name}"...')
+                    continue
                 evaluator = e.build(
                     class_config, scene_group=(group_name, group_scenes))
 
