@@ -1,14 +1,19 @@
 import logging
+from typing import TYPE_CHECKING
 
 from shapely.geometry import shape, mapping
 from shapely.strtree import STRtree
 
-from rastervision.core.data import ActivateMixin
+from rastervision.core.data import ActivateMixin, RasterizedSource
 from rastervision.core.data.vector_source import GeoJSONVectorSourceConfig
 from rastervision.core.evaluation import (ClassificationEvaluator,
                                           SemanticSegmentationEvaluation)
 
 log = logging.getLogger(__name__)
+
+if TYPE_CHECKING:
+    from rastervision.core.data import (SemanticSegmentationLabelSource,
+                                        SemanticSegmentationLabelStore)
 
 
 def filter_geojson_by_aoi(geojson, aoi_polygons):
@@ -47,9 +52,11 @@ class SemanticSegmentationEvaluator(ClassificationEvaluator):
         null_class_id = self.class_config.get_null_class_id()
 
         for scene in scenes:
-            log.info('Computing evaluation for scene {}...'.format(scene.id))
-            label_source = scene.ground_truth_label_source
-            label_store = scene.prediction_label_store
+            log.info(f'Computing evaluation for scene {scene.id}...')
+            label_source: 'SemanticSegmentationLabelSource' = (
+                scene.ground_truth_label_source)
+            label_store: 'SemanticSegmentationLabelStore' = (
+                scene.prediction_label_store)
             with ActivateMixin.compose(label_source, label_store):
                 ground_truth = label_source.get_labels()
                 predictions = label_store.get_labels()
@@ -64,12 +71,13 @@ class SemanticSegmentationEvaluator(ClassificationEvaluator):
                 scene_evaluation.compute(ground_truth, predictions)
                 evaluation.merge(scene_evaluation, scene_id=scene.id)
 
-            if hasattr(label_source, 'raster_source') and hasattr(
-                    label_source.raster_source, 'vector_source') and hasattr(
-                        label_store, 'vector_output'):
-                gt_geojson = label_source.raster_source.vector_source.get_geojson(
-                )
-                for vo in label_store.vector_output:
+            has_vector_gt = isinstance(label_source.raster_source,
+                                       RasterizedSource)
+            has_vector_preds = label_store.vector_outputs is not None
+            if has_vector_gt and has_vector_preds:
+                gt_geojson = (
+                    label_source.raster_source.vector_source.get_geojson())
+                for vo in label_store.vector_outputs:
                     pred_geojson_uri = vo.uri
                     mode = vo.get_mode()
                     class_id = vo.class_id
