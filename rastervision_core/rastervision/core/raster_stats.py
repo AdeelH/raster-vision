@@ -1,11 +1,15 @@
 import json
+from typing import TYPE_CHECKING, Optional, Sequence
 
 import numpy as np
 from tqdm import tqdm
 
 from rastervision.pipeline.file_system import str_to_file, file_to_str
 
-chip_sz = 300
+CHIP_SZ = 300
+
+if TYPE_CHECKING:
+    from rastervision.core.data import RasterSource
 
 
 def parallel_variance(mean_a, count_a, var_a, mean_b, count_b, var_b):
@@ -57,7 +61,9 @@ class RasterStats():
         self.means = None
         self.stds = None
 
-    def compute(self, raster_sources, sample_prob=None):
+    def compute(self,
+                raster_sources: Sequence['RasterSource'],
+                sample_prob: Optional[float] = None) -> None:
         """Compute the mean and stds over all the raster_sources.
 
         This ignores NODATA values.
@@ -73,7 +79,6 @@ class RasterStats():
             raster_sources: list of RasterSource
             sample_prob: (float or None) between 0 and 1
         """
-        stride = chip_sz
         nb_channels = raster_sources[0].num_channels
 
         def get_chip(raster_source, window):
@@ -92,8 +97,10 @@ class RasterStats():
             """Get stream of chips using a sliding window of size 300."""
             for raster_source in raster_sources:
                 with raster_source.activate():
-                    windows = raster_source.get_extent().get_windows(
-                        chip_sz, stride)
+                    extent = raster_source.get_extent()
+                    # ensure chip_sz doesn't exceed raster bounds
+                    _chip_sz = min(CHIP_SZ, *extent.size)
+                    windows = extent.get_windows(_chip_sz, stride=CHIP_SZ)
                     for window in windows:
                         chip = get_chip(raster_source, window)
                         if chip is not None:
@@ -104,13 +111,18 @@ class RasterStats():
             for raster_source in raster_sources:
                 with raster_source.activate():
                     extent = raster_source.get_extent()
-                    num_pixels = extent.get_width() * extent.get_height()
+                    # ensure chip_sz doesn't exceed raster bounds
+                    _chip_sz = min(CHIP_SZ, *extent.size)
+                    chip_area = _chip_sz * _chip_sz
+
                     num_chips = round(
-                        sample_prob * (num_pixels / (chip_sz**2)))
+                        sample_prob * (extent.get_area() / chip_area))
                     num_chips = max(1, num_chips)
-                    for _ in range(num_chips):
-                        window = raster_source.get_extent().make_random_square(
-                            chip_sz)
+                    windows = [
+                        extent.make_random_square(_chip_sz)
+                        for _ in range(num_chips)
+                    ]
+                    for window in windows:
                         chip = get_chip(raster_source, window)
                         if chip is not None:
                             yield chip
@@ -137,7 +149,7 @@ class RasterStats():
         self.means = mean
         self.stds = np.sqrt(var)
 
-    def save(self, stats_uri):
+    def save(self, stats_uri: str) -> None:
         # Ensure lists
         means = list(self.means)
         stds = list(self.stds)

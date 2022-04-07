@@ -174,19 +174,22 @@ class Box():
             size: the height and width of the new Box
 
         """
-        if size >= self.get_width():
-            raise BoxSizeError('size of random square cannot be >= width')
+        h, w = self.size
+        if size > w:
+            raise BoxSizeError(
+                f'size of random square ({size}) cannot be > width ({w})')
 
-        if size >= self.get_height():  # pragma: no cover
-            raise BoxSizeError('size of random square cannot be >= height')
+        if size > h:  # pragma: no cover
+            raise BoxSizeError(
+                f'size of random square ({size}) cannot be > height ({h})')
 
-        lb = self.ymin
-        ub = self.ymax - size
-        rand_y = random.randint(int(lb), int(ub))
+        lb = int(self.ymin)
+        ub = int(self.ymax - size)
+        rand_y = random.randint(lb, ub) if ub > lb else lb
 
-        lb = self.xmin
-        ub = self.xmax - size
-        rand_x = random.randint(int(lb), int(ub))
+        lb = int(self.xmin)
+        ub = int(self.xmax - size)
+        rand_x = random.randint(lb, ub) if ub > lb else lb
 
         return Box.make_square(rand_y, rand_x, size)
 
