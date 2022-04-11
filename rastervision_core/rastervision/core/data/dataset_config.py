@@ -28,8 +28,8 @@ class DatasetConfig(Config):
         {},
         description='Groupings of scenes. Should be a dict of the form: '
         '{<group-name>: Set(scene_id_1, scene_id_2, ...)}. Four groups are '
-        'added by default: "all_scenes", "train_scenes", "validation_scenes", '
-        'and "test_scenes"')
+        'added by default: "train_scenes", "validation_scenes", and '
+        '"test_scenes"')
 
     def update(self, pipeline=None):
         super().update()
@@ -44,7 +44,6 @@ class DatasetConfig(Config):
                 s.update(pipeline=pipeline)
 
         # add default scene groups
-        self.scene_groups['all_scenes'] = {s.id for s in self.all_scenes}
         self.scene_groups['train_scenes'] = {s.id for s in self.train_scenes}
         self.scene_groups['test_scenes'] = {s.id for s in self.test_scenes}
         self.scene_groups['validation_scenes'] = {

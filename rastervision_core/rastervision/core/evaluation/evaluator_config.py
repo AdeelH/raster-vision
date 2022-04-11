@@ -20,7 +20,9 @@ class EvaluatorConfig(Config):
               scene_group: Tuple[str, Iterable[str]]) -> 'EvaluatorConfig':
         pass
 
-    def get_output_uri(self, scene_group_name: str) -> str:
+    def get_output_uri(self, scene_group_name: Optional[str] = None) -> str:
+        if scene_group_name is None:
+            return join(self.output_uri, 'eval.json')
         return join(self.output_uri, scene_group_name, 'eval.json')
 
     def update(self, pipeline=None):

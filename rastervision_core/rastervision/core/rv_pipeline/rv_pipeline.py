@@ -246,7 +246,7 @@ class RVPipeline(Pipeline):
         ]
         # it might make sense to make excluded_groups a field in an EvalConfig
         # in the future
-        excluded_groups = ['all_scenes', 'train_scenes']
+        excluded_groups = ['train_scenes']
         # build and run each EvaluatorConfig for each scene group
         for e in self.config.evaluators:
             for group_name, group_ids in dataset.scene_groups.items():
