@@ -1,5 +1,5 @@
 import unittest
-import os
+from os.path import join
 
 from rastervision.pipeline import rv_config
 from rastervision.pipeline.file_system import file_to_json
@@ -38,15 +38,15 @@ class TestChipClassificationEvaluator(unittest.TestCase):
 
         with rv_config.get_tmp_dir() as tmp_dir:
             scene = s.build(class_config, tmp_dir)
-            output_uri = os.path.join(tmp_dir, 'eval.json')
+            output_uri = join(tmp_dir, 'eval')
 
             evaluator = ChipClassificationEvaluatorConfig(
                 output_uri=output_uri).build(class_config)
             evaluator.process([scene], tmp_dir)
 
-            overall = file_to_json(output_uri)['overall']
+            overall = file_to_json(join(output_uri, 'eval.json'))['overall']
             for item in overall:
-                self.assertEqual(item['f1'], 1.0)
+                self.assertEqual(item['metrics']['f1'], 1.0)
 
 
 if __name__ == '__main__':
