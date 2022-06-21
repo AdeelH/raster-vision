@@ -14,14 +14,14 @@ log = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from rastervision.core.box import Box
-    from rastervision.core.data import (VectorSource, RasterizerConfig,
-                                        CRSTransformer)
+    from rastervision.core.data import (VectorSource, CRSTransformer)
 
 
-def geoms_to_raster(str_tree, rasterizer_config, window, extent):
-    background_class_id = rasterizer_config.background_class_id
-    all_touched = rasterizer_config.all_touched
-
+def geoms_to_raster(str_tree: STRtree,
+                    background_class_id: int,
+                    window: 'Box',
+                    extent: 'Box',
+                    all_touched: bool = False) -> np.ndarray:
     log.debug('Cropping shapes to window...')
     # Crop shapes against window, remove empty shapes, and put in window frame of
     # reference.
@@ -57,21 +57,30 @@ def geoms_to_raster(str_tree, rasterizer_config, window, extent):
 class RasterizedSource(ActivateMixin, RasterSource):
     """A RasterSource based on the rasterization of a VectorSource."""
 
-    def __init__(self, vector_source: 'VectorSource',
-                 rasterizer_config: 'RasterizerConfig', extent: 'Box',
-                 crs_transformer: 'CRSTransformer'):
+    def __init__(self,
+                 vector_source: 'VectorSource',
+                 background_class_id: int,
+                 extent: 'Box',
+                 crs_transformer: 'CRSTransformer',
+                 all_touched: bool = False):
         """Constructor.
 
         Args:
             vector_source: (VectorSource)
-            rasterizer_config: (RasterizerConfig)
+            background_class_id (int): The class_id to use for any background
+                pixels, ie. pixels not covered by a polygon.
             extent: (Box) extent of corresponding imagery RasterSource
             crs_transformer: (CRSTransformer)
+            all_touched (bool): If True, all pixels touched by geometries will
+                be burned in. If False, only pixels whose center is within the
+                polygon or that are selected by Bresenham’s line algorithm will
+                be burned in. See rasterio.features.rasterize for more details.
         """
         self.vector_source = vector_source
-        self.rasterizer_config = rasterizer_config
+        self.background_class_id = background_class_id
         self.extent = extent
         self.crs_transformer = crs_transformer
+        self.all_touched = all_touched
         self.activated = False
 
         super().__init__(channel_order=[0], num_channels=1)
@@ -109,9 +118,9 @@ class RasterizedSource(ActivateMixin, RasterSource):
         if not self.activated:
             raise ActivationError('GeoJSONSource must be activated before use')
 
-        log.debug('Rasterizing window: {}'.format(window))
-        chip = geoms_to_raster(self.str_tree, self.rasterizer_config, window,
-                               self.get_extent())
+        log.debug(f'Rasterizing window: {window}')
+        chip = geoms_to_raster(self.str_tree, self.background_class_id, window,
+                               self.get_extent(), self.all_touched)
         # Add third singleton dim since rasters must have >=1 channel.
         return np.expand_dims(chip, 2)
 

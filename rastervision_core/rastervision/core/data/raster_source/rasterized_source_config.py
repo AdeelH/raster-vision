@@ -27,8 +27,12 @@ class RasterizedSourceConfig(Config):
     def build(self, class_config, crs_transformer, extent):
         vector_source = self.vector_source.build(class_config, crs_transformer)
 
-        return RasterizedSource(vector_source, self.rasterizer_config, extent,
-                                crs_transformer)
+        return RasterizedSource(
+            vector_source=vector_source,
+            background_class_id=self.rasterizer_config.background_class_id,
+            extent=extent,
+            crs_transformer=crs_transformer,
+            all_touched=self.rasterizer_config.all_touched)
 
     def validate_config(self):
         if self.vector_source.has_null_class_bufs():
