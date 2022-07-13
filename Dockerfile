@@ -76,6 +76,8 @@ COPY integration_tests /opt/src/integration_tests/
 COPY .flake8 /opt/src/.flake8
 COPY .coveragerc /opt/src/.coveragerc
 
+RUN pip install geopandas==0.10.2
+
 # Needed for click to work
 ENV LC_ALL C.UTF-8
 ENV LANG C.UTF-8
