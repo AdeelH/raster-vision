@@ -1130,14 +1130,11 @@ class GeoDataConfig(DataConfig):
 
     @root_validator(skip_on_failure=True)
     def get_class_info_from_class_config_if_needed(cls, values: dict) -> dict:
-        no_class_info = (len(values['class_names']) == 0
-                         and values.get('class_names') is None)
-        if no_class_info:
+        if len(values['class_names']) == 0:
             class_config: ClassConfig = values['scene_dataset'].class_config
             class_config.update()
             values['class_names'] = class_config.names
             values['class_colors'] = class_config.colors
-
         return values
 
     def build_scenes(self, tmp_dir: str
