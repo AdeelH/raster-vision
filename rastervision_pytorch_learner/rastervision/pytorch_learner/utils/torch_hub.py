@@ -117,9 +117,9 @@ def torch_hub_load_uri(uri: str, hubconf_dir: str, entrypoint: str, *args,
     uri_path = Path(uri)
     is_zip = uri_path.suffix.lower() == '.zip'
     if is_zip:
+        # unzip
+        zip_path = download_if_needed(uri)
         with TemporaryDirectory() as tmp_dir:
-            # unzip
-            zip_path = download_if_needed(uri, tmp_dir)
             unzip_dir = join(tmp_dir, uri_path.stem)
             _remove_dir(unzip_dir)
             unzip(zip_path, target_dir=unzip_dir)
