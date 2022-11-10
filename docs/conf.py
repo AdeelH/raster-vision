@@ -171,7 +171,7 @@ nbsphinx_prolog = r"""
 
         .. code-block:: shell
 
-            export GDAL_DATA=$(pip show rasterio | grep Location | awk '{print $NF"/rasterio/gdal_data/"}')
+            %env GDAL_DATA=$(pip show rasterio | grep Location | awk '{print $NF"/rasterio/gdal_data/"}')
 
 """ # noqa
 #########################
