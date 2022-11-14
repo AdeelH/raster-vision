@@ -167,11 +167,14 @@ nbsphinx_prolog = r"""
 
             pip install rastervision
     2.  Restart the notebook kernel.
-    3.  Set the ``GDAL_DATA`` environment variable required by ``rasterio``:
+    3.  Set the ``GDAL_DATA`` environment variable required by ``rasterio``. Make sure to do this *before* importing anything from ``rastervision``:
 
-        .. code-block:: shell
+        .. code-block:: python
 
-            %env GDAL_DATA=$(pip show rasterio | grep Location | awk '{print $NF"/rasterio/gdal_data/"}')
+            import os
+            from subprocess import check_output
+
+            os.environ['GDAL_DATA'] = check_output('pip show rasterio | grep Location | awk \'{print $NF"/rasterio/gdal_data/"}\'', shell=True).decode().strip()
 
 """ # noqa
 #########################
