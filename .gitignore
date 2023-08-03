@@ -123,3 +123,9 @@ deployment/ansible/*.retry
 docs/**/tutorials/**/data
 docs/**/tutorials/**/.ipynb_checkpoints/
 docs/**/tutorials/**/.*/
+
+docs/usage/tutorials/geospatial-time-series
+
+docs/usage/tutorials/utae-paps
+
+docs/usage/tutorials/train-demo/
