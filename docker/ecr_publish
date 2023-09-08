@@ -19,6 +19,8 @@ Options:
 "
 }
 
+RV_ECR_IMAGE="raster-vision-ahassan"
+
 if [ "${BASH_SOURCE[0]}" = "${0}" ]
 then
     if [ "${1:-}" = "--help" ]

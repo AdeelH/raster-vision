@@ -143,6 +143,8 @@ then
         -v "${HOME}"/.rastervision:/root/.rastervision \
         -v ${REPO_ROOT}/:/opt/src/ \
         -v ${RASTER_VISION_DATA_DIR}:/opt/data \
+        -v /home/adeel/rvexp/data/:/opt/data/rvexp/ \
+        -v /home/adeel/:/home/adeel/ \
         ${TENSORBOARD} \
         ${AWS} \
         ${JUPYTER} \
