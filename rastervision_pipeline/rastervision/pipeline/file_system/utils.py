@@ -93,6 +93,35 @@ def sync_from_dir(src_dir_uri: str,
     fs.sync_from_dir(src_dir_uri, dst_dir, delete=delete)
 
 
+def sync_dir(src: str,
+             dst: str,
+             delete: bool = False,
+             fs_src: Optional[FileSystem] = None,
+             fs_dst: Optional[FileSystem] = None):
+    """Sync dirs between arbitrary FileSystems by way of LocalFileSystem.
+
+    This first syncs source to a local temporary directory and then syncs the
+    local temporary directory to the destination directory.
+
+    Args:
+        src: URI of source directory
+        dst: URI of destination directory
+        delete: if True, delete files in the destination to match those in the
+            source directory
+        fs_src: if supplied, use this instead of automatically chosen
+            FileSystem for syncing from source to local.
+        fs_dst: if supplied, use this instead of automatically chosen
+            FileSystem for syncing from local to destionation.
+    """
+    if not fs_src:
+        fs_src = FileSystem.get_file_system(src, 'r')
+    if not fs_dst:
+        fs_dst = FileSystem.get_file_system(dst, 'r')
+    with get_tmp_dir() as tmp_dir:
+        fs_src.sync_from_dir(src, tmp_dir)
+        fs_dst.sync_to_dir(tmp_dir, dst, delete=delete)
+
+
 def start_sync(src_dir: str,
                dst_dir_uri: str,
                sync_interval: int = 600,
