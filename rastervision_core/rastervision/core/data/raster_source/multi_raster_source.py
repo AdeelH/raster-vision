@@ -38,7 +38,7 @@ class MultiRasterSource(RasterSource):
                 If None, the full extent available in the source file of the
                 primary raster source is used.
         """
-        num_channels_raw = sum(rs.num_channels_raw for rs in raster_sources)
+        num_channels_raw = sum(rs.num_channels for rs in raster_sources)
         if not channel_order:
             num_channels = sum(rs.num_channels for rs in raster_sources)
             channel_order = list(range(num_channels))

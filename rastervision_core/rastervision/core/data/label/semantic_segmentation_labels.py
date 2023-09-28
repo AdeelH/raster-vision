@@ -536,7 +536,8 @@ class SemanticSegmentationSmoothLabels(SemanticSegmentationLabels):
              smooth_as_uint8: bool = False,
              rasterio_block_size: int = 512,
              vector_outputs: Optional[Sequence['VectorOutputConfig']] = None,
-             profile_overrides: Optional[dict] = None) -> None:
+             profile_overrides: Optional[dict] = None,
+             bbox: Optional[Box] = None) -> None:
         """Save labels as rasters and/or vectors.
 
         If URI is remote, all files will be first written locally and then
@@ -577,6 +578,7 @@ class SemanticSegmentationSmoothLabels(SemanticSegmentationLabels):
             uri=uri,
             crs_transformer=crs_transformer,
             class_config=class_config,
+            bbox=bbox,
             tmp_dir=tmp_dir,
             save_as_rgb=save_as_rgb,
             discrete_output=discrete_output,
