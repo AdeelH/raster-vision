@@ -16,8 +16,8 @@ def boxes_to_geojson(
         class_ids: Sequence[int],
         crs_transformer: 'CRSTransformer',
         class_config: 'ClassConfig',
-        scores: Optional[Sequence[Union[float, Sequence[float]]]] = None
-) -> dict:
+        scores: Optional[Sequence[Union[float, Sequence[float]]]] = None,
+        bbox: Optional['Box'] = None) -> dict:
     """Convert boxes and associated data into a GeoJSON dict.
 
     Args:
@@ -46,7 +46,10 @@ def boxes_to_geojson(
             boxes,
             desc='Transforming boxes to map coords',
             delay=PROGRESSBAR_DELAY_SEC) as bar:
-        geoms = [crs_transformer.pixel_to_map(box.to_shapely()) for box in bar]
+        geoms = [
+            crs_transformer.pixel_to_map(box.to_shapely(), bbox=bbox)
+            for box in bar
+        ]
 
     # add box properties (ID and name of predicted class)
     with tqdm(

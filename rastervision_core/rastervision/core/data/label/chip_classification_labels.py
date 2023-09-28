@@ -155,8 +155,11 @@ class ChipClassificationLabels(Labels):
         for cell in labels.get_cells():
             self.set_cell(cell, *labels[cell])
 
-    def save(self, uri: str, class_config: 'ClassConfig',
-             crs_transformer: 'CRSTransformer') -> None:
+    def save(self,
+             uri: str,
+             class_config: 'ClassConfig',
+             crs_transformer: 'CRSTransformer',
+             bbox: Optional[Box] = None) -> None:
         """Save labels as a GeoJSON file.
 
         Args:
@@ -170,5 +173,6 @@ class ChipClassificationLabels(Labels):
         label_store = ChipClassificationGeoJSONStore(
             uri=uri,
             class_config=class_config,
-            crs_transformer=crs_transformer)
+            crs_transformer=crs_transformer,
+            bbox=bbox)
         label_store.save(self)

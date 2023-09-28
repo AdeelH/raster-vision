@@ -51,7 +51,8 @@ class ChipClassificationGeoJSONStore(LabelStore):
             class_ids,
             self.crs_transformer,
             self.class_config,
-            scores=scores)
+            scores=scores,
+            bbox=self.bbox)
         json_to_file(geojson, self.uri)
 
     def get_labels(self) -> ChipClassificationLabels:
