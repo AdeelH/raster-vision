@@ -11,9 +11,11 @@ from rastervision.core.data import (SemanticSegmentationLabelStoreConfig,
                                     PolygonVectorOutputConfig,
                                     StatsTransformerConfig)
 from rastervision.core.analyzer import StatsAnalyzerConfig
+from rastervision.core.rv_pipeline import RVPipeline, RVPipelineConfig
 
 if TYPE_CHECKING:
-    from rastervision.core.rv_pipeline import RVPipeline, RVPipelineConfig
+    from rastervision.pipeline.pipeline import Pipeline
+    from rastervision.core.rv_pipeline import RVPipelineConfig
     from rastervision.core.data import SceneConfig
 
 log = logging.getLogger(__name__)
@@ -172,8 +174,9 @@ class ScenePredictor:
         self.pipeline_config: 'RVPipelineConfig' = build_config(
             pipeline_config_dict)
 
-        self.pipeline: 'RVPipeline' = self.pipeline_config.build(self.tmp_dir)
-        self.pipeline.build_backend(join(bundle_dir, 'model-bundle.zip'))
+        self.pipeline: 'Pipeline' = self.pipeline_config.build(self.tmp_dir)
+        if isinstance(self.pipeline, RVPipeline):
+            self.pipeline.build_backend(join(bundle_dir, 'model-bundle.zip'))
 
     def predict(self, scene_config_uri: str) -> None:
         """Generate predictions for the given image.
