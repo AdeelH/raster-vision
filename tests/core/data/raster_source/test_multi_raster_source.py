@@ -170,19 +170,22 @@ class TestMultiRasterSource(unittest.TestCase):
 
         window = Box(0, 0, 100, 100)
 
-        # sub transformers and channel_order applied
+        # sub tfs/co applied, MRS tfs/co not applied
         sub_chips = rs._get_sub_chips(window, raw=False)
         self.assertEqual(tuple(c.mean() for c in sub_chips), (100, 175, 250))
-        # sub transformers, channel_order, and transformer applied
-        chip = rs.get_chip(window)
-        self.assertEqual(tuple(chip.reshape(-1, 3).mean(axis=0)), (25, 17, 10))
 
-        # none of sub transformers, channel_order, and transformer applied
-        sub_chips = rs._get_sub_chips(window, raw=True)
-        self.assertEqual(tuple(c.mean() for c in sub_chips), (100, 100, 100))
+        # sub tfs/co applied, MRS tfs/co not applied
         chip = rs._get_chip(window)
         self.assertEqual(
-            tuple(chip.reshape(-1, 3).mean(axis=0)), (100, 100, 100))
+            tuple(chip.reshape(-1, 3).mean(axis=0)), (100, 175, 250))
+
+        # sub tfs/co not applied, MRS tfs/co not applied
+        sub_chips = rs._get_sub_chips(window, raw=True)
+        self.assertEqual(tuple(c.mean() for c in sub_chips), (100, 100, 100))
+
+        # sub tfs/co applied, MRS tfs/co applied
+        chip = rs.get_chip(window)
+        self.assertEqual(tuple(chip.reshape(-1, 3).mean(axis=0)), (25, 17, 10))
 
     def test_nonidentical_extents_and_resolutions(self):
         cfg = make_cfg_diverse(diff_dtypes=False)
