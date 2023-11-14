@@ -17,8 +17,10 @@ if TYPE_CHECKING:
 
 @register_config('predict_options')
 class PredictOptions(Config):
-    # TODO: predict_chip_sz and predict_batch_sz should probably be moved here
-    pass
+    chip_sz: int = Field(
+        300, description='Size of predictions chips in pixels.')
+    batch_sz: int = Field(
+        8, description='Batch size to use during prediction.')
 
 
 @register_config('rv_pipeline')
@@ -48,6 +50,8 @@ class RVPipelineConfig(PipelineConfig):
         300, description='Size of predictions chips in pixels.')
     predict_batch_sz: int = Field(
         8, description='Batch size to use during prediction.')
+    predict_options: PredictOptions = Field(
+        PredictOptions(), description='Predict options.')
     chip_nodata_threshold: Proportion = Field(
         1,
         description='Discard chips where the proportion of NODATA values is '

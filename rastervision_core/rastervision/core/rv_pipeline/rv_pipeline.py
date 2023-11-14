@@ -191,7 +191,7 @@ class RVPipeline(Pipeline):
     def predict_scene(self, scene: Scene) -> Labels:
         if self.backend is None:
             self.build_backend()
-        chip_sz = self.config.predict_chip_sz
+        chip_sz = self.config.predict_options.chip_sz
         stride = chip_sz
         labels = self.backend.predict_scene(
             scene, chip_sz=chip_sz, stride=stride)

@@ -182,7 +182,7 @@ class ObjectDetection(RVPipeline):
         # Use strided windowing to ensure that each object is fully visible (ie. not
         # cut off) within some window. This means prediction takes 4x longer for object
         # detection :(
-        chip_sz = self.config.predict_chip_sz
+        chip_sz = self.config.predict_options.chip_sz
         stride = chip_sz // 2
         labels = self.backend.predict_scene(
             scene, chip_sz=chip_sz, stride=stride)

@@ -149,7 +149,7 @@ class SemanticSegmentation(RVPipeline):
             self.build_backend()
 
         cfg: 'SemanticSegmentationConfig' = self.config
-        chip_sz = cfg.predict_chip_sz
+        chip_sz = cfg.predict_options.chip_sz
         stride = cfg.predict_options.stride
         crop_sz = cfg.predict_options.crop_sz
 

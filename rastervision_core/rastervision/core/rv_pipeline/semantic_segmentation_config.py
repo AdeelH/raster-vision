@@ -74,7 +74,7 @@ class SemanticSegmentationPredictOptions(PredictOptions):
         description=
         'Stride of windows across image. Allows aggregating multiple '
         'predictions for each pixel if less than the chip size. '
-        'Defaults to predict_chip_sz.')
+        'Defaults to chip_sz.')
     crop_sz: Optional[Union[conint(gt=0), Literal['auto']]] = Field(
         None,
         description=
