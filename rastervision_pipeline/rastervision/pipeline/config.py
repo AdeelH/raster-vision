@@ -307,12 +307,11 @@ def upgrade_config(
         to the current version.
     """
     plugin_versions = config_dict.get('plugin_versions')
-    plugin_versions = upgrade_plugin_versions(plugin_versions)
     if plugin_versions is None:
-        raise ConfigError(
-            'Configuration is missing plugin_version field so is not backward '
-            'compatible.')
-    return _upgrade_config(config_dict, plugin_versions)
+        return config_dict
+    plugin_versions = upgrade_plugin_versions(plugin_versions)
+    out = _upgrade_config(config_dict, plugin_versions)
+    return out
 
 
 def get_plugin(config_cls: Type) -> str:
