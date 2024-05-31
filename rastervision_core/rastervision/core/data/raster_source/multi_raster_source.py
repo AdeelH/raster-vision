@@ -1,12 +1,16 @@
-from typing import Optional, Sequence, List, Tuple
+from typing import TYPE_CHECKING, Optional, Sequence, Self, Tuple
 from pydantic import conint
 
 import numpy as np
+from pystac import Item
 
 from rastervision.core.box import Box
-from rastervision.core.data.raster_source import RasterSource
-from rastervision.core.data.crs_transformer import CRSTransformer
+from rastervision.core.data.raster_source import RasterSource, RasterioSource
+from rastervision.core.data.raster_source.stac_config import subset_assets
 from rastervision.core.data.utils import all_equal
+
+if TYPE_CHECKING:
+    from rastervision.core.data import RasterTransformer, CRSTransformer
 
 
 class MultiRasterSource(RasterSource):
@@ -69,6 +73,70 @@ class MultiRasterSource(RasterSource):
 
         self.validate_raster_sources()
 
+    @classmethod
+    def from_stac(cls,
+                  item: Item,
+                  assets: list[str] | None,
+                  primary_source_idx: conint(ge=0) = 0,
+                  raster_transformers: list['RasterTransformer'] = [],
+                  force_same_dtype: bool = False,
+                  channel_order: Sequence[int] | None = None,
+                  bbox: Box | None = None,
+                  bbox_map_coords: Box | None = None,
+                  allow_streaming: bool = False) -> Self:
+        """Construct a ``MultiRasterSource`` from a STAC Item.
+
+        Args:
+            item_or_item_collection: STAC Item or ItemCollection.
+            primary_source_idx (0 <= int < len(raster_sources)): Index of the
+                raster source whose CRS, dtype, and other attributes will
+                override those of the other raster sources.
+            raster_transformers: RasterTransformers to use to transform chips
+                after they are read.
+            channel_order: List of indices of channels to extract from raw
+                imagery. Can be a subset of the available channels. If None,
+                all channels available in the image will be read.
+                Defaults to None.
+            bbox: User-specified crop of the extent. If None, the full extent
+                available in the source file is used. Mutually exclusive with
+                ``bbox_map_coords``. Defaults to ``None``.
+            bbox_map_coords: User-specified bbox in EPSG:4326 coords of the
+                form (ymin, xmin, ymax, xmax). Useful for cropping the raster
+                source so that only part of the raster is read from. Mutually
+                exclusive with ``bbox``. Defaults to ``None``.
+            allow_streaming: If False, load the entire DataArray into memory.
+                Defaults to True.
+        """
+        if assets is not None:
+            item = subset_assets(item, assets)
+
+        uris = [asset.href for asset in item.assets.values()]
+        raster_sources = [
+            RasterioSource(uri, allow_streaming=allow_streaming)
+            for uri in uris
+        ]
+
+        crs_transformer = raster_sources[primary_source_idx].crs_transformer
+        if bbox is not None:
+            if bbox_map_coords is not None:
+                raise ValueError('Specify either bbox or bbox_map_coords, '
+                                 'but not both.')
+            bbox = Box(*bbox)
+        elif bbox_map_coords is not None:
+            bbox_map_coords = Box(*bbox_map_coords)
+            bbox = crs_transformer.map_to_pixel(bbox_map_coords).normalize()
+        else:
+            bbox = None
+
+        raster_source = MultiRasterSource(
+            raster_sources,
+            primary_source_idx=primary_source_idx,
+            raster_transformers=raster_transformers,
+            channel_order=channel_order,
+            force_same_dtype=force_same_dtype,
+            bbox=bbox)
+        return raster_source
+
     def validate_raster_sources(self) -> None:
         """Validate sub-``RasterSources``.
 
@@ -101,13 +169,13 @@ class MultiRasterSource(RasterSource):
         return self.primary_source.dtype
 
     @property
-    def crs_transformer(self) -> CRSTransformer:
+    def crs_transformer(self) -> 'CRSTransformer':
         return self.primary_source.crs_transformer
 
     def _get_sub_chips(self,
                        window: Box,
                        out_shape: Optional[Tuple[int, int]] = None
-                       ) -> List[np.ndarray]:
+                       ) -> list[np.ndarray]:
         """Return chips from sub raster sources as a list.
 
         If all extents are identical, simply retrieves chips from each sub
