@@ -1,6 +1,7 @@
 from typing import Any, Iterator
 import io
 import os
+from os.path import join
 import subprocess
 from datetime import datetime
 from urllib.parse import urlparse
@@ -281,8 +282,7 @@ class S3FileSystem(FileSystem):
     @staticmethod
     def local_path(uri: str, download_dir: str) -> None:
         parsed_uri = urlparse(uri)
-        path = os.path.join(download_dir, 's3', parsed_uri.netloc,
-                            parsed_uri.path[1:])
+        path = join(download_dir, 's3', parsed_uri.netloc, parsed_uri.path[1:])
         return path
 
     @staticmethod
@@ -301,12 +301,27 @@ class S3FileSystem(FileSystem):
             uri += '/'
         parsed_uri = urlparse(uri)
         bucket = parsed_uri.netloc
-        prefix = os.path.join(parsed_uri.path[1:])
+        prefix = join(parsed_uri.path[1:])
         keys = get_matching_s3_keys(
             bucket,
             prefix,
             suffix=ext,
             delimiter=delimiter,
             request_payer=request_payer)
-        paths = [os.path.join('s3://', bucket, key) for key in keys]
+        paths = [join('s3://', bucket, key) for key in keys]
         return paths
+
+    @staticmethod
+    def url_to_uri(url: str) -> str:
+        """Convert HTTP URLs to S3 URIs.
+
+        Converts URLs of the form
+        <protocol>://<bucket_name>.s3[...]amazonaws.com/<path> to
+        s3://<bucket_name>/<path>.
+        """
+        parsed = urlparse(url)
+        if parsed.scheme == 's3':
+            return url
+        bucket_name = parsed.netloc.split('.s3')[0]
+        s3_uri = f's3://{bucket_name}{parsed.path}'
+        return s3_uri

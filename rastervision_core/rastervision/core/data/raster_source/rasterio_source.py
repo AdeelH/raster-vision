@@ -97,6 +97,7 @@ class RasterioSource(RasterSource):
         num_channels_raw = self.image_dataset.count
         if channel_order is None:
             channel_order = get_channel_order_from_dataset(self.image_dataset)
+        # +1 because rasterio takes 1-indexed band indices
         self.bands_to_read = np.array(channel_order, dtype=int) + 1
         self.is_masked = is_masked(self.image_dataset)
 
