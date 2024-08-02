@@ -8,13 +8,13 @@ import pyproj
 from rastervision.pipeline.file_system.utils import get_tmp_dir
 from rastervision.core.box import Box
 from rastervision.core.data.utils.rasterio import (
-    crop_geotiff, get_aws_session, write_geotiff_like_geojson, write_bbox)
+    crop_geotiff, get_aws_session, write_geotiff_like_geojson, write_geotiff)
 from rastervision.core.data import RasterioSource, GeoJSONVectorSource
 from tests import data_file_path
 
 
 class TestRasterioUtils(unittest.TestCase):
-    def test_write_bbox(self):
+    def test_write_geotiff(self):
         bbox = Box(ymin=48.815, xmin=2.224, ymax=48.902, xmax=2.469)
         crs_wkt = pyproj.CRS('epsg:4326').to_wkt()
         r = bbox.width / bbox.height
@@ -22,7 +22,7 @@ class TestRasterioUtils(unittest.TestCase):
         arr2 = np.zeros((100, int(100 * r), 4))
         with get_tmp_dir() as tmp_dir:
             geotiff_path = join(tmp_dir, 'test.geotiff')
-            write_bbox(geotiff_path, arr1, bbox=bbox, crs_wkt=crs_wkt)
+            write_geotiff(geotiff_path, arr1, bbox=bbox, crs_wkt=crs_wkt)
             rs = RasterioSource(geotiff_path)
             geotiff_bbox = rs.crs_transformer.pixel_to_map(
                 rs.extent).normalize()
@@ -30,7 +30,7 @@ class TestRasterioUtils(unittest.TestCase):
                 np.array(list(geotiff_bbox)), np.array(list(bbox)), decimal=3)
             self.assertEqual(rs.shape, (*arr1.shape, 1))
 
-            write_bbox(geotiff_path, arr2, bbox=bbox, crs_wkt=crs_wkt)
+            write_geotiff(geotiff_path, arr2, bbox=bbox, crs_wkt=crs_wkt)
             rs = RasterioSource(geotiff_path)
             geotiff_bbox = rs.crs_transformer.pixel_to_map(
                 rs.extent).normalize()

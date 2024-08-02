@@ -43,33 +43,41 @@ def write_window(dataset: 'DatasetReader',
             dataset.write_band(i, band, window=window)
 
 
-def write_bbox(path: str, arr: np.ndarray, bbox: Box, crs_wkt: str, **kwargs):
+def write_geotiff(path: str,
+                  arr: np.ndarray,
+                  bbox: Box,
+                  crs: str = 'EPSG:4326',
+                  **kwargs):
     """Write a (H, W[, C]) array to a GeoTIFF, georeferenced to the given bbox.
 
     Args:
         path (str): GeoTiff path.
         arr (np.ndarray): (H, W[, C]) Array to write.
         bbox (Box): Bounding box in map coords to georeference the GeoTiff to.
-        crs_wkt (str): CRS in WKT format.
+        crs (str): CRS. Defaults to ``'EPSG:4326'``.
     """
     if arr.ndim == 2:
         h_arr, w_arr = arr.shape
         num_channels = 1
     else:
         h_arr, w_arr, num_channels = arr.shape
+
     h_bbox, w_bbox = bbox.size
     resolution = h_bbox / h_arr, w_bbox / w_arr
     transform = from_origin(bbox.xmin, bbox.ymax, *resolution)
+
     out_profile = dict(
         driver='GTiff',
         height=h_arr,
         width=w_arr,
-        crs=crs_wkt,
+        crs=crs,
         count=num_channels,
         dtype=arr.dtype,
         transform=transform,
     )
     out_profile.update(kwargs)
+
+    make_dir(path, use_dirname=True)
     with rio.open(path, 'w', **out_profile) as ds:
         write_window(ds, arr)
 
@@ -97,11 +105,11 @@ def write_geotiff_like_geojson(path: str,
         try:
             crs = geojson['crs']['properties']['name']
         except KeyError:
-            crs = 'epsg:4326'
-    crs_wkt = pyproj.CRS(crs).to_wkt()
+            crs = 'EPSG:4326'
+    crs = pyproj.CRS(crs).to_wkt()
     geoms = unary_union(list(geojson_to_geoms(geojson)))
     bbox = Box.from_shapely(geoms).normalize()
-    write_bbox(path, arr, bbox=bbox, crs_wkt=crs_wkt, **kwargs)
+    write_geotiff(path, arr, bbox=bbox, crs=crs, **kwargs)
 
 
 def crop_geotiff(src_uri: str, window: Box, dst_uri: str):
@@ -109,8 +117,8 @@ def crop_geotiff(src_uri: str, window: Box, dst_uri: str):
 
     Args:
         src_uri (str): Source GeoTIFF URI to read from.
-        window (Box): Window specifying the crop bounds.
-        dst_uri (str): Crop GeoTIFF URI to write to.
+        window (Box): Window specifying the crop bounds in pixel coords.
+        dst_uri (str): URI to write output GeoTIFF to.
     """
     rio_window = window.rasterio_format()
 
