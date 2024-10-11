@@ -5,7 +5,7 @@ import math
 import random
 
 import numpy as np
-from shapely.geometry import Polygon
+from shapely.geometry import Polygon, mapping
 from shapely.ops import unary_union
 from rasterio.windows import Window as RioWindow
 
@@ -242,10 +242,17 @@ class Box:
         return Box(*npbox)
 
     @classmethod
-    def from_shapely(cls, shape: 'BaseGeometry') -> 'Self':
-        """Instantiate from the bounds of a shapely geometry."""
-        xmin, ymin, xmax, ymax = shape.bounds
+    def from_points(cls, points: list[tuple[int, int]]) -> 'Self':
+        """Build from geojson coords."""
+        assert len(points) in (4, 5)
+        xmin, xmax = points[2][0], points[0][0]
+        ymin, ymax = points[0][1], points[1][1]
         return Box(ymin, xmin, ymax, xmax)
+
+    @classmethod
+    def from_shapely(cls, geom: 'BaseGeometry') -> 'Self':
+        """Instantiate from the bounds of a shapely geometry."""
+        return Box.from_points(mapping(geom)['coordinates'][0])
 
     @classmethod
     def from_rasterio(cls, rio_window: RioWindow) -> 'Self':

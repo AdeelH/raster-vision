@@ -1,12 +1,13 @@
 from typing import TYPE_CHECKING
 import os
-from os.path import join, normpath, relpath
+from os.path import abspath, join, normpath, relpath
 import shutil
 from threading import Timer
 import time
 import logging
 import json
 import zipfile
+from urllib.parse import urlparse
 
 from tqdm.auto import tqdm
 
@@ -373,3 +374,25 @@ def get_tmp_dir() -> 'TemporaryDirectory':
         TemporaryDirectory: A context manager.
     """
     return rv_config.get_tmp_dir()
+
+
+def uri_to_vsi_path(uri: str) -> str:
+    """A function to convert URIs to VSI path strings.
+
+    Args:
+        uri: URI of the file. Acceptable URI schemes are file, s3, gs, http,
+            https, and ftp.
+    """
+    URI_SCHEME_TO_VSI = {
+        'http': 'vsicurl',
+        'https': 'vsicurl',
+        'ftp': 'vsicurl',
+        's3': 'vsis3',
+        'gs': 'vsigs',
+    }
+    parsed = urlparse(uri)
+    scheme, netloc, path = parsed.scheme, parsed.netloc, parsed.path
+    if scheme in URI_SCHEME_TO_VSI:
+        return join('/', URI_SCHEME_TO_VSI[scheme], f'{netloc}{path}')
+    # assume file schema
+    return abspath(join(netloc, path))
