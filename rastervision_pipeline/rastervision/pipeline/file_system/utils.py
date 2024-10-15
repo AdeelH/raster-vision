@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 import os
-from os.path import abspath, join, normpath, relpath
+from os.path import abspath, basename, join
 import shutil
 from threading import Timer
 import time
@@ -113,7 +113,7 @@ def start_sync(src_dir: str,
     def _sync_dir():
         while True:
             time.sleep(sync_interval)
-            log.info('Syncing {} to {}...'.format(src_dir, dst_dir_uri))
+            log.info(f'Syncing {src_dir} to {dst_dir_uri}...')
             sync_to_dir(src_dir, dst_dir_uri, delete=False, fs=fs)
 
     class SyncThread:
@@ -136,25 +136,28 @@ def download_if_needed(uri: str,
                        download_dir: str | None = None,
                        fs: FileSystem | None = None,
                        use_cache: bool = True) -> str:
-    """Download a file into a directory if it's remote.
+    """Download a file to a directory if remote and return its local path.
 
-    If uri is local, there is no need to download the file.
+    The full local path, within download_dir, is determined by
+    :func:`.get_local_path`. If a file doesn't already exists at that path, it
+    is downloaded.
 
     Args:
-        uri (str): URI of file to download.
-        download_dir (str | None): Local directory to download
-            file into. If None, the file will be downloaded to
-            cache dir as defined by RVConfig. Defaults to None.
-        fs (FileSystem | None): If provided, use fs instead of
-            the automatically chosen FileSystem for uri. Defaults to None.
-        use_cache (bool): If False and the file is remote, download
-            it regardless of whether it exists in cache. Defaults to True.
+        uri: URI of file to download. If this is a local path, it will be
+            returned as is.
+        download_dir: Local directory to download file into. If ``None``, the
+            file will be downloaded to cache dir as defined by ``RVConfig``.
+            Defaults to ``None``.
+        fs: If provided, use ``fs`` instead of the automatically chosen
+            :class:`.FileSystem` for ``uri``. Defaults to ``None``.
+        use_cache: If ``False`` and the file is remote, download it regardless
+            of whether it exists in cache. Defaults to ``True``.
 
     Returns:
-        str: Path to local file.
+        Local path to file.
 
     Raises:
-        NotReadableError if URI cannot be read from
+        NotReadableError: if URI cannot be read from.
     """
     if download_dir is None:
         download_dir = rv_config.get_cache_dir()
@@ -177,42 +180,42 @@ def download_if_needed(uri: str,
     return local_path
 
 
-def download_or_copy(uri: str,
-                     target_dir: str,
-                     delete_tmp: bool = False,
+def download_or_copy(uri: str, target_dir: str,
                      fs: FileSystem | None = None) -> str:
-    """Downloads or copies a file to a directory.
+    """Download or copy a file to a directory and return the local file path.
 
-    Downloads or copies URI into target_dir.
+    Downloads the file to the cache dir and then copies it to ``target_dir``.
+    If the file already exists, it is not re-downloaded or re-copied.
 
     Args:
         uri: URI of file.
         target_dir: Local directory to download or copy file to.
-        delete_tmp: Delete temporary download dir after copying file.
-        fs: If supplied, use fs instead of automatically chosen FileSystem for
-            uri.
+        fs: If supplied, use fs instead of automatically chosen
+            :class:`.FileSystem` for ``uri``.
 
     Returns:
-        the local path of file
+        Local path to file.
     """
-    target_dir = normpath(target_dir)
-    local_path = download_if_needed(uri, target_dir, fs=fs)
-    shutil.copy(local_path, target_dir)
-
-    if delete_tmp and not is_local(uri):
-        dl_dirname = normpath(relpath(local_path, target_dir)).split(os.sep)[0]
-        dl_dir = join(target_dir, dl_dirname)
-        shutil.rmtree(dl_dir)
-    return local_path
+    download_path = download_if_needed(uri, fs=fs)
+    target_path = join(target_dir, basename(download_path))
+    if file_exists(target_path, include_dir=False):
+        return target_path
+    shutil.copy(download_path, target_path)
+    return target_path
 
 
-def file_exists(uri, fs=None, include_dir=True) -> bool:
+def file_exists(uri: str,
+                fs: FileSystem | None = None,
+                include_dir: bool = True) -> bool:
     """Check if file exists.
 
     Args:
         uri: URI of file
         fs: if supplied, use fs instead of automatically chosen FileSystem for
             uri
+        include_dir: Include directories in check, if the file system
+            supports directory reads. Otherwise only return true if a single
+            file exists at the URI. Defaults to ``True``.
     """
     if not fs:
         fs = FileSystem.get_file_system(uri, 'r')
@@ -223,14 +226,14 @@ def list_paths(uri: str, ext: str = '', fs: FileSystem | None = None,
                **kwargs) -> list[str]:
     """List paths rooted at URI.
 
-    Optionally only includes paths with a certain file extension.
+    Optionally only include paths with a certain file extension.
 
     Args:
-        uri: the URI of a directory
-        ext: the optional file extension to filter by
-        fs: if supplied, use fs instead of automatically chosen FileSystem for
-            uri
-        **kwargs: extra kwargs to pass to fs.list_paths().
+        uri: The URI of a directory
+        ext: The optional file extension to filter by
+        fs: If supplied, use fs instead of automatically chosen
+            :class:`.FileSystem` for ``uri``.
+        **kwargs: Extra kwargs to pass to ``fs.list_paths()``.
     """
     if uri is None:
         return None
@@ -245,25 +248,24 @@ def upload_or_copy(src_path: str, dst_uri: str,
                    fs: FileSystem | None = None) -> None:
     """Upload or copy a file.
 
-    If dst_uri is local, the file is copied. Otherwise, it is uploaded.
+    If ``dst_uri`` is local, the file is copied. Otherwise, it is uploaded.
 
     Args:
-        src_path: path to source file
-        dst_uri: URI of destination for file
-        fs: if supplied, use fs instead of automatically chosen FileSystem for
-            dst_uri
+        src_path: Path to source file.
+        dst_uri: URI of destination for file.
+        fs: If supplied, use fs instead of automatically chosen
+            :class:`.FileSystem` for ``dst_uri``.
 
     Raises:
-        NotWritableError if dst_uri cannot be written to
+        NotWritableError: if dst_uri cannot be written to
     """
-    if dst_uri is None:
+    if not file_exists(src_path, fs=LocalFileSystem, include_dir=True):
+        raise FileNotFoundError(f'{src_path} does not exist.')
+
+    if src_path == dst_uri:
         return
 
-    if not (os.path.isfile(src_path) or os.path.isdir(src_path)):
-        raise Exception('{} does not exist.'.format(src_path))
-
-    if not src_path == dst_uri:
-        log.info('Uploading {} to {}'.format(src_path, dst_uri))
+    log.info(f'Uploading {src_path} to {dst_uri}')
 
     if not fs:
         fs = FileSystem.get_file_system(dst_uri, 'w')
@@ -368,7 +370,7 @@ def extract(uri: str,
 
 
 def get_tmp_dir() -> 'TemporaryDirectory':
-    """Return temporary directory given by the RVConfig.
+    """Return temporary directory given by the :class:`RVConfig`.
 
     Returns:
         TemporaryDirectory: A context manager.
