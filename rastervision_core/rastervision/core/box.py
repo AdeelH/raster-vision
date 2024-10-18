@@ -409,28 +409,30 @@ class Box:
     ) -> 'SlidingWindows':
         """Return sliding windows for given size, stride, and padding.
 
-        Each of size, stride, and padding can be either a positive int or
-        a tuple ``(vertical-component, horizontal-component)`` of positive
-        ints.
+        Each of ``size``, ``stride``, and ``padding`` can be either a positive
+        int or a tuple ``(vertical-component, horizontal-component)`` of
+        positive ints.
 
         If ``padding`` is not specified and ``stride <= size``, it will be
         automatically calculated such that the windows cover the entire extent.
 
         Args:
-            size: Size (h, w) of the windows.
-            stride: Step size between windows. Can be 2-tuple (h_step, w_step)
-                or positive int.
+            box: Outer box within which to generate sliding windows.
+            size: Size ``(h, w)`` of the windows.
+            stride: Step size between windows. Can be a ``(h_step, w_step)``
+                tuple or positive int.
             padding: Optional padding to accommodate windows that overflow the
-                extent. Can be 2-tuple (h_pad, w_pad) or non-negative int.
-                If None, will be automatically calculated such that the windows
-                cover the entire extent. Defaults to ``None``.
-            pad_direction: If ``'end'``, only pad ymax and xmax (bottom and
-                right). If ``'start'``, only pad ymin and xmin (top and left).
-                If ``'both'``, pad all sides. If ``'both'`` pad all sides. Has
-                no effect if padding is zero. Defaults to ``'end'``.
+                extent. Can be a ``(h_pad, w_pad)`` tuple or a non-negative
+                int. If ``None``, will be automatically calculated such that
+                the windows cover the entire extent. Defaults to ``None``.
+            pad_direction: Directions to add padding to.
+                If ``'end'``, only add padding to bottom and right.
+                If ``'start'``, only add padding to top and left.
+                If ``'both'``, add padding to all sides.
+                Has no effect if padding is zero. Defaults to ``'end'``.
 
         Returns:
-            List of windows.
+            Lazy list of windows.
         """
         windows = SlidingWindows(
             self,
@@ -514,6 +516,13 @@ class Box:
 
 
 class SlidingWindows(Sequence[Box]):
+    """Lazy representation of a list of sliding windows.
+
+    Instead of storing a list of all windows in memory, this class dynamically
+    computes the coordinates of windows as they are retrieved. Supports
+    iteration and basic slicing.
+    """
+
     def __init__(
             self,
             box: Box,
@@ -522,30 +531,30 @@ class SlidingWindows(Sequence[Box]):
             stride: PosInt | tuple[PosInt, PosInt],
             padding: NonNegInt | tuple[NonNegInt, NonNegInt] | None = None,
             pad_direction: Literal['both', 'start', 'end'] = 'end',
-            transform: Callable[[Box], Box] | None = None) -> None:
+    ):
         """Constructor.
 
-        Each of size, stride, and padding can be either a positive int or
-        a tuple ``(vertical-component, horizontal-component)`` of positive
-        ints.
+        Each of ``size``, ``stride``, and ``padding`` can be either a positive
+        int or a tuple ``(vertical-component, horizontal-component)`` of
+        positive ints.
 
         If ``padding`` is not specified and ``stride <= size``, it will be
         automatically calculated such that the windows cover the entire extent.
 
         Args:
             box: Outer box within which to generate sliding windows.
-            size: Size (h, w) of the windows.
-            stride: Step size between windows. Can be 2-tuple (h_step, w_step)
-                or positive int.
+            size: Size ``(h, w)`` of the windows.
+            stride: Step size between windows. Can be a ``(h_step, w_step)``
+                tuple or positive int.
             padding: Optional padding to accommodate windows that overflow the
-                extent. Can be 2-tuple (h_pad, w_pad) or non-negative int.
-                If None, will be automatically calculated such that the windows
-                cover the entire extent. Defaults to ``None``.
-            pad_direction: If ``'end'``, only pad ymax and xmax (bottom and
-                right). If ``'start'``, only pad ymin and xmin (top and left).
-                If ``'both'``, pad all sides. If ``'both'`` pad all sides. Has
-                no effect if padding is zero. Defaults to ``'end'``.
-            transform: Optional transformation to apply to each window.
+                extent. Can be a ``(h_pad, w_pad)`` tuple or a non-negative
+                int. If ``None``, will be automatically calculated such that
+                the windows cover the entire extent. Defaults to ``None``.
+            pad_direction: Directions to add padding to.
+                If ``'end'``, only add padding to bottom and right.
+                If ``'start'``, only add padding to top and left.
+                If ``'both'``, add padding to all sides.
+                Has no effect if padding is zero. Defaults to ``'end'``.
         """
         size: tuple[PosInt, PosInt] = ensure_tuple(size)
         stride: tuple[PosInt, PosInt] = ensure_tuple(stride)
@@ -553,7 +562,6 @@ class SlidingWindows(Sequence[Box]):
         self.size = size
         self.stride = stride
         self.padding = padding
-        self.transform = transform
 
         if size[0] <= 0 or size[1] <= 0 or stride[0] <= 0 or stride[1] <= 0:
             raise ValueError('size and stride must be positive.')
@@ -579,22 +587,32 @@ class SlidingWindows(Sequence[Box]):
         self.ncols = int((self.x_end - self.x_start) // self.x_step + 1)
         self.total = self.nrows * self.ncols
 
-    def __getitem__(self, key: int | tuple[int, int]) -> Box:
-        if isinstance(key, tuple):
-            row, col = key
-            if row >= self.rows or col >= self.cols:
-                raise IndexError()
-        else:
-            if key >= len(self):
-                raise IndexError()
-            row = key // self.ncols
-            col = key % self.ncols
+    def __getitem__(self, key: int | slice) -> Box:
+        if isinstance(key, slice):
+            start = 0 if key.start is None else key.start
+            end = len(self) if key.end is None else key.end
+            step = 1 if key.step is None else key.step
+            assert all(isinstance(v, int) for v in [start, end, step])
+            windows = [self[i] for i in range(start, end, step)]
+            return windows
+        if isinstance(key, int):
+            row, col = self.index_to_rowcol(key)
+        return self.get_by_rowcol(row, col)
+
+    def get_by_rowcol(self, row: int, col: int) -> Box:
+        if row >= self.rows or col >= self.cols:
+            raise IndexError()
         ymin = self.y_start + self.y_step * row
         xmin = self.x_start + self.x_step * col
         window = Box(ymin, xmin, ymin + self.h, xmin + self.w)
-        if self.transform is not None:
-            window = self.transform(window)
         return window
+
+    def index_to_rowcol(self, i: int) -> tuple[int, int]:
+        if i >= len(self):
+            raise IndexError()
+        row = i // self.ncols
+        col = i % self.ncols
+        return row, col
 
     def __len__(self) -> int:
         return self.total
