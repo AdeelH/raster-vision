@@ -10,11 +10,13 @@ import zipfile
 from urllib.parse import urlparse
 
 from tqdm.auto import tqdm
+import fsspec
+from fsspec import AbstractFileSystem as FileSystem
 
 from rastervision.pipeline import rv_config_ as rv_config
-from rastervision.pipeline.file_system import FileSystem
-from rastervision.pipeline.file_system.local_file_system import (
-    LocalFileSystem, make_dir)
+# from rastervision.pipeline.file_system import FileSystem
+# from rastervision.pipeline.file_system.local_file_system import (
+#     LocalFileSystem, make_dir)
 
 if TYPE_CHECKING:
     from tempfile import TemporaryDirectory
@@ -22,36 +24,12 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
-def get_local_path(uri: str, download_dir: str,
-                   fs: FileSystem | None = None) -> str:
-    """Return the path where a local copy of URI should be stored.
-
-    If ``uri`` is local, return it. If it's remote, we generate a path for it
-    within ``download_dir``.
-
-    Args:
-        uri: the URI of the file to be copied
-        download_dir: path of the local directory in which files should
-            be copied
-        fs: if supplied, use fs instead of automatically chosen FileSystem for
-            URI
-
-    Returns:
-        A local path.
-    """
-    if uri is None:
-        return None
-
-    if not fs:
-        fs = FileSystem.get_file_system(uri, 'r')
-    path = fs.local_path(uri, download_dir)
-
-    return path
+def get_file_system(uri: str) -> FileSystem:
+    fs, _ = fsspec.url_to_fs(uri)
+    return fs
 
 
-def sync_to_dir(src_dir: str,
-                dst_dir_uri: str,
-                delete: bool = False,
+def sync_to_dir(src_dir: str, dst_dir_uri: str,
                 fs: FileSystem | None = None) -> None:  # pragma: no cover
     """Synchronize a local source directory to destination directory.
 
@@ -62,19 +40,15 @@ def sync_to_dir(src_dir: str,
     Args:
         src_dir: path of local source directory
         dst_dir_uri: URI of destination directory
-        delete: if True, delete files in the destination to match those in the
-            source directory
         fs: if supplied, use fs instead of automatically chosen FileSystem for
             dst_dir_uri
     """
     if not fs:
-        fs = FileSystem.get_file_system(dst_dir_uri, 'w')
-    fs.sync_to_dir(src_dir, dst_dir_uri, delete=delete)
+        fs = get_file_system(dst_dir_uri)
+    fs.put(src_dir, dst_dir_uri, recursive=True)
 
 
-def sync_from_dir(src_dir_uri: str,
-                  dst_dir: str,
-                  delete: bool = False,
+def sync_from_dir(src_dir_uri: str, dst_dir: str,
                   fs: FileSystem | None = None):
     """Synchronize a source directory to local destination directory.
 
@@ -85,51 +59,12 @@ def sync_from_dir(src_dir_uri: str,
     Args:
         src_dir_uri: URI of source directory
         dst_dir: path of local destination directory
-        delete: if True, delete files in the destination to match those in the
-            source directory
         fs: if supplied, use fs instead of automatically chosen FileSystem for
             dst_dir_uri
     """
     if not fs:
-        fs = FileSystem.get_file_system(src_dir_uri, 'r')
-    fs.sync_from_dir(src_dir_uri, dst_dir, delete=delete)
-
-
-def start_sync(src_dir: str,
-               dst_dir_uri: str,
-               sync_interval: int = 600,
-               fs: FileSystem | None = None) -> None:  # pragma: no cover
-    """Repeatedly sync a local source directory to a destination on a schedule.
-
-    Calls :func:`sync_to_dir` on a schedule.
-
-    Args:
-        src_dir: path of the local source directory
-        dst_dir_uri: URI of destination directory
-        sync_interval: period in seconds for syncing
-        fs: if supplied, use fs instead of automatically chosen FileSystem
-    """
-
-    def _sync_dir():
-        while True:
-            time.sleep(sync_interval)
-            log.info(f'Syncing {src_dir} to {dst_dir_uri}...')
-            sync_to_dir(src_dir, dst_dir_uri, delete=False, fs=fs)
-
-    class SyncThread:
-        def __init__(self):
-            thread = Timer(0.68, _sync_dir)
-            thread.daemon = True
-            thread.start()
-            self.thread = thread
-
-        def __enter__(self):
-            return self.thread
-
-        def __exit__(self, type, value, traceback):
-            self.thread.cancel()
-
-    return SyncThread()
+        fs = get_file_system(src_dir_uri)
+    fs.get(src_dir_uri, dst_dir)
 
 
 def download_if_needed(uri: str,
@@ -163,7 +98,7 @@ def download_if_needed(uri: str,
         download_dir = rv_config.get_cache_dir()
 
     if not fs:
-        fs = FileSystem.get_file_system(uri, 'r')
+        fs = get_file_system(uri)
 
     local_path = get_local_path(uri, download_dir, fs=fs)
     if local_path == uri:
@@ -222,8 +157,10 @@ def file_exists(uri: str,
             file exists at the URI. Defaults to ``True``.
     """
     if not fs:
-        fs = FileSystem.get_file_system(uri, 'r')
-    return fs.file_exists(uri, include_dir)
+        fs = get_file_system(uri)
+    if include_dir:
+        return fs.exists(uri)
+    return fs.isfile(uri)
 
 
 def list_paths(uri: str, ext: str = '', fs: FileSystem | None = None,
@@ -243,9 +180,12 @@ def list_paths(uri: str, ext: str = '', fs: FileSystem | None = None,
         return None
 
     if not fs:
-        fs = FileSystem.get_file_system(uri, 'r')
+        fs = get_file_system(uri)
 
-    return fs.list_paths(uri, ext=ext, **kwargs)
+    paths: list[str] = fs.ls(uri, detail=False, **kwargs)
+    if ext != '':
+        paths = [p for p in paths if p.endswith(ext)]
+    return paths
 
 
 def upload_or_copy(src_path: str, dst_uri: str,
@@ -289,9 +229,8 @@ def file_to_str(uri: str, fs: FileSystem | None = None) -> str:
     Raises:
         NotReadableError: If URI cannot be read.
     """
-    if not fs:
-        fs = FileSystem.get_file_system(uri, 'r')
-    return fs.read_str(uri)
+    with fsspec.open(uri, mode='r') as file:
+        return file.
 
 
 def str_to_file(content_str: str, uri: str,
@@ -307,18 +246,20 @@ def str_to_file(content_str: str, uri: str,
         NotWritableError if uri cannot be written
     """
     if not fs:
-        fs = FileSystem.get_file_system(uri, 'r')
+        fs = get_file_system(uri)
     return fs.write_str(uri, content_str)
 
 
 def file_to_json(uri: str) -> Any:
     """Load data from JSON file at uri."""
-    return json.loads(file_to_str(uri))
+    with fsspec.open(uri, mode='r') as file:
+        return json.load(file)
 
 
 def json_to_file(obj: Any, uri: str) -> None:
     """Serialize obj to JSON and upload to uri."""
-    str_to_file(json.dumps(obj), uri)
+    with fsspec.open(uri, mode='w') as file:
+        return json.dump(obj, file)
 
 
 def zipdir(dir: str, zip_path: str) -> None:
@@ -353,7 +294,7 @@ def unzip(zip_path: str, target_dir: str) -> None:
 
 
 def is_local(uri: str) -> bool:
-    return FileSystem.get_file_system(uri) == LocalFileSystem
+    return get_file_system(uri) == fsspec.filesystem('file')
 
 
 def is_archive(uri: str) -> bool:
