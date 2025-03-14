@@ -1,0 +1,76 @@
+line-length = 79
+extend-exclude = [
+    '.history/',
+    '*.git*',
+    '*.history*',
+    '**/*.ipynb',
+    '**/conf.py',
+    '**/setup.py',
+    '*build*',
+    '*cookiecutter_template*',
+    '*tfod_utils*',
+    'data/*',
+    'docs/usage/tutorials/notebooks/',
+]
+
+[lint.pydocstyle]
+convention = 'google'
+
+[lint]
+# http://docs.astral.sh/ruff/rules/
+select = ['ALL']
+ignore = [
+    # Unnecessary assignment before return statement
+    'RET504',
+    # Trailing comma missing
+    'COM812',
+    # Missing docstring for module
+    'D100',
+    # Missing docstring in magic method
+    'D105',
+    # 1 blank line required before class docstring
+    'D203',
+    # Multi-line docstring summary should start at the second line
+    'D213',
+]
+
+[lint.per-file-ignores]
+'*/**/__init__.py' = [
+    # Module level import not at top of cell
+    'E402',
+    # Imported but unused
+    'F401',
+]
+'tests/**/*' = [
+    # Use of assert detected
+    'S101',
+    # Missing return type annotation for public function
+    'ANN201',
+    # Missing docstrings
+    'D1',
+    # Private member accessed
+    'SLF001',
+    # magic values
+    'PLR2004',
+]
+
+[lint.flake8-quotes]
+inline-quotes = "single"
+
+[format]
+quote-style = 'single'
+indent-style = 'space'
+# Respect magic trailing commas.
+skip-magic-trailing-comma = false
+# Enable auto-formatting of code examples in docstrings. Markdown,
+# reStructuredText code/literal blocks and doctests are all supported.
+docstring-code-format = true
+# Set the line length limit used when formatting code snippets in
+# docstrings.
+#
+# This only has an effect when the `docstring-code-format` setting is
+# enabled.
+docstring-code-line-length = 'dynamic'
+
+[lint.isort]
+known-first-party = ['rastervision']

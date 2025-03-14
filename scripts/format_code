@@ -7,37 +7,22 @@ if [[ -n "${RASTER_VISION_DEBUG}" ]]; then
 fi
 
 SOURCE="${BASH_SOURCE[0]}"
-while [ -h "$SOURCE" ] ; do SOURCE="$(readlink "$SOURCE")"; done
-SCRIPTS_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
-SRC_DIR="$( cd -P "$( dirname "$SCRIPTS_DIR" )" && pwd )"
+while [ -h "$SOURCE" ]; do SOURCE="$(readlink "$SOURCE")"; done
+SCRIPTS_DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
+SRC_DIR="$(cd -P "$(dirname "$SCRIPTS_DIR")" && pwd)"
 
 function usage() {
     echo -n \
-"Usage: $(basename "$0")
-Reformat Python code inline using yapf.
+        "Usage: $(basename "$0")
+Reformat Python code inline using ruff.
 "
 }
 
 if [ "${1:-}" = "--help" ]; then
-        usage
+    usage
 else
-    echo "Ensuring single quote usage..."
-    UNIFY="unify --in-place --quote ' --recursive"
-    $UNIFY tests/* \
-          integration_tests/* \
-          docs/conf.py
-    find . \( -path "./data" -o -path "./docs" -o -path "./.history" \) -prune -o -name '*.py' -print0 | xargs -0 $UNIFY
-
-    echo "Running yapf..."
-    yapf -ipr "$SRC_DIR" \
-        -e "*.git*" \
-        -e "*build*" \
-        -e "*cookiecutter_template*" \
-        -e "*tfod_utils*" \
-        -e "**/conf.py" \
-        -e "**/setup.py" \
-        -e "*.history*" \
-        -e "data/*" \
-        -e "docs/*" \
-        -e "**/*.ipynb"
+    echo "Running ruff format ..."
+    pushd $SRC_DIR >/dev/null
+    ruff format rastervision_*/ tests/ integration_tests/ docs/conf.py ruff.toml
+    popd >/dev/null
 fi
