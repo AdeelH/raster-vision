@@ -21,8 +21,13 @@ Reformat Python code inline using ruff.
 if [ "${1:-}" = "--help" ]; then
     usage
 else
-    echo "Running ruff format ..."
     pushd $SRC_DIR >/dev/null
+
+    echo "Running ruff format ..."
     ruff --config ruff.toml format rastervision_*/ tests/ integration_tests/ docs/conf.py ruff.toml
+
+    echo "Running ruff check --fix ..."
+    ruff --config ruff.toml check --fix rastervision_*/ tests/ integration_tests/ docs/conf.py ruff.toml
+
     popd >/dev/null
 fi
