@@ -86,7 +86,7 @@ inline-quotes = "single"
 [format]
 quote-style = 'single'
 indent-style = 'space'
-# Respect magic trailing commas.
+# False means: respect magic trailing commas i.e. don't collapse lines.
 skip-magic-trailing-comma = false
 # Enable auto-formatting of code examples in docstrings. Markdown,
 # reStructuredText code/literal blocks and doctests are all supported.
