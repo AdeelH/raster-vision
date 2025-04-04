@@ -32,6 +32,24 @@ ignore = [
     'D203',
     # Multi-line docstring summary should start at the second line
     'D213',
+    # `os.path.join()` should be replaced by `Path` with `/` operator
+    'PTH118',
+    # Avoid using the generic variable name `df` for DataFrames
+    'PD901',
+    # avoid long exception messages
+    'TRY003',
+    # assign exception message to variable first
+    'EM101',
+    # exception must not use f-string
+    'EM102',
+    # logging statement uses f-string
+    'G004',
+    # use of assert detected
+    'S101',
+    # use single if statement instead of nesting
+    'SIM102',
+    # first docstring line should end with period
+    "D415",
 ]
 
 [lint.per-file-ignores]
@@ -52,6 +70,8 @@ ignore = [
     'SLF001',
     # magic values
     'PLR2004',
+    # flake8-pytest-style
+    'PT',
 ]
 
 [lint.flake8-quotes]
