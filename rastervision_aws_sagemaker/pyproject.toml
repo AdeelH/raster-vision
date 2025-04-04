@@ -7,6 +7,7 @@ name = "rastervision_aws_sagemaker"
 version = "0.31.2-dev"
 description = "A rastervision plugin that adds an AWS SageMaker pipeline runner."
 readme = "README.md"
+requires-python = ">=3.10"
 authors = [{ name = "Azavea", email = "info@azavea.com" }]
 license = { text = "Apache License 2.0" }
 classifiers = [
