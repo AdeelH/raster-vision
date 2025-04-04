@@ -26,8 +26,8 @@ else
     echo "Running ruff format ..."
     ruff --config ruff.toml format rastervision_*/ tests/ integration_tests/ docs/conf.py ruff.toml
 
-    echo "Running ruff check --fix ..."
-    ruff --config ruff.toml check --fix rastervision_*/ tests/ integration_tests/ docs/conf.py ruff.toml
+    echo "Running ruff check --fix --unsafe-fixes ..."
+    ruff --config ruff.toml check --fix --unsafe-fixes rastervision_*/ tests/ integration_tests/ docs/conf.py ruff.toml
 
     popd >/dev/null
 fi
