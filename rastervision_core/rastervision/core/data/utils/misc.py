@@ -1,5 +1,5 @@
-from typing import TYPE_CHECKING, Any
 import logging
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 from PIL import ImageColor
@@ -8,7 +8,7 @@ from skimage.io import imsave
 from rastervision.core.box import Box
 
 if TYPE_CHECKING:
-    from rastervision.core.data import RasterSource, LabelSource, LabelStore
+    from rastervision.core.data import LabelSource, LabelStore, RasterSource
 
 log = logging.getLogger(__name__)
 
@@ -59,13 +59,12 @@ def normalize_color(
     if isinstance(color, (tuple, list)):
         if all(isinstance(c, int) for c in color):
             return tuple(c / 255.0 for c in color)
-        elif all(isinstance(c, float) for c in color):
+        if all(isinstance(c, float) for c in color):
             return tuple(color)
-        else:
-            raise ValueError(
-                'RGB values must be either all ints (0-255) '
-                'or all floats (0.0-1.0)'
-            )
+        raise ValueError(
+            'RGB values must be either all ints (0-255) '
+            'or all floats (0.0-1.0)'
+        )
 
     raise TypeError(
         'Expected color to be a string or tuple or list, '

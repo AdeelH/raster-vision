@@ -1,26 +1,26 @@
+import datetime
 import os
 import unittest
-import datetime
 
 import boto3
 from moto import mock_aws
 
 from rastervision.pipeline.file_system import (
-    file_to_str,
-    str_to_file,
-    download_if_needed,
-    upload_or_copy,
-    make_dir,
-    get_local_path,
-    file_exists,
-    sync_from_dir,
-    sync_to_dir,
-    list_paths,
-    get_tmp_dir,
-    uri_to_vsi_path,
+    FileSystem,
     NotReadableError,
     NotWritableError,
-    FileSystem,
+    download_if_needed,
+    file_exists,
+    file_to_str,
+    get_local_path,
+    get_tmp_dir,
+    list_paths,
+    make_dir,
+    str_to_file,
+    sync_from_dir,
+    sync_to_dir,
+    upload_or_copy,
+    uri_to_vsi_path,
 )
 
 LOREM = """ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
@@ -77,13 +77,13 @@ class TestMakeDir(unittest.TestCase):
 
         str_to_file(self.lorem, path)
 
-        s3_path = 's3://{}/lorem.txt'.format(self.bucket_name)
+        s3_path = f's3://{self.bucket_name}/lorem.txt'
         upload_or_copy(path, s3_path)
 
         self.assertTrue(file_exists(s3_path))
 
     def test_file_exists_s3_false(self):
-        s3_path = 's3://{}/hello.txt'.format(self.bucket_name)
+        s3_path = f's3://{self.bucket_name}/hello.txt'
         self.assertFalse(file_exists(s3_path))
 
     def test_check_empty(self):
@@ -150,7 +150,7 @@ class TestFileToStr(unittest.TestCase):
 
         self.content_str = 'hello'
         self.file_name = 'hello.txt'
-        self.s3_path = 's3://{}/{}'.format(self.bucket_name, self.file_name)
+        self.s3_path = f's3://{self.bucket_name}/{self.file_name}'
 
         self.tmp_dir = get_tmp_dir()
         self.local_path = os.path.join(self.tmp_dir.name, self.file_name)
@@ -193,7 +193,7 @@ class TestDownloadIfNeeded(unittest.TestCase):
 
         self.content_str = 'hello'
         self.file_name = 'hello.txt'
-        self.s3_path = 's3://{}/{}'.format(self.bucket_name, self.file_name)
+        self.s3_path = f's3://{self.bucket_name}/{self.file_name}'
 
         self.tmp_dir = get_tmp_dir()
         self.local_path = os.path.join(self.tmp_dir.name, self.file_name)
@@ -258,7 +258,7 @@ class TestS3Misc(unittest.TestCase):
 
     def test_last_modified_s3(self):
         path = os.path.join(self.tmp_dir.name, 'lorem', 'ipsum1.txt')
-        s3_path = 's3://{}/lorem1.txt'.format(self.bucket_name)
+        s3_path = f's3://{self.bucket_name}/lorem1.txt'
         directory = os.path.dirname(path)
         make_dir(directory, check_empty=False)
 
@@ -289,9 +289,9 @@ class TestS3Misc(unittest.TestCase):
 
     def test_file_exists(self):
         path = os.path.join(self.tmp_dir.name, 'lorem', 'ipsum.txt')
-        s3_path = 's3://{}/xxx/lorem.txt'.format(self.bucket_name)
-        s3_path_prefix = 's3://{}/xxx/lorem'.format(self.bucket_name)
-        s3_directory = 's3://{}/xxx/'.format(self.bucket_name)
+        s3_path = f's3://{self.bucket_name}/xxx/lorem.txt'
+        s3_path_prefix = f's3://{self.bucket_name}/xxx/lorem'
+        s3_directory = f's3://{self.bucket_name}/xxx/'
         make_dir(path, check_empty=False, use_dirname=True)
 
         str_to_file(self.lorem, path)

@@ -1,24 +1,25 @@
-from typing import TYPE_CHECKING, Any, Literal
 import logging
+from typing import TYPE_CHECKING, Any, Literal
 
-import numpy as np
 import albumentations as A
+import numpy as np
 import torch
-from torch.utils.data import Dataset
 from shapely.ops import unary_union
+from torch.utils.data import Dataset
 
 from rastervision.core.box import Box
-from rastervision.core.utils import ensure_tuple
 from rastervision.core.data import Scene
 from rastervision.core.data.utils import AoiSampler
-from rastervision.pytorch_learner.learner_config import PosInt, NonNegInt
+from rastervision.core.utils import ensure_tuple
 from rastervision.pytorch_learner.dataset.transform import (
-    TransformType,
     TF_TYPE_TO_TF_FUNC,
+    TransformType,
 )
+from rastervision.pytorch_learner.learner_config import NonNegInt, PosInt
 
 if TYPE_CHECKING:
     from typing import Self
+
     from shapely.geometry import MultiPolygon, Polygon
 
 log = logging.getLogger(__name__)
@@ -181,11 +182,11 @@ class GeoDataset(AlbumentationsDataset):
         return transform
 
     def __len__(self):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @classmethod
     def from_uris(cls, *args, **kwargs) -> 'Self':
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 class SlidingWindowGeoDataset(GeoDataset):
@@ -278,7 +279,7 @@ class SlidingWindowGeoDataset(GeoDataset):
 
     def __getitem__(self, idx: int):
         if idx >= len(self):
-            raise StopIteration()
+            raise StopIteration
         window = self.windows[idx]
         out = super().__getitem__(window)
         if self.return_window:
@@ -422,7 +423,7 @@ class RandomWindowGeoDataset(GeoDataset):
         self.has_aoi_polygons = len(aoi_polygons) > 0
         if self.has_aoi_polygons:
             extent_polygon = self.extent.to_shapely()
-            aoi: 'Polygon | MultiPolygon' = unary_union(aoi_polygons)
+            aoi: Polygon | MultiPolygon = unary_union(aoi_polygons)
             # only sample from polygons that intersect w/ the extent
             self.aoi = aoi.intersection(extent_polygon)
             if efficient_aoi_sampling:
@@ -500,9 +501,8 @@ class RandomWindowGeoDataset(GeoDataset):
             if self.within_aoi:
                 if Box.within_aoi(window, self.aoi):
                     return window
-            else:
-                if Box.intersects_aoi(window, self.aoi):
-                    return window
+            elif Box.intersects_aoi(window, self.aoi):
+                return window
         raise StopIteration(
             'Failed to find valid window within scene AOI in '
             f'{self.max_sample_attempts} attempts.'
@@ -510,7 +510,7 @@ class RandomWindowGeoDataset(GeoDataset):
 
     def __getitem__(self, idx: int):
         if idx >= len(self):
-            raise StopIteration()
+            raise StopIteration
         window = self.sample_window()
         out = super().__getitem__(window)
         if self.return_window:

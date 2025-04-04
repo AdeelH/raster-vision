@@ -1,15 +1,15 @@
-from os.path import join, dirname
+from os.path import dirname, join
 
 from rastervision.core.data import (
+    BuildingVectorOutputConfig,
     ClassConfig,
+    DatasetConfig,
+    PolygonVectorOutputConfig,
+    RasterioSourceConfig,
+    RGBClassTransformerConfig,
+    SceneConfig,
     SemanticSegmentationLabelSourceConfig,
     SemanticSegmentationLabelStoreConfig,
-    RasterioSourceConfig,
-    SceneConfig,
-    PolygonVectorOutputConfig,
-    DatasetConfig,
-    BuildingVectorOutputConfig,
-    RGBClassTransformerConfig,
 )
 from rastervision.core.rv_pipeline import (
     SemanticSegmentationChipOptions,
@@ -21,10 +21,10 @@ from rastervision.core.rv_pipeline import (
 from rastervision.pytorch_backend import PyTorchSemanticSegmentationConfig
 from rastervision.pytorch_learner import (
     Backbone,
-    SolverConfig,
-    SemanticSegmentationModelConfig,
-    SemanticSegmentationImageDataConfig,
     SemanticSegmentationGeoDataConfig,
+    SemanticSegmentationImageDataConfig,
+    SemanticSegmentationModelConfig,
+    SolverConfig,
 )
 
 
@@ -34,8 +34,7 @@ def get_config(
     def get_path(part):
         if full_train:
             return join(data_uri, part)
-        else:
-            return join(dirname(__file__), part)
+        return join(dirname(__file__), part)
 
     class_config = ClassConfig(names=['red', 'green'], colors=['red', 'green'])
 

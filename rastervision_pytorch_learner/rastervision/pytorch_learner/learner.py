@@ -1,63 +1,62 @@
-from typing import TYPE_CHECKING, Any, Iterator, Literal
-from abc import ABC, abstractmethod
-from collections.abc import Callable
-from os.path import join, isfile, basename, isdir
-import warnings
-from time import perf_counter
 import datetime
-import shutil
-import logging
-from subprocess import Popen
-import numbers
-from pprint import pformat
 import gc
+import logging
+import numbers
+import shutil
+import warnings
+from abc import ABC, abstractmethod
+from collections.abc import Callable, Iterator
+from os.path import basename, isdir, isfile, join
+from pprint import pformat
+from subprocess import Popen
+from time import perf_counter
+from typing import TYPE_CHECKING, Any, Literal
 
 import numpy as np
-from tqdm.auto import tqdm
-
 import torch
-from torch import Tensor
-import torch.nn as nn
-from torch.utils.tensorboard import SummaryWriter
-from torch.utils.data import DataLoader, DistributedSampler
-from torch.nn.parallel import DistributedDataParallel as DDP
 import torch.distributed as dist
 import torch.multiprocessing as mp
+from torch import Tensor, nn
+from torch.nn.parallel import DistributedDataParallel as DDP
+from torch.utils.data import DataLoader, DistributedSampler
+from torch.utils.tensorboard import SummaryWriter
+from tqdm.auto import tqdm
 
 from rastervision.pipeline import rv_config_ as rv_config
-from rastervision.pipeline.utils import get_env_var
+from rastervision.pipeline.config import build_config
 from rastervision.pipeline.file_system import (
-    sync_to_dir,
-    json_to_file,
-    make_dir,
-    zipdir,
     download_if_needed,
     download_or_copy,
-    sync_from_dir,
     get_local_path,
-    unzip,
-    is_local,
     get_tmp_dir,
+    is_local,
+    json_to_file,
+    make_dir,
+    sync_from_dir,
+    sync_to_dir,
+    unzip,
+    zipdir,
 )
 from rastervision.pipeline.file_system.utils import file_exists
-from rastervision.pipeline.utils import terminate_at_exit
-from rastervision.pipeline.config import build_config
+from rastervision.pipeline.utils import get_env_var, terminate_at_exit
+from rastervision.pytorch_learner.dataset.visualizer import Visualizer
 from rastervision.pytorch_learner.utils import (
-    aggregate_metrics,
     DDPContextManager,
+    ONNXRuntimeAdapter,
+    aggregate_metrics,
     get_hubconf_dir_from_cfg,
     get_learner_config_from_bundle_dir,
     log_metrics_to_csv,
     log_system_details,
-    ONNXRuntimeAdapter,
 )
-from rastervision.pytorch_learner.dataset.visualizer import Visualizer
 
 if TYPE_CHECKING:
     from typing import Self
+
     from torch.optim import Optimizer
     from torch.optim.lr_scheduler import _LRScheduler
     from torch.utils.data import Dataset, Sampler
+
     from rastervision.pytorch_learner import LearnerConfig
 
 warnings.filterwarnings('ignore')
@@ -201,15 +200,12 @@ class Learner(ABC):
 
         self.setup_ddp_params()
 
-        if self.avoid_activating_cuda_runtime:
+        if self.avoid_activating_cuda_runtime or torch.cuda.is_available():
             device = 'cuda'
+        elif torch.backends.mps.is_available():
+            device = 'mps'
         else:
-            if torch.cuda.is_available():
-                device = 'cuda'
-            elif torch.backends.mps.is_available():
-                device = 'mps'
-            else:
-                device = 'cpu'
+            device = 'cpu'
 
         self.device = torch.device(device)
 
@@ -276,9 +272,8 @@ class Learner(ABC):
             self.setup_training(loss_def_path=loss_def_path)
             if self.model is not None:
                 self.model.train()
-        else:
-            if not self.onnx_mode:
-                self.model.eval()
+        elif not self.onnx_mode:
+            self.model.eval()
 
         self.visualizer = self.get_visualizer_class()(
             cfg.data.class_names,
@@ -821,7 +816,6 @@ class Learner(ABC):
             whatever type the predictions are. Otherwise, the returned value is
             an iterator of tuples.
         """
-
         if return_format not in {'xyz', 'yz', 'z'}:
             raise ValueError('return_format must be one of "xyz", "yz", "z".')
 
@@ -898,7 +892,6 @@ class Learner(ABC):
             of whatever type the predictions are. Otherwise, the returned value
             is an iterator of tuples.
         """
-
         if return_format not in {'xyz', 'yz', 'z'}:
             raise ValueError('return_format must be one of "xyz", "yz", "z".')
 
@@ -944,7 +937,6 @@ class Learner(ABC):
                 might or might not be batched depending on the batched_output
                 argument.
         """
-
         if self.onnx_mode:
             log.info('Running inference with ONNX runtime.')
         else:
@@ -977,14 +969,13 @@ class Learner(ABC):
 
         The class ids should be the classes with the maximum probability.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     #########
     # Setup
     #########
     def setup_ddp_params(self):
         """Set up and validate params related to PyTorch DDP."""
-
         ddp_allowed = rv_config.get_namespace_option(
             'rastervision', 'USE_DDP', True, as_bool=True
         )
@@ -1134,9 +1125,8 @@ class Learner(ABC):
 
             if self.is_ddp_master:
                 self.setup_tensorboard()
-        else:  # pragma: no cover
-            if self.ddp_start_method == 'fork':
-                self.setup_data()
+        elif self.ddp_start_method == 'fork':
+            self.setup_data()
 
     def get_start_and_end_epochs(
         self, epochs: int | None = None
@@ -1247,7 +1237,7 @@ class Learner(ABC):
 
     def build_datasets(self) -> tuple['Dataset', 'Dataset', 'Dataset']:
         """Build Datasets for train, validation, and test splits."""
-        log.info(f'Building datasets ...')
+        log.info('Building datasets ...')
         train_ds, val_ds, test_ds = self.cfg.data.build(tmp_dir=self.tmp_dir)
         return train_ds, val_ds, test_ds
 
@@ -1320,13 +1310,12 @@ class Learner(ABC):
 
         if sampler is not None:
             args['sampler'] = sampler
+        elif split == 'train':
+            args['shuffle'] = True
+            # batchnorm layers expect batch size > 1 during training
+            args['drop_last'] = (len(ds) % batch_sz) == 1
         else:
-            if split == 'train':
-                args['shuffle'] = True
-                # batchnorm layers expect batch size > 1 during training
-                args['drop_last'] = (len(ds) % batch_sz) == 1
-            else:
-                args['shuffle'] = False
+            args['shuffle'] = False
 
         dl = DataLoader(ds, **args)
         return dl
@@ -1690,7 +1679,7 @@ class Learner(ABC):
 
     def reduce_distributed_metrics(self, metrics: dict):  # pragma: no cover
         """Average numeric metrics across processes."""
-        for k in metrics.keys():
+        for k in metrics:
             v = metrics[k]
             if isinstance(v, (float, int)):
                 v = torch.tensor(v, device=self.device)
@@ -1732,8 +1721,7 @@ class Learner(ABC):
         """
         if isinstance(x, list):
             return [_x.to(device) if _x is not None else _x for _x in x]
-        else:
-            return x.to(device)
+        return x.to(device)
 
     def get_dataset(
         self, split: Literal['train', 'valid', 'test']

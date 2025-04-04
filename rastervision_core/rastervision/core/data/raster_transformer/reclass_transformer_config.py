@@ -1,8 +1,8 @@
-from rastervision.pipeline.config import register_config, Field
 from rastervision.core.data.raster_transformer import (
     RasterTransformerConfig,
     ReclassTransformer,
 )
+from rastervision.pipeline.config import Field, register_config
 
 
 @register_config('reclass_transformer')

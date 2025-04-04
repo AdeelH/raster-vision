@@ -1,20 +1,22 @@
-from typing import TYPE_CHECKING, Literal
-from collections.abc import Callable
 import inspect
 import logging
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Literal
 
 from pydantic import (  # noqa
-    ConfigDict,
     BaseModel,
-    create_model,
+    ConfigDict,
     Field,
-    model_validator,
     ValidationError,
+    create_model,
     field_validator,
+    model_validator,
 )
 
 from rastervision.pipeline import (
     registry_ as registry,
+)
+from rastervision.pipeline import (
     rv_config_ as rv_config,
 )
 from rastervision.pipeline.file_system import (
@@ -25,6 +27,7 @@ from rastervision.pipeline.file_system import (
 
 if TYPE_CHECKING:
     from typing import Self
+
     from rastervision.pipeline.pipeline_config import PipelineConfig
 
 log = logging.getLogger(__name__)
@@ -112,9 +115,8 @@ class Config(BaseModel):
             for v in val:
                 if v not in valid_options:
                     raise ConfigError(f'{v} is not a valid option for {field}')
-        else:
-            if val not in valid_options:
-                raise ConfigError(f'{val} is not a valid option for {field}')
+        elif val not in valid_options:
+            raise ConfigError(f'{val} is not a valid option for {field}')
 
     def copy(self) -> 'Self':
         return self.model_copy()
@@ -233,10 +235,9 @@ def build_config(
             config_cls = registry.get_config(type_hint)
             new_x = config_cls(**new_x)
         return new_x
-    elif isinstance(x, list):
+    if isinstance(x, list):
         return [build_config(v) for v in x]
-    else:
-        return x
+    return x
 
 
 def _upgrade_config(
@@ -275,10 +276,9 @@ def _upgrade_config(
                 for version in range(old_version, curr_version):
                     new_x = upgrader(new_x, version)
         return new_x
-    elif isinstance(x, list):
+    if isinstance(x, list):
         return [_upgrade_config(v, plugin_versions) for v in x]
-    else:
-        return x
+    return x
 
 
 def upgrade_plugin_versions(plugin_versions: dict[str, int]) -> dict[str, int]:

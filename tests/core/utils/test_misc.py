@@ -1,5 +1,5 @@
-from typing import Literal
 import unittest
+from typing import Literal
 
 from shapely.ops import unary_union
 

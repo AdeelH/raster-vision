@@ -1,10 +1,10 @@
 from typing import TYPE_CHECKING
 
-from rastervision.pipeline.config import register_config, Field
 from rastervision.core.data.vector_transformer import (
-    VectorTransformerConfig,
     ClassInferenceTransformer,
+    VectorTransformerConfig,
 )
+from rastervision.pipeline.config import Field, register_config
 
 if TYPE_CHECKING:
     from rastervision.core.data import ClassConfig

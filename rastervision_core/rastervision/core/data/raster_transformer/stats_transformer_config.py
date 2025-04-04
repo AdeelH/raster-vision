@@ -1,15 +1,15 @@
-from typing import TYPE_CHECKING
 from os.path import join
+from typing import TYPE_CHECKING
 
-from rastervision.pipeline.config import register_config, Field
 from rastervision.core.data.raster_transformer import (
     RasterTransformerConfig,
     StatsTransformer,
 )
+from rastervision.pipeline.config import Field, register_config
 
 if TYPE_CHECKING:
-    from rastervision.core.rv_pipeline import RVPipelineConfig
     from rastervision.core.data import SceneConfig
+    from rastervision.core.rv_pipeline import RVPipelineConfig
 
 
 def stats_transformer_config_upgrader(cfg_dict: dict, version: int) -> dict:

@@ -1,16 +1,16 @@
-from typing import Iterable
-from os.path import join
-import logging
 import csv
+import logging
+from collections.abc import Iterable
+from os.path import join
 
 import numpy as np
 from torch.utils.data import Dataset
 
 from rastervision.pytorch_learner.dataset import (
     ImageDataset,
-    TransformType,
-    SlidingWindowGeoDataset,
     RandomWindowGeoDataset,
+    SlidingWindowGeoDataset,
+    TransformType,
     load_image,
 )
 
@@ -24,7 +24,7 @@ class RegressionDataReader(Dataset):
         img_dir = join(data_dir, 'img')
         labels_path = join(data_dir, 'labels.csv')
 
-        with open(labels_path, 'r') as labels_file:
+        with open(labels_path) as labels_file:
             labels_reader = csv.reader(labels_file, skipinitialspace=True)
             all_rows = list(labels_reader)
 

@@ -1,13 +1,13 @@
 from typing import TYPE_CHECKING
 
+from rastervision.core.data.utils import color_to_triple, normalize_color
 from rastervision.pipeline.config import (
     Config,
-    register_config,
     ConfigError,
     Field,
     model_validator,
+    register_config,
 )
-from rastervision.core.data.utils import color_to_triple, normalize_color
 
 if TYPE_CHECKING:
     from typing import Self

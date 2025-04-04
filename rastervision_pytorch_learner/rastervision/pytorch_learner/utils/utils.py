@@ -1,31 +1,34 @@
-from typing import TYPE_CHECKING, Any, Container, Iterable, Sequence
-from os.path import basename, join, isfile
 import logging
+from collections.abc import Container, Iterable, Sequence
+from os.path import basename, isfile, join
+from typing import TYPE_CHECKING, Any
 
+import albumentations as A
+import cv2
+import numpy as np
+import pandas as pd
 import torch
+from albumentations.core.transforms_interface import ImageOnlyTransform
 from torch import nn
 from torch.hub import _import_module
-import numpy as np
-import albumentations as A
-from albumentations.core.transforms_interface import ImageOnlyTransform
-import cv2
-import pandas as pd
 
+from rastervision.pipeline.config import (
+    Config,
+    ConfigError,
+    build_config,
+    upgrade_config,
+)
 from rastervision.pipeline.file_system.utils import (
     file_exists,
     file_to_json,
     get_tmp_dir,
 )
-from rastervision.pipeline.config import (
-    build_config,
-    Config,
-    ConfigError,
-    upgrade_config,
-)
 
 if TYPE_CHECKING:
     from typing import Self
+
     import onnxruntime as ort
+
     from rastervision.pytorch_learner import LearnerConfig
 
 log = logging.getLogger(__name__)
@@ -107,8 +110,7 @@ def validate_albumentation_transform(tf_dict: dict | None) -> dict:
                 and lambda_transforms_path.startswith('model-bundle')
             ):
                 return tf_dict
-            else:
-                _ = deserialize_albumentation_transform(tf_dict)
+            _ = deserialize_albumentation_transform(tf_dict)
         except Exception:
             raise ConfigError(
                 'The given serialization is invalid. Use '
@@ -175,7 +177,7 @@ def deserialize_albumentation_transform(tf_dict: dict) -> A.BasicTransform:
     Returns:
         A.BasicTransform: Deserialized transform.
     """
-    lambda_transforms_path = tf_dict.get('lambda_transforms_path', None)
+    lambda_transforms_path = tf_dict.get('lambda_transforms_path')
     if lambda_transforms_path is not None:
         from rastervision.pipeline.file_system import download_if_needed
 
@@ -190,8 +192,8 @@ def deserialize_albumentation_transform(tf_dict: dict) -> A.BasicTransform:
                 name=filename, path=lambda_transforms_path
             )
             # retrieve the lambda_transforms dict from the module
-            lambda_transforms: dict = getattr(
-                lambda_transforms_module, 'lambda_transforms'
+            lambda_transforms: dict = (
+                lambda_transforms_module.lambda_transforms
             )
             # de-serialize
             tf = A.from_dict(tf_dict, nonserializable=lambda_transforms)
@@ -329,13 +331,12 @@ def adjust_conv_channels(
             AddTensors(),
         )
         return new_conv
-    elif in_channels < old_conv.in_channels:
+    if in_channels < old_conv.in_channels:
         new_conv = nn.Conv2d(in_channels=in_channels, **old_conv_args)
         pretrained_kernels = old_conv.weight.data[:, :in_channels]
         new_conv.weight.data[:, :in_channels] = pretrained_kernels
         return new_conv
-    else:
-        raise ConfigError('Something went wrong.')
+    raise ConfigError('Something went wrong.')
 
 
 def plot_channel_groups(
@@ -425,6 +426,7 @@ def log_system_details():
     """Log some system details."""
     import os
     import sys
+
     import psutil
 
     # CPUs

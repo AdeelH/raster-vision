@@ -1,27 +1,26 @@
+import unittest
 from collections.abc import Callable
 from os.path import join
-import unittest
 
-import torch
 import numpy as np
+import torch
 from shapely.geometry import Polygon, mapping
 
-from rastervision.pipeline.file_system import json_to_file, get_tmp_dir
 from rastervision.core.box import Box
 from rastervision.core.data import ClassConfig, RasterioCRSTransformer
 from rastervision.core.data.utils.geojson import (
-    geometry_to_feature,
     features_to_geojson,
+    geometry_to_feature,
 )
+from rastervision.pipeline.file_system import get_tmp_dir, json_to_file
 from rastervision.pytorch_learner.dataset import (
-    SemanticSegmentationSlidingWindowGeoDataset,
     ClassificationSlidingWindowGeoDataset,
     ObjectDetectionSlidingWindowGeoDataset,
     RandomWindowGeoDataset,
+    SemanticSegmentationSlidingWindowGeoDataset,
     SlidingWindowGeoDataset,
     TransformType,
 )
-
 from tests import data_file_path
 
 

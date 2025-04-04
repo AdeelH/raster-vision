@@ -1,16 +1,16 @@
 from typing import TYPE_CHECKING
 
+from rastervision.core.data.label_source import LabelSourceConfig
+from rastervision.core.data.label_store import LabelStoreConfig
+from rastervision.core.data.raster_source import RasterSourceConfig
+from rastervision.core.data.scene import Scene
+from rastervision.core.data.utils import get_polygons_from_uris
 from rastervision.pipeline.config import (
     Config,
     ConfigError,
-    register_config,
     Field,
+    register_config,
 )
-from rastervision.core.data.raster_source import RasterSourceConfig
-from rastervision.core.data.label_source import LabelSourceConfig
-from rastervision.core.data.label_store import LabelStoreConfig
-from rastervision.core.data.scene import Scene
-from rastervision.core.data.utils import get_polygons_from_uris
 
 if TYPE_CHECKING:
     from rastervision.core.data import ClassConfig

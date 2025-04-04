@@ -1,17 +1,17 @@
-from typing import Any
-import os
-from tempfile import TemporaryDirectory
-from pathlib import Path
-import logging
 import json
+import logging
+import os
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from typing import Any
 
+from everett.ext.inifile import ConfigIniEnv
 from everett.manager import (
-    ConfigManager,
     ConfigDictEnv,
+    ConfigManager,
     ConfigOSEnv,
     ConfigurationMissingError,
 )
-from everett.ext.inifile import ConfigIniEnv
 
 from rastervision.pipeline.verbosity import Verbosity
 
@@ -66,7 +66,7 @@ class RVConfig:
         elif self.verbosity >= Verbosity.NORMAL:
             root_log.setLevel(logging.INFO)
         else:
-            root_log.setLevel(logging.WARN)
+            root_log.setLevel(logging.WARNING)
 
     def get_verbosity(self) -> Verbosity:
         """Returns verbosity level for logging."""
@@ -118,7 +118,7 @@ class RVConfig:
                 os.makedirs(tmp_dir_root, exist_ok=True)
             # Check that it is actually a directory
             if not os.path.isdir(tmp_dir_root):
-                raise Exception('{} is not a directory.'.format(tmp_dir_root))
+                raise Exception(f'{tmp_dir_root} is not a directory.')
             # Can we interact with directory?
             Path.touch(Path(os.path.join(tmp_dir_root, '.can_touch')))
             # All checks have passed by this point
@@ -129,16 +129,12 @@ class RVConfig:
         except Exception:
             system_tmp_dir = TemporaryDirectory().name
             log.warning(
-                'Root temporary directory cannot be used: {}. Using root: {}'.format(
-                    tmp_dir_root, system_tmp_dir
-                )
+                f'Root temporary directory cannot be used: {tmp_dir_root}. Using root: {system_tmp_dir}'
             )
             self.tmp_dir_root = system_tmp_dir
         finally:
             os.makedirs(self.tmp_dir_root, exist_ok=True)
-            log.debug(
-                'Temporary directory root is: {}'.format(self.tmp_dir_root)
-            )
+            log.debug(f'Temporary directory root is: {self.tmp_dir_root}')
 
     def get_cache_dir(self) -> TemporaryDirectory:
         """Return the cache directory."""

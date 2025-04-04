@@ -3,14 +3,14 @@ from typing import TYPE_CHECKING
 from rastervision.core.data.raster_source import RasterizedSource
 from rastervision.core.data.vector_source import VectorSourceConfig
 from rastervision.core.data.vector_transformer import (
-    ClassInferenceTransformerConfig,
     BufferTransformerConfig,
+    ClassInferenceTransformerConfig,
 )
 from rastervision.pipeline.config import (
-    register_config,
     Config,
     Field,
     field_validator,
+    register_config,
 )
 
 if TYPE_CHECKING:

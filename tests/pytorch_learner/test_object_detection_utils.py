@@ -7,8 +7,8 @@ from torchvision.ops import box_convert
 
 from rastervision.pytorch_learner.object_detection_utils import (
     BoxList,
-    collate_fn,
     TorchVisionODAdapter,
+    collate_fn,
 )
 
 
@@ -21,18 +21,17 @@ class MockModel(nn.Module):
         if self.training:
             assert y is not None
             return {'loss1': 0, 'loss2': 0}
-        else:
-            N = len(x)
-            nboxes = np.random.randint(0, 10)
-            outs = [
-                {
-                    'boxes': torch.rand((nboxes, 4)),
-                    'labels': torch.randint(0, self.num_classes, (nboxes,)),
-                    'scores': torch.rand((nboxes,)),
-                }
-                for _ in range(N)
-            ]
-            return outs
+        N = len(x)
+        nboxes = np.random.randint(0, 10)
+        outs = [
+            {
+                'boxes': torch.rand((nboxes, 4)),
+                'labels': torch.randint(0, self.num_classes, (nboxes,)),
+                'scores': torch.rand((nboxes,)),
+            }
+            for _ in range(N)
+        ]
+        return outs
 
 
 class TestTorchVisionODAdapter(unittest.TestCase):

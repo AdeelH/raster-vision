@@ -1,33 +1,33 @@
-from typing import Any
-from collections.abc import Callable
 import unittest
+from collections.abc import Callable
 from os.path import join
+from typing import Any
 from uuid import uuid4
 
 import numpy as np
 import torch
 
-from rastervision.pipeline.file_system import get_tmp_dir
 from rastervision.core.data import (
     ClassConfig,
     DatasetConfig,
-    RasterioSourceConfig,
+    LabelSourceConfig,
     MultiRasterSourceConfig,
+    RasterioSourceConfig,
     ReclassTransformerConfig,
     SceneConfig,
-    LabelSourceConfig,
 )
 from rastervision.core.rv_pipeline import (
     WindowSamplingConfig,
     WindowSamplingMethod,
 )
+from rastervision.pipeline.file_system import get_tmp_dir
 from rastervision.pytorch_learner import (
-    RegressionModelConfig,
-    SolverConfig,
     RegressionGeoDataConfig,
-    RegressionLearnerConfig,
-    RegressionPlotOptions,
     RegressionLearner,
+    RegressionLearnerConfig,
+    RegressionModelConfig,
+    RegressionPlotOptions,
+    SolverConfig,
 )
 from tests import data_file_path
 
@@ -89,7 +89,6 @@ class TestRegressionLearner(unittest.TestCase):
         num_classes: int = 5,
     ):
         """Tests learner init, plots, bundle, train and pred."""
-
         with get_tmp_dir() as tmp_dir:
             class_config = ClassConfig(
                 names=[f'class_{i}' for i in range(num_classes)]

@@ -1,16 +1,16 @@
-import warnings
 import logging
+import warnings
 
 import torch.distributed as dist
 
-from rastervision.pytorch_learner.learner import Learner
-from rastervision.pytorch_learner.utils import (
-    compute_conf_mat_metrics,
-    compute_conf_mat,
-    aggregate_metrics,
-)
 from rastervision.pytorch_learner.dataset.visualizer import (
     ClassificationVisualizer,
+)
+from rastervision.pytorch_learner.learner import Learner
+from rastervision.pytorch_learner.utils import (
+    aggregate_metrics,
+    compute_conf_mat,
+    compute_conf_mat_metrics,
 )
 
 warnings.filterwarnings('ignore')

@@ -1,16 +1,15 @@
-from typing import Any
-from collections.abc import Callable
 import unittest
+from collections.abc import Callable
+from typing import Any
 from uuid import uuid4
 
 import numpy as np
 
-from rastervision.pipeline.file_system import get_tmp_dir
 from rastervision.core.data import (
     ClassConfig,
     DatasetConfig,
-    RasterioSourceConfig,
     MultiRasterSourceConfig,
+    RasterioSourceConfig,
     ReclassTransformerConfig,
     SceneConfig,
     SemanticSegmentationLabelSourceConfig,
@@ -20,18 +19,19 @@ from rastervision.core.rv_pipeline import (
     WindowSamplingConfig,
     WindowSamplingMethod,
 )
+from rastervision.pipeline.file_system import get_tmp_dir
 from rastervision.pytorch_backend import PyTorchSemanticSegmentationConfig
 from rastervision.pytorch_learner import (
+    PlotOptions,
+    SemanticSegmentationGeoDataConfig,
     SemanticSegmentationModelConfig,
     SolverConfig,
-    SemanticSegmentationGeoDataConfig,
-    PlotOptions,
 )
 from rastervision.pytorch_learner.utils import (
     serialize_albumentation_transform,
 )
-from tests.data_files.lambda_transforms import lambda_transforms
 from tests import data_file_path
+from tests.data_files.lambda_transforms import lambda_transforms
 
 
 def make_scene(num_channels: int, num_classes: int) -> SceneConfig:
@@ -94,7 +94,6 @@ class TestSemanticSegmentationLearner(unittest.TestCase):
         num_classes: int = 5,
     ):
         """Tests learner init, plots, bundle, train and pred."""
-
         with get_tmp_dir() as tmp_dir:
             class_config = ClassConfig(
                 names=[f'class_{i}' for i in range(num_classes)]

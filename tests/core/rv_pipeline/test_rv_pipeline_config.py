@@ -1,7 +1,7 @@
 import unittest
 
-from rastervision.core.data import ClassConfig, DatasetConfig
 from rastervision.core.backend import BackendConfig
+from rastervision.core.data import ClassConfig, DatasetConfig
 from rastervision.core.rv_pipeline.rv_pipeline_config import (
     PredictOptions,
     RVPipelineConfig,

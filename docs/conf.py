@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Configuration file for the Sphinx documentation builder.
 #
@@ -6,8 +5,8 @@
 # full list see the documentation:
 # http://www.sphinx-doc.org/en/stable/config
 
-from typing import TYPE_CHECKING
 import sys
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 if TYPE_CHECKING:
@@ -340,8 +339,8 @@ html_context = dict(
     # and a blob/ URL for files, but GitHub doesn't seem to mind if they are
     # interchanged.
     repo=f'https://github.com/azavea/raster-vision/tree/{version}',
-    repo_examples=f'https://github.com/azavea/raster-vision/tree/{version}/rastervision_pytorch_backend/rastervision/pytorch_backend/examples', # noqa
-    s3_model_zoo=f'https://s3.amazonaws.com/azavea-research-public-data/raster-vision/examples/model-zoo-{version}', # noqa
+    repo_examples=f'https://github.com/azavea/raster-vision/tree/{version}/rastervision_pytorch_backend/rastervision/pytorch_backend/examples',
+    s3_model_zoo=f'https://s3.amazonaws.com/azavea-research-public-data/raster-vision/examples/model-zoo-{version}',
 )
 # yapf: enable
 

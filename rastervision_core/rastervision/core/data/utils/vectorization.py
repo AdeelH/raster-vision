@@ -2,11 +2,12 @@
 # Ported over from https://github.com/azavea/mask-to-polygons.
 ###############################################################################
 
-from typing import TYPE_CHECKING, Iterator
+from collections.abc import Iterator
 from itertools import chain
+from typing import TYPE_CHECKING
 
-import numpy as np
 import cv2
+import numpy as np
 import rasterio as rio
 from shapely.geometry import shape
 
@@ -115,8 +116,7 @@ def get_rectangle(buildings: np.ndarray) -> RotatedRectange | None:
     if len(contours) > 0:
         rectangle = cv2.minAreaRect(contours[0])
         return rectangle
-    else:
-        return None
+    return None
 
 
 def get_kernel(

@@ -1,26 +1,26 @@
-from typing import TYPE_CHECKING, Any, Iterable, Sequence
-from collections.abc import Callable
 from collections import defaultdict
-from os.path import join
-from operator import iand
+from collections.abc import Callable, Iterable, Sequence
 from functools import reduce
+from operator import iand
+from os.path import join
 from pprint import pformat
+from typing import TYPE_CHECKING, Any
 
+import numpy as np
+import pycocotools
 import torch
-import torch.nn as nn
+from pycocotools.coco import COCO
+from pycocotools.cocoeval import COCOeval
+from torch import nn
 from torchvision.ops import (
+    batched_nms,
     box_area,
     box_convert,
-    batched_nms,
     clip_boxes_to_image,
 )
 from torchvision.utils import draw_bounding_boxes
-import pycocotools
-from pycocotools.coco import COCO
-from pycocotools.cocoeval import COCOeval
-import numpy as np
 
-from rastervision.pipeline.file_system import json_to_file, get_tmp_dir
+from rastervision.pipeline.file_system import get_tmp_dir, json_to_file
 from rastervision.pytorch_learner.utils.utils import ONNXRuntimeAdapter
 
 if TYPE_CHECKING:
@@ -40,7 +40,7 @@ def get_coco_gt(
                 'id': img_id,
                 'height': 1000,
                 'width': 1000,
-                'file_name': '{}.png'.format(img_id),
+                'file_name': f'{img_id}.png',
             }
         )
         boxes = target.convert_boxes('xywh').float().tolist()
@@ -159,8 +159,7 @@ class BoxList:
     def get_field(self, name: str) -> Any:
         if name == 'boxes':
             return self.boxes
-        else:
-            return self.extras.get(name)
+        return self.extras.get(name)
 
     def _map_extras(
         self,
@@ -254,8 +253,7 @@ class BoxList:
         scores = self.extras.get('scores')
         if scores is not None:
             return self.ind_filter(scores > score_thresh)
-        else:
-            raise ValueError('must have scores as key in extras')
+        raise ValueError('must have scores as key in extras')
 
     def clip_boxes(self, img_height: int, img_width: int) -> 'Self':
         boxes = clip_boxes_to_image(self.boxes, (img_height, img_width))
@@ -307,7 +305,8 @@ def draw_boxes(
     class_colors: Sequence[str],
 ) -> torch.Tensor:
     """Given an image and a BoxList, draw the boxes in the BoxList on the
-    image."""
+    image.
+    """
     boxes = y.boxes
     class_ids: np.ndarray = y.get_field('class_ids').numpy()
     scores: torch.Tensor | None = y.get_field('scores')

@@ -1,10 +1,11 @@
-from typing import TYPE_CHECKING, Any, Iterable
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, Any
 
 import geopandas as gpd
 
+from rastervision.core.box import Box
 from rastervision.core.data.label import ChipClassificationLabels
 from rastervision.core.data.label_source.label_source import LabelSource
-from rastervision.core.box import Box
 
 if TYPE_CHECKING:
     from rastervision.core.data import (
@@ -263,8 +264,7 @@ class ChipClassificationLabelSource(LabelSource):
                 self.labels += self._infer_cells(cells=[window])
             class_id = self.labels[window].class_id
             return class_id
-        else:
-            return super().__getitem__(key)
+        return super().__getitem__(key)
 
     def validate_labels(self, df: gpd.GeoDataFrame) -> None:
         geom_types = set(df.geom_type)

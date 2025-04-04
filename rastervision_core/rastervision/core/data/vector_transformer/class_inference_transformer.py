@@ -1,12 +1,12 @@
-from typing import TYPE_CHECKING
-from copy import deepcopy
 import logging
+from copy import deepcopy
+from typing import TYPE_CHECKING
 
+from rastervision.core.data.utils.geojson import features_to_geojson
 from rastervision.core.data.vector_transformer import VectorTransformer
 from rastervision.core.data.vector_transformer.label_maker.filter import (
     create_filter,
 )
-from rastervision.core.data.utils.geojson import features_to_geojson
 
 if TYPE_CHECKING:
     from rastervision.core.data import ClassConfig, CRSTransformer

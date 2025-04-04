@@ -1,10 +1,9 @@
+import unittest
 from collections.abc import Callable
 from os.path import join
-import unittest
 
 import numpy as np
 
-from rastervision.pipeline.file_system.utils import get_tmp_dir, file_exists
 from rastervision.core.box import Box
 from rastervision.core.data import (
     BuildingVectorOutputConfig,
@@ -15,6 +14,7 @@ from rastervision.core.data import (
     SemanticSegmentationSmoothLabels,
     VectorOutputConfig,
 )
+from rastervision.pipeline.file_system.utils import file_exists, get_tmp_dir
 from tests.core.data.label.test_semantic_segmentation_labels import (
     make_random_scores,
 )

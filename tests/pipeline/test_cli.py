@@ -1,21 +1,21 @@
 import os
-from os.path import join
-import unittest
 import shutil
+import unittest
+from os.path import join
 
-from rastervision.pipeline.file_system.utils import get_tmp_dir
-from rastervision.pipeline.config import Config
+from click.testing import CliRunner
+
 from rastervision.pipeline.cli import (
     convert_bool_args,
     get_configs,
     main,
     print_error,
 )
+from rastervision.pipeline.config import Config
+from rastervision.pipeline.file_system.utils import get_tmp_dir
 from rastervision.pipeline_example_plugin1.sample_pipeline import (
     SamplePipelineConfig,
 )
-
-from click.testing import CliRunner
 
 
 class TestCli(unittest.TestCase):

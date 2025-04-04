@@ -1,14 +1,14 @@
-from collections.abc import Callable
 import unittest
+from collections.abc import Callable
 
 from torch import nn
 
+from rastervision.pipeline.config import ValidationError, build_config
 from rastervision.pytorch_learner import (
+    ExternalModuleConfig,
     SolverConfig,
     solver_config_upgrader,
-    ExternalModuleConfig,
 )
-from rastervision.pipeline.config import ValidationError, build_config
 
 
 class TestSolverConfig(unittest.TestCase):

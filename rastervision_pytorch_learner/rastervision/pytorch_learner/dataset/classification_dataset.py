@@ -1,19 +1,20 @@
-from typing import TYPE_CHECKING, Iterable
 import logging
+from collections.abc import Iterable
+from typing import TYPE_CHECKING
 
+from rastervision.core.data.utils import make_cc_scene
 from rastervision.pytorch_learner.dataset import (
     ImageDataset,
-    TransformType,
-    SlidingWindowGeoDataset,
     RandomWindowGeoDataset,
+    SlidingWindowGeoDataset,
+    TransformType,
     make_image_folder_dataset,
 )
-from rastervision.core.data.utils import make_cc_scene
 
 if TYPE_CHECKING:
     from rastervision.core.data import (
-        ClassConfig,
         ChipClassificationLabelSource,
+        ClassConfig,
     )
 
 log = logging.getLogger(__name__)
@@ -122,7 +123,7 @@ class ClassificationSlidingWindowGeoDataset(SlidingWindowGeoDataset):
     def init_windows(self):
         super().init_windows()
         if self.scene.label_source is not None:
-            ls: 'ChipClassificationLabelSource' = self.scene.label_source
+            ls: ChipClassificationLabelSource = self.scene.label_source
             ls.populate_labels(cells=self.windows)
 
 

@@ -1,12 +1,12 @@
-from collections.abc import Callable
 import unittest
+from collections.abc import Callable
 
 from rastervision.core.data import (
-    DatasetConfig,
     ClassConfig,
-    SceneConfig,
-    RasterioSourceConfig,
+    DatasetConfig,
     LabelSourceConfig,
+    RasterioSourceConfig,
+    SceneConfig,
     dataset_config_upgrader,
 )
 from rastervision.pipeline.config import ConfigError, build_config
@@ -50,7 +50,8 @@ class TestDatasetConfig(unittest.TestCase):
 
     def test_default_scene_groups(self):
         """Test if DatasetConfig.update() correctly populates scene_groups
-        with the default scene groups."""
+        with the default scene groups.
+        """
         class_config = ClassConfig(
             names=['red', 'green'], colors=['red', 'green']
         )
@@ -72,7 +73,8 @@ class TestDatasetConfig(unittest.TestCase):
 
     def test_validate_config(self):
         """Test if DatasetConfig.update() correctly populates scene_groups
-        with the default scene groups."""
+        with the default scene groups.
+        """
         class_config = ClassConfig(
             names=['red', 'green'], colors=['red', 'green']
         )

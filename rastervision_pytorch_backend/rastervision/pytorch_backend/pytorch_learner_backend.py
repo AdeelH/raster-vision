@@ -1,21 +1,22 @@
-from typing import TYPE_CHECKING
-from os.path import join, splitext
 import tempfile
+from os.path import join, splitext
+from typing import TYPE_CHECKING
 
 import numpy as np
 from tqdm.auto import tqdm
 
-from rastervision.pipeline import rv_config_ as rv_config
-from rastervision.pipeline.file_system import make_dir, upload_or_copy, zipdir
 from rastervision.core.backend import Backend, SampleWriter
 from rastervision.core.data.utils.misc import save_img
 from rastervision.core.data_sample import DataSample
+from rastervision.pipeline import rv_config_ as rv_config
+from rastervision.pipeline.file_system import make_dir, upload_or_copy, zipdir
 from rastervision.pytorch_learner.learner import Learner
 
 if TYPE_CHECKING:
     from torch.utils.data import Dataset
+
     from rastervision.core.data import ClassConfig, DatasetConfig, Scene
-    from rastervision.core.rv_pipeline import RVPipelineConfig, ChipOptions
+    from rastervision.core.rv_pipeline import ChipOptions, RVPipelineConfig
     from rastervision.pytorch_learner import DataConfig, LearnerConfig
 
 SPLITS = ['train', 'valid', 'test']
@@ -35,8 +36,7 @@ def get_image_ext(chip: np.ndarray) -> str:
     """Decide which format to store the image in."""
     if chip.ndim == 2 or chip.shape[-1] == 3:
         return 'png'
-    else:
-        return 'npy'
+    return 'npy'
 
 
 class PyTorchLearnerSampleWriter(SampleWriter):
@@ -66,8 +66,7 @@ class PyTorchLearnerSampleWriter(SampleWriter):
         return self
 
     def __exit__(self, type, value, traceback):
-        """
-        This writes a zip file for a group of scenes at {output_uri}/{uuid}.zip.
+        """This writes a zip file for a group of scenes at {output_uri}/{uuid}.zip.
 
         This method is called once per instance of the chip command.
         A number of instances of the chip command can run simultaneously to
@@ -81,11 +80,12 @@ class PyTorchLearnerSampleWriter(SampleWriter):
 
     def write_sample(self, sample: 'DataSample') -> None:
         """Write a single sample to disk."""
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def get_image_path(self, sample: 'DataSample') -> str:
         """Decide the save location of the image. Also, ensure that the target
-        directory exists."""
+        directory exists.
+        """
         split = '' if sample.split is None else sample.split
         img_dir = join(self.sample_dir, split, 'img')
         make_dir(img_dir)
@@ -150,7 +150,7 @@ class PyTorchLearnerBackend(Backend):
         )
 
     def get_sample_writer(self):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def chip_dataset(
         self,
@@ -206,7 +206,7 @@ class PyTorchLearnerBackend(Backend):
         if split is not None:
             desc = f'Chipping {split} scenes.'
         else:
-            desc = f'Chipping dataset.'
+            desc = 'Chipping dataset.'
         with tqdm(total=len(dataset), desc=desc) as bar:
             for (xs, ys), ws in dl:
                 for x, y, w in zip(xs, ys, ws):
@@ -219,9 +219,9 @@ class PyTorchLearnerBackend(Backend):
     def predict_scene(
         self, scene: 'Scene', chip_sz: int, stride: int | None = None
     ):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def _make_chip_data_config(
         self, dataset: 'DatasetConfig', chip_options: 'ChipOptions'
     ) -> 'DataConfig':
-        raise NotImplementedError()
+        raise NotImplementedError

@@ -1,26 +1,25 @@
-from collections.abc import Callable
 import unittest
+from collections.abc import Callable
 
 import numpy as np
-from xarray import DataArray
 from pystac import Item
+from xarray import DataArray
 
-from rastervision.pipeline.file_system import get_tmp_dir
 from rastervision.core.box import Box
 from rastervision.core.data import (
-    RasterioSourceConfig,
+    CastTransformerConfig,
+    IdentityCRSTransformer,
     MultiRasterSource,
     MultiRasterSourceConfig,
+    RasterioSourceConfig,
     ReclassTransformerConfig,
-    CastTransformerConfig,
-    XarraySource,
-    IdentityCRSTransformer,
     TemporalMultiRasterSource,
+    XarraySource,
 )
 from rastervision.core.data.raster_source.multi_raster_source_config import (
     multi_rs_config_upgrader,
 )
-
+from rastervision.pipeline.file_system import get_tmp_dir
 from tests import data_file_path
 
 

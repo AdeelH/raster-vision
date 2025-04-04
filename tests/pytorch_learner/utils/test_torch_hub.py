@@ -1,10 +1,12 @@
-from collections.abc import Callable
 import unittest
-from os.path import join, exists
+from collections.abc import Callable
 from os import makedirs
+from os.path import exists, join
 
 from torch import nn
 
+from rastervision.pipeline.file_system import get_tmp_dir
+from rastervision.pytorch_learner import ExternalModuleConfig
 from rastervision.pytorch_learner.utils.torch_hub import (
     _remove_dir,
     _repo_name_to_dir_name,
@@ -14,8 +16,6 @@ from rastervision.pytorch_learner.utils.torch_hub import (
     torch_hub_load_local,
     torch_hub_load_uri,
 )
-from rastervision.pipeline.file_system import get_tmp_dir
-from rastervision.pytorch_learner import ExternalModuleConfig
 
 
 class TestTorchHubUtils(unittest.TestCase):
@@ -120,7 +120,7 @@ class TestTorchHubUtils(unittest.TestCase):
         with get_tmp_dir() as tmp_dir:
             hubconf_dir = join(tmp_dir, 'focal_loss')
             loss = torch_hub_load_uri(
-                uri='https://github.com/AdeelH/pytorch-multi-class-focal-loss/archive/refs/tags/1.1.zip',  # noqa
+                uri='https://github.com/AdeelH/pytorch-multi-class-focal-loss/archive/refs/tags/1.1.zip',
                 entrypoint='focal_loss',
                 dst_dir=hubconf_dir,
                 alpha=[0.75, 0.25],

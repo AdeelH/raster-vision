@@ -1,5 +1,5 @@
-from collections.abc import Callable
 import os
+from collections.abc import Callable
 
 
 def data_file_path(rel_path: str) -> str:

@@ -1,8 +1,8 @@
-from rastervision.pipeline.config import register_config
 from rastervision.core.data.raster_transformer import (
-    RasterTransformerConfig,
     MinMaxTransformer,
+    RasterTransformerConfig,
 )
+from rastervision.pipeline.config import register_config
 
 
 @register_config('min_max_transformer')

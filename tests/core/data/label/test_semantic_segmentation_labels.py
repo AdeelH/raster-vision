@@ -4,15 +4,15 @@ from os.path import join
 import numpy as np
 import rasterio as rio
 
-from rastervision.pipeline.file_system import get_tmp_dir
 from rastervision.core.box import Box
 from rastervision.core.data import (
     ClassConfig,
     IdentityCRSTransformer,
-    SemanticSegmentationLabels,
     SemanticSegmentationDiscreteLabels,
+    SemanticSegmentationLabels,
     SemanticSegmentationSmoothLabels,
 )
+from rastervision.pipeline.file_system import get_tmp_dir
 
 
 class TestSemanticSegmentationLabels(unittest.TestCase):

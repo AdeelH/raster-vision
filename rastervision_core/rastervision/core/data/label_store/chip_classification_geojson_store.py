@@ -1,13 +1,13 @@
 from typing import TYPE_CHECKING
 
-from rastervision.pipeline.file_system import json_to_file
 from rastervision.core.data.label import ChipClassificationLabels
-from rastervision.core.data.label_store import LabelStore
-from rastervision.core.data.label_store.utils import boxes_to_geojson
 from rastervision.core.data.label_source import (
     ChipClassificationLabelSourceConfig,
 )
+from rastervision.core.data.label_store import LabelStore
+from rastervision.core.data.label_store.utils import boxes_to_geojson
 from rastervision.core.data.vector_source import GeoJSONVectorSourceConfig
+from rastervision.pipeline.file_system import json_to_file
 
 if TYPE_CHECKING:
     from rastervision.core.box import Box

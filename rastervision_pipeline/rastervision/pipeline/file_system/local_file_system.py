@@ -1,8 +1,8 @@
-import os
+import glob
 import io
+import os
 import shutil
 from datetime import datetime, timezone
-import glob
 
 from tqdm.auto import tqdm
 
@@ -72,7 +72,7 @@ class LocalFileSystem(FileSystem):
             raise NotReadableError(f'Could not read {file_uri}')
 
         file_size = os.path.getsize(file_uri)
-        with open(file_uri, 'r') as in_file, io.StringIO() as str_buffer:
+        with open(file_uri) as in_file, io.StringIO() as str_buffer:
             with progressbar(
                 in_file, 'read', file_size, desc='Reading file'
             ) as bar:

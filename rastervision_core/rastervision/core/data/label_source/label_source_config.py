@@ -24,7 +24,7 @@ class LabelSourceConfig(Config):
         bbox: 'Box | None' = None,
         tmp_dir: str | None = None,
     ) -> 'LabelSource':
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def update(
         self,

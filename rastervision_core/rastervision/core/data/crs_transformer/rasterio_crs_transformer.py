@@ -1,13 +1,13 @@
-from typing import TYPE_CHECKING, Any, Callable
 import logging
+from typing import TYPE_CHECKING, Any, Callable
 
-from pyproj import Transformer
-from pyproj.exceptions import ProjError
 import numpy as np
 import rasterio as rio
-from rasterio.transform import rowcol, xy
-from rasterio.windows import bounds, from_bounds, Window
+from pyproj import Transformer
+from pyproj.exceptions import ProjError
 from rasterio import Affine
+from rasterio.transform import rowcol, xy
+from rasterio.windows import Window, bounds, from_bounds
 
 from rastervision.core.box import Box
 from rastervision.core.data.crs_transformer import (
@@ -76,7 +76,6 @@ class RasterioCRSTransformer(CRSTransformer):
             round_pixels: If ``True``, round outputs of :meth:`.map_to_pixel`.
                 Defaults to ``False``.
         """
-
         if (image_crs is None) or (image_crs == map_crs):
             self.map2image = lambda *args, **kws: args[:2]
             self.image2map = lambda *args, **kws: args[:2]

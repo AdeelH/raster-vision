@@ -4,10 +4,10 @@ from rastervision.core.data.label_source import (
 )
 from rastervision.core.data.vector_source import VectorSourceConfig
 from rastervision.core.data.vector_transformer import (
-    ClassInferenceTransformerConfig,
     BufferTransformerConfig,
+    ClassInferenceTransformerConfig,
 )
-from rastervision.pipeline.config import register_config, field_validator
+from rastervision.pipeline.config import field_validator, register_config
 
 
 @register_config('object_detection_label_source')

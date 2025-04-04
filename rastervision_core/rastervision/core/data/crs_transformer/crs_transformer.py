@@ -2,9 +2,9 @@ from abc import ABC, abstractmethod
 from typing import Any, overload
 
 import numpy as np
-from shapely.ops import transform
-from shapely.geometry.base import BaseGeometry
 from shapely.affinity import translate
+from shapely.geometry.base import BaseGeometry
+from shapely.ops import transform
 
 from rastervision.core.box import Box
 
@@ -62,13 +62,13 @@ class CRSTransformer(ABC):
             if bbox is not None:
                 box_out = box_out.to_local_coords(bbox)
             return box_out
-        elif isinstance(inp, BaseGeometry):
+        if isinstance(inp, BaseGeometry):
             geom_out = self._map_to_pixel_geom(inp)
             if bbox is not None:
                 xmin, ymin = bbox.xmin, bbox.ymin
                 geom_out = translate(geom_out, xoff=-xmin, yoff=-ymin)
             return geom_out
-        elif len(inp) == 2:
+        if len(inp) == 2:
             out = self._map_to_pixel_point(inp)
             out_x, out_y = out
             out = (np.array(out_x), np.array(out_y))
@@ -77,10 +77,7 @@ class CRSTransformer(ABC):
                 out_x, out_y = out
                 out = (out_x - xmin, out_y - ymin)
             return out
-        else:
-            raise TypeError(
-                'Input must be 2-tuple or Box or shapely geometry.'
-            )
+        raise TypeError('Input must be 2-tuple or Box or shapely geometry.')
 
     @overload
     def pixel_to_map(
@@ -121,14 +118,14 @@ class CRSTransformer(ABC):
                 box_in = box_in.to_global_coords(bbox)
             box_out = self._pixel_to_map_box(box_in)
             return box_out
-        elif isinstance(inp, BaseGeometry):
+        if isinstance(inp, BaseGeometry):
             geom_in = inp
             if bbox is not None:
                 xmin, ymin = bbox.xmin, bbox.ymin
                 geom_in = translate(geom_in, xoff=xmin, yoff=ymin)
             geom_out = self._pixel_to_map_geom(geom_in)
             return geom_out
-        elif len(inp) == 2:
+        if len(inp) == 2:
             if bbox is not None:
                 xmin, ymin = bbox.xmin, bbox.ymin
                 inp_x, inp_y = inp
@@ -137,10 +134,7 @@ class CRSTransformer(ABC):
             out_x, out_y = out
             out = (np.array(out_x), np.array(out_y))
             return out
-        else:
-            raise TypeError(
-                'Input must be 2-tuple or Box or shapely geometry.'
-            )
+        raise TypeError('Input must be 2-tuple or Box or shapely geometry.')
 
     @abstractmethod
     def _map_to_pixel_point(

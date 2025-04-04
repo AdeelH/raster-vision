@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
-from rastervision.core.data.utils import listify_uris, get_polygons_from_uris
+from rastervision.core.data.utils import get_polygons_from_uris, listify_uris
 
 if TYPE_CHECKING:
     from rastervision.core.data import ClassConfig, Scene
@@ -67,12 +67,12 @@ def make_ss_scene(
     """
     # use local imports to avoid circular import problems
     from rastervision.core.data import (
+        ClassInferenceTransformer,
         GeoJSONVectorSource,
         RasterioSource,
         RasterizedSource,
         Scene,
         SemanticSegmentationLabelSource,
-        ClassInferenceTransformer,
     )
 
     if label_raster_uri is not None and label_vector_uri is not None:
@@ -191,11 +191,11 @@ def make_cc_scene(
     """
     # use local imports to avoid circular import problems
     from rastervision.core.data import (
+        ChipClassificationLabelSourceConfig,
+        ClassInferenceTransformerConfig,
+        GeoJSONVectorSourceConfig,
         RasterioSource,
         Scene,
-        ClassInferenceTransformerConfig,
-        ChipClassificationLabelSourceConfig,
-        GeoJSONVectorSourceConfig,
     )
 
     image_uri = listify_uris(image_uri)
@@ -292,11 +292,11 @@ def make_od_scene(
     """
     # use local imports to avoid circular import problems
     from rastervision.core.data import (
-        RasterioSource,
-        Scene,
         ClassInferenceTransformerConfig,
         GeoJSONVectorSourceConfig,
         ObjectDetectionLabelSourceConfig,
+        RasterioSource,
+        Scene,
     )
 
     image_uri = listify_uris(image_uri)

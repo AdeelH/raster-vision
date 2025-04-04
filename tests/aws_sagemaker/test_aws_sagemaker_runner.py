@@ -1,14 +1,13 @@
 import os
 import unittest
 
+import boto3
+from moto import mock_aws
 from sagemaker.workflow.pipeline import Pipeline as SageMakerPipeline
 from sagemaker.workflow.steps import ProcessingStep, TrainingStep
 
-from rastervision.pipeline import rv_config_ as rv_config
 from rastervision.aws_sagemaker.aws_sagemaker_runner import AWSSageMakerRunner
-
-import boto3
-from moto import mock_aws
+from rastervision.pipeline import rv_config_ as rv_config
 
 
 class MockRVPipelineConfig:

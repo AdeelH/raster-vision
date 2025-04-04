@@ -1,7 +1,7 @@
-from collections.abc import Callable
-from os.path import join
-from enum import Enum
 import logging
+from collections.abc import Callable
+from enum import Enum
+from os.path import join
 
 import albumentations as A
 from torch import nn
@@ -12,22 +12,22 @@ from rastervision.core.data import Scene
 from rastervision.core.rv_pipeline import WindowSamplingMethod
 from rastervision.pipeline.config import (
     Config,
-    register_config,
+    ConfigError,
     Field,
     field_validator,
-    ConfigError,
-)
-from rastervision.pytorch_learner.learner_config import (
-    Backbone,
-    LearnerConfig,
-    ModelConfig,
-    ImageDataConfig,
-    GeoDataConfig,
+    register_config,
 )
 from rastervision.pytorch_learner.dataset import (
     SemanticSegmentationImageDataset,
-    SemanticSegmentationSlidingWindowGeoDataset,
     SemanticSegmentationRandomWindowGeoDataset,
+    SemanticSegmentationSlidingWindowGeoDataset,
+)
+from rastervision.pytorch_learner.learner_config import (
+    Backbone,
+    GeoDataConfig,
+    ImageDataConfig,
+    LearnerConfig,
+    ModelConfig,
 )
 from rastervision.pytorch_learner.utils import adjust_conv_channels
 
@@ -107,7 +107,7 @@ class SemanticSegmentationImageDataConfig(
         self, data_dir: str, transform: A.BasicTransform
     ) -> Dataset:
         if self.data_format != SemanticSegmentationDataFormat.default:
-            raise NotImplementedError()
+            raise NotImplementedError
         img_dir = join(data_dir, 'img')
         label_dir = join(data_dir, 'labels')
         ds = SemanticSegmentationImageDataset(
@@ -174,7 +174,7 @@ class SemanticSegmentationGeoDataConfig(
                 **extra_args,
             )
         else:
-            raise NotImplementedError()
+            raise NotImplementedError
         return ds
 
 

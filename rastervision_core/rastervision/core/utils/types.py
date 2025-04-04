@@ -1,5 +1,6 @@
-from typing import Sequence
-from typing_extensions import Annotated
+from collections.abc import Sequence
+from typing import Annotated
+
 from pydantic.types import StringConstraints
 
 from rastervision.pipeline.config import Field

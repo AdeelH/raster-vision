@@ -1,11 +1,10 @@
-from collections.abc import Callable
 import unittest
+from collections.abc import Callable
 from os.path import join
 
-from shapely.geometry import shape
 import geopandas as gpd
+from shapely.geometry import shape
 
-from rastervision.pipeline.file_system import json_to_file, get_tmp_dir
 from rastervision.core.box import Box
 from rastervision.core.data import (
     BufferTransformerConfig,
@@ -15,11 +14,11 @@ from rastervision.core.data import (
     GeoJSONVectorSourceConfig,
     IdentityCRSTransformer,
 )
+from rastervision.core.data.utils import geometries_to_geojson
 from rastervision.core.data.vector_source.geojson_vector_source_config import (
     geojson_vector_source_config_upgrader,
 )
-from rastervision.core.data.utils import geometries_to_geojson
-
+from rastervision.pipeline.file_system import get_tmp_dir, json_to_file
 from tests import test_config_upgrader
 from tests.core.data.mock_crs_transformer import DoubleCRSTransformer
 

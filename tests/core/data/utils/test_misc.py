@@ -1,33 +1,32 @@
-from typing import Any
-from collections.abc import Callable
-import unittest
-from os.path import join
 import json
+import unittest
+from collections.abc import Callable
+from os.path import join
+from typing import Any
 
 import numpy as np
 
-from rastervision.pipeline.file_system.utils import get_tmp_dir, json_to_file
 from rastervision.core.box import Box
 from rastervision.core.data import (
-    ClassConfig,
-    GeoJSONVectorSource,
-    RasterioSource,
+    ChipClassificationGeoJSONStore,
     ChipClassificationLabelSource,
     ChipClassificationLabelSourceConfig,
-    ChipClassificationGeoJSONStore,
-    ObjectDetectionLabelSource,
+    ClassConfig,
+    GeoJSONVectorSource,
     ObjectDetectionGeoJSONStore,
+    ObjectDetectionLabelSource,
+    RasterioSource,
     SemanticSegmentationLabelSource,
     SemanticSegmentationLabelStore,
 )
-from rastervision.core.data.utils.misc import ensure_json_serializable
 from rastervision.core.data.utils.geojson import geoms_to_geojson
 from rastervision.core.data.utils.misc import (
+    ensure_json_serializable,
     match_bboxes,
     parse_array_slices_2d,
     parse_array_slices_Nd,
 )
-
+from rastervision.pipeline.file_system.utils import get_tmp_dir, json_to_file
 from tests import data_file_path
 
 

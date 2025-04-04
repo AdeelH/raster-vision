@@ -1,14 +1,16 @@
-from typing import TYPE_CHECKING, Iterable, Iterator, Sequence
+from collections.abc import Iterable, Iterator, Sequence
+from typing import TYPE_CHECKING
 
 import numpy as np
 from tqdm.auto import tqdm
 
-from rastervision.pipeline.utils import repr_with_args
-from rastervision.pipeline.file_system import file_to_json, json_to_file
 from rastervision.core.data.utils import ensure_json_serializable
+from rastervision.pipeline.file_system import file_to_json, json_to_file
+from rastervision.pipeline.utils import repr_with_args
 
 if TYPE_CHECKING:
     from typing import Self
+
     from rastervision.core.box import Box
     from rastervision.core.data import RasterSource
 

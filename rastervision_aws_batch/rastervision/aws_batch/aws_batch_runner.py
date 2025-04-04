@@ -1,8 +1,8 @@
-from typing import TYPE_CHECKING, Any
 import logging
 import os
 import uuid
 from pprint import pformat
+from typing import TYPE_CHECKING, Any
 
 from rastervision.pipeline import rv_config_ as rv_config
 from rastervision.pipeline.runner import Runner

@@ -1,10 +1,10 @@
-from typing import TYPE_CHECKING, Any, Sequence
 import logging
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import rasterio as rio
 
-from rastervision.pipeline.file_system import download_if_needed, get_tmp_dir
 from rastervision.core.box import Box
 from rastervision.core.data.crs_transformer import RasterioCRSTransformer
 from rastervision.core.data.raster_source import RasterSource
@@ -17,6 +17,7 @@ from rastervision.core.data.utils.rasterio import (
     is_masked,
     read_window,
 )
+from rastervision.pipeline.file_system import download_if_needed, get_tmp_dir
 
 if TYPE_CHECKING:
     from rastervision.core.data import RasterTransformer
@@ -137,12 +138,10 @@ class RasterioSource(RasterSource):
         if len(self.uris) == 1:
             if stream:
                 return self.uris[0]
-            else:
-                return download_if_needed(self.uris[0])
-        else:
-            if vrt_dir is None:
-                raise ValueError('vrt_dir is required if using >1 image URIs.')
-            return download_and_build_vrt(self.uris, vrt_dir, stream=stream)
+            return download_if_needed(self.uris[0])
+        if vrt_dir is None:
+            raise ValueError('vrt_dir is required if using >1 image URIs.')
+        return download_and_build_vrt(self.uris, vrt_dir, stream=stream)
 
     def _get_chip(
         self,

@@ -1,15 +1,15 @@
 from typing import TYPE_CHECKING, Literal
-from pydantic.types import PositiveInt as PosInt
 
 import numpy as np
+from pydantic.types import PositiveInt as PosInt
 
 from rastervision.core.data.raster_transformer import (
     RasterTransformer,
     ReclassTransformer,
 )
 from rastervision.core.data.utils import (
-    color_to_triple,
     color_to_integer,
+    color_to_triple,
     rgb_to_int_array,
 )
 

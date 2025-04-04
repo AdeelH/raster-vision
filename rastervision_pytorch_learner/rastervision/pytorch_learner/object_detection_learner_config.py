@@ -1,10 +1,9 @@
-from typing import TYPE_CHECKING
+import logging
 from enum import Enum
 from os.path import join
-import logging
+from typing import TYPE_CHECKING
 
 import albumentations as A
-
 from torchvision.models.detection.backbone_utils import resnet_fpn_backbone
 from torchvision.models.detection.faster_rcnn import FasterRCNN
 
@@ -12,22 +11,22 @@ from rastervision.core.data import Scene
 from rastervision.core.rv_pipeline import WindowSamplingMethod
 from rastervision.pipeline.config import (
     Config,
-    register_config,
+    ConfigError,
     Field,
     field_validator,
-    ConfigError,
-)
-from rastervision.pytorch_learner.learner_config import (
-    LearnerConfig,
-    ModelConfig,
-    Backbone,
-    ImageDataConfig,
-    GeoDataConfig,
+    register_config,
 )
 from rastervision.pytorch_learner.dataset import (
     ObjectDetectionImageDataset,
-    ObjectDetectionSlidingWindowGeoDataset,
     ObjectDetectionRandomWindowGeoDataset,
+    ObjectDetectionSlidingWindowGeoDataset,
+)
+from rastervision.pytorch_learner.learner_config import (
+    Backbone,
+    GeoDataConfig,
+    ImageDataConfig,
+    LearnerConfig,
+    ModelConfig,
 )
 from rastervision.pytorch_learner.utils import adjust_conv_channels
 
@@ -136,7 +135,7 @@ class ObjectDetectionGeoDataConfig(ObjectDetectionDataConfig, GeoDataConfig):
                 **extra_args,
             )
         else:
-            raise NotImplementedError()
+            raise NotImplementedError
         return ds
 
 

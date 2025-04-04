@@ -1,8 +1,9 @@
-from typing import Any, Iterator
 import io
 import os
 import subprocess
+from collections.abc import Iterator
 from datetime import datetime
+from typing import Any
 from urllib.parse import urlparse
 
 import boto3
@@ -214,7 +215,7 @@ class S3FileSystem(FileSystem):
                     )
                 return file_buffer.getvalue()
             except botocore.exceptions.ClientError as e:
-                raise NotReadableError('Could not read {}'.format(uri)) from e
+                raise NotReadableError(f'Could not read {uri}') from e
 
     @staticmethod
     def write_str(uri: str, data: str) -> None:
@@ -248,7 +249,7 @@ class S3FileSystem(FileSystem):
         request_payer = S3FileSystem.get_request_payer()
         if request_payer:
             command.append('--request-payer')
-        subprocess.run(command)
+        subprocess.run(command, check=False)
 
     @staticmethod
     def sync_to_dir(
@@ -287,7 +288,7 @@ class S3FileSystem(FileSystem):
                 Bucket=bucket, Key=key, RequestPayer=request_payer
             )
             file_size = obj['ContentLength']
-            with progressbar(file_size, desc=f'Downloading') as bar:
+            with progressbar(file_size, desc='Downloading') as bar:
                 s3.download_file(
                     Bucket=bucket,
                     Key=key,

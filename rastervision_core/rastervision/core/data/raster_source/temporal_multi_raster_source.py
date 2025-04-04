@@ -1,12 +1,13 @@
-from typing import TYPE_CHECKING, Any, Sequence
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, Any
 
-from pydantic import NonNegativeInt as NonNegInt
 import numpy as np
+from pydantic import NonNegativeInt as NonNegInt
 
 from rastervision.core.box import Box
 from rastervision.core.data.raster_source import (
-    RasterSource,
     MultiRasterSource,
+    RasterSource,
 )
 from rastervision.core.data.utils import all_equal, parse_array_slices_Nd
 

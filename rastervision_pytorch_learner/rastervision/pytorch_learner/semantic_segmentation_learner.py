@@ -1,20 +1,19 @@
-from typing import TYPE_CHECKING
-import warnings
-
 import logging
+import warnings
+from typing import TYPE_CHECKING
 
 import torch
-from torch.nn import functional as F
 import torch.distributed as dist
+from torch.nn import functional as F
 
-from rastervision.pytorch_learner.learner import Learner
-from rastervision.pytorch_learner.utils import (
-    compute_conf_mat_metrics,
-    compute_conf_mat,
-    aggregate_metrics,
-)
 from rastervision.pytorch_learner.dataset.visualizer import (
     SemanticSegmentationVisualizer,
+)
+from rastervision.pytorch_learner.learner import Learner
+from rastervision.pytorch_learner.utils import (
+    aggregate_metrics,
+    compute_conf_mat,
+    compute_conf_mat_metrics,
 )
 
 if TYPE_CHECKING:

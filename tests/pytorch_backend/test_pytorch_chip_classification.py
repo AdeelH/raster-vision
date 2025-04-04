@@ -1,25 +1,22 @@
 import unittest
 
-from rastervision.pipeline.file_system import get_tmp_dir
-from rastervision.pipeline.config import save_pipeline_config
 from rastervision.core.data import ClassConfig, DatasetConfig
 from rastervision.core.rv_pipeline import (
-    ChipOptions,
     ChipClassificationConfig,
+    ChipOptions,
     PredictOptions,
     WindowSamplingConfig,
     WindowSamplingMethod,
 )
+from rastervision.pipeline.config import save_pipeline_config
+from rastervision.pipeline.file_system import get_tmp_dir
 from rastervision.pytorch_backend import PyTorchChipClassificationConfig
-from rastervision.pytorch_learner import (
-    ClassificationModelConfig,
-    SolverConfig,
-)
 from rastervision.pytorch_learner import (
     ClassificationGeoDataConfig,
     ClassificationImageDataConfig,
+    ClassificationModelConfig,
+    SolverConfig,
 )
-
 from tests.pytorch_learner.test_classification_learner import make_scene
 
 

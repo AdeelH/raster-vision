@@ -1,7 +1,8 @@
-from typing import TYPE_CHECKING, Iterable
+from collections.abc import Iterable
 from os.path import join
+from typing import TYPE_CHECKING
 
-from rastervision.pipeline.config import register_config, Config, Field
+from rastervision.pipeline.config import Config, Field, register_config
 
 if TYPE_CHECKING:
     from rastervision.core.data import ClassConfig

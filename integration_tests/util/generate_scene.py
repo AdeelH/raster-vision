@@ -6,12 +6,12 @@ import rasterio
 from rasterio.transform import from_origin
 
 from rastervision.core.box import Box
-from rastervision.data import (
-    RasterioCRSTransformer,
-    ObjectDetectionLabels,
-    ObjectDetectionGeoJSONStore,
-)
 from rastervision.core.class_map import ClassItem, ClassMap
+from rastervision.data import (
+    ObjectDetectionGeoJSONStore,
+    ObjectDetectionLabels,
+    RasterioCRSTransformer,
+)
 
 
 @click.command()
@@ -66,9 +66,7 @@ def generate_scene(
     transform = from_origin(-75.163506, 39.952536, 0.000001, 0.000001)
 
     print(
-        'Generated {} boxes with {} different classes.'.format(
-            len(boxes), len(set(class_ids))
-        )
+        f'Generated {len(boxes)} boxes with {len(set(class_ids))} different classes.'
     )
 
     with rasterio.open(
@@ -83,7 +81,7 @@ def generate_scene(
         count=nb_channels,
         dtype='uint8',
     ) as dst:
-        for channel_ind in range(0, nb_channels):
+        for channel_ind in range(nb_channels):
             dst.write(image[:, :, channel_ind], channel_ind + 1)
 
     if task == 'object_detection':

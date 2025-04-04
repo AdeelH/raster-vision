@@ -1,8 +1,9 @@
-from typing import TYPE_CHECKING, Any, Iterable
 from abc import ABC, abstractmethod
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from rastervision.core.data import Scene, Labels
+    from rastervision.core.data import Labels, Scene
 
 
 class Evaluator(ABC):

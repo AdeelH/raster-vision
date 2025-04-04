@@ -1,20 +1,20 @@
-from typing import TYPE_CHECKING
-from pathlib import Path
 import logging
+from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
 from torch.utils.data import Dataset
 
+from rastervision.core.data.utils import make_ss_scene
 from rastervision.pytorch_learner.dataset import (
     ImageDataset,
-    TransformType,
-    SlidingWindowGeoDataset,
-    RandomWindowGeoDataset,
-    load_image,
-    discover_images,
     ImageDatasetError,
+    RandomWindowGeoDataset,
+    SlidingWindowGeoDataset,
+    TransformType,
+    discover_images,
+    load_image,
 )
-from rastervision.core.data.utils import make_ss_scene
 
 if TYPE_CHECKING:
     from rastervision.core.data import ClassConfig
@@ -84,7 +84,6 @@ class SemanticSegmentationImageDataset(ImageDataset):
             *args: See :meth:`.ImageDataset.__init__`.
             **kwargs: See :meth:`.ImageDataset.__init__`.
         """
-
         ds = SemanticSegmentationDataReader(img_dir, label_dir)
         super().__init__(
             ds,

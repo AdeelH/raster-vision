@@ -1,11 +1,12 @@
-from typing import TYPE_CHECKING, Iterable
-from collections.abc import Callable
 import inspect
+from collections.abc import Callable, Iterable
+from typing import TYPE_CHECKING
+
 from click import Command
 
 if TYPE_CHECKING:
     from rastervision.pipeline.runner import Runner  # noqa
-    from rastervision.pipeline.file_system import FileSystem  # noqa
+    from rastervision.pipeline.file_system import FileSystem
     from rastervision.pipeline.config import Upgrader, Config  # noqa
 
 
@@ -110,13 +111,12 @@ class Registry:
 
         self.runners[runner_name] = runner
 
-    def get_runner(self, runner_name: str) -> type['Runner']:  # noqa
+    def get_runner(self, runner_name: str) -> type['Runner']:
         """Return a Runner class based on its name."""
         runner = self.runners.get(runner_name)
         if runner:
             return runner
-        else:
-            raise RegistryError(f'{runner_name} is not a registered runner.')
+        raise RegistryError(f'{runner_name} is not a registered runner.')
 
     def add_file_system(self, file_system: 'FileSystem'):
         """Add a FileSystem.
@@ -126,7 +126,7 @@ class Registry:
         """
         self.file_systems.append(file_system)
 
-    def get_file_system(self, uri: str, mode: str = 'r') -> type['FileSystem']:  # noqa
+    def get_file_system(self, uri: str, mode: str = 'r') -> type['FileSystem']:
         """Get a FileSystem used to handle the file type of a URI.
 
         Args:
@@ -143,10 +143,9 @@ class Registry:
             raise RegistryError(
                 f'No matching file_system to handle writing to uri {uri}'
             )
-        else:
-            raise RegistryError(
-                f'No matching file_system to handle reading from uri {uri}'
-            )
+        raise RegistryError(
+            f'No matching file_system to handle reading from uri {uri}'
+        )
 
     def add_config(
         self,
@@ -180,13 +179,12 @@ class Registry:
         config = self.configs.get(type_hint)
         if config:
             return config
-        else:
-            raise RegistryError(
-                f'{type_hint} is not a registered config type hint. This may '
-                'be because you forgot to use the register_config decorator, '
-                'or forgot to import the module in the top-level __init__.py '
-                'file for the plugin.'
-            )
+        raise RegistryError(
+            f'{type_hint} is not a registered config type hint. This may '
+            'be because you forgot to use the register_config decorator, '
+            'or forgot to import the module in the top-level __init__.py '
+            'file for the plugin.'
+        )
 
     def add_rv_config_schema(
         self, config_section: str, config_fields: list[str]
@@ -205,15 +203,15 @@ class Registry:
 
     def load_builtins(self):
         """Add all builtin resources."""
-        from rastervision.pipeline.runner import (
-            InProcessRunner,
-            INPROCESS,
-            LocalRunner,
-            LOCAL,
-        )
         from rastervision.pipeline.file_system import (
             HttpFileSystem,
             LocalFileSystem,
+        )
+        from rastervision.pipeline.runner import (
+            INPROCESS,
+            LOCAL,
+            InProcessRunner,
+            LocalRunner,
         )
 
         self.add_runner(INPROCESS, InProcessRunner)
@@ -245,6 +243,7 @@ class Registry:
     def discover_plugins(self):
         """Discover all raster vision plugins."""
         import pkgutil
+
         import rastervision
 
         # From https://packaging.python.org/guides/creating-and-discovering-plugins/#using-namespace-packages  # noqa

@@ -1,5 +1,5 @@
-from collections.abc import Callable
 import unittest
+from collections.abc import Callable
 
 import numpy as np
 from xarray import DataArray

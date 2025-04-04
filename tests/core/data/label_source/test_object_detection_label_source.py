@@ -1,19 +1,18 @@
-import unittest
 import os
+import unittest
 
 import numpy as np
 
+from rastervision.core import Box
 from rastervision.core.data import (
-    ObjectDetectionLabelSourceConfig,
-    GeoJSONVectorSourceConfig,
-    ObjectDetectionLabels,
+    BufferTransformerConfig,
     ClassConfig,
     ClassInferenceTransformerConfig,
-    BufferTransformerConfig,
+    GeoJSONVectorSourceConfig,
+    ObjectDetectionLabels,
+    ObjectDetectionLabelSourceConfig,
 )
-from rastervision.core import Box
-from rastervision.pipeline.file_system import json_to_file, get_tmp_dir
-
+from rastervision.pipeline.file_system import get_tmp_dir, json_to_file
 from tests import data_file_path
 from tests.core.data.mock_crs_transformer import DoubleCRSTransformer
 

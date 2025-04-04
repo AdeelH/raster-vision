@@ -1,12 +1,12 @@
-from os.path import join
 import unittest
+from os.path import join
 
+from rastervision.gdal_vsi.vsi_file_system import VsiFileSystem
 from rastervision.pipeline.file_system import (
+    LocalFileSystem,
     get_tmp_dir,
     str_to_file,
-    LocalFileSystem,
 )
-from rastervision.gdal_vsi.vsi_file_system import VsiFileSystem
 
 fs = VsiFileSystem
 

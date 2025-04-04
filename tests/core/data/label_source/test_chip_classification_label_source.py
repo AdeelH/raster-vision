@@ -1,11 +1,10 @@
-from collections.abc import Callable
 import unittest
+from collections.abc import Callable
 from os.path import join
 
 import geopandas as gpd
 import numpy as np
 
-from rastervision.pipeline.file_system import json_to_file, get_tmp_dir
 from rastervision.core.box import Box
 from rastervision.core.data import (
     BufferTransformerConfig,
@@ -21,7 +20,7 @@ from rastervision.core.data.label_source.chip_classification_label_source import
     infer_cells,
 )
 from rastervision.core.data.label_store.utils import boxes_to_geojson
-
+from rastervision.pipeline.file_system import get_tmp_dir, json_to_file
 from tests import data_file_path
 from tests.core.data.mock_crs_transformer import DoubleCRSTransformer
 

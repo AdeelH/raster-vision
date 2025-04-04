@@ -1,16 +1,16 @@
-from typing import TYPE_CHECKING
-import os
 import csv
+import os
 from io import StringIO
+from typing import TYPE_CHECKING
 
-from rastervision.pipeline.file_system.utils import file_exists
 from rastervision.core.data import (
-    RasterioSource,
-    GeoJSONVectorSource,
     ClassInferenceTransformer,
+    GeoJSONVectorSource,
+    RasterioSource,
 )
-from rastervision.core.data.utils import geoms_to_geojson, crop_geotiff
+from rastervision.core.data.utils import crop_geotiff, geoms_to_geojson
 from rastervision.pipeline.file_system import file_to_str, json_to_file
+from rastervision.pipeline.file_system.utils import file_exists
 
 if TYPE_CHECKING:
     from rastervision.core.data import ClassConfig

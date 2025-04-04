@@ -1,21 +1,20 @@
-from typing import TYPE_CHECKING
+import logging
 import warnings
 from os.path import join
-import logging
+from typing import TYPE_CHECKING
 
 import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
-
 import torch
 import torch.nn.functional as F
+from matplotlib import gridspec
 
-from rastervision.pytorch_learner.learner import Learner
 from rastervision.pytorch_learner.dataset.visualizer import (
     RegressionVisualizer,
 )
+from rastervision.pytorch_learner.learner import Learner
 
 if TYPE_CHECKING:
-    import torch.nn as nn
+    from torch import nn
 
 warnings.filterwarnings('ignore')
 
@@ -107,10 +106,10 @@ class RegressionLearner(Learner):
                 c='blue',
                 alpha=0.1,
             )
-            ax.set_title('{} on {} set'.format(label, split))
+            ax.set_title(f'{label} on {split} set')
             ax.set_xlabel('ground truth')
             ax.set_ylabel('predictions')
-        scatter_path = join(self.output_dir, '{}_scatter.png'.format(split))
+        scatter_path = join(self.output_dir, f'{split}_scatter.png')
         plt.savefig(scatter_path)
 
         # make histogram of errors
@@ -124,7 +123,7 @@ class RegressionLearner(Learner):
             ax = fig.add_subplot(grid[label_ind])
             errs = torch.abs(y[:, label_ind] - out[:, label_ind]).tolist()
             ax.hist(errs, bins=hist_bins)
-            ax.set_title('{} on {} set'.format(label, split))
+            ax.set_title(f'{label} on {split} set')
             ax.set_xlabel('prediction error')
-        hist_path = join(self.output_dir, '{}_err_hist.png'.format(split))
+        hist_path = join(self.output_dir, f'{split}_err_hist.png')
         plt.savefig(hist_path)

@@ -1,23 +1,23 @@
-from typing import TYPE_CHECKING, Sequence
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
-from pydantic import NonNegativeInt as NonNegInt
 import numpy as np
+from pydantic import NonNegativeInt as NonNegInt
 from pystac import Item
 
 from rastervision.core.box import Box
-from rastervision.core.data.raster_source import RasterSource, RasterioSource
+from rastervision.core.data.raster_source import RasterioSource, RasterSource
 from rastervision.core.data.raster_source.stac_config import subset_assets
 from rastervision.core.data.utils import all_equal
 
 if TYPE_CHECKING:
     from typing import Self
-    from rastervision.core.data import RasterTransformer, CRSTransformer
+
+    from rastervision.core.data import CRSTransformer, RasterTransformer
 
 
 class MultiRasterSource(RasterSource):
-    """
-    Merge multiple ``RasterSources`` by concatenating along the channel dim.
-    """
+    """Merge multiple ``RasterSources`` by concatenating along the channel dim."""
 
     def __init__(
         self,

@@ -2,9 +2,9 @@ import unittest
 
 import numpy as np
 
-from rastervision.core.evaluation import ObjectDetectionEvaluation
-from rastervision.core.data import ClassConfig, ObjectDetectionLabels
 from rastervision.core import Box
+from rastervision.core.data import ClassConfig, ObjectDetectionLabels
+from rastervision.core.evaluation import ObjectDetectionEvaluation
 
 
 class TestObjectDetectionEvaluation(unittest.TestCase):

@@ -1,15 +1,15 @@
-from typing import Any
-from pathlib import Path
-from os.path import join, isdir, realpath
 import shutil
 from glob import glob
+from os.path import isdir, join, realpath
+from pathlib import Path
+from typing import Any
 
 import torch.hub
 
 from rastervision.pipeline.file_system import (
     download_if_needed,
-    unzip,
     get_tmp_dir,
+    unzip,
 )
 
 

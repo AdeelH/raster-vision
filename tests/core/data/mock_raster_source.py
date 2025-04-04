@@ -1,8 +1,9 @@
 from unittest.mock import Mock
+
 import numpy as np
 
 from rastervision.core import Box
-from rastervision.core.data import RasterSource, IdentityCRSTransformer
+from rastervision.core.data import IdentityCRSTransformer, RasterSource
 
 
 class MockRasterSource(RasterSource):

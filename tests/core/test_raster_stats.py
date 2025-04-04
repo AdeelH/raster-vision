@@ -4,18 +4,18 @@ from os.path import join
 import numpy as np
 from xarray import DataArray
 
-from rastervision.pipeline.file_system import get_tmp_dir
 from rastervision.core.box import Box
 from rastervision.core.data import IdentityCRSTransformer, XarraySource
 from rastervision.core.raster_stats import (
     RasterStats,
-    get_num_chips_to_sample,
-    random_chip_stream,
-    sliding_chip_stream,
     get_chip,
+    get_num_chips_to_sample,
     parallel_mean,
     parallel_variance,
+    random_chip_stream,
+    sliding_chip_stream,
 )
+from rastervision.pipeline.file_system import get_tmp_dir
 
 
 class TestRasterStats(unittest.TestCase):

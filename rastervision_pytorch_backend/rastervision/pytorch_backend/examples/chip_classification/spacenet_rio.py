@@ -1,13 +1,6 @@
 import os
 from os.path import join
 
-from rastervision.core.rv_pipeline import (
-    ChipClassificationConfig,
-    ChipOptions,
-    PredictOptions,
-    WindowSamplingConfig,
-    WindowSamplingMethod,
-)
 from rastervision.core.data import (
     ChipClassificationLabelSourceConfig,
     ClassConfig,
@@ -17,7 +10,18 @@ from rastervision.core.data import (
     RasterioSourceConfig,
     SceneConfig,
 )
+from rastervision.core.rv_pipeline import (
+    ChipClassificationConfig,
+    ChipOptions,
+    PredictOptions,
+    WindowSamplingConfig,
+    WindowSamplingMethod,
+)
 from rastervision.pytorch_backend import PyTorchChipClassificationConfig
+from rastervision.pytorch_backend.examples.utils import (
+    get_scene_info,
+    save_image_crop,
+)
 from rastervision.pytorch_learner import (
     Backbone,
     ClassificationGeoDataConfig,
@@ -25,10 +29,6 @@ from rastervision.pytorch_learner import (
     ClassificationModelConfig,
     ExternalModuleConfig,
     SolverConfig,
-)
-from rastervision.pytorch_backend.examples.utils import (
-    get_scene_info,
-    save_image_crop,
 )
 
 aoi_path = (

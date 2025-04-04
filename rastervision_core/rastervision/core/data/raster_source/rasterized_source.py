@@ -1,9 +1,9 @@
-from typing import TYPE_CHECKING
 import logging
+from typing import TYPE_CHECKING
 
-from rasterio.features import rasterize
-import numpy as np
 import geopandas as gpd
+import numpy as np
+from rasterio.features import rasterize
 
 from rastervision.core.data.raster_source import RasterSource
 
@@ -11,7 +11,7 @@ log = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from rastervision.core.box import Box
-    from rastervision.core.data import VectorSource, RasterTransformer
+    from rastervision.core.data import RasterTransformer, VectorSource
 
 
 def geoms_to_raster(

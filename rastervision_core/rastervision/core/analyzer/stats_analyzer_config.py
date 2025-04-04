@@ -1,8 +1,9 @@
-from typing import TYPE_CHECKING, Iterable
+from collections.abc import Iterable
 from os.path import join
+from typing import TYPE_CHECKING
 
-from rastervision.pipeline.config import register_config, ConfigError, Field
 from rastervision.core.analyzer import AnalyzerConfig, StatsAnalyzer
+from rastervision.pipeline.config import ConfigError, Field, register_config
 
 if TYPE_CHECKING:
     from rastervision.core.rv_pipeline import RVPipelineConfig
@@ -53,10 +54,10 @@ class StatsAnalyzerConfig(AnalyzerConfig):
         self, scene_group: tuple[str, Iterable[str]] | None = None
     ) -> StatsAnalyzer:
         if scene_group is None:
-            output_uri = join(self.output_uri, f'stats.json')
+            output_uri = join(self.output_uri, 'stats.json')
         else:
             group_name, _ = scene_group
-            output_uri = join(self.output_uri, group_name, f'stats.json')
+            output_uri = join(self.output_uri, group_name, 'stats.json')
         return StatsAnalyzer(
             output_uri,
             sample_prob=self.sample_prob,

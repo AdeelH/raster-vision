@@ -23,5 +23,5 @@ class RasterTransformer(ABC):
         return in_channels
 
     def get_out_dtype(self, in_dtype: np.dtype) -> np.dtype:
-        """dtype of the output of ``transform()``."""
+        """Dtype of the output of ``transform()``."""
         return np.dtype(in_dtype)

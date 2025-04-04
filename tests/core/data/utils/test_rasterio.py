@@ -1,19 +1,19 @@
 import unittest
-from unittest.mock import patch
 from os.path import join
+from unittest.mock import patch
 
 import numpy as np
 import pyproj
 
-from rastervision.pipeline.file_system.utils import get_tmp_dir
 from rastervision.core.box import Box
+from rastervision.core.data import GeoJSONVectorSource, RasterioSource
 from rastervision.core.data.utils.rasterio import (
     crop_geotiff,
     get_aws_session,
-    write_geotiff_like_geojson,
     write_bbox,
+    write_geotiff_like_geojson,
 )
-from rastervision.core.data import RasterioSource, GeoJSONVectorSource
+from rastervision.pipeline.file_system.utils import get_tmp_dir
 from tests import data_file_path
 
 

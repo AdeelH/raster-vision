@@ -1,7 +1,8 @@
-from typing import Literal, TypeVar
 import math
+from typing import Literal, TypeVar
 
-from pydantic.types import NonNegativeInt as NonNegInt, PositiveInt as PosInt
+from pydantic.types import NonNegativeInt as NonNegInt
+from pydantic.types import PositiveInt as PosInt
 
 T = TypeVar('T')
 
@@ -10,7 +11,7 @@ def ensure_tuple(x: T, n: int = 2) -> tuple[T, ...]:
     """Convert to n-tuple if not already an n-tuple."""
     if isinstance(x, tuple):
         if len(x) != n:
-            raise ValueError()
+            raise ValueError
         return x
     return tuple([x] * n)
 

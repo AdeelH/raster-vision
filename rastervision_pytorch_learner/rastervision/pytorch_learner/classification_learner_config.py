@@ -1,24 +1,24 @@
-from typing import TYPE_CHECKING, Iterable
-from collections.abc import Callable
-from enum import Enum
 import logging
+from collections.abc import Callable, Iterable
+from enum import Enum
+from typing import TYPE_CHECKING
 
 import albumentations as A
 from torch import nn
 
 from rastervision.core.data import Scene
 from rastervision.core.rv_pipeline import WindowSamplingMethod
-from rastervision.pipeline.config import Config, register_config, ConfigError
-from rastervision.pytorch_learner.learner_config import (
-    LearnerConfig,
-    ModelConfig,
-    ImageDataConfig,
-    GeoDataConfig,
-)
+from rastervision.pipeline.config import Config, ConfigError, register_config
 from rastervision.pytorch_learner.dataset import (
     ClassificationImageDataset,
-    ClassificationSlidingWindowGeoDataset,
     ClassificationRandomWindowGeoDataset,
+    ClassificationSlidingWindowGeoDataset,
+)
+from rastervision.pytorch_learner.learner_config import (
+    GeoDataConfig,
+    ImageDataConfig,
+    LearnerConfig,
+    ModelConfig,
 )
 from rastervision.pytorch_learner.utils import adjust_conv_channels
 
@@ -124,7 +124,7 @@ class ClassificationGeoDataConfig(ClassificationDataConfig, GeoDataConfig):
                 **extra_args,
             )
         else:
-            raise NotImplementedError()
+            raise NotImplementedError
         return ds
 
 

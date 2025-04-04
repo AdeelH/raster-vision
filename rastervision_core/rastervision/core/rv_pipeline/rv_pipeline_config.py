@@ -1,27 +1,27 @@
-from typing import TYPE_CHECKING
 from os.path import join
+from typing import TYPE_CHECKING
 
-from rastervision.pipeline.pipeline_config import PipelineConfig
+from rastervision.core.analyzer import AnalyzerConfig, StatsAnalyzerConfig
+from rastervision.core.backend import BackendConfig
 from rastervision.core.data import (
     DatasetConfig,
-    StatsTransformerConfig,
     LabelStoreConfig,
     SceneConfig,
+    StatsTransformerConfig,
 )
-from rastervision.core.analyzer import StatsAnalyzerConfig
-from rastervision.core.backend import BackendConfig
 from rastervision.core.evaluation import EvaluatorConfig
-from rastervision.core.analyzer import AnalyzerConfig
 from rastervision.core.rv_pipeline.chip_options import ChipOptions
 from rastervision.pipeline.config import (
     Config,
     Field,
-    register_config,
     model_validator,
+    register_config,
 )
+from rastervision.pipeline.pipeline_config import PipelineConfig
 
 if TYPE_CHECKING:
     from typing import Self
+
     from rastervision.core.backend.backend import Backend  # noqa
 
 
@@ -180,8 +180,8 @@ class RVPipelineConfig(PipelineConfig):
 
     def get_default_label_store(self, scene: SceneConfig) -> LabelStoreConfig:
         """Returns a default LabelStoreConfig to fill in any missing ones."""
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def get_default_evaluator(self) -> EvaluatorConfig:
         """Returns a default EvaluatorConfig to use if one isn't set."""
-        raise NotImplementedError()
+        raise NotImplementedError

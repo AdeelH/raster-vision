@@ -1,7 +1,16 @@
-from typing import TYPE_CHECKING
-from os.path import join
 import logging
+from os.path import join
+from typing import TYPE_CHECKING
 
+from rastervision.core.analyzer import StatsAnalyzerConfig
+from rastervision.core.data import (
+    PolygonVectorOutputConfig,
+    SceneConfig,
+    SemanticSegmentationLabelStoreConfig,
+    StatsTransformerConfig,
+)
+from rastervision.core.data.raster_source import ChannelOrderError
+from rastervision.core.rv_pipeline import PredictOptions
 from rastervision.pipeline import rv_config_ as rv_config
 from rastervision.pipeline.config import build_config, upgrade_config
 from rastervision.pipeline.file_system.utils import (
@@ -10,19 +19,10 @@ from rastervision.pipeline.file_system.utils import (
     get_tmp_dir,
     unzip,
 )
-from rastervision.core.data.raster_source import ChannelOrderError
-from rastervision.core.data import (
-    SceneConfig,
-    SemanticSegmentationLabelStoreConfig,
-    PolygonVectorOutputConfig,
-    StatsTransformerConfig,
-)
-from rastervision.core.rv_pipeline import PredictOptions
-from rastervision.core.analyzer import StatsAnalyzerConfig
 
 if TYPE_CHECKING:
-    from rastervision.core.rv_pipeline import RVPipeline, RVPipelineConfig
     from rastervision.core.data import Scene
+    from rastervision.core.rv_pipeline import RVPipeline, RVPipelineConfig
 
 log = logging.getLogger(__name__)
 
@@ -65,8 +65,8 @@ class Predictor:
             config_overrides=config_dict.get('rv_config')
         )
         config_dict = upgrade_config(config_dict)
-        self.config: 'RVPipelineConfig' = build_config(config_dict)
-        self.scene: 'SceneConfig' = self.config.dataset.validation_scenes[0]
+        self.config: RVPipelineConfig = build_config(config_dict)
+        self.scene: SceneConfig = self.config.dataset.validation_scenes[0]
 
         if not hasattr(self.scene.raster_source, 'uris'):
             raise Exception(
@@ -191,7 +191,7 @@ class ScenePredictor:
             config_overrides=pipeline_config_dict.get('rv_config')
         )
         pipeline_config_dict = upgrade_config(pipeline_config_dict)
-        self.pipeline_config: 'RVPipelineConfig' = build_config(
+        self.pipeline_config: RVPipelineConfig = build_config(
             pipeline_config_dict
         )
 
@@ -200,7 +200,7 @@ class ScenePredictor:
                 predict_options
             )
 
-        self.pipeline: 'RVPipeline' = self.pipeline_config.build(self.tmp_dir)
+        self.pipeline: RVPipeline = self.pipeline_config.build(self.tmp_dir)
         self.pipeline.build_backend(join(bundle_dir, 'model-bundle.zip'))
         self.class_config = self.pipeline_config.dataset.class_config
 

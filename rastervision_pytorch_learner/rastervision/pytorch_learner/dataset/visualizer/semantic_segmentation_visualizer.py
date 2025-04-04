@@ -1,20 +1,21 @@
-from typing import TYPE_CHECKING, Sequence
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
-import torch
-import numpy as np
 import matplotlib.colors as mcolors
 import matplotlib.patches as mpatches
+import numpy as np
+import torch
 
 from rastervision.core.data.utils import color_to_triple
 from rastervision.pytorch_learner.dataset.visualizer import Visualizer
 from rastervision.pytorch_learner.utils import (
-    plot_channel_groups,
     channel_groups_to_imgs,
+    plot_channel_groups,
 )
 
 if TYPE_CHECKING:
-    from matplotlib.pyplot import Axes
     from matplotlib.colors import Colormap
+    from matplotlib.pyplot import Axes
 
 
 class SemanticSegmentationVisualizer(Visualizer):
@@ -51,7 +52,7 @@ class SemanticSegmentationVisualizer(Visualizer):
         cmap = mcolors.ListedColormap(colors)
 
         if y is not None:
-            label_ax: 'Axes' = axs[len(channel_groups)]
+            label_ax: Axes = axs[len(channel_groups)]
             self.plot_gt(label_ax, y, num_classes=len(colors), cmap=cmap)
             if plot_title:
                 label_ax.set_title('Ground truth')

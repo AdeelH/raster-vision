@@ -1,9 +1,9 @@
 from os.path import join
 
+from rastervision.pipeline.config import Config, register_config
+from rastervision.pipeline.file_system import file_to_str, str_to_file
 from rastervision.pipeline.pipeline import Pipeline
-from rastervision.pipeline.file_system import str_to_file, file_to_str
 from rastervision.pipeline.pipeline_config import PipelineConfig
-from rastervision.pipeline.config import register_config, Config
 from rastervision.pipeline.utils import split_into_groups
 
 
@@ -58,7 +58,7 @@ class SamplePipeline2(Pipeline):
             # Unlike before, we use the message_maker to make the message.
             message = message_maker.make_message(name)
             str_to_file(message, message_uri)
-            print('Saved message to {}'.format(message_uri))
+            print(f'Saved message to {message_uri}')
 
     def print_messages(self):
         for message_uri in self.config.message_uris:

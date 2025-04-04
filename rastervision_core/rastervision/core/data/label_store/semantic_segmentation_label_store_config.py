@@ -1,7 +1,7 @@
-from typing import TYPE_CHECKING, Iterator
+from collections.abc import Iterator
 from os.path import join
+from typing import TYPE_CHECKING
 
-from rastervision.pipeline.config import register_config, Config, Field
 from rastervision.core.data.label_store import (
     LabelStoreConfig,
     SemanticSegmentationLabelStore,
@@ -11,6 +11,7 @@ from rastervision.core.data.utils import (
     mask_to_building_polygons,
     mask_to_polygons,
 )
+from rastervision.pipeline.config import Config, Field, register_config
 
 if TYPE_CHECKING:
     import numpy as np
@@ -60,7 +61,7 @@ class VectorOutputConfig(Config):
 
     def vectorize(self, mask: 'np.ndarray') -> Iterator['BaseGeometry']:
         """Vectorize binary mask representing the target class into polygons."""
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def get_uri(
         self, root: str, class_config: 'ClassConfig | None' = None

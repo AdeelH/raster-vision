@@ -1,8 +1,9 @@
+import json
+
 import click
 import numpy as np
-import rasterio
 import pyproj
-import json
+import rasterio
 
 
 def flip_geom(m, b, geom):
@@ -38,7 +39,6 @@ def flip_scene(src_tiff_path, src_labels_path, dst_tiff_path, dst_labels_path):
 
     Useful for generating multiple training scenes for integration test usage.
     """
-
     labels_are_tif = src_labels_path.endswith('.tif')
 
     with rasterio.open(src_tiff_path) as src:

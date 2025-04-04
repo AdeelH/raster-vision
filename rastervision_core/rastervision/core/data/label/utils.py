@@ -1,7 +1,9 @@
-from typing import TYPE_CHECKING, Iterable, Iterator
+from collections.abc import Iterable, Iterator
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import numpy as np
+
     from rastervision.core.box import Box
 
 

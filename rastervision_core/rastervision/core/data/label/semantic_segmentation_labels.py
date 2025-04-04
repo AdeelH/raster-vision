@@ -1,5 +1,6 @@
-from typing import TYPE_CHECKING, Any, Iterable, Sequence
 from abc import abstractmethod
+from collections.abc import Iterable, Sequence
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 from rasterio.features import rasterize
@@ -11,7 +12,9 @@ from rastervision.core.data.label.utils import discard_prediction_edges
 
 if TYPE_CHECKING:
     from typing import Self
+
     from shapely.geometry import Polygon
+
     from rastervision.core.data import (
         ClassConfig,
         CRSTransformer,
@@ -188,10 +191,9 @@ class SemanticSegmentationLabels(Labels):
             return SemanticSegmentationDiscreteLabels.make_empty(
                 extent=extent, num_classes=num_classes
             )
-        else:
-            return SemanticSegmentationSmoothLabels.make_empty(
-                extent=extent, num_classes=num_classes
-            )
+        return SemanticSegmentationSmoothLabels.make_empty(
+            extent=extent, num_classes=num_classes
+        )
 
     @classmethod
     def from_predictions(

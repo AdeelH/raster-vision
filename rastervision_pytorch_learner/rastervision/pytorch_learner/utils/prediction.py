@@ -1,5 +1,6 @@
-from typing import TYPE_CHECKING, Iterator
 import logging
+from collections.abc import Iterator
+from typing import TYPE_CHECKING
 
 from rastervision.core.data import (
     ChipClassificationLabels,
@@ -10,10 +11,11 @@ from rastervision.core.utils import calculate_required_padding
 
 if TYPE_CHECKING:
     import numpy as np
+
     from rastervision.core.data import Scene, SemanticSegmentationLabelStore
     from rastervision.core.rv_pipeline import (
-        PredictOptions,
         ObjectDetectionPredictOptions,
+        PredictOptions,
         SemanticSegmentationPredictOptions,
     )
     from rastervision.pytorch_learner import (
@@ -44,7 +46,7 @@ def predict_scene_cc(
         scene, size=chip_sz, stride=stride, transform=base_tf
     )
 
-    predictions: Iterator['np.ndarray'] = learner.predict_dataset(
+    predictions: Iterator[np.ndarray] = learner.predict_dataset(
         ds,
         raw_out=True,
         numpy_out=True,
@@ -77,7 +79,7 @@ def predict_scene_od(
         scene, size=chip_sz, stride=stride, transform=base_tf
     )
 
-    predictions: Iterator[dict[str, 'np.ndarray']] = learner.predict_dataset(
+    predictions: Iterator[dict[str, np.ndarray]] = learner.predict_dataset(
         ds,
         raw_out=True,
         numpy_out=True,
@@ -115,7 +117,7 @@ def predict_scene_ss(
     crop_sz = predict_options.crop_sz
     batch_sz = predict_options.batch_sz
 
-    label_store: 'SemanticSegmentationLabelStore' = scene.label_store
+    label_store: SemanticSegmentationLabelStore = scene.label_store
     raw_out = label_store.smooth_output
 
     base_tf, _ = learner.cfg.data.get_data_transforms()
@@ -140,7 +142,7 @@ def predict_scene_ss(
             transform=base_tf,
         )
 
-    predictions: Iterator['np.ndarray'] = learner.predict_dataset(
+    predictions: Iterator[np.ndarray] = learner.predict_dataset(
         ds,
         raw_out=raw_out,
         numpy_out=True,

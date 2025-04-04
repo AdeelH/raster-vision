@@ -1,13 +1,13 @@
-from typing import Iterable
+from collections.abc import Iterable
+from itertools import chain
 from os import PathLike
 from os.path import join, splitext
 from pathlib import Path
-from itertools import chain
 
 import numpy as np
-from torchvision.datasets.folder import IMG_EXTENSIONS, DatasetFolder
-from PIL import Image
 import rasterio as rio
+from PIL import Image
+from torchvision.datasets.folder import IMG_EXTENSIONS, DatasetFolder
 
 IMG_EXTENSIONS = tuple([*IMG_EXTENSIONS, '.npy'])
 
@@ -29,9 +29,7 @@ def discover_images(
 ) -> list[Path]:
     """Find all images with the given ``extensions`` in ``dir``."""
     dir = Path(dir)
-    img_paths = chain.from_iterable(
-        (dir.glob(f'*{ext}') for ext in extensions)
-    )
+    img_paths = chain.from_iterable(dir.glob(f'*{ext}') for ext in extensions)
     return list(img_paths)
 
 

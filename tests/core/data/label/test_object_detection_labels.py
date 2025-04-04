@@ -3,7 +3,6 @@ from os.path import join
 
 import numpy as np
 
-from rastervision.pipeline.file_system.utils import get_tmp_dir, file_exists
 from rastervision.core.box import Box
 from rastervision.core.data import (
     ClassConfig,
@@ -14,7 +13,7 @@ from rastervision.core.data.label.object_detection_labels import (
     ObjectDetectionLabels,
 )
 from rastervision.core.data.label.tfod_utils.np_box_list import NpBoxList
-
+from rastervision.pipeline.file_system.utils import file_exists, get_tmp_dir
 from tests import data_file_path
 
 

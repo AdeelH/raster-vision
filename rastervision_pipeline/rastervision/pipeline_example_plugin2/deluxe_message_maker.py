@@ -1,7 +1,7 @@
 from rastervision.pipeline.config import register_config
 from rastervision.pipeline_example_plugin1.sample_pipeline2 import (
-    MessageMakerConfig,
     MessageMaker,
+    MessageMakerConfig,
 )
 
 
@@ -19,4 +19,4 @@ class DeluxeMessageMaker(MessageMaker):
     def make_message(self, name):
         # Uses the level field to determine the number of exclamation marks.
         exclamation_marks = '!' * self.config.level
-        return '{} {}{}'.format(self.config.greeting, name, exclamation_marks)
+        return f'{self.config.greeting} {name}{exclamation_marks}'

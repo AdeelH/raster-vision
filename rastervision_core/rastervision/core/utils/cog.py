@@ -19,36 +19,28 @@ def gdal_cog_commands(
     compression=DEFAULT_COMPRESSION,
     overviews=None,
 ):
-    """
-    GDAL commands to create a COG from an input file.
+    """GDAL commands to create a COG from an input file.
     Returns a tuple (commands, output_path)
     """
-
     if not overviews:
         overviews = DEFAULT_OVERVIEWS
 
     def get_output_path(command):
         fname = os.path.splitext(os.path.basename(input_path))[0]
-        return os.path.join(tmp_dir, '{}-{}.tif'.format(fname, command))
+        return os.path.join(tmp_dir, f'{fname}-{command}.tif')
 
     compression = compression.lower()
 
     def add_compression(cmd, overview=False):
         if compression != 'none':
             if not overview:
-                return (
-                    cmd[:1]
-                    + ['-co', 'compress={}'.format(compression)]
-                    + cmd[1:]
-                )
-            else:
-                return (
-                    cmd[:1]
-                    + ['--config', 'COMPRESS_OVERVIEW', compression]
-                    + cmd[1:]
-                )
-        else:
-            return cmd
+                return cmd[:1] + ['-co', f'compress={compression}'] + cmd[1:]
+            return (
+                cmd[:1]
+                + ['--config', 'COMPRESS_OVERVIEW', compression]
+                + cmd[1:]
+            )
+        return cmd
 
     # Step 1: Translate to a GeoTiff.
     translate_path = get_output_path('translate')
@@ -84,9 +76,9 @@ def gdal_cog_commands(
             '-co',
             'COPY_SRC_OVERVIEWS=YES',
             '-co',
-            'BLOCKXSIZE={}'.format(block_size),
+            f'BLOCKXSIZE={block_size}',
             '-co',
-            'BLOCKYSIZE={}'.format(block_size),
+            f'BLOCKYSIZE={block_size}',
             '-co',
             'BIGTIFF=IF_SAFER',
             '--config',

@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING
+
 from rastervision.pipeline.config import Config, register_config
 
 if TYPE_CHECKING:
@@ -21,4 +22,4 @@ class RasterTransformerConfig(Config):
     def build(
         self, channel_order: list[int] | None = None
     ) -> 'RasterTransformer':
-        raise NotImplementedError()
+        raise NotImplementedError

@@ -1,7 +1,7 @@
 from rastervision.core.box import Box
 from rastervision.core.data.raster_source import (
-    RasterSourceConfig,
     RasterioSource,
+    RasterSourceConfig,
 )
 from rastervision.pipeline.config import ConfigError, Field, register_config
 

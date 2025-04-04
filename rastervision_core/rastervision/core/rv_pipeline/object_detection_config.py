@@ -1,20 +1,20 @@
 from typing import TYPE_CHECKING
 
-from rastervision.pipeline.config import (
-    Field,
-    register_config,
-    model_validator,
-)
-from rastervision.core.rv_pipeline import (
-    ChipOptions,
-    RVPipelineConfig,
-    PredictOptions,
-    WindowSamplingConfig,
-)
 from rastervision.core.data.label_store import (
     ObjectDetectionGeoJSONStoreConfig,
 )
 from rastervision.core.evaluation import ObjectDetectionEvaluatorConfig
+from rastervision.core.rv_pipeline import (
+    ChipOptions,
+    PredictOptions,
+    RVPipelineConfig,
+    WindowSamplingConfig,
+)
+from rastervision.pipeline.config import (
+    Field,
+    model_validator,
+    register_config,
+)
 
 if TYPE_CHECKING:
     from typing import Self

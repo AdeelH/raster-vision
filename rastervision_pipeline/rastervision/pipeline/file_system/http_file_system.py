@@ -1,14 +1,14 @@
-from typing import ContextManager
-import os
 import io
+import os
 import shutil
 import urllib
 import urllib.request
-from urllib.parse import urlparse
-import requests
 from datetime import datetime
 from functools import partial
+from typing import ContextManager
+from urllib.parse import urlparse
 
+import requests
 from tqdm.auto import tqdm
 
 from rastervision.pipeline.file_system import (
@@ -89,29 +89,29 @@ class HttpFileSystem(FileSystem):
 
     @staticmethod
     def write_str(uri: str, data: str) -> None:
-        raise NotWritableError('Could not write {}'.format(uri))
+        raise NotWritableError(f'Could not write {uri}')
 
     @staticmethod
     def write_bytes(uri: str, data: bytes) -> None:
-        raise NotWritableError('Could not write {}'.format(uri))
+        raise NotWritableError(f'Could not write {uri}')
 
     @staticmethod
     def sync_to_dir(
         src_dir: str, dst_dir_uri: str, delete: bool = False
     ) -> None:
-        raise NotWritableError('Could not write {}'.format(dst_dir_uri))
+        raise NotWritableError(f'Could not write {dst_dir_uri}')
 
     @staticmethod
     def sync_from_dir(
         src_dir_uri: str, dst_dir: str, delete: bool = False
     ) -> None:
         raise NotReadableError(
-            'Cannot read directory from HTTP {}'.format(src_dir_uri)
+            f'Cannot read directory from HTTP {src_dir_uri}'
         )
 
     @staticmethod
     def copy_to(src_path: str, dst_uri: str) -> None:
-        raise NotWritableError('Could not write {}'.format(dst_uri))
+        raise NotWritableError(f'Could not write {dst_uri}')
 
     @staticmethod
     def copy_from(src_uri: str, dst_path: str, **kwargs) -> None:
@@ -130,8 +130,7 @@ class HttpFileSystem(FileSystem):
         # so if the path ends with / we strip it off. This was motivated by
         # a URI that was a zxy tile schema that doesn't end in .png which is
         # parsed by urlparse into a path that ends in a /.
-        if path.endswith('/'):
-            path = path[:-1]
+        path = path.removesuffix('/')
         return path
 
     @staticmethod
@@ -140,4 +139,4 @@ class HttpFileSystem(FileSystem):
 
     @staticmethod
     def list_paths(uri, suffix=None):
-        raise NotImplementedError()
+        raise NotImplementedError

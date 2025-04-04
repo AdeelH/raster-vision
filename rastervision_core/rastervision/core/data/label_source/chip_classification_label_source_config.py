@@ -1,20 +1,20 @@
 from typing import TYPE_CHECKING
 
-from rastervision.core.data.vector_source import VectorSourceConfig
 from rastervision.core.data.label_source import (
-    LabelSourceConfig,
     ChipClassificationLabelSource,
+    LabelSourceConfig,
+)
+from rastervision.core.data.vector_source import VectorSourceConfig
+from rastervision.core.data.vector_transformer import (
+    BufferTransformerConfig,
+    ClassInferenceTransformerConfig,
 )
 from rastervision.pipeline.config import (
     ConfigError,
-    register_config,
     Field,
     field_validator,
     model_validator,
-)
-from rastervision.core.data.vector_transformer import (
-    ClassInferenceTransformerConfig,
-    BufferTransformerConfig,
+    register_config,
 )
 
 if TYPE_CHECKING:

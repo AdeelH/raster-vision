@@ -1,16 +1,8 @@
-import re
-import random
 import os
+import random
+import re
 from abc import abstractmethod
 
-from rastervision.pipeline.file_system.utils import list_paths
-from rastervision.core.rv_pipeline import (
-    SemanticSegmentationConfig,
-    SemanticSegmentationChipOptions,
-    SemanticSegmentationPredictOptions,
-    WindowSamplingConfig,
-    WindowSamplingMethod,
-)
 from rastervision.core.data import (
     BufferTransformerConfig,
     ClassConfig,
@@ -26,20 +18,28 @@ from rastervision.core.data import (
     SemanticSegmentationLabelStoreConfig,
     StatsTransformerConfig,
 )
+from rastervision.core.rv_pipeline import (
+    SemanticSegmentationChipOptions,
+    SemanticSegmentationConfig,
+    SemanticSegmentationPredictOptions,
+    WindowSamplingConfig,
+    WindowSamplingMethod,
+)
+from rastervision.pipeline.file_system.utils import list_paths
 from rastervision.pytorch_backend import PyTorchSemanticSegmentationConfig
 from rastervision.pytorch_learner import (
     Backbone,
-    SolverConfig,
     SemanticSegmentationGeoDataConfig,
     SemanticSegmentationImageDataConfig,
     SemanticSegmentationModelConfig,
+    SolverConfig,
 )
 
 BUILDINGS = 'buildings'
 ROADS = 'roads'
 
 
-class SpacenetConfig(object):
+class SpacenetConfig:
     def __init__(self, raw_uri):
         self.raw_uri = raw_uri
 
@@ -47,10 +47,9 @@ class SpacenetConfig(object):
     def create(raw_uri, target):
         if target.lower() == BUILDINGS:
             return VegasBuildings(raw_uri)
-        elif target.lower() == ROADS:
+        if target.lower() == ROADS:
             return VegasRoads(raw_uri)
-        else:
-            raise ValueError(f'{target} is not a valid target.')
+        raise ValueError(f'{target} is not a valid target.')
 
     def get_raster_source_uri(self, id):
         filename = f'{self.raster_fn_prefix}{id}.tif'
@@ -194,7 +193,6 @@ def get_config(
     Returns:
         SemanticSegmentationConfig: An pipeline config.
     """
-
     spacenet_cfg = SpacenetConfig.create(raw_uri, target)
     scene_ids = spacenet_cfg.get_scene_ids()
     if len(scene_ids) == 0:

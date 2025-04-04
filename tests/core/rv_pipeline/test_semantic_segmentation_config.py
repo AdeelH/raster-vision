@@ -1,21 +1,21 @@
-from collections.abc import Callable
 import unittest
+from collections.abc import Callable
 
 import numpy as np
 
 from rastervision.core.data import ClassConfig, DatasetConfig
-from rastervision.pipeline.config import build_config
 from rastervision.core.rv_pipeline.semantic_segmentation_config import (
+    SemanticSegmentationChipOptions,
     SemanticSegmentationConfig,
     SemanticSegmentationPredictOptions,
-    SemanticSegmentationChipOptions,
     ss_config_upgrader,
 )
+from rastervision.pipeline.config import build_config
 from rastervision.pytorch_backend import PyTorchSemanticSegmentationConfig
 from rastervision.pytorch_learner import (
+    SemanticSegmentationImageDataConfig,
     SemanticSegmentationModelConfig,
     SolverConfig,
-    SemanticSegmentationImageDataConfig,
 )
 
 

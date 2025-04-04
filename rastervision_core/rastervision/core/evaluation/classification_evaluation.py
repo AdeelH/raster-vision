@@ -1,14 +1,14 @@
 """Defines abstract base evaluation class for all tasks."""
 
-from typing import TYPE_CHECKING, Any
-from abc import ABC, abstractmethod
 import copy
 import json
+from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
-from rastervision.pipeline.file_system import str_to_file
 from rastervision.core.data.utils import ensure_json_serializable
+from rastervision.pipeline.file_system import str_to_file
 
 if TYPE_CHECKING:
     from rastervision.core.evaluation import ClassEvaluationItem
@@ -27,8 +27,8 @@ class ClassificationEvaluation(ABC):
     """
 
     def __init__(self):
-        self.class_to_eval_item: dict[int, 'ClassEvaluationItem']
-        self.scene_to_eval: dict[str, 'ClassificationEvaluation']
+        self.class_to_eval_item: dict[int, ClassEvaluationItem]
+        self.scene_to_eval: dict[str, ClassificationEvaluation]
         self.avg_item: dict[str, Any] | None
         self.conf_mat: np.ndarray | None
         self.reset()

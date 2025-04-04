@@ -1,26 +1,27 @@
-from typing import TYPE_CHECKING, Sequence
-import os
-from os.path import join
-import subprocess
 import logging
+import os
+import subprocess
+from collections.abc import Sequence
+from os.path import join
+from typing import TYPE_CHECKING
 
 import numpy as np
 import rasterio as rio
 import rasterio.windows as rio_windows
-from rasterio.transform import from_origin
 from rasterio.enums import ColorInterp, MaskFlags, Resampling
 from rasterio.session import AWSSession
+from rasterio.transform import from_origin
 
+from rastervision.core.box import Box
 from rastervision.pipeline.file_system.utils import (
+    download_if_needed,
     file_to_json,
     get_local_path,
     get_tmp_dir,
     make_dir,
     upload_or_copy,
-    download_if_needed,
     uri_to_vsi_path,
 )
-from rastervision.core.box import Box
 
 if TYPE_CHECKING:
     from rasterio.io import DatasetReader
@@ -97,9 +98,10 @@ def write_geotiff_like_geojson(
         crs (str): CRS name. If None, read from the GeoJSON. If not specified
             in the GeoJSON, use "EPSG:4326". Defaults to None.
     """
-    from rastervision.core.data.utils.geojson import geojson_to_geoms
     import pyproj
     from shapely.ops import unary_union
+
+    from rastervision.core.data.utils.geojson import geojson_to_geoms
 
     geojson = file_to_json(geojson_path)
     if crs is None:
@@ -153,7 +155,7 @@ def build_vrt(vrt_path: str, image_uris: list[str]) -> None:
     image_uris_vsi = [uri_to_vsi_path(uri) for uri in image_uris]
     cmd.extend(image_uris_vsi)
     make_dir(vrt_path, use_dirname=True)
-    subprocess.run(cmd, env=os.environ)
+    subprocess.run(cmd, env=os.environ, check=False)
 
 
 def download_and_build_vrt(
@@ -252,7 +254,7 @@ def get_channel_order_from_dataset(dataset: 'DatasetReader') -> list[int]:
             if color_interp != ColorInterp.alpha
         ]
     else:
-        channel_order = list(range(0, dataset.count))
+        channel_order = list(range(dataset.count))
     return channel_order
 
 

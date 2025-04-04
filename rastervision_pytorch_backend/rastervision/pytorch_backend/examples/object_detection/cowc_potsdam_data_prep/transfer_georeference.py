@@ -3,14 +3,11 @@
 import os
 import re
 import sys
-
-from subprocess import check_output, call
+from subprocess import call, check_output
 
 if not len(sys.argv) >= 4:
     print(
-        'Usage: {} <input_rgb.tif> <input_label.tif> <output_label.tif>'.format(
-            sys.argv[0]
-        )
+        f'Usage: {sys.argv[0]} <input_rgb.tif> <input_label.tif> <output_label.tif>'
     )
     exit()
 

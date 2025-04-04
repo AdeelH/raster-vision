@@ -1,19 +1,20 @@
 #!/usr/bin/env python
 
-from os.path import join, dirname, abspath, isfile
+import importlib
 import math
 import traceback
-import importlib
+from os.path import abspath, dirname, isfile, join
 from pprint import pformat
 
 import click
 import numpy as np
 
-from rastervision.pipeline import rv_config_ as rv_config, Verbosity
+from rastervision.core import Predictor
+from rastervision.pipeline import Verbosity
+from rastervision.pipeline import rv_config_ as rv_config
+from rastervision.pipeline.cli import _run_pipeline
 from rastervision.pipeline.file_system import file_to_json, get_tmp_dir
 from rastervision.pipeline.runner import InProcessRunner
-from rastervision.pipeline.cli import _run_pipeline
-from rastervision.core import Predictor
 
 ALL_TESTS = {
     'chip_classification.basic': {
@@ -80,7 +81,7 @@ class TestError:
             '------\n'
             f'Test: {self.test}\n'
             f'Message: {self.message}\n'
-            f'Details: {str(self.details)}'
+            f'Details: {self.details!s}'
             if self.details
             else '\n'
         )
@@ -193,7 +194,7 @@ def test_model_bundle_results(
         scene = scene_cfg.build(pipeline.dataset.class_config, tmp_dir)
 
         predictor_label_store_uri = join(
-            tmp_dir, test_id.lower(), 'predictor/{}'.format(scene_cfg.id)
+            tmp_dir, test_id.lower(), f'predictor/{scene_cfg.id}'
         )
         image_uri = scenes_to_uris[scene_cfg.id]
         predictor.predict([image_uri], predictor_label_store_uri)
@@ -252,24 +253,23 @@ def test_model_bundle(
 
     if skip:
         console_warning('Skipping predict package test for test {}.')
+    elif check_channel_order:
+        errors.extend(
+            test_model_bundle_validation(
+                pipeline, test_id, test_cfg, tmp_dir, uris[0]
+            )
+        )
     else:
-        if check_channel_order:
-            errors.extend(
-                test_model_bundle_validation(
-                    pipeline, test_id, test_cfg, tmp_dir, uris[0]
-                )
+        errors.extend(
+            test_model_bundle_results(
+                pipeline,
+                test_id,
+                test_cfg,
+                tmp_dir,
+                scenes,
+                scenes_to_uris,
             )
-        else:
-            errors.extend(
-                test_model_bundle_results(
-                    pipeline,
-                    test_id,
-                    test_cfg,
-                    tmp_dir,
-                    scenes,
-                    scenes_to_uris,
-                )
-            )
+        )
 
     return errors
 
@@ -349,7 +349,7 @@ def main(tests, root_uri, verbose):
         _tests = []
         for t in tests:
             t = t.strip().lower()
-            matching_tests = [k for k in ALL_TESTS.keys() if k.startswith(t)]
+            matching_tests = [k for k in ALL_TESTS if k.startswith(t)]
             _tests.extend(matching_tests)
             if len(matching_tests) == 0:
                 console_error(

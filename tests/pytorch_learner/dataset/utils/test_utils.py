@@ -7,14 +7,14 @@ import numpy as np
 import rasterio as rio
 from torchvision.datasets.folder import DatasetFolder
 
-from rastervision.pipeline.file_system import get_tmp_dir
 from rastervision.core.data.utils import write_window
+from rastervision.pipeline.file_system import get_tmp_dir
+from rastervision.pytorch_backend.pytorch_learner_backend import write_chip
 from rastervision.pytorch_learner.dataset import (
     discover_images,
     load_image,
     make_image_folder_dataset,
 )
-from rastervision.pytorch_backend.pytorch_learner_backend import write_chip
 
 
 class TestUtils(unittest.TestCase):

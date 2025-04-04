@@ -1,23 +1,23 @@
-from typing import TYPE_CHECKING
-from os.path import join
-from collections import defaultdict
 import logging
+from collections import defaultdict
+from os.path import join
+from typing import TYPE_CHECKING
 
 import albumentations as A
 import numpy as np
 from torch.utils.data import Dataset
 
-from rastervision.pipeline.file_system import file_to_json
 from rastervision.core.box import Box
 from rastervision.core.data import ObjectDetectionLabels
+from rastervision.core.data.utils import make_od_scene
+from rastervision.pipeline.file_system import file_to_json
 from rastervision.pytorch_learner.dataset import (
-    TransformType,
     ImageDataset,
-    SlidingWindowGeoDataset,
     RandomWindowGeoDataset,
+    SlidingWindowGeoDataset,
+    TransformType,
     load_image,
 )
-from rastervision.core.data.utils import make_od_scene
 
 if TYPE_CHECKING:
     from rastervision.core.data import ClassConfig, ObjectDetectionLabelSource
@@ -210,7 +210,7 @@ class ObjectDetectionRandomWindowGeoDataset(RandomWindowGeoDataset):
             *args, **kwargs, transform_type=TransformType.object_detection
         )
 
-        label_source: 'ObjectDetectionLabelSource | None' = (
+        label_source: ObjectDetectionLabelSource | None = (
             self.scene.label_source
         )
         if label_source is not None:

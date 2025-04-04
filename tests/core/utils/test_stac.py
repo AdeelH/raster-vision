@@ -1,12 +1,11 @@
-from collections.abc import Callable
 import os
 import unittest
+from collections.abc import Callable
 
 from shapely.geometry import Polygon
 
+from rastervision.core.utils.stac import read_stac, setup_stac_io
 from rastervision.pipeline.file_system import get_tmp_dir
-from rastervision.core.utils.stac import setup_stac_io, read_stac
-
 from tests import data_file_path
 
 

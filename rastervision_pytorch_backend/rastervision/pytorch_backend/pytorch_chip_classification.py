@@ -1,15 +1,15 @@
-from typing import TYPE_CHECKING
-from os.path import join
 import uuid
+from os.path import join
+from typing import TYPE_CHECKING
 
-from rastervision.pipeline.file_system import make_dir
+from rastervision.core.data import ChipClassificationLabels
 from rastervision.core.data_sample import DataSample
+from rastervision.pipeline.file_system import make_dir
 from rastervision.pytorch_backend.pytorch_learner_backend import (
-    PyTorchLearnerSampleWriter,
     PyTorchLearnerBackend,
+    PyTorchLearnerSampleWriter,
 )
 from rastervision.pytorch_backend.utils import chip_collate_fn_cc
-from rastervision.core.data import ChipClassificationLabels
 from rastervision.pytorch_learner.utils import predict_scene_cc
 
 if TYPE_CHECKING:
@@ -20,8 +20,7 @@ if TYPE_CHECKING:
 
 class PyTorchChipClassificationSampleWriter(PyTorchLearnerSampleWriter):
     def write_sample(self, sample: 'DataSample'):
-        """
-        This writes a training or validation sample to
+        """This writes a training or validation sample to
         (train|valid)/{class_name}/{scene_id}-{ind}.png
         """
         img_path = self.get_image_path(sample)

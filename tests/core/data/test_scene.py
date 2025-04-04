@@ -2,7 +2,6 @@ import unittest
 
 from rastervision.core.box import Box
 from rastervision.core.data import ClassConfig, RasterioSource, Scene
-
 from tests import data_file_path
 
 

@@ -1,9 +1,9 @@
-from urllib.parse import urlparse
 import logging
 from itertools import islice
+from urllib.parse import urlparse
 
 import boto3
-from pystac import StacIO, Catalog, Item
+from pystac import Catalog, Item, StacIO
 from pystac.stac_io import DefaultStacIO
 from shapely.geometry import box
 
@@ -21,8 +21,7 @@ def setup_stac_io() -> None:
             s3 = boto3.resource('s3')
             obj = s3.Object(bucket, key)
             return obj.get()['Body'].read().decode('utf-8')
-        else:
-            return DefaultStacIO.read_text_method(uri)
+        return DefaultStacIO.read_text_method(uri)
 
     def write_method(uri: str, txt: str):
         parsed = urlparse(uri)
@@ -52,12 +51,13 @@ def is_label_item(item: Item) -> bool:
 def get_linked_image_item(label_item: Item) -> Item | None:
     """Find link in the item that has "rel" == "source" and return its
     "target" item. If no such link, return None. If multiple such links,
-    raise an exception."""
+    raise an exception.
+    """
     links = [link for link in label_item.links if link.rel.lower() == 'source']
     if len(links) == 0:
         return None
-    elif len(links) > 1:
-        raise NotImplementedError()
+    if len(links) > 1:
+        raise NotImplementedError
     image_item = links[0].resolve_stac_object().target
     return image_item
 
@@ -157,10 +157,11 @@ def read_stac(
         assets in the STAC catalog.
     """
     from pathlib import Path
+
     from rastervision.pipeline.file_system.utils import (
         download_if_needed,
-        is_archive,
         extract,
+        is_archive,
     )
 
     catalog_path = download_if_needed(uri)
@@ -177,7 +178,7 @@ def read_stac(
     catalog_paths = list(Path(extract_dir).glob('**/catalog.json'))
     if len(catalog_paths) == 0:
         raise FileNotFoundError(f'Unable to find "catalog.json" in {uri}.')
-    elif len(catalog_paths) > 1:
+    if len(catalog_paths) > 1:
         raise Exception(f'More than one "catalog.json" found in {uri}.')
     catalog_path = str(catalog_paths[0])
     return parse_stac(catalog_path, **kwargs)

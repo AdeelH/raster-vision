@@ -1,14 +1,12 @@
-import os
 import glob
+import os
 
-import rasterio
-from PIL import Image
-import numpy as np
 import click
-
+import numpy as np
+import rasterio
 from object_detection.utils.np_box_list import BoxList
-
-from rv.utils import save_geojson, make_empty_dir
+from PIL import Image
+from rv.utils import make_empty_dir, save_geojson
 
 
 def png_to_geojson(geotiff_path, label_png_path, output_path, object_half_len):
@@ -29,7 +27,7 @@ def png_to_geojson(geotiff_path, label_png_path, output_path, object_half_len):
     # Convert to geotiff image inds
     point_inds[:, 0] *= image_dataset.height
     point_inds[:, 1] *= image_dataset.width
-    point_inds = point_inds.astype(np.int)
+    point_inds = point_inds.astype(int)
 
     # Turn points into squares and ensure edges aren't outside the array
     y_min = np.clip(
@@ -73,9 +71,7 @@ def prepare_potsdam(geotiff_dir, label_png_dir, output_dir, object_half_len):
             output_path,
             object_half_len=object_half_len,
         )
-        print(
-            'Saved {} with {} boxes.'.format(output_path, boxlist.num_boxes())
-        )
+        print(f'Saved {output_path} with {boxlist.num_boxes()} boxes.')
 
 
 if __name__ == '__main__':

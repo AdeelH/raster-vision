@@ -1,13 +1,13 @@
 import os
-from os.path import join
-from pathlib import Path
 import re
 from datetime import datetime
+from os.path import join
+from pathlib import Path
 from urllib.parse import urlparse
 
-from rastervision.pipeline.file_system import FileSystem
-
 from osgeo import gdal
+
+from rastervision.pipeline.file_system import FileSystem
 
 ARCHIVE_URI_FORMAT = (
     r'^(?P<archive_scheme>[^+]+)\+(?P<archive_uri>[^!]+)!(?P<file_path>.+)$'
@@ -86,8 +86,7 @@ class VsiFileSystem(FileSystem):
         file_stats = gdal.VSIStatL(vsipath)
         if include_dir:
             return bool(file_stats)
-        else:
-            return file_stats and not file_stats.IsDirectory()
+        return file_stats and not file_stats.IsDirectory()
 
     @staticmethod
     def read_bytes(vsipath: str) -> bytes:
@@ -96,7 +95,7 @@ class VsiFileSystem(FileSystem):
             raise FileNotFoundError(f'{vsipath} does not exist')
 
         try:
-            retval = bytes()
+            retval = b''
             handle = gdal.VSIFOpenL(vsipath, 'rb')
             bytes_left = stats.size
             while bytes_left > 0:

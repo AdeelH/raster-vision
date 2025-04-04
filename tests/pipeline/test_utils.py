@@ -1,6 +1,6 @@
 import unittest
 
-from rastervision.pipeline.utils import split_into_groups, repr_with_args
+from rastervision.pipeline.utils import repr_with_args, split_into_groups
 
 
 class TestUtils(unittest.TestCase):

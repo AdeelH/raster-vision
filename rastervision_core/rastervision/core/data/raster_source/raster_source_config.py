@@ -1,12 +1,12 @@
 from typing import TYPE_CHECKING
 
+from rastervision.core.data.raster_transformer import RasterTransformerConfig
 from rastervision.pipeline.config import (
     Config,
-    register_config,
-    Field,
     ConfigError,
+    Field,
+    register_config,
 )
-from rastervision.core.data.raster_transformer import RasterTransformerConfig
 
 if TYPE_CHECKING:
     from rastervision.core.data import RasterSource, SceneConfig
@@ -53,7 +53,7 @@ class RasterSourceConfig(Config):
     def build(
         self, tmp_dir: str | None = None, use_transformers: bool = True
     ) -> 'RasterSource':
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def update(
         self,

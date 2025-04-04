@@ -1,10 +1,10 @@
-from typing import TYPE_CHECKING
 import logging
+from typing import TYPE_CHECKING
 
 log = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    from rastervision.pipeline.pipeline_config import PipelineConfig  # noqa
+    from rastervision.pipeline.pipeline_config import PipelineConfig
 
 
 class Pipeline:
@@ -43,7 +43,7 @@ class Pipeline:
 
     def test_cpu(self, split_ind: int = 0, num_splits: int = 1):
         """A command to test the ability to run split jobs on CPU."""
-        log.info('test_cpu split: {}/{}'.format(split_ind, num_splits))
+        log.info(f'test_cpu split: {split_ind}/{num_splits}')
         log.info(self.config)
 
     def test_gpu(self):

@@ -1,5 +1,5 @@
-from typing import TYPE_CHECKING, Any
 from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING, Any
 
 from rastervision.core.box import Box
 from rastervision.core.data.utils import parse_array_slices_2d
@@ -56,6 +56,6 @@ class LabelSource(ABC):
 
     def __getitem__(self, key: Any) -> Any:
         if isinstance(key, Box):
-            raise NotImplementedError()
+            raise NotImplementedError
         window, _ = parse_array_slices_2d(key, extent=self.extent)
         return self[window]

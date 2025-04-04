@@ -1,11 +1,9 @@
+import shutil
 import unittest
 from os.path import join
-import shutil
 
 from click.testing import CliRunner
 
-from rastervision.pipeline.cli import main
-from rastervision.pipeline.file_system.utils import get_tmp_dir, json_to_file
 from rastervision.core.cli import predict, predict_scene
 from rastervision.core.data import (
     RasterioSourceConfig,
@@ -13,7 +11,8 @@ from rastervision.core.data import (
     SemanticSegmentationLabelStoreConfig,
 )
 from rastervision.core.rv_pipeline import SemanticSegmentationPredictOptions
-
+from rastervision.pipeline.cli import main
+from rastervision.pipeline.file_system.utils import get_tmp_dir, json_to_file
 from tests import data_file_path
 
 

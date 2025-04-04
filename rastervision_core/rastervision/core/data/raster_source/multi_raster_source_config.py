@@ -1,17 +1,16 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Annotated
 
-from typing_extensions import Annotated
 from pydantic import NonNegativeInt as NonNegInt
 
-from rastervision.pipeline.config import (
-    Field,
-    register_config,
-    model_validator,
-)
 from rastervision.core.box import Box
 from rastervision.core.data.raster_source import (
-    RasterSourceConfig,
     MultiRasterSource,
+    RasterSourceConfig,
+)
+from rastervision.pipeline.config import (
+    Field,
+    model_validator,
+    register_config,
 )
 
 if TYPE_CHECKING:

@@ -1,16 +1,16 @@
 from rastervision.pipeline.config import register_config
-from rastervision.pytorch_backend.pytorch_learner_backend_config import (
-    PyTorchLearnerBackendConfig,
-)
-from rastervision.pytorch_learner.learner_config import default_augmentors
-from rastervision.pytorch_learner.classification_learner_config import (
-    ClassificationModelConfig,
-    ClassificationLearnerConfig,
-    ClassificationImageDataConfig,
-)
 from rastervision.pytorch_backend.pytorch_chip_classification import (
     PyTorchChipClassification,
 )
+from rastervision.pytorch_backend.pytorch_learner_backend_config import (
+    PyTorchLearnerBackendConfig,
+)
+from rastervision.pytorch_learner.classification_learner_config import (
+    ClassificationImageDataConfig,
+    ClassificationLearnerConfig,
+    ClassificationModelConfig,
+)
+from rastervision.pytorch_learner.learner_config import default_augmentors
 
 
 def clf_learner_backend_config_upgrader(cfg_dict, version):  # pragma: no cover

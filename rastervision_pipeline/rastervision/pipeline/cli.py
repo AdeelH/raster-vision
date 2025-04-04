@@ -1,20 +1,22 @@
-from typing import TYPE_CHECKING, Any
-import sys
-import os
 import logging
+import os
+import sys
+from typing import TYPE_CHECKING, Any
 
 import click
 
 from rastervision.pipeline import (
     registry_ as registry,
+)
+from rastervision.pipeline import (
     rv_config_ as rv_config,
 )
-from rastervision.pipeline.file_system import file_to_json, get_tmp_dir
 from rastervision.pipeline.config import (
-    build_config,
     Config,
+    build_config,
     save_pipeline_config,
 )
+from rastervision.pipeline.file_system import file_to_json, get_tmp_dir
 from rastervision.pipeline.pipeline_config import PipelineConfig
 
 if TYPE_CHECKING:

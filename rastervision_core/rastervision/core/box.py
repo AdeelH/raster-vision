@@ -1,22 +1,24 @@
-from typing import TYPE_CHECKING, Literal, Sequence, overload
-from collections.abc import Callable
-from pydantic import NonNegativeInt as NonNegInt, PositiveInt as PosInt
 import math
 import random
+from collections.abc import Callable, Sequence
+from typing import TYPE_CHECKING, Literal, overload
 
 import numpy as np
+from pydantic import NonNegativeInt as NonNegInt
+from pydantic import PositiveInt as PosInt
+from rasterio.windows import Window as RioWindow
 from shapely.geometry import Polygon
 from shapely.ops import unary_union
-from rasterio.windows import Window as RioWindow
 
-from rastervision.pipeline.utils import repr_with_args
 from rastervision.core.utils.misc import (
     calculate_required_padding,
     ensure_tuple,
 )
+from rastervision.pipeline.utils import repr_with_args
 
 if TYPE_CHECKING:
     from typing import Self
+
     from shapely.geometry import MultiPolygon
     from shapely.geometry.base import BaseGeometry
 
@@ -379,7 +381,6 @@ class Box:
         pad_direction: Literal['both', 'start', 'end'] = 'end',
     ) -> 'Self':
         """Pad sides based on given padding and direction."""
-
         padding: tuple[NonNegInt, NonNegInt] = ensure_tuple(padding)
 
         if padding == (0, 0):
@@ -391,9 +392,9 @@ class Box:
         h_pad, w_pad = padding
         if pad_direction == 'both':
             return self.pad(ymin=h_pad, xmin=w_pad, ymax=h_pad, xmax=w_pad)
-        elif pad_direction == 'end':
+        if pad_direction == 'end':
             return self.pad(ymin=0, xmin=0, ymax=h_pad, xmax=w_pad)
-        elif pad_direction == 'start':
+        if pad_direction == 'start':
             return self.pad(ymin=h_pad, xmin=w_pad, ymax=0, xmax=0)
 
         raise ValueError(
@@ -517,11 +518,10 @@ class Box:
                 and ymax <= self.ymax
                 and xmax <= self.xmax
             )
-        elif isinstance(query, (tuple, list)):
+        if isinstance(query, (tuple, list)):
             x, y = query
             return self.xmin <= x <= self.xmax and self.ymin <= y <= self.ymax
-        else:
-            raise NotImplementedError()
+        raise NotImplementedError
 
 
 class SlidingWindows(Sequence[Box]):
@@ -622,7 +622,7 @@ class SlidingWindows(Sequence[Box]):
     def get_by_rowcol(self, row: int, col: int) -> Box:
         """Get window at given row and column indices."""
         if row >= self.nrows or col >= self.ncols:
-            raise IndexError()
+            raise IndexError
         ymin = self.y_start + self.y_step * row
         xmin = self.x_start + self.x_step * col
         window = Box(ymin, xmin, ymin + self.h, xmin + self.w)
@@ -631,7 +631,7 @@ class SlidingWindows(Sequence[Box]):
     def index_to_rowcol(self, i: int) -> tuple[int, int]:
         """Get row and column indices of the i-th window."""
         if i >= len(self):
-            raise IndexError()
+            raise IndexError
         if i < 0:
             i += len(self)
         row = i // self.ncols

@@ -1,4 +1,6 @@
-from typing import TYPE_CHECKING, Iterable
+from collections.abc import Iterable
+from typing import TYPE_CHECKING
+
 import numpy as np
 from shapely.geometry import shape
 
@@ -6,16 +8,18 @@ from rastervision.core.box import Box
 from rastervision.core.data.label.labels import Labels
 from rastervision.core.data.label.tfod_utils.np_box_list import NpBoxList
 from rastervision.core.data.label.tfod_utils.np_box_list_ops import (
-    prune_non_overlapping_boxes,
     clip_to_window,
     concatenate,
     non_max_suppression,
+    prune_non_overlapping_boxes,
 )
 
 if TYPE_CHECKING:
     from typing import Self
-    from rastervision.core.data import ClassConfig, CRSTransformer
+
     from shapely.geometry import Polygon
+
+    from rastervision.core.data import ClassConfig, CRSTransformer
 
 
 class ObjectDetectionLabels(Labels):

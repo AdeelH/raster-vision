@@ -1,8 +1,8 @@
 import os
 import unittest
 
-from rastervision.pipeline import rv_config_ as rv_config
 from rastervision.aws_batch.aws_batch_runner import AWSBatchRunner
+from rastervision.pipeline import rv_config_ as rv_config
 
 
 class MockPipeline:

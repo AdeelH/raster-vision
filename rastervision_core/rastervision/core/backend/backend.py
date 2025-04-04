@@ -1,10 +1,10 @@
-from typing import TYPE_CHECKING
 from abc import ABC, abstractmethod
 from contextlib import AbstractContextManager
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from rastervision.core.data_sample import DataSample
     from rastervision.core.data import DatasetConfig, Labels, Scene
+    from rastervision.core.data_sample import DataSample
     from rastervision.core.rv_pipeline import ChipOptions, PredictOptions
 
 

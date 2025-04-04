@@ -1,12 +1,12 @@
-from collections.abc import Callable
 import unittest
+from collections.abc import Callable
 
 import torch
 
 from rastervision.core.box import Box
 from rastervision.pytorch_learner.dataset import (
-    ObjectDetectionVisualizer,
     BoxList,
+    ObjectDetectionVisualizer,
 )
 
 

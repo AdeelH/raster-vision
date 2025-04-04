@@ -1,20 +1,20 @@
-from typing import Any
-from genericpath import exists
-from pprint import pformat
 import subprocess
+from genericpath import exists
 from os.path import basename, join, relpath, split
+from pprint import pformat
 from tempfile import TemporaryDirectory
+from typing import Any
 
 import click
 
 from rastervision.pipeline.file_system import (
-    file_to_json,
-    sync_from_dir,
-    download_or_copy,
-    file_exists,
-    sync_to_dir,
     NotReadableError,
     download_if_needed,
+    download_or_copy,
+    file_exists,
+    file_to_json,
+    sync_from_dir,
+    sync_to_dir,
 )
 
 NEW_VERSION_FULL = '0.31.0'  # x.y.z
@@ -30,7 +30,7 @@ LOCAL_RAW_ROOT = '/opt/data/raw-data'
 LOCAL_PROCESSED_ROOT = f'/opt/data/examples/{NEW_VERSION_FULL}/processed-data'
 LOCAL_OUTPUT_ROOT = f'/opt/data/examples/{NEW_VERSION_FULL}/output'
 LOCAL_COLLECT_ROOT = f'/opt/data/examples/{NEW_VERSION_FULL}/collect'
-ZOO_UPLOAD_ROOT = f's3://azavea-research-public-data/raster-vision/examples/model-zoo-{NEW_VERSION_MAJOR_MINOR}'  # noqa
+ZOO_UPLOAD_ROOT = f's3://azavea-research-public-data/raster-vision/examples/model-zoo-{NEW_VERSION_MAJOR_MINOR}'
 SAMPLE_IMG_DIR = (
     f's3://azavea-research-public-data/raster-vision/examples/sample_images'  # noqa
 )
@@ -317,7 +317,7 @@ def compare(
             root_uri_new = join(examples_root_new, key)
             console_info(f'Comparing\n- {root_uri_old}\n- {root_uri_new}')
             _compare(root_uri_old, root_uri_new, download_dir)
-        return
+        return None
     return _compare(root_uri_old, root_uri_new, download_dir)
 
 
@@ -490,7 +490,7 @@ def run_command(cmd: str) -> None:
     """Run a command in a sub-process."""
     cmd_str = ' '.join(cmd)
     console_info(f'Running command:\n{cmd_str}')
-    proc = subprocess.run(cmd)
+    proc = subprocess.run(cmd, check=False)
     if proc.returncode != 0:
         console_failure(
             f'Error: process returned {proc.returncode}', bold=True
@@ -597,7 +597,7 @@ def _compare_dicts(
     if len(diff2) > 0:
         console_failure(f'Missing keys in new: {keys_old - keys_new}')
     if len(diff1) + len(diff2) == 0:
-        console_success(f'All keys match')
+        console_success('All keys match')
     intersection = keys_old.intersection(keys_new)
     if len(intersection) == 0:
         console_failure('No matching keys found:')
@@ -628,14 +628,13 @@ def _compare_dicts(
                 diff_count += 1
                 _diff = v_new - v_old
                 console_failure(f'diff: {k}: {v_new} - {v_old}  = {_diff}')
-        else:
-            if v_old != v_new:
-                diff_count += 1
-                console_failure(f'diff: {k}: {v_new} != {v_old}')
+        elif v_old != v_new:
+            diff_count += 1
+            console_failure(f'diff: {k}: {v_new} != {v_old}')
     if diff_count > 0:
         console_failure(f'Number of non-matching values: {diff_count}')
     else:
-        console_success(f'All values within tolerance')
+        console_success('All values within tolerance')
 
 
 def console_info(msg: str, **kwargs) -> None:

@@ -1,7 +1,7 @@
-from typing import TYPE_CHECKING, Iterable, Sequence
-from collections.abc import Callable
-from enum import Enum
 import logging
+from collections.abc import Callable, Iterable, Sequence
+from enum import Enum
+from typing import TYPE_CHECKING
 
 import albumentations as A
 from torch import nn
@@ -11,21 +11,21 @@ from rastervision.core.data import Scene
 from rastervision.core.rv_pipeline import WindowSamplingMethod
 from rastervision.pipeline.config import (
     Config,
-    register_config,
-    Field,
     ConfigError,
-)
-from rastervision.pytorch_learner.learner_config import (
-    LearnerConfig,
-    ModelConfig,
-    PlotOptions,
-    ImageDataConfig,
-    GeoDataConfig,
+    Field,
+    register_config,
 )
 from rastervision.pytorch_learner.dataset import (
     RegressionImageDataset,
-    RegressionSlidingWindowGeoDataset,
     RegressionRandomWindowGeoDataset,
+    RegressionSlidingWindowGeoDataset,
+)
+from rastervision.pytorch_learner.learner_config import (
+    GeoDataConfig,
+    ImageDataConfig,
+    LearnerConfig,
+    ModelConfig,
+    PlotOptions,
 )
 from rastervision.pytorch_learner.utils import adjust_conv_channels
 
@@ -138,7 +138,7 @@ class RegressionGeoDataConfig(RegressionDataConfig, GeoDataConfig):
                 **extra_args,
             )
         else:
-            raise NotImplementedError()
+            raise NotImplementedError
         return ds
 
 
@@ -159,7 +159,7 @@ class RegressionModel(nn.Module):
         self.prob_out_inds = prob_out_inds
 
     def forward(self, x: 'torch.Tensor') -> 'torch.Tensor':
-        out: 'torch.Tensor' = self.backbone(x)
+        out: torch.Tensor = self.backbone(x)
         if self.pos_out_inds:
             for ind in self.pos_out_inds:
                 out[:, ind] = out[:, ind].exp()

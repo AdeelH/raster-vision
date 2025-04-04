@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING
+
 from rastervision.core.data.raster_transformer import RasterTransformer
 
 if TYPE_CHECKING:

@@ -1,37 +1,37 @@
 import unittest
 
+import geopandas as gpd
 import numpy as np
 from shapely.geometry import (
-    Polygon,
-    MultiPolygon,
-    Point,
-    MultiPoint,
     LineString,
     MultiLineString,
+    MultiPoint,
+    MultiPolygon,
+    Point,
+    Polygon,
     mapping,
     shape,
 )
-import geopandas as gpd
 
 from rastervision.core.box import Box
 from rastervision.core.data.utils import (
-    geometry_to_feature,
-    geometries_to_geojson,
-    is_empty_feature,
-    remove_empty_features,
-    split_multi_geometries,
-    map_to_pixel_coords,
-    pixel_to_map_coords,
-    buffer_geoms,
     all_geoms_valid,
-    geoms_to_geojson,
-    merge_geojsons,
-    geojson_to_geoms,
+    buffer_geoms,
+    filter_geojson_to_window,
     geojson_to_geodataframe,
+    geojson_to_geoms,
+    geometries_to_geojson,
+    geometry_to_feature,
+    geoms_to_bbox_coords,
+    geoms_to_geojson,
     get_geodataframe_extent,
     get_geojson_extent,
-    filter_geojson_to_window,
-    geoms_to_bbox_coords,
+    is_empty_feature,
+    map_to_pixel_coords,
+    merge_geojsons,
+    pixel_to_map_coords,
+    remove_empty_features,
+    split_multi_geometries,
 )
 from tests.core.data.mock_crs_transformer import DoubleCRSTransformer
 
@@ -130,7 +130,6 @@ class TestGeojsonUtils(unittest.TestCase):
 
     def test_simplify_polygons(self):
         """The buffer(0) trick in simplify_polygons() doesn't always work."""
-        pass
 
     def test_all_geoms_valid(self):
         normal_polygon = Polygon.from_bounds(0, 0, 10, 10)

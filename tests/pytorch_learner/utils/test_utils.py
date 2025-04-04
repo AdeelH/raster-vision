@@ -1,14 +1,14 @@
-from collections.abc import Callable
 import unittest
+from collections.abc import Callable
 from os.path import join
 
-import torch
-from torch import nn
-import numpy as np
-from matplotlib import pyplot as plt
 import boto3
-from moto import mock_aws
+import numpy as np
 import pandas as pd
+import torch
+from matplotlib import pyplot as plt
+from moto import mock_aws
+from torch import nn
 
 from rastervision.pipeline.file_system.utils import get_tmp_dir
 from rastervision.pipeline.pipeline_config import PipelineConfig
@@ -18,26 +18,26 @@ from rastervision.pytorch_learner import (
     SolverConfig,
 )
 from rastervision.pytorch_learner.utils import (
-    compute_conf_mat,
-    compute_conf_mat_metrics,
+    A,
+    AddTensors,
     MinMaxNormalize,
-    adjust_conv_channels,
     Parallel,
     SplitTensor,
-    AddTensors,
-    validate_albumentation_transform,
-    A,
-    channel_groups_to_imgs,
-    plot_channel_groups,
-    serialize_albumentation_transform,
-    deserialize_albumentation_transform,
+    adjust_conv_channels,
     aggregate_metrics,
+    channel_groups_to_imgs,
+    compute_conf_mat,
+    compute_conf_mat_metrics,
+    deserialize_albumentation_transform,
+    get_learner_config_from_bundle_dir,
     log_metrics_to_csv,
     log_system_details,
-    get_learner_config_from_bundle_dir,
+    plot_channel_groups,
+    serialize_albumentation_transform,
+    validate_albumentation_transform,
 )
-from tests.data_files.lambda_transforms import lambda_transforms
 from tests import data_file_path
+from tests.data_files.lambda_transforms import lambda_transforms
 
 
 class TestComputeConfMat(unittest.TestCase):

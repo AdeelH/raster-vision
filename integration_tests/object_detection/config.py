@@ -1,27 +1,27 @@
-from os.path import join, dirname
+from os.path import dirname, join
 
+from rastervision.core.data import (
+    ClassConfig,
+    DatasetConfig,
+    GeoJSONVectorSourceConfig,
+    ObjectDetectionLabelSourceConfig,
+    RasterioSourceConfig,
+    SceneConfig,
+)
 from rastervision.core.rv_pipeline import (
-    ObjectDetectionConfig,
     ObjectDetectionChipOptions,
+    ObjectDetectionConfig,
     ObjectDetectionPredictOptions,
     ObjectDetectionWindowSamplingConfig,
     WindowSamplingMethod,
 )
-from rastervision.core.data import (
-    ClassConfig,
-    ObjectDetectionLabelSourceConfig,
-    GeoJSONVectorSourceConfig,
-    RasterioSourceConfig,
-    SceneConfig,
-    DatasetConfig,
-)
 from rastervision.pytorch_backend import PyTorchObjectDetectionConfig
 from rastervision.pytorch_learner import (
     Backbone,
-    SolverConfig,
-    ObjectDetectionModelConfig,
-    ObjectDetectionImageDataConfig,
     ObjectDetectionGeoDataConfig,
+    ObjectDetectionImageDataConfig,
+    ObjectDetectionModelConfig,
+    SolverConfig,
 )
 
 
@@ -31,8 +31,7 @@ def get_config(
     def get_path(part):
         if full_train:
             return join(data_uri, part)
-        else:
-            return join(dirname(__file__), part)
+        return join(dirname(__file__), part)
 
     class_config = ClassConfig(
         names=['car', 'building'], colors=['blue', 'red']

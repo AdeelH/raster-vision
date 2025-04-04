@@ -1,5 +1,5 @@
-import numpy as np
 import albumentations as A
+import numpy as np
 
 example_rgb_transform = A.Compose(
     [

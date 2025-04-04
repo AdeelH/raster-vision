@@ -104,8 +104,7 @@ class SemanticSegmentationLabelSource(LabelSource):
     def __getitem__(self, key: Any) -> Any:
         if isinstance(key, Box):
             return self.get_label_arr(key)
-        else:
-            return super().__getitem__(key)
+        return super().__getitem__(key)
 
     def __repr__(self):
         arg_keys = ['raster_source', 'class_config', 'bbox']

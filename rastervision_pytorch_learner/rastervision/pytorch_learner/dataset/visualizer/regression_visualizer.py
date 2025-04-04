@@ -1,14 +1,15 @@
-from typing import TYPE_CHECKING, Sequence
+from collections.abc import Sequence
 from textwrap import wrap
+from typing import TYPE_CHECKING
 
-import torch
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+import torch
 
-from rastervision.pytorch_learner.dataset.visualizer import Visualizer  # NOQA
+from rastervision.pytorch_learner.dataset.visualizer import Visualizer
 from rastervision.pytorch_learner.utils import (
-    plot_channel_groups,
     channel_groups_to_imgs,
+    plot_channel_groups,
 )
 
 if TYPE_CHECKING:
@@ -29,7 +30,7 @@ class RegressionVisualizer(Visualizer):
         channel_groups = self.get_channel_display_groups(x.shape[1])
 
         img_axes = axs[:-1]
-        label_ax: 'Axes' = axs[-1]
+        label_ax: Axes = axs[-1]
 
         # plot image
         imgs = channel_groups_to_imgs(x, channel_groups)

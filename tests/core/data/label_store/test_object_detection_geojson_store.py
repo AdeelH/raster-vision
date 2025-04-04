@@ -1,15 +1,14 @@
+import unittest
 from collections.abc import Callable
 from os.path import join
-import unittest
 
-from rastervision.pipeline.file_system.utils import get_tmp_dir, file_exists
 from rastervision.core.data import (
     ClassConfig,
     IdentityCRSTransformer,
     ObjectDetectionGeoJSONStore,
     ObjectDetectionGeoJSONStoreConfig,
 )
-
+from rastervision.pipeline.file_system.utils import file_exists, get_tmp_dir
 from tests import data_file_path
 
 

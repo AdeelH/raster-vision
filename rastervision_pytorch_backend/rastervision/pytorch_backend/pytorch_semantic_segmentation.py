@@ -1,15 +1,15 @@
-from typing import TYPE_CHECKING
-from os.path import join
 import uuid
+from os.path import join
+from typing import TYPE_CHECKING
 
 import numpy as np
 
-from rastervision.pipeline.file_system.utils import make_dir
 from rastervision.core.data import SemanticSegmentationLabels
 from rastervision.core.data_sample import DataSample
+from rastervision.pipeline.file_system.utils import make_dir
 from rastervision.pytorch_backend.pytorch_learner_backend import (
-    PyTorchLearnerSampleWriter,
     PyTorchLearnerBackend,
+    PyTorchLearnerSampleWriter,
 )
 from rastervision.pytorch_backend.utils import chip_collate_fn_ss
 from rastervision.pytorch_learner.utils import predict_scene_ss

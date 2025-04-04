@@ -1,13 +1,13 @@
-from typing import TYPE_CHECKING
-from os.path import join, basename
 import uuid
+from os.path import basename, join
+from typing import TYPE_CHECKING
 
-from rastervision.pipeline.file_system import json_to_file
-from rastervision.core.data_sample import DataSample
 from rastervision.core.data.label import ObjectDetectionLabels
+from rastervision.core.data_sample import DataSample
+from rastervision.pipeline.file_system import json_to_file
 from rastervision.pytorch_backend.pytorch_learner_backend import (
-    PyTorchLearnerSampleWriter,
     PyTorchLearnerBackend,
+    PyTorchLearnerSampleWriter,
 )
 from rastervision.pytorch_backend.utils import chip_collate_fn_od
 from rastervision.pytorch_learner.utils import predict_scene_od
@@ -18,10 +18,10 @@ if TYPE_CHECKING:
         ChipOptions,
         ObjectDetectionPredictOptions,
     )
-    from rastervision.pytorch_learner.object_detection_utils import BoxList
     from rastervision.pytorch_learner.object_detection_learner_config import (
         ObjectDetectionGeoDataConfig,
     )
+    from rastervision.pytorch_learner.object_detection_utils import BoxList
 
 
 class PyTorchObjectDetectionSampleWriter(PyTorchLearnerSampleWriter):
@@ -61,8 +61,7 @@ class PyTorchObjectDetectionSampleWriter(PyTorchLearnerSampleWriter):
         super().__exit__(type, value, traceback)
 
     def write_sample(self, sample: 'DataSample'):
-        """
-        This writes a training or validation sample to
+        """This writes a training or validation sample to
         (train|valid)/img/{scene_id}-{ind}.png and updates
         some COCO data structures.
         """
@@ -85,7 +84,7 @@ class PyTorchObjectDetectionSampleWriter(PyTorchLearnerSampleWriter):
             }
         )
 
-        boxlist: 'BoxList' = sample.label
+        boxlist: BoxList = sample.label
         npboxes = boxlist.convert_boxes('xywh')
         class_ids = boxlist.get_field('class_ids')
         for i, (bbox, class_id) in enumerate(zip(npboxes, class_ids)):

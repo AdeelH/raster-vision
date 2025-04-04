@@ -1,16 +1,16 @@
-from typing import Sequence
+from collections.abc import Sequence
 
 import torch
 
-from rastervision.pytorch_learner.dataset.visualizer import Visualizer  # NOQA
-from rastervision.pytorch_learner.utils import (
-    plot_channel_groups,
-    channel_groups_to_imgs,
-)
+from rastervision.pytorch_learner.dataset.visualizer import Visualizer
 from rastervision.pytorch_learner.object_detection_utils import (
     BoxList,
-    draw_boxes,
     collate_fn,
+    draw_boxes,
+)
+from rastervision.pytorch_learner.utils import (
+    channel_groups_to_imgs,
+    plot_channel_groups,
 )
 
 

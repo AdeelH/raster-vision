@@ -1,17 +1,17 @@
 from abc import abstractmethod
 from typing import TYPE_CHECKING
 
-from rastervision.pipeline.config import Config, register_config, Field
 from rastervision.core.data.vector_transformer import VectorTransformerConfig
+from rastervision.pipeline.config import Config, Field, register_config
 
 if TYPE_CHECKING:
-    from rastervision.core.rv_pipeline import RVPipelineConfig
     from rastervision.core.data import (
         ClassConfig,
         CRSTransformer,
         SceneConfig,
         VectorSource,
     )
+    from rastervision.core.rv_pipeline import RVPipelineConfig
 
 
 def vector_source_config_upgrader(
@@ -19,8 +19,8 @@ def vector_source_config_upgrader(
 ) -> dict:  # pragma: no cover
     if version == 4:
         from rastervision.core.data.vector_transformer import (
-            ClassInferenceTransformerConfig,
             BufferTransformerConfig,
+            ClassInferenceTransformerConfig,
         )
 
         class_inf_tf = ClassInferenceTransformerConfig(

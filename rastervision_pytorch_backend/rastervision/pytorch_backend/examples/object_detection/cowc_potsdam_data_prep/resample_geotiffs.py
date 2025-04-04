@@ -1,9 +1,8 @@
-import os
 import glob
+import os
 import subprocess
 
 import click
-
 from rv.utils import make_empty_dir
 
 

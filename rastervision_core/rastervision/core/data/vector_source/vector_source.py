@@ -1,25 +1,26 @@
-from typing import TYPE_CHECKING
-from abc import ABC, abstractmethod
 import logging
+from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING
 
 import geopandas as gpd
 
 from rastervision.core.box import Box
 from rastervision.core.data.utils import (
-    remove_empty_features,
-    split_multi_geometries,
+    all_geoms_valid,
+    filter_geojson_to_window,
+    geojson_to_geodataframe,
+    geojson_to_geoms,
+    get_geojson_extent,
     map_to_pixel_coords,
     pixel_to_map_coords,
+    remove_empty_features,
     simplify_polygons,
-    all_geoms_valid,
-    geojson_to_geoms,
-    geojson_to_geodataframe,
-    get_geojson_extent,
-    filter_geojson_to_window,
+    split_multi_geometries,
 )
 
 if TYPE_CHECKING:
     from shapely.geometry.base import BaseGeometry
+
     from rastervision.core.data import CRSTransformer, VectorTransformer
 
 log = logging.getLogger(__name__)
@@ -188,5 +189,5 @@ def sanitize_geojson(
     if to_map_coords:
         geojson = pixel_to_map_coords(geojson, crs_transformer)
     if not all_geoms_valid(geojson):
-        log.warning(f'Invalid geometries found in features in the GeoJSON.')
+        log.warning('Invalid geometries found in features in the GeoJSON.')
     return geojson

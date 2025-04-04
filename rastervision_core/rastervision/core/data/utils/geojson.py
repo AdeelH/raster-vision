@@ -1,17 +1,18 @@
-from typing import TYPE_CHECKING, Iterable, Iterator
-from collections.abc import Callable
+from collections.abc import Callable, Iterable, Iterator
 from copy import deepcopy
+from typing import TYPE_CHECKING
 
-from shapely.geometry import shape, mapping
-from shapely.affinity import translate
-from tqdm.auto import tqdm
 import geopandas as gpd
+from shapely.affinity import translate
+from shapely.geometry import mapping, shape
+from tqdm.auto import tqdm
 
 from rastervision.core.box import Box
 
 if TYPE_CHECKING:
-    from rastervision.core.data.crs_transformer import CRSTransformer
     from shapely.geometry.base import BaseGeometry
+
+    from rastervision.core.data.crs_transformer import CRSTransformer
 
 MULTI_GEOM_TYPES = {'MultiPolygon', 'MultiPoint', 'MultiLineString'}
 PROGRESSBAR_DELAY_SEC = 5
@@ -296,7 +297,6 @@ def simplify_polygons(geojson: dict) -> dict:
     Returns:
         dict: FeatureCollection with simplified geometries.
     """
-
     all_geom_types = set(f['geometry']['type'] for f in geojson['features'])
     if 'Polygon' not in all_geom_types:
         return geojson
@@ -377,7 +377,6 @@ def get_polygons_from_uris(
     map_coords: bool = False,
 ) -> list['BaseGeometry']:
     """Load and return polygons (in pixel coords) from one or more URIs."""
-
     # use local imports to avoid circular import problems
     from rastervision.core.data import GeoJSONVectorSource
 

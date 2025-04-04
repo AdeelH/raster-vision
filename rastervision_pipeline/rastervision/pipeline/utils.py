@@ -1,16 +1,16 @@
-from typing import Any
-from collections.abc import Callable
-import os
 import atexit
 import logging
+import os
+from collections.abc import Callable
 from math import ceil
+from typing import Any
 
 log = logging.getLogger(__name__)
 
 
 def terminate_at_exit(process):
     def terminate():
-        log.debug('Terminating {}...'.format(process.pid))
+        log.debug(f'Terminating {process.pid}...')
         process.terminate()
 
     atexit.register(terminate)

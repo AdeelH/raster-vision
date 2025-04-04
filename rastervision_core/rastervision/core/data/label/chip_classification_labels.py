@@ -1,5 +1,6 @@
-from typing import TYPE_CHECKING, Any, Iterable
+from collections.abc import Iterable
 from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
@@ -9,8 +10,10 @@ from rastervision.core.utils.types import Vector
 
 if TYPE_CHECKING:
     from typing import Self
-    from rastervision.core.data import ClassConfig, CRSTransformer
+
     from shapely.geometry import Polygon
+
+    from rastervision.core.data import ClassConfig, CRSTransformer
 
 
 @dataclass
@@ -106,8 +109,7 @@ class ChipClassificationLabels(Labels):
         result = self.cell_to_label.get(cell)
         if result is not None:
             return result.class_id
-        else:
-            return None
+        return None
 
     def get_cell_scores(self, cell: Box) -> Vector | None:
         """Return scores for a cell.
@@ -118,8 +120,7 @@ class ChipClassificationLabels(Labels):
         result = self.cell_to_label.get(cell)
         if result is not None:
             return result.scores
-        else:
-            return None
+        return None
 
     def get_singleton_labels(self, cell: Box):
         """Return Labels object representing a single cell.

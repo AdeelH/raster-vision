@@ -4,23 +4,22 @@ from os.path import join
 import numpy as np
 from shapely.geometry import shape
 
-from rastervision.pipeline.file_system import file_to_json, get_tmp_dir
-from rastervision.core.data import ClassConfig
 from rastervision.core import Box
 from rastervision.core.data import (
-    Scene,
+    ClassConfig,
+    ClassInferenceTransformerConfig,
+    GeoJSONVectorSourceConfig,
     IdentityCRSTransformer,
-    SemanticSegmentationLabelSource,
+    PolygonVectorOutputConfig,
     RasterizedSourceConfig,
     RasterizerConfig,
-    GeoJSONVectorSourceConfig,
-    PolygonVectorOutputConfig,
-    ClassInferenceTransformerConfig,
+    Scene,
+    SemanticSegmentationLabelSource,
 )
 from rastervision.core.evaluation import SemanticSegmentationEvaluator
-
-from tests.core.data.mock_raster_source import MockRasterSource
+from rastervision.pipeline.file_system import file_to_json, get_tmp_dir
 from tests import data_file_path
+from tests.core.data.mock_raster_source import MockRasterSource
 
 
 class MockRVPipelineConfig:
@@ -77,8 +76,8 @@ class TestSemanticSegmentationEvaluator(unittest.TestCase):
         self.assertDictEqual(eval_json, exp_eval_json)
 
     def get_vector_scene(self, class_id, use_aoi=False):
-        gt_uri = data_file_path('{}-gt-polygons.geojson'.format(class_id))
-        pred_uri = data_file_path('{}-pred-polygons.geojson'.format(class_id))
+        gt_uri = data_file_path(f'{class_id}-gt-polygons.geojson')
+        pred_uri = data_file_path(f'{class_id}-pred-polygons.geojson')
 
         scene_id = str(class_id)
         rs = MockRasterSource(channel_order=[0, 1, 2], num_channels_raw=3)
@@ -117,7 +116,7 @@ class TestSemanticSegmentationEvaluator(unittest.TestCase):
         ]
 
         if use_aoi:
-            aoi_uri = data_file_path('{}-aoi.geojson'.format(class_id))
+            aoi_uri = data_file_path(f'{class_id}-aoi.geojson')
             aoi_geojson = file_to_json(aoi_uri)
             aoi_polygons = [shape(aoi_geojson['features'][0]['geometry'])]
             return Scene(scene_id, rs, gt_ls, pred_ls, aoi_polygons)

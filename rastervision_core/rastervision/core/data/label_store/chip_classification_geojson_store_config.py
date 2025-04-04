@@ -1,10 +1,10 @@
 from os.path import join
 
 from rastervision.core.data.label_store import (
-    LabelStoreConfig,
     ChipClassificationGeoJSONStore,
+    LabelStoreConfig,
 )
-from rastervision.pipeline.config import register_config, Field
+from rastervision.pipeline.config import Field, register_config
 
 
 @register_config('chip_classification_geojson_store')
@@ -26,4 +26,4 @@ class ChipClassificationGeoJSONStoreConfig(LabelStoreConfig):
 
     def update(self, pipeline=None, scene=None):
         if self.uri is None and pipeline is not None and scene is not None:
-            self.uri = join(pipeline.predict_uri, '{}.json'.format(scene.id))
+            self.uri = join(pipeline.predict_uri, f'{scene.id}.json')

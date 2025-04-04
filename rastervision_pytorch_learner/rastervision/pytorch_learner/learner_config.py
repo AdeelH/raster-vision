@@ -1,61 +1,67 @@
-from typing import TYPE_CHECKING, Any, Iterable, Literal, Sequence
-from collections.abc import Callable
+import logging
 import os
-from os.path import join, isdir
-from enum import Enum
 import random
 import uuid
-import logging
+from collections.abc import Callable, Iterable, Sequence
+from enum import Enum
+from os.path import isdir, join
+from typing import TYPE_CHECKING, Annotated, Any, Literal
 
-from typing_extensions import Annotated
-from pydantic import (
-    NonNegativeInt as NonNegInt,
-    PositiveFloat,
-    PositiveInt as PosInt,
-    StringConstraints,
-)
-from pydantic.v1.utils import sequence_like
 import albumentations as A
 import torch
+from pydantic import (
+    NonNegativeInt as NonNegInt,
+)
+from pydantic import (
+    PositiveFloat,
+    StringConstraints,
+)
+from pydantic import (
+    PositiveInt as PosInt,
+)
+from pydantic.v1.utils import sequence_like
 from torch import nn, optim
 from torch.optim.lr_scheduler import CyclicLR, MultiStepLR, _LRScheduler
-from torch.utils.data import Dataset, ConcatDataset, Subset
+from torch.utils.data import ConcatDataset, Dataset, Subset
 
-from rastervision.pipeline.config import (
-    Config,
-    register_config,
-    ConfigError,
-    Field,
-    field_validator,
-    model_validator,
-)
-from rastervision.pipeline.file_system import (
-    list_paths,
-    download_if_needed,
-    unzip,
-    file_exists,
-    get_local_path,
-    sync_from_dir,
-)
 from rastervision.core.data import (
     ClassConfig,
     Scene,
+)
+from rastervision.core.data import (
     DatasetConfig as SceneDatasetConfig,
 )
 from rastervision.core.rv_pipeline import WindowSamplingConfig
 from rastervision.core.utils import NonEmptyStr, Proportion
+from rastervision.pipeline.config import (
+    Config,
+    ConfigError,
+    Field,
+    field_validator,
+    model_validator,
+    register_config,
+)
+from rastervision.pipeline.file_system import (
+    download_if_needed,
+    file_exists,
+    get_local_path,
+    list_paths,
+    sync_from_dir,
+    unzip,
+)
 from rastervision.pytorch_learner.utils import (
-    validate_albumentation_transform,
     MinMaxNormalize,
     deserialize_albumentation_transform,
     get_hubconf_dir_from_cfg,
-    torch_hub_load_local,
     torch_hub_load_github,
+    torch_hub_load_local,
     torch_hub_load_uri,
+    validate_albumentation_transform,
 )
 
 if TYPE_CHECKING:
     from typing import Self
+
     from rastervision.core.data import SceneConfig
     from rastervision.pytorch_learner.learner import Learner
 
@@ -357,7 +363,7 @@ class ModelConfig(Config):
         Returns:
             A PyTorch nn.Module.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def build_external_model(
         self,
@@ -610,11 +616,11 @@ def validate_channel_display_groups(
     """
     if groups is None:
         return None
-    elif len(groups) == 0:
+    if len(groups) == 0:
         raise ConfigError(
             'channel_display_groups cannot be empty. Set to None instead.'
         )
-    elif not isinstance(groups, dict):
+    if not isinstance(groups, dict):
         # if in list/tuple form, convert to dict s.t.
         # [(0, 1, 2), (4, 3, 5)] --> {
         #   "Channels [0, 1, 2]": [0, 1, 2],
@@ -884,7 +890,7 @@ class DataConfig(Config):
         self, tmp_dir: str | None = None
     ) -> tuple[Dataset, Dataset, Dataset]:
         """Build and return train, val, and test datasets."""
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def build_dataset(
         self,
@@ -892,7 +898,7 @@ class DataConfig(Config):
         tmp_dir: str | None = None,
     ) -> Dataset:
         """Build and return dataset for a single split."""
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def random_subset_dataset(
         self,
@@ -1036,7 +1042,7 @@ class ImageDataConfig(DataConfig):
     def dir_to_dataset(
         self, data_dir: str, transform: A.BasicTransform
     ) -> Dataset:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def build(self, tmp_dir: str) -> tuple[Dataset, Dataset, Dataset]:
         if self.group_uris is None:
@@ -1257,26 +1263,22 @@ class ImageDataConfig(DataConfig):
                 raise ValueError(
                     'If uri is a list, all items must be URIs of zip files.'
                 )
+        # if file
+        elif file_exists(uri, include_dir=False):
+            if not uri.endswith('.zip'):
+                raise ValueError('URI is neither a directory nor a zip file.')
+            zip_uris = [uri]
+        # if dir
+        elif file_exists(uri, include_dir=True):
+            if is_data_dir(uri):
+                local_path = get_local_path(uri, unzip_dir)
+                if uri != local_path:
+                    sync_from_dir(uri, local_path)
+                return [local_path]
+            zip_uris = list_paths(uri, ext='zip')
+        # if non-existent
         else:
-            # if file
-            if file_exists(uri, include_dir=False):
-                if not uri.endswith('.zip'):
-                    raise ValueError(
-                        'URI is neither a directory nor a zip file.'
-                    )
-                zip_uris = [uri]
-            # if dir
-            elif file_exists(uri, include_dir=True):
-                if is_data_dir(uri):
-                    local_path = get_local_path(uri, unzip_dir)
-                    if uri != local_path:
-                        sync_from_dir(uri, local_path)
-                    return [local_path]
-                else:
-                    zip_uris = list_paths(uri, ext='zip')
-            # if non-existent
-            else:
-                raise FileNotFoundError(uri)
+            raise FileNotFoundError(uri)
 
         data_dirs = self.unzip_data(zip_uris, unzip_dir)
         return data_dirs
@@ -1449,7 +1451,7 @@ class GeoDataConfig(DataConfig):
         for_chipping: bool = False,
     ) -> Dataset:
         """Make a dataset from a single scene."""
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def build_dataset(
         self,
@@ -1596,7 +1598,7 @@ class LearnerConfig(Config):
                 and the loss function, optimizer, etc. are not initialized.
                 Defaults to True.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def get_model_bundle_uri(self) -> str:
         """Returns the URI of where the model bundle is stored."""

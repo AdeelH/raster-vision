@@ -1,8 +1,9 @@
-from typing import TYPE_CHECKING, Any, Literal
 from enum import Enum
+from typing import TYPE_CHECKING, Any, Literal
 
-from pydantic import NonNegativeInt as NonNegInt, PositiveInt as PosInt
 import numpy as np
+from pydantic import NonNegativeInt as NonNegInt
+from pydantic import PositiveInt as PosInt
 
 from rastervision.core.rv_pipeline.utils import nodata_below_threshold
 from rastervision.core.utils import Proportion
@@ -10,8 +11,8 @@ from rastervision.pipeline.config import (
     Config,
     ConfigError,
     Field,
-    register_config,
     model_validator,
+    register_config,
 )
 
 if TYPE_CHECKING:

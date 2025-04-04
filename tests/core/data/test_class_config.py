@@ -1,10 +1,10 @@
-from collections.abc import Callable
 import unittest
+from collections.abc import Callable
 
 from rastervision.core.data.class_config import (
-    ClassConfig,
-    DEFAULT_NULL_CLASS_NAME,
     DEFAULT_NULL_CLASS_COLOR,
+    DEFAULT_NULL_CLASS_NAME,
+    ClassConfig,
 )
 from rastervision.pipeline.config import ValidationError
 

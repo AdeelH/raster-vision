@@ -1,7 +1,7 @@
-from typing import Sequence
+from collections.abc import Sequence
 
 import numpy as np
-from shapely.geometry import Polygon, MultiPolygon, LinearRing
+from shapely.geometry import LinearRing, MultiPolygon, Polygon
 from shapely.ops import unary_union
 
 

@@ -1,5 +1,6 @@
-from typing import TYPE_CHECKING, Any, Sequence
 import logging
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 from xarray import DataArray
@@ -7,11 +8,12 @@ from xarray import DataArray
 from rastervision.core.box import Box
 from rastervision.core.data.crs_transformer import RasterioCRSTransformer
 from rastervision.core.data.raster_source import RasterSource
-from rastervision.core.data.utils import parse_array_slices_Nd, fill_overflow
+from rastervision.core.data.utils import fill_overflow, parse_array_slices_Nd
 
 if TYPE_CHECKING:
     from pystac import Item, ItemCollection
-    from rastervision.core.data import RasterTransformer, CRSTransformer
+
+    from rastervision.core.data import CRSTransformer, RasterTransformer
 
 log = logging.getLogger(__name__)
 
@@ -53,12 +55,11 @@ class XarraySource(RasterSource):
                     'If temporal=True, data_array must have 4 dimensions: '
                     '"x", "y", "band", and "time" (in any order).'
                 )
-        else:
-            if set(data_array.dims) != {'x', 'y', 'band'}:
-                raise ValueError(
-                    'If temporal=False, data_array must have 3 dimensions: '
-                    '"x", "y", and "band" (in any order).'
-                )
+        elif set(data_array.dims) != {'x', 'y', 'band'}:
+            raise ValueError(
+                'If temporal=False, data_array must have 3 dimensions: '
+                '"x", "y", and "band" (in any order).'
+            )
 
         self.data_array = data_array.transpose(..., 'y', 'x', 'band')
         self.ndim = data_array.ndim
@@ -75,15 +76,14 @@ class XarraySource(RasterSource):
         self.full_extent = Box(0, 0, height, width)
         if bbox is None:
             bbox = self.full_extent
-        else:
-            if bbox not in self.full_extent:
-                new_bbox = bbox.intersection(self.full_extent)
-                log.warning(
-                    f"Clipping ({bbox}) to the DataArray's "
-                    f'full extent ({self.full_extent}). '
-                    f'New bbox={new_bbox}'
-                )
-                bbox = new_bbox
+        elif bbox not in self.full_extent:
+            new_bbox = bbox.intersection(self.full_extent)
+            log.warning(
+                f"Clipping ({bbox}) to the DataArray's "
+                f'full extent ({self.full_extent}). '
+                f'New bbox={new_bbox}'
+            )
+            bbox = new_bbox
 
         super().__init__(
             channel_order=channel_order,

@@ -1,4 +1,5 @@
-from typing import TYPE_CHECKING, Sequence
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -8,6 +9,7 @@ from rastervision.pipeline.utils import repr_with_args
 
 if TYPE_CHECKING:
     from typing import Self
+
     from rastervision.core.data import RasterSource
 
 

@@ -1,27 +1,27 @@
-from typing import TYPE_CHECKING
-from os.path import join
 import logging
-import tempfile
 import shutil
+import tempfile
 from functools import lru_cache
+from os.path import join
+from typing import TYPE_CHECKING
 
 import click
 import numpy as np
 
-from rastervision.pipeline.pipeline import Pipeline
-from rastervision.core.box import Box
-from rastervision.core.data_sample import DataSample
-from rastervision.core.data import Scene, Labels
 from rastervision.core.backend import Backend
+from rastervision.core.box import Box
+from rastervision.core.data import Labels, Scene
+from rastervision.core.data_sample import DataSample
 from rastervision.pipeline.file_system.utils import (
     download_if_needed,
-    zipdir,
+    file_exists,
     get_local_path,
-    upload_or_copy,
     make_dir,
     sync_from_dir,
-    file_exists,
+    upload_or_copy,
+    zipdir,
 )
+from rastervision.pipeline.pipeline import Pipeline
 
 log = logging.getLogger(__name__)
 
@@ -51,8 +51,8 @@ class RVPipeline(Pipeline):
 
     def __init__(self, config: 'RVPipelineConfig', tmp_dir: str):
         super().__init__(config, tmp_dir)
-        self.backend: 'Backend | None' = None
-        self.config: 'RVPipelineConfig'
+        self.backend: Backend | None = None
+        self.config: RVPipelineConfig
 
     @property
     def commands(self):
@@ -113,7 +113,7 @@ class RVPipeline(Pipeline):
         Args:
             scene: Scene to generate windows for
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def get_train_labels(self, window: Box, scene: Scene) -> Labels:
         """Return the training labels in a window for a scene.
@@ -121,7 +121,7 @@ class RVPipeline(Pipeline):
         Returns:
             Labels that lie within window
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def chip(self, split_ind: int = 0, num_splits: int = 1):
         """Save training and validation chips."""

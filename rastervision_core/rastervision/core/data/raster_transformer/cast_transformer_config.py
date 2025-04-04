@@ -1,10 +1,10 @@
-from rastervision.pipeline.config import register_config, Field
-from rastervision.core.data.raster_transformer.raster_transformer_config import (  # noqa
-    RasterTransformerConfig,
-)
 from rastervision.core.data.raster_transformer.cast_transformer import (
     CastTransformer,
 )
+from rastervision.core.data.raster_transformer.raster_transformer_config import (  # noqa
+    RasterTransformerConfig,
+)
+from rastervision.pipeline.config import Field, register_config
 
 
 @register_config('cast_transformer')

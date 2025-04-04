@@ -1,12 +1,12 @@
-from typing import TYPE_CHECKING
 import logging
+from typing import TYPE_CHECKING
 
 import geopandas as gpd
 
-from rastervision.pipeline.file_system import download_if_needed
 from rastervision.core.box import Box
-from rastervision.core.data.vector_source.vector_source import VectorSource
 from rastervision.core.data.utils import listify_uris, merge_geojsons
+from rastervision.core.data.vector_source.vector_source import VectorSource
+from rastervision.pipeline.file_system import download_if_needed
 
 if TYPE_CHECKING:
     from rastervision.core.data import CRSTransformer, VectorTransformer

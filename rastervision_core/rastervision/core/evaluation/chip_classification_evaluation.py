@@ -4,8 +4,8 @@ import numpy as np
 from sklearn.metrics import confusion_matrix
 
 from rastervision.core.evaluation import (
-    ClassificationEvaluation,
     ClassEvaluationItem,
+    ClassificationEvaluation,
 )
 
 if TYPE_CHECKING:

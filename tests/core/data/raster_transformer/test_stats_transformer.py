@@ -3,9 +3,6 @@ from os.path import join
 
 import numpy as np
 
-from rastervision.pipeline.config import build_config
-from rastervision.pipeline.file_system import get_tmp_dir
-from rastervision.core.raster_stats import RasterStats
 from rastervision.core.data import (
     RasterioSource,
     StatsTransformer,
@@ -14,7 +11,9 @@ from rastervision.core.data import (
 from rastervision.core.data.raster_transformer.stats_transformer_config import (  # noqa
     stats_transformer_config_upgrader,
 )
-
+from rastervision.core.raster_stats import RasterStats
+from rastervision.pipeline.config import build_config
+from rastervision.pipeline.file_system import get_tmp_dir
 from tests import data_file_path
 
 

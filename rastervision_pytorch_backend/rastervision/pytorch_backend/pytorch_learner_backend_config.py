@@ -1,15 +1,15 @@
 import logging
 
-from rastervision.pipeline.config import register_config, Field
-from rastervision.pipeline.file_system import get_tmp_dir
 from rastervision.core.backend import BackendConfig
 from rastervision.core.rv_pipeline import RVPipelineConfig
+from rastervision.pipeline.config import Field, register_config
+from rastervision.pipeline.file_system import get_tmp_dir
 from rastervision.pytorch_learner.learner_config import (
-    SolverConfig,
-    ModelConfig,
     DataConfig,
-    ImageDataConfig,
     GeoDataConfig,
+    ImageDataConfig,
+    ModelConfig,
+    SolverConfig,
 )
 
 log = logging.getLogger(__name__)
@@ -67,10 +67,10 @@ class PyTorchLearnerBackendConfig(BackendConfig):
             self.data.img_channels = self.get_img_channels(pipeline)
 
     def get_learner_config(self, pipeline: RVPipelineConfig | None):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def build(self, pipeline: RVPipelineConfig | None, tmp_dir: str):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def filter_commands(self, commands: list[str]) -> list[str]:
         nochip = isinstance(self.data, GeoDataConfig)

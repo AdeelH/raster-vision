@@ -1,11 +1,11 @@
-from typing import TYPE_CHECKING
 from os.path import join
+from typing import TYPE_CHECKING
 
-from rastervision.pipeline.config import Config, Field
-from rastervision.pipeline.config import register_config
+from rastervision.pipeline.config import Config, Field, register_config
 
 if TYPE_CHECKING:
     from typing import Self
+
     from rastervision.pipeline.pipeline import Pipeline
 
 
@@ -48,7 +48,7 @@ class PipelineConfig(Config):
         Args:
             tmp_dir: root of any temporary directory to pass to pipeline
         """
-        from rastervision.pipeline.pipeline import Pipeline  # noqa
+        from rastervision.pipeline.pipeline import Pipeline
 
         return Pipeline(self, tmp_dir)
 

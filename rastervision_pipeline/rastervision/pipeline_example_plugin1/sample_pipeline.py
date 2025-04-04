@@ -1,9 +1,9 @@
 from os.path import join
 
-from rastervision.pipeline.pipeline import Pipeline
-from rastervision.pipeline.file_system import str_to_file, file_to_str
-from rastervision.pipeline.pipeline_config import PipelineConfig
 from rastervision.pipeline.config import register_config
+from rastervision.pipeline.file_system import file_to_str, str_to_file
+from rastervision.pipeline.pipeline import Pipeline
+from rastervision.pipeline.pipeline_config import PipelineConfig
 from rastervision.pipeline.utils import split_into_groups
 
 
@@ -26,8 +26,7 @@ class SamplePipelineConfig(PipelineConfig):
         # other values.
         if self.message_uris is None:
             self.message_uris = [
-                join(self.root_uri, '{}.txt'.format(name))
-                for name in self.names
+                join(self.root_uri, f'{name}.txt') for name in self.names
             ]
 
 
@@ -54,12 +53,12 @@ class SamplePipeline(Pipeline):
         split_group = split_groups[split_ind]
 
         for name, message_uri in split_group:
-            message = 'hello {}!'.format(name)
+            message = f'hello {name}!'
             # str_to_file and most functions in the file_system package can
             # read and write transparently to different file systems based on
             # the URI pattern.
             str_to_file(message, message_uri)
-            print('Saved message to {}'.format(message_uri))
+            print(f'Saved message to {message_uri}')
 
     def print_messages(self):
         # Read all the message files and print them.
