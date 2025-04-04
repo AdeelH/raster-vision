@@ -50,6 +50,12 @@ ignore = [
     'SIM102',
     # first docstring line should end with period
     "D415",
+    # for loop variable overwritten
+    "PLW2901",
+    # missing type annotation for *args
+    "ANN002",
+    # missing type annotation for *kwargs
+    "ANN003",
 ]
 
 [lint.per-file-ignores]
