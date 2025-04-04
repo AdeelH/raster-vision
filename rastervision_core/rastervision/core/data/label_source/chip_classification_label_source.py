@@ -94,7 +94,7 @@ def infer_cells(
     boxes = [Box.from_shapely(c).to_int() for c in df['geometry_cell']]
     class_ids = df['class_id'].astype(int)
     cells_to_class_id = {
-        cell: (class_id, None) for cell, class_id in zip(boxes, class_ids)
+        cell: (class_id, None) for cell, class_id in zip(boxes, class_ids, strict=False)
     }
     labels = ChipClassificationLabels(cells_to_class_id)
     return labels
@@ -125,7 +125,7 @@ def read_labels(
         scores = [None] * len(class_ids)
     cells_to_class_id = {
         cell: (class_id, class_scores)
-        for cell, class_id, class_scores in zip(boxes, class_ids, scores)
+        for cell, class_id, class_scores in zip(boxes, class_ids, scores, strict=False)
     }
     labels = ChipClassificationLabels(cells_to_class_id)
     return labels
@@ -148,7 +148,7 @@ class ChipClassificationLabelSource(LabelSource):
         vector_source: 'VectorSource',
         bbox: Box | None = None,
         lazy: bool = False,
-    ):
+    ) -> None:
         """Constructor.
 
         Args:

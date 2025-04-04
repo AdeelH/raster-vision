@@ -43,7 +43,7 @@ class RegressionLearner(Learner):
         )
         return model
 
-    def on_train_start(self):
+    def on_train_start(self) -> None:
         ys = []
         for _, y in self.train_dl:
             ys.append(y)
@@ -74,7 +74,7 @@ class RegressionLearner(Learner):
     def prob_to_pred(self, x):
         return x
 
-    def _validate(self, split):
+    def _validate(self, split) -> None:
         super()._validate(split)
 
         y, out = self.predict_dataloader(

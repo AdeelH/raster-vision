@@ -1,3 +1,4 @@
+import contextlib
 import inspect
 import logging
 from collections.abc import Callable
@@ -53,7 +54,7 @@ class Config(BaseModel):
 
     model_config = ConfigDict(extra='forbid', validate_assignment=True)
 
-    def update(self, *args, **kwargs):
+    def update(self, *args, **kwargs) -> None:
         """Update any fields before validation.
 
         Subclasses should override this to provide complex default behavior, for
@@ -61,21 +62,21 @@ class Config(BaseModel):
         fields. The arguments to this method will vary depending on the type of Config.
         """
 
-    def build(self):
+    def build(self) -> None:
         """Build an instance of the corresponding type of object using this config.
 
         For example, BackendConfig will build a Backend object. The arguments to this
         method will vary depending on the type of Config.
         """
 
-    def validate_config(self):
+    def validate_config(self) -> None:
         """Validate fields that should be checked after update is called.
 
         This is to complement the builtin validation that Pydantic performs at the time
         of object construction.
         """
 
-    def revalidate(self):
+    def revalidate(self) -> None:
         """Re-validate an instantiated Config.
 
         Runs all Pydantic validators plus self.validate_config().
@@ -83,7 +84,7 @@ class Config(BaseModel):
         self.model_validate(self.__dict__)
         self.validate_config()
 
-    def recursive_validate_config(self):
+    def recursive_validate_config(self) -> None:
         """Recursively validate hierarchies of Configs.
 
         This uses reflection to call validate_config on a hierarchy of Configs
@@ -100,7 +101,7 @@ class Config(BaseModel):
         for c in child_configs:
             c.recursive_validate_config()
 
-    def validate_list(self, field: str, valid_options: list[str]):
+    def validate_list(self, field: str, valid_options: list[str]) -> None:
         """Validate a list field.
 
         Args:
@@ -195,10 +196,8 @@ class Config(BaseModel):
     def __repr_args__(self):
         """Override to delete 'type_hint' field."""
         args = dict(super().__repr_args__())
-        try:
+        with contextlib.suppress(KeyError):
             del args['type_hint']
-        except KeyError:
-            pass
         return args.items()
 
 

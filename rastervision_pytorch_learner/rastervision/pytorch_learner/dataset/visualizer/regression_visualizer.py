@@ -49,7 +49,7 @@ class RegressionVisualizer(Visualizer):
         elif z is not None:
             self.plot_pred(label_ax, class_names, z, y=y)
 
-    def plot_gt(self, ax: 'Axes', class_names: Sequence[str], y: torch.Tensor):
+    def plot_gt(self, ax: 'Axes', class_names: Sequence[str], y: torch.Tensor) -> None:
         """Plot targets as a horizontal bar plot with values at the tips."""
         bars_gt = ax.barh(
             y=class_names, width=y, color='lightgray', edgecolor='black'
@@ -68,7 +68,7 @@ class RegressionVisualizer(Visualizer):
         class_names: Sequence[str],
         z: torch.Tensor,
         y: torch.Tensor | None = None,
-    ):
+    ) -> None:
         """Plot targets and predictions as a grouped horizontal bar plot."""
         # display targets and predictions as a grouped horizontal bar plot
         bar_thickness = 0.35 if y is not None else 0.70

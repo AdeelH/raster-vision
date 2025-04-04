@@ -30,7 +30,7 @@ class ClassificationImageDataset(ImageDataset):
 
     def __init__(
         self, data_dir: str, class_names: Iterable[str] | None, *args, **kwargs
-    ):
+    ) -> None:
         """Constructor.
 
         Args:
@@ -50,11 +50,11 @@ def make_cc_geodataset(
     image_uri: str | list[str],
     label_vector_uri: str | None = None,
     class_config: 'ClassConfig | None' = None,
-    aoi_uri: str | list[str] = [],
+    aoi_uri: str | list[str] | None = None,
     label_vector_default_class_id: int | None = None,
-    image_raster_source_kw: dict = {},
-    label_vector_source_kw: dict = {},
-    label_source_kw: dict = {},
+    image_raster_source_kw: dict | None = None,
+    label_vector_source_kw: dict | None = None,
+    label_source_kw: dict | None = None,
     **kwargs,
 ):
     """Create an instance of this class from image and label URIs.
@@ -98,6 +98,14 @@ def make_cc_geodataset(
     Returns:
         An instance of this GeoDataset subclass.
     """
+    if label_source_kw is None:
+        label_source_kw = {}
+    if label_vector_source_kw is None:
+        label_vector_source_kw = {}
+    if image_raster_source_kw is None:
+        image_raster_source_kw = {}
+    if aoi_uri is None:
+        aoi_uri = []
     scene = make_cc_scene(
         image_uri=image_uri,
         label_vector_uri=label_vector_uri,
@@ -115,12 +123,12 @@ def make_cc_geodataset(
 class ClassificationSlidingWindowGeoDataset(SlidingWindowGeoDataset):
     from_uris = classmethod(make_cc_geodataset)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(
             *args, **kwargs, transform_type=TransformType.classification
         )
 
-    def init_windows(self):
+    def init_windows(self) -> None:
         super().init_windows()
         if self.scene.label_source is not None:
             ls: ChipClassificationLabelSource = self.scene.label_source
@@ -130,7 +138,7 @@ class ClassificationSlidingWindowGeoDataset(SlidingWindowGeoDataset):
 class ClassificationRandomWindowGeoDataset(RandomWindowGeoDataset):
     from_uris = classmethod(make_cc_geodataset)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(
             *args, **kwargs, transform_type=TransformType.classification
         )

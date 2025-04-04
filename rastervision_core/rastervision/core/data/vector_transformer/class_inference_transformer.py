@@ -33,7 +33,7 @@ class ClassInferenceTransformer(VectorTransformer):
         class_config: 'ClassConfig | None' = None,
         class_id_to_filter: dict[int, list] | None = None,
         class_name_mapping: dict[str, str] | None = None,
-    ):
+    ) -> None:
         """Constructor.
 
         Args:

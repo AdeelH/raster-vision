@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 class ReclassTransformer(RasterTransformer):
     """Maps class IDs in a label raster to other values."""
 
-    def __init__(self, mapping: dict[int, int]):
+    def __init__(self, mapping: dict[int, int]) -> None:
         """Constructor.
 
         Args:

@@ -145,7 +145,7 @@ class TestGeojsonUtils(unittest.TestCase):
 
     def test_buffer_geoms(self):
         class_bufs = {0: 5}
-        properties = dict(class_id=0)
+        properties = {'class_id': 0}
 
         # polygons
         geom_in = Polygon.from_bounds(0, 0, 10, 10)

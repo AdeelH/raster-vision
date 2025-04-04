@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 
 class ChannelOrderError(Exception):
-    def __init__(self, channel_order: list[int], num_channels_raw: int):
+    def __init__(self, channel_order: list[int], num_channels_raw: int) -> None:
         self.channel_order = channel_order
         self.num_channels_raw = num_channels_raw
         msg = (
@@ -40,8 +40,8 @@ class RasterSource(ABC):
         num_channels_raw: int,
         dtype_raw: np.dtype,
         bbox: Box,
-        raster_transformers: list['RasterTransformer'] = [],
-    ):
+        raster_transformers: list['RasterTransformer'] | None = None,
+    ) -> None:
         """Constructor.
 
         Args:
@@ -54,6 +54,8 @@ class RasterSource(ABC):
             raster_transformers: ``RasterTransformers`` for transforming chips
                 whenever they are retrieved. Defaults to ``[]``.
         """
+        if raster_transformers is None:
+            raster_transformers = []
         if channel_order is None:
             channel_order = list(range(num_channels_raw))
 

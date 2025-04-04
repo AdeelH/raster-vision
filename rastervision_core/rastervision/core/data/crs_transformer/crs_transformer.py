@@ -20,7 +20,7 @@ class CRSTransformer(ABC):
         transform: Any | None = None,
         image_crs: str | None = None,
         map_crs: str | None = None,
-    ):
+    ) -> None:
         self.transform = transform
         self.image_crs = image_crs
         self.map_crs = map_crs

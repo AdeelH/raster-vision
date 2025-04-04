@@ -33,7 +33,7 @@ class ObjectDetectionLabels(Labels):
         npboxes: np.ndarray,
         class_ids: np.ndarray,
         scores: np.ndarray = None,
-    ):
+    ) -> None:
         """Construct a set of object detection labels.
 
         Args:
@@ -62,7 +62,7 @@ class ObjectDetectionLabels(Labels):
             and self.to_dict() == other.to_dict()
         )
 
-    def __setitem__(self, window: Box, item: dict[str, np.ndarray]):
+    def __setitem__(self, window: Box, item: dict[str, np.ndarray]) -> None:
         boxes = item['boxes']
         boxes = ObjectDetectionLabels.local_to_global(boxes, window)
         class_ids = item['class_ids']
@@ -75,7 +75,7 @@ class ObjectDetectionLabels(Labels):
     def __getitem__(self, window: Box) -> 'Self':
         return ObjectDetectionLabels.get_overlapping(self, window)
 
-    def assert_equal(self, expected_labels: 'Self'):
+    def assert_equal(self, expected_labels: 'Self') -> None:
         np.testing.assert_array_equal(
             self.get_npboxes(), expected_labels.get_npboxes()
         )
@@ -94,7 +94,7 @@ class ObjectDetectionLabels(Labels):
         new_boxes = []
         new_class_ids = []
         new_scores = []
-        for box, class_id, score in zip(boxes, class_ids, scores):
+        for box, class_id, score in zip(boxes, class_ids, scores, strict=False):
             box_poly = box.to_shapely()
             for aoi in aoi_polygons:
                 if box_poly.within(aoi):
@@ -204,7 +204,7 @@ class ObjectDetectionLabels(Labels):
         scores = self.get_scores().round(6)
         d = {
             Box.from_npbox(box): (class_id, score)
-            for box, class_id, score in zip(npboxes, classes, scores)
+            for box, class_id, score in zip(npboxes, classes, scores, strict=False)
         }
         return d
 

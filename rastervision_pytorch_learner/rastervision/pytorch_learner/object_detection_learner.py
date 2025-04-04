@@ -1,4 +1,6 @@
+import functools
 import logging
+import operator
 import warnings
 from collections.abc import Iterable
 from typing import TYPE_CHECKING
@@ -116,8 +118,8 @@ class ObjectDetectionLearner(Learner):
             )
             if not is_master:
                 return {}
-            outs = sum(all_outs, [])
-            ys = sum(all_ys, [])
+            outs = functools.reduce(operator.iadd, all_outs, [])
+            ys = functools.reduce(operator.iadd, all_ys, [])
 
         log.info(f'{self.ddp_rank} at coco eval')
         coco_eval = compute_coco_eval(outs, ys, num_class_ids)

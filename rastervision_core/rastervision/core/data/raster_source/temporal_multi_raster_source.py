@@ -1,5 +1,5 @@
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, NoReturn
 
 import numpy as np
 from pydantic import NonNegativeInt as NonNegInt
@@ -24,7 +24,7 @@ class TemporalMultiRasterSource(MultiRasterSource):
         primary_source_idx: NonNegInt = 0,
         raster_transformers: Sequence['RasterTransformer'] = [],
         bbox: Box | None = None,
-    ):
+    ) -> None:
         """Constructor.
 
         Args:
@@ -78,7 +78,7 @@ class TemporalMultiRasterSource(MultiRasterSource):
         self.validate_raster_sources()
 
     @classmethod
-    def from_stac(cls, *args, **kwargs):
+    def from_stac(cls, *args, **kwargs) -> NoReturn:
         """Not implemented for ``TemporalMultiRasterSource``."""
         raise NotImplementedError(
             'Create raster sources by calling MultiRasterSource.from_stac() '

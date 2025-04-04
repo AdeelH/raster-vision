@@ -52,11 +52,11 @@ class TestChipOptions(unittest.TestCase):
         self.assertEqual(chip_options.get_chip_sz(), 256)
 
         chip_options = ChipOptions(
-            sampling=dict(
-                scene_1=WindowSamplingConfig(
+            sampling={
+                'scene_1': WindowSamplingConfig(
                     method=WindowSamplingMethod.random, size=256
                 )
-            ),
+            },
             nodata_threshold=0.5,
         )
         self.assertRaises(KeyError, lambda: chip_options.get_chip_sz())

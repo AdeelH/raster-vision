@@ -40,7 +40,7 @@ class Labels(ABC):
         pass
 
     @abstractmethod
-    def __setitem__(self, key, value):
+    def __setitem__(self, key, value) -> None:
         pass
 
     @classmethod
@@ -76,7 +76,7 @@ class Labels(ABC):
         labels = cls.make_empty()
         # If predictions is tqdm-wrapped, it needs to be the first arg to zip()
         # or the progress bar won't terminate with the correct count.
-        for prediction, window in zip(predictions, windows):
+        for prediction, window in zip(predictions, windows, strict=False):
             labels[window] = prediction
         return labels
 

@@ -26,7 +26,7 @@ class ShiftTransformer(VectorTransformer):
         x_shift: float = 0.0,
         y_shift: float = 0.0,
         round_pixels: bool = True,
-    ):
+    ) -> None:
         """Constructor.
 
         Args:

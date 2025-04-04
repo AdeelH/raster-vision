@@ -23,7 +23,7 @@ class TestUtils(unittest.TestCase):
         obj = 1
         self.assertEqual(repr_with_args(obj), 'int()')
 
-        obj = dict(a=1, b='2')
+        obj = {'a': 1, 'b': '2'}
         self.assertEqual(repr_with_args(obj, **obj), "dict(a=1, b='2')")
 
 

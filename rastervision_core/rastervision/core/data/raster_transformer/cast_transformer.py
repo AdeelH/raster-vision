@@ -9,7 +9,7 @@ from rastervision.pipeline.utils import repr_with_args
 class CastTransformer(RasterTransformer):
     """Casts chips to the specified dtype."""
 
-    def __init__(self, to_dtype: str):
+    def __init__(self, to_dtype: str) -> None:
         """Constructor.
 
         Args:
@@ -17,7 +17,7 @@ class CastTransformer(RasterTransformer):
         """
         self.to_dtype = np.dtype(to_dtype)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return repr_with_args(self, to_dtype=str(self.to_dtype))
 
     def transform(self, chip: np.ndarray) -> np.ndarray:

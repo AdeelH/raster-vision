@@ -32,7 +32,7 @@ class TestUtils(unittest.TestCase):
         self.assertListEqual(scores_out_single, [None, None])
         self.assertListEqual(scores_out_mult, [None, None])
         boxes_out = [Box.from_shapely(g) for g in geojson_to_geoms(geojson)]
-        for box_in, box_out in zip(boxes_in, boxes_out):
+        for box_in, box_out in zip(boxes_in, boxes_out, strict=False):
             self.assertEqual(box_in, box_out)
 
     def test_boxes_to_geojson_with_scores(self):
@@ -60,7 +60,7 @@ class TestUtils(unittest.TestCase):
         self.assertListEqual(scores_out_single, [0.9, None])
         self.assertListEqual(scores_out_mult, [None, [0.2, 0.8]])
         boxes_out = [Box.from_shapely(g) for g in geojson_to_geoms(geojson)]
-        for box_in, box_out in zip(boxes_in, boxes_out):
+        for box_in, box_out in zip(boxes_in, boxes_out, strict=False):
             self.assertEqual(box_in, box_out)
 
 

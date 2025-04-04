@@ -135,7 +135,7 @@ class ChipClassificationLabelSourceConfig(LabelSourceConfig):
             self, vector_source, bbox=bbox, lazy=self.lazy
         )
 
-    def update(self, pipeline=None, scene=None):
+    def update(self, pipeline=None, scene=None) -> None:
         super().update(pipeline, scene)
         if self.cell_sz is None and pipeline is not None:
             self.cell_sz = pipeline.chip_options.get_chip_sz(scene.id)

@@ -46,7 +46,7 @@ def get_coco_gt(
         boxes = target.convert_boxes('xywh').float().tolist()
         class_ids = target.get_field('class_ids').tolist()
         areas = box_area(target.boxes).tolist()
-        for box, class_id, area in zip(boxes, class_ids, areas):
+        for box, class_id, area in zip(boxes, class_ids, areas, strict=False):
             annotations.append(
                 {
                     'id': ann_id,
@@ -81,7 +81,7 @@ def get_coco_preds(outputs: Iterable['Self']) -> list[dict]:
         boxes = output.convert_boxes('xywh').float().tolist()
         class_ids = output.get_field('class_ids').tolist()
         scores = output.get_field('scores').tolist()
-        for box, class_id, score in zip(boxes, class_ids, scores):
+        for box, class_id, score in zip(boxes, class_ids, scores, strict=False):
             preds.append(
                 {
                     'image_id': img_id,
@@ -231,15 +231,15 @@ class BoxList:
             (v.float().unsqueeze(1) if v.ndim == 1 else v.float())
             for v in self.extras.values()
         ]
-        cat_arr = torch.cat([self.boxes] + extras, 1)
-        self_tups = set([tuple([x.item() for x in row]) for row in cat_arr])
+        cat_arr = torch.cat([self.boxes, *extras], 1)
+        self_tups = {tuple([x.item() for x in row]) for row in cat_arr}
 
         extras = [
             (v.float().unsqueeze(1) if v.ndim == 1 else v.float())
             for v in other.extras.values()
         ]
-        cat_arr = torch.cat([other.boxes] + extras, 1)
-        other_tups = set([tuple([x.item() for x in row]) for row in cat_arr])
+        cat_arr = torch.cat([other.boxes, *extras], 1)
+        other_tups = {tuple([x.item() for x in row]) for row in cat_arr}
         return self_tups == other_tups
 
     def ind_filter(self, inds: Sequence[int]) -> 'Self':
@@ -316,7 +316,7 @@ def draw_boxes(
         if scores is not None:
             box_annotations = [
                 f'{ann} | {score:.2f}'
-                for ann, score in zip(box_annotations, scores)
+                for ann, score in zip(box_annotations, scores, strict=False)
             ]
         box_colors: list[str | tuple[int, ...]] = [
             tuple(c) if not isinstance(c, str) else c
@@ -441,12 +441,12 @@ class ONNXRuntimeAdapterForFasterRCNN(ONNXRuntimeAdapter):
     def __call__(self, x: torch.Tensor | np.ndarray) -> torch.Tensor:
         N, *_ = x.shape
         x = x.numpy()
-        outputs = self.ort_session.run(None, dict(x=x))
+        outputs = self.ort_session.run(None, {'x': x})
         out_dicts = [None] * N
         for i in range(N):
             boxes, labels, scores = outputs[i * 3 : i * 3 + 3]
             boxes = torch.from_numpy(boxes)
             labels = torch.from_numpy(labels)
             scores = torch.from_numpy(scores)
-            out_dicts[i] = dict(boxes=boxes, labels=labels, scores=scores)
+            out_dicts[i] = {'boxes': boxes, 'labels': labels, 'scores': scores}
         return out_dicts

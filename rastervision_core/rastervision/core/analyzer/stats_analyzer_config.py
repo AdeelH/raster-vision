@@ -46,7 +46,7 @@ class StatsAnalyzerConfig(AnalyzerConfig):
         if pipeline is not None and self.output_uri is None:
             self.output_uri = join(pipeline.analyze_uri, 'stats')
 
-    def validate_config(self):
+    def validate_config(self) -> None:
         if self.sample_prob > 1 or self.sample_prob <= 0:
             raise ConfigError('sample_prob must be <= 1 and > 0')
 

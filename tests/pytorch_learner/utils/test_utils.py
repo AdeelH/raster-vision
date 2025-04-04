@@ -105,7 +105,7 @@ class TestComputeConfMatMetrics(unittest.TestCase):
             return (a + b) / 2
 
         def round_dict(d):
-            return dict([(k, round(v, 3)) for k, v in d.items()])
+            return {k: round(v, 3) for k, v in d.items()}
 
         a_prec = 1 / 2
         a_rec = 1 / 3
@@ -211,7 +211,7 @@ class TestCustomModules(unittest.TestCase):
 
 
 class TestAdjustConvChannels(unittest.TestCase):
-    def _test_attribs_equal(self, old_conv: nn.Conv2d, new_conv: nn.Conv2d):
+    def _test_attribs_equal(self, old_conv: nn.Conv2d, new_conv: nn.Conv2d) -> None:
         attribs = [
             'out_channels',
             'kernel_size',
@@ -277,8 +277,8 @@ class TestAggregateMetrics(unittest.TestCase):
 
     def test_scalars(self):
         outputs = [
-            dict(train_loss=0.0),
-            dict(train_loss=1.0),
+            {'train_loss': 0.0},
+            {'train_loss': 1.0},
         ]
         metrics = aggregate_metrics(outputs)
         self.assertIn('train_loss', metrics)
@@ -286,8 +286,8 @@ class TestAggregateMetrics(unittest.TestCase):
 
     def test_tensors_zero_dim(self):
         outputs = [
-            dict(key=torch.tensor(0)),
-            dict(key=torch.tensor(1)),
+            {'key': torch.tensor(0)},
+            {'key': torch.tensor(1)},
         ]
         metrics = aggregate_metrics(outputs)
         self.assertIn('key', metrics)
@@ -295,8 +295,8 @@ class TestAggregateMetrics(unittest.TestCase):
 
     def test_tensors(self):
         outputs = [
-            dict(key=torch.zeros(8)),
-            dict(key=torch.ones(8)),
+            {'key': torch.zeros(8)},
+            {'key': torch.ones(8)},
         ]
         metrics = aggregate_metrics(outputs)
         self.assertIn('key', metrics)
@@ -304,8 +304,8 @@ class TestAggregateMetrics(unittest.TestCase):
 
     def test_exclude(self):
         outputs = [
-            dict(conf_mat=torch.randint(0, 100, (2, 2))),
-            dict(conf_mat=torch.randint(0, 100, (2, 2))),
+            {'conf_mat': torch.randint(0, 100, (2, 2))},
+            {'conf_mat': torch.randint(0, 100, (2, 2))},
         ]
         metrics = aggregate_metrics(outputs, exclude_keys={'conf_mat'})
         self.assertNotIn('conf_mat', metrics)
@@ -400,9 +400,9 @@ class TestOtherUtils(unittest.TestCase):
 
     def test_log_metrics_to_csv(self):
         epoch_metrics = [
-            dict(epoch=0, val1=0.0, val2=0.0),
-            dict(epoch=1, val1=-1.0, val2=1.0),
-            dict(epoch=2, val1=-2.0, val2=2.0),
+            {'epoch': 0, 'val1': 0.0, 'val2': 0.0},
+            {'epoch': 1, 'val1': -1.0, 'val2': 1.0},
+            {'epoch': 2, 'val1': -2.0, 'val2': 2.0},
         ]
 
         with get_tmp_dir() as tmp_dir:

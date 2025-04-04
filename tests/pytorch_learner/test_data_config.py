@@ -40,7 +40,7 @@ class TestDataConfigToImageDataConfigUpgrade(unittest.TestCase):
         new_cfg_type: type,
         upgrader: Callable,
         curr_version: int,
-    ):
+    ) -> None:
         old_cfg = old_cfg_type()
         old_cfg_dict = old_cfg.dict()
         for i in range(curr_version):
@@ -187,32 +187,32 @@ class TestImageDataConfig(unittest.TestCase):
         group_uris = ['a', 'b', 'c']
 
         # test missing group_uris
-        args = dict(group_train_sz=1)
+        args = {'group_train_sz': 1}
         self.assertRaises(ValidationError, lambda: ImageDataConfig(**args))
-        args = dict(group_train_sz_rel=0.5)
+        args = {'group_train_sz_rel': 0.5}
         self.assertRaises(ValidationError, lambda: ImageDataConfig(**args))
         # test both group_train_sz and group_train_sz_rel specified
-        args = dict(
-            group_uris=group_uris, group_train_sz=1, group_train_sz_rel=0.5
-        )
+        args = {
+            'group_uris': group_uris, 'group_train_sz': 1, 'group_train_sz_rel': 0.5
+        }
         self.assertRaises(ValidationError, lambda: ImageDataConfig(**args))
         # test length check
-        args = dict(group_uris=group_uris, group_train_sz=[1])
+        args = {'group_uris': group_uris, 'group_train_sz': [1]}
         self.assertRaises(ValidationError, lambda: ImageDataConfig(**args))
-        args = dict(group_uris=group_uris, group_train_sz_rel=[0.5])
+        args = {'group_uris': group_uris, 'group_train_sz_rel': [0.5]}
         self.assertRaises(ValidationError, lambda: ImageDataConfig(**args))
         # test valid configs
-        args = dict(group_uris=group_uris, group_train_sz=1)
+        args = {'group_uris': group_uris, 'group_train_sz': 1}
         self.assertNoError(lambda: ImageDataConfig(**args))
-        args = dict(
-            group_uris=group_uris, group_train_sz=[1] * len(group_uris)
-        )
+        args = {
+            'group_uris': group_uris, 'group_train_sz': [1] * len(group_uris)
+        }
         self.assertNoError(lambda: ImageDataConfig(**args))
-        args = dict(group_uris=group_uris, group_train_sz_rel=0.1)
+        args = {'group_uris': group_uris, 'group_train_sz_rel': 0.1}
         self.assertNoError(lambda: ImageDataConfig(**args))
-        args = dict(
-            group_uris=group_uris, group_train_sz_rel=[0.1] * len(group_uris)
-        )
+        args = {
+            'group_uris': group_uris, 'group_train_sz_rel': [0.1] * len(group_uris)
+        }
         self.assertNoError(lambda: ImageDataConfig(**args))
 
     def test_build_cc(self):
@@ -367,56 +367,56 @@ class TestGeoDataConfig(unittest.TestCase):
 
     def test_window_config(self):
         # update() correctly initializes size_lims
-        args = dict(method=WindowSamplingMethod.random, size=10)
+        args = {'method': WindowSamplingMethod.random, 'size': 10}
         self.assertNoError(lambda: WindowSamplingConfig(**args))
         self.assertEqual(WindowSamplingConfig(**args).size_lims, (10, 11))
 
         # update() only initializes size_lims if method = random
-        args = dict(method=WindowSamplingMethod.sliding, size=10)
+        args = {'method': WindowSamplingMethod.sliding, 'size': 10}
         self.assertEqual(WindowSamplingConfig(**args).size_lims, None)
 
         # only allow one of size_lims and h_lims+w_lims
-        args = dict(
-            method=WindowSamplingMethod.random,
-            size=10,
-            size_lims=(10, 20),
-            h_lims=(10, 20),
-            w_lims=(10, 20),
-        )
+        args = {
+            'method': WindowSamplingMethod.random,
+            'size': 10,
+            'size_lims': (10, 20),
+            'h_lims': (10, 20),
+            'w_lims': (10, 20),
+        }
         self.assertRaises(
             ValidationError, lambda: WindowSamplingConfig(**args)
         )
 
         # require both h_lims and w_lims if either specified
-        args = dict(
-            method=WindowSamplingMethod.random,
-            size=10,
-            h_lims=None,
-            w_lims=(10, 20),
-        )
+        args = {
+            'method': WindowSamplingMethod.random,
+            'size': 10,
+            'h_lims': None,
+            'w_lims': (10, 20),
+        }
         self.assertRaises(
             ValidationError, lambda: WindowSamplingConfig(**args)
         )
 
         # require both h_lims and w_lims if either specified
-        args = dict(
-            method=WindowSamplingMethod.random,
-            size=10,
-            h_lims=(10, 20),
-            w_lims=None,
-        )
+        args = {
+            'method': WindowSamplingMethod.random,
+            'size': 10,
+            'h_lims': (10, 20),
+            'w_lims': None,
+        }
         self.assertRaises(
             ValidationError, lambda: WindowSamplingConfig(**args)
         )
 
         # only allow one of size_lims and h_lims+w_lims
-        args = dict(
-            method=WindowSamplingMethod.random,
-            size=10,
-            size_lims=(10, 20),
-            h_lims=(10, 20),
-            w_lims=None,
-        )
+        args = {
+            'method': WindowSamplingMethod.random,
+            'size': 10,
+            'size_lims': (10, 20),
+            'h_lims': (10, 20),
+            'w_lims': None,
+        }
         self.assertRaises(
             ValidationError, lambda: WindowSamplingConfig(**args)
         )
@@ -426,7 +426,7 @@ class TestGeoDataConfig(unittest.TestCase):
         scene_dataset = DatasetConfig(
             class_config=class_config, train_scenes=[], validation_scenes=[]
         )
-        args = dict(scene_dataset=scene_dataset, sampling={})
+        args = {'scene_dataset': scene_dataset, 'sampling': {}}
         self.assertNoError(lambda: GeoDataConfig(**args))
 
         cfg = GeoDataConfig(**args)
@@ -543,15 +543,15 @@ class TestPlotOptions(unittest.TestCase):
 
     def test_channel_display_groups(self):
         # check error on empty dict
-        args = dict(channel_display_groups={})
+        args = {'channel_display_groups': {}}
         self.assertRaises(ValidationError, lambda: PlotOptions(**args))
 
         # check error on empty list
-        args = dict(channel_display_groups=[])
+        args = {'channel_display_groups': []}
         self.assertRaises(ValidationError, lambda: PlotOptions(**args))
 
         # check error on group of size >3
-        args = dict(channel_display_groups={'a': list(range(4))})
+        args = {'channel_display_groups': {'a': list(range(4))}}
         self.assertRaises(ValidationError, lambda: PlotOptions(**args))
 
         # check auto conversion to dict

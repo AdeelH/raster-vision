@@ -4,8 +4,6 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from rastervision.core.data import SemanticSegmentationLabels
-from rastervision.core.data_sample import DataSample
 from rastervision.pipeline.file_system.utils import make_dir
 from rastervision.pytorch_backend.pytorch_learner_backend import (
     PyTorchLearnerBackend,
@@ -15,7 +13,12 @@ from rastervision.pytorch_backend.utils import chip_collate_fn_ss
 from rastervision.pytorch_learner.utils import predict_scene_ss
 
 if TYPE_CHECKING:
-    from rastervision.core.data import DatasetConfig, Scene
+    from rastervision.core.data import (
+        DatasetConfig,
+        Scene,
+        SemanticSegmentationLabels,
+    )
+    from rastervision.core.data_sample import DataSample
     from rastervision.core.rv_pipeline import (
         ChipOptions,
         SemanticSegmentationPredictOptions,
@@ -24,7 +27,7 @@ if TYPE_CHECKING:
 
 
 class PyTorchSemanticSegmentationSampleWriter(PyTorchLearnerSampleWriter):
-    def write_sample(self, sample: 'DataSample'):
+    def write_sample(self, sample: 'DataSample') -> None:
         """Write sample.
 
         This writes a training or validation sample to
@@ -69,8 +72,10 @@ class PyTorchSemanticSegmentation(PyTorchLearnerBackend):
         self,
         dataset: 'DatasetConfig',
         chip_options: 'ChipOptions',
-        dataloader_kw: dict = {},
+        dataloader_kw: dict | None = None,
     ) -> None:
+        if dataloader_kw is None:
+            dataloader_kw = {}
         dataloader_kw = dict(**dataloader_kw, collate_fn=chip_collate_fn_ss)
         return super().chip_dataset(dataset, chip_options, dataloader_kw)
 

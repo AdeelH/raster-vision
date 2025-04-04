@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 class RGBClassTransformer(RasterTransformer):
     """Maps RGB values to class IDs. Can also do the reverse."""
 
-    def __init__(self, class_config: 'ClassConfig'):
+    def __init__(self, class_config: 'ClassConfig') -> None:
         class_config.ensure_null_class()
         self.null_class_id = class_config.null_class_id
         color_to_class = class_config.get_color_to_class_id()

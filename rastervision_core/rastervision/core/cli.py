@@ -6,7 +6,7 @@ from rastervision.pipeline.file_system import get_tmp_dir
 
 # https://stackoverflow.com/questions/48391777/nargs-equivalent-for-options-in-click
 class OptionEatAll(click.Option):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self._previous_parser_process = None
         self._eat_all_parser = None
@@ -18,7 +18,7 @@ class OptionEatAll(click.Option):
                     return True
             return False
 
-        def parser_process(value, state):
+        def parser_process(value, state) -> None:
             # method to hook to the parser.process
             values = [value]
             # grab everything up to the next option
@@ -77,7 +77,7 @@ def predict(
     update_stats: bool = False,
     channel_order: list[str] | None = None,
     scene_group: str | None = None,
-):
+) -> None:
     """Make predictions on the images at IMAGE_URI
     using MODEL_BUNDLE and store the prediction output at LABEL_URI.
     """
@@ -106,8 +106,8 @@ def predict_scene(
     model_bundle_uri: str,
     scene_config_uri: str,
     predict_options_uri: str | None = None,
-):
-    """Use a model-bundle to make predictions on a scene.
+) -> None:
+    r"""Use a model-bundle to make predictions on a scene.
 
     \b
     MODEL_BUNDLE_URI    URI to a serialized Raster Vision model-bundle.

@@ -169,10 +169,10 @@ class TestBoxList(unittest.TestCase):
             class_ids = torch.randint(0, 3, (10,))
             boxlist = BoxList(boxes, class_ids=class_ids)
             boxlists.append(boxlist)
-        x, y = collate_fn(zip(imgs, boxes))
+        x, y = collate_fn(zip(imgs, boxes, strict=False))
 
         self.assertEqual(x.shape, (4, 3, 100, 100))
-        self.assertTrue(all(b1 == b2 for b1, b2 in zip(boxlists, y)))
+        self.assertTrue(all(b1 == b2 for b1, b2 in zip(boxlists, y, strict=False)))
 
     def test_scale(self):
         boxes = torch.tensor(

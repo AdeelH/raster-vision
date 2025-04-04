@@ -13,7 +13,7 @@ from rastervision.pipeline.file_system import (
 )
 
 
-def _remove_dir(path):
+def _remove_dir(path) -> None:
     """Remove a directory if it exists."""
     if isdir(path):
         shutil.rmtree(path)
@@ -34,7 +34,7 @@ def _repo_name_to_dir_name(repo: str) -> str:
 
     repo_owner, repo_name, branch = _parse_repo_info(repo)
     normalized_br = branch.replace('/', '_')
-    dir_name = '_'.join([repo_owner, repo_name, normalized_br])
+    dir_name = f'{repo_owner}_{repo_name}_{normalized_br}'
     return dir_name
 
 

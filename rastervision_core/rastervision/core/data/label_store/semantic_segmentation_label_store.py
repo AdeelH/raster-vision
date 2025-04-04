@@ -1,5 +1,4 @@
 import logging
-from collections.abc import Sequence
 from os.path import join
 from typing import TYPE_CHECKING, overload
 
@@ -31,6 +30,8 @@ from rastervision.pipeline.file_system import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from rastervision.core.data import (
         SemanticSegmentationDiscreteLabels,
         VectorOutputConfig,
@@ -59,7 +60,7 @@ class SemanticSegmentationLabelStore(LabelStore):
         smooth_output: bool = False,
         smooth_as_uint8: bool = False,
         rasterio_block_size: int = 512,
-    ):
+    ) -> None:
         """Constructor.
 
         Args:
@@ -264,15 +265,15 @@ class SemanticSegmentationLabelStore(LabelStore):
             )
         else:
             transform = self.crs_transformer.transform
-        out_profile = dict(
-            driver='GTiff',
-            height=height,
-            width=width,
-            transform=transform,
-            crs=self.crs_transformer.image_crs,
-            blockxsize=min(self.rasterio_block_size, width),
-            blockysize=min(self.rasterio_block_size, height),
-        )
+        out_profile = {
+            'driver': 'GTiff',
+            'height': height,
+            'width': width,
+            'transform': transform,
+            'crs': self.crs_transformer.image_crs,
+            'blockxsize': min(self.rasterio_block_size, width),
+            'blockysize': min(self.rasterio_block_size, height),
+        }
         return out_profile
 
     def merge_with_old_scores(
@@ -300,7 +301,7 @@ class SemanticSegmentationLabelStore(LabelStore):
     ) -> None:
         num_bands = labels.num_classes
         dtype = np.uint8 if self.smooth_as_uint8 else np.float32
-        out_profile.update(dict(count=num_bands, dtype=dtype))
+        out_profile.update({'count': num_bands, 'dtype': dtype})
 
         extent = labels.extent
 
@@ -325,7 +326,7 @@ class SemanticSegmentationLabelStore(LabelStore):
     ) -> None:
         num_bands = 1 if self.class_transformer is None else 3
         dtype = np.uint8
-        out_profile.update(dict(count=num_bands, dtype=dtype))
+        out_profile.update({'count': num_bands, 'dtype': dtype})
 
         extent = labels.extent
         null_class_id = self.class_config.null_class_id

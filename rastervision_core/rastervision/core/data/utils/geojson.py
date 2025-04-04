@@ -1,3 +1,5 @@
+import functools
+import operator
 from collections.abc import Callable, Iterable, Iterator
 from copy import deepcopy
 from typing import TYPE_CHECKING
@@ -49,7 +51,7 @@ def map_features(
     features_in = geojson['features']
 
     if progressbar_kw is None:
-        progressbar_kw = dict(desc='Transforming features')
+        progressbar_kw = {'desc': 'Transforming features'}
 
     with tqdm(
         features_in,
@@ -104,7 +106,7 @@ def map_geoms(
         return feature_out
 
     if progressbar_kw is None:
-        progressbar_kw = dict(desc='Transforming geoms')
+        progressbar_kw = {'desc': 'Transforming geoms'}
 
     return map_features(
         feat_func,
@@ -133,7 +135,7 @@ def geoms_to_geojson(
         if properties is None:
             features = [geom_to_feature(g) for g in bar]
         else:
-            features = [geom_to_feature(g, p) for g, p in zip(bar, properties)]
+            features = [geom_to_feature(g, p) for g, p in zip(bar, properties, strict=False)]
     geojson = features_to_geojson(features)
     return geojson
 
@@ -156,7 +158,7 @@ def filter_features(
     features_in = geojson['features']
 
     if progressbar_kw is None:
-        progressbar_kw = dict(desc='Filtering features.')
+        progressbar_kw = {'desc': 'Filtering features.'}
 
     with tqdm(
         features_in,
@@ -202,7 +204,7 @@ def remove_empty_features(geojson: dict) -> dict:
     return filter_features(
         lambda f: not is_empty_feature(f),
         geojson,
-        progressbar_kw=dict(desc='Removing empty features'),
+        progressbar_kw={'desc': 'Removing empty features'},
     )
 
 
@@ -231,9 +233,9 @@ def split_multi_geometries(geojson: dict) -> dict:
                 new_geoms.append(g)
         return new_geoms
 
-    include_geom_types = set(['GeometryCollection', *MULTI_GEOM_TYPES])
+    include_geom_types = {'GeometryCollection', *MULTI_GEOM_TYPES}
 
-    all_geom_types = set(f['geometry']['type'] for f in geojson['features'])
+    all_geom_types = {f['geometry']['type'] for f in geojson['features']}
     if len(include_geom_types.intersection(all_geom_types)) == 0:
         return geojson
 
@@ -266,7 +268,7 @@ def map_to_pixel_coords(
     return map_geoms(
         lambda g, **kw: crs_transformer.map_to_pixel(g),
         geojson,
-        progressbar_kw=dict(desc='Transforming to pixel coords'),
+        progressbar_kw={'desc': 'Transforming to pixel coords'},
     )
 
 
@@ -277,7 +279,7 @@ def pixel_to_map_coords(
     return map_geoms(
         lambda g, **kw: crs_transformer.pixel_to_map(g),
         geojson,
-        progressbar_kw=dict(desc='Transforming to map coords'),
+        progressbar_kw={'desc': 'Transforming to map coords'},
     )
 
 
@@ -297,7 +299,7 @@ def simplify_polygons(geojson: dict) -> dict:
     Returns:
         dict: FeatureCollection with simplified geometries.
     """
-    all_geom_types = set(f['geometry']['type'] for f in geojson['features'])
+    all_geom_types = {f['geometry']['type'] for f in geojson['features']}
     if 'Polygon' not in all_geom_types:
         return geojson
 
@@ -305,7 +307,7 @@ def simplify_polygons(geojson: dict) -> dict:
         lambda g, **kw: g.buffer(0),
         geojson,
         include_geom_types=['Polygon'],
-        progressbar_kw=dict(desc='Simplifying polygons'),
+        progressbar_kw={'desc': 'Simplifying polygons'},
     )
     geojson_cleaned = remove_empty_features(geojson_buffered)
     geojson_split = split_multi_geometries(geojson_cleaned)
@@ -315,7 +317,7 @@ def simplify_polygons(geojson: dict) -> dict:
 def buffer_geoms(
     geojson: dict,
     geom_type: str,
-    class_bufs: dict[int, float | None] = {},
+    class_bufs: dict[int, float | None] | None = None,
     default_buf: float | None = 1,
 ) -> dict:
     """Buffer geometries.
@@ -332,7 +334,8 @@ def buffer_geoms(
     Returns:
         dict: FeatureCollection with buffered geometries.
     """
-
+    if class_bufs is None:
+        class_bufs = {}
     def buffer_geom(
         geom: 'BaseGeometry', feature: dict | None = None
     ) -> 'BaseGeometry':
@@ -351,7 +354,7 @@ def buffer_geoms(
 
         return geom
 
-    all_geom_types = set(f['geometry']['type'] for f in geojson['features'])
+    all_geom_types = {f['geometry']['type'] for f in geojson['features']}
     if geom_type not in all_geom_types:
         return geojson
 
@@ -359,7 +362,7 @@ def buffer_geoms(
         buffer_geom,
         geojson,
         include_geom_types=[geom_type],
-        progressbar_kw=dict(desc=f'Buffering {geom_type}s (if any)'),
+        progressbar_kw={'desc': f'Buffering {geom_type}s (if any)'},
     )
     return geojson_buffered
 
@@ -389,7 +392,7 @@ def get_polygons_from_uris(
 
 def merge_geojsons(geojsons: Iterable[dict]) -> dict:
     """Merge features from all given GeoJSONs into one GeoJSON."""
-    features = sum([g.get('features', []) for g in geojsons], [])
+    features = functools.reduce(operator.iadd, [g.get('features', []) for g in geojsons], [])
     geojson_merged = features_to_geojson(features)
     return geojson_merged
 

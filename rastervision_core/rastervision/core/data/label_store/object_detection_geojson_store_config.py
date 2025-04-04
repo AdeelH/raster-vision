@@ -24,7 +24,7 @@ class ObjectDetectionGeoJSONStoreConfig(LabelStoreConfig):
             self.uri, class_config, crs_transformer, bbox=bbox
         )
 
-    def update(self, pipeline=None, scene=None):
+    def update(self, pipeline=None, scene=None) -> None:
         if pipeline is not None and scene is not None:
             if self.uri is None:
                 self.uri = join(pipeline.predict_uri, f'{scene.id}.json')

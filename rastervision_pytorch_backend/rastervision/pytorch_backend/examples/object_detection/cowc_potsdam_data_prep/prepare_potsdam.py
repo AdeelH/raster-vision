@@ -55,7 +55,7 @@ def png_to_geojson(geotiff_path, label_png_path, output_path, object_half_len):
 @click.argument('label_png_dir')
 @click.argument('output_dir')
 @click.option('--object-half-len', default=50)
-def prepare_potsdam(geotiff_dir, label_png_dir, output_dir, object_half_len):
+def prepare_potsdam(geotiff_dir, label_png_dir, output_dir, object_half_len) -> None:
     label_paths = glob.glob(
         os.path.join(label_png_dir, 'top_potsdam_*_RGB_Annotated_Cars.png')
     )
@@ -65,13 +65,12 @@ def prepare_potsdam(geotiff_dir, label_png_dir, output_dir, object_half_len):
         geotiff_base = os.path.basename(label_path)[0:-19]
         geotiff_path = os.path.join(geotiff_dir, geotiff_base + 'IR.tif')
         output_path = os.path.join(output_dir, geotiff_base + 'IR.json')
-        boxlist = png_to_geojson(
+        png_to_geojson(
             geotiff_path,
             label_path,
             output_path,
             object_half_len=object_half_len,
         )
-        print(f'Saved {output_path} with {boxlist.num_boxes()} boxes.')
 
 
 if __name__ == '__main__':

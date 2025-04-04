@@ -32,7 +32,7 @@ def save_image_crop(
     vector_labels: bool = True,
     default_class_id: int = 0,
     class_config: 'ClassConfig | None' = None,
-):  # pragma: no cover
+) -> None:  # pragma: no cover
     """Save a crop of an image to use for testing.
 
     If label_uri is set, the crop needs to cover >= min_features.
@@ -51,9 +51,7 @@ def save_image_crop(
     Raises:
         ValueError if cannot find a crop satisfying min_features constraint.
     """
-    print(f'Saving test crop to {image_crop_uri}...')
     if file_exists(image_crop_uri):
-        print('Already exists. Skipping.')
         return
     old_environ = os.environ.copy()
     try:
@@ -81,7 +79,6 @@ def save_image_crop(
                 w_polys = df_int.geometry
                 use_window = len(w_polys) >= min_features
                 if use_window and label_crop_uri is not None:
-                    print(f'Saving test crop labels to {label_crop_uri}...')
                     w_polys_map = [crs_tf.pixel_to_map(wp) for wp in w_polys]
                     label_crop_json = geoms_to_geojson(w_polys_map)
                     json_to_file(label_crop_json, label_crop_uri)

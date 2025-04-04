@@ -17,36 +17,36 @@ class TestPredictOptions(unittest.TestCase):
 
 class TestRVPipelineConfig(unittest.TestCase):
     def test_upgrader(self):
-        cfg_dict = dict(
-            dataset=DatasetConfig(
+        cfg_dict = {
+            'dataset': DatasetConfig(
                 class_config=ClassConfig(names=[]),
                 train_scenes=[],
                 validation_scenes=[],
             ),
-            backend=BackendConfig(),
-            train_chip_sz=20,
-            chip_nodata_threshold=0.5,
-            predict_chip_sz=20,
-            predict_batch_sz=8,
-        )
+            'backend': BackendConfig(),
+            'train_chip_sz': 20,
+            'chip_nodata_threshold': 0.5,
+            'predict_chip_sz': 20,
+            'predict_batch_sz': 8,
+        }
         cfg_dict = rv_pipeline_config_upgrader(cfg_dict, 10)
         cfg_dict = rv_pipeline_config_upgrader(cfg_dict, 11)
         cfg = RVPipelineConfig(**cfg_dict)
 
-        cfg_dict = dict(
-            dataset=DatasetConfig(
+        cfg_dict = {
+            'dataset': DatasetConfig(
                 class_config=ClassConfig(names=[]),
                 train_scenes=[],
                 validation_scenes=[],
             ),
-            backend=BackendConfig(),
-            train_chip_sz=20,
-            chip_nodata_threshold=0.5,
-            chip_options=dict(method='random'),
-            predict_chip_sz=20,
-            predict_batch_sz=8,
-            predict_options=dict(),
-        )
+            'backend': BackendConfig(),
+            'train_chip_sz': 20,
+            'chip_nodata_threshold': 0.5,
+            'chip_options': {'method': 'random'},
+            'predict_chip_sz': 20,
+            'predict_batch_sz': 8,
+            'predict_options': {},
+        }
         cfg_dict = rv_pipeline_config_upgrader(cfg_dict, 10)
         cfg_dict = rv_pipeline_config_upgrader(cfg_dict, 11)
         cfg = RVPipelineConfig(**cfg_dict)

@@ -67,36 +67,35 @@ class TestUtils(unittest.TestCase):
                 0, 256, size=(100, 100, 8), dtype=np.uint8
             )
             path = join(tmp_dir, '4.tif')
-            profile = dict(height=100, width=100, count=8, dtype=np.uint8)
+            profile = {'height': 100, 'width': 100, 'count': 8, 'dtype': np.uint8}
             with rio.open(path, 'w', **profile) as ds:
                 write_window(ds, chip)
             np.testing.assert_array_equal(load_image(path), chip)
 
     def test_make_image_folder_dataset(self):
-        with get_tmp_dir() as tmp_dir:
-            with (
-                TemporaryDirectory(dir=tmp_dir) as dir_a,
-                TemporaryDirectory(dir=tmp_dir) as dir_b,
-            ):
-                chip = np.random.randint(
-                    0, 256, size=(100, 100, 3), dtype=np.uint8
-                )
-                path_1 = join(dir_a, 'test.png')
-                write_chip(chip, path_1)
+        with (
+            get_tmp_dir() as tmp_dir, TemporaryDirectory(dir=tmp_dir) as dir_a,
+            TemporaryDirectory(dir=tmp_dir) as dir_b,
+        ):
+            chip = np.random.randint(
+                0, 256, size=(100, 100, 3), dtype=np.uint8
+            )
+            path_1 = join(dir_a, 'test.png')
+            write_chip(chip, path_1)
 
-                chip = np.random.randint(
-                    0, 256, size=(100, 100, 8), dtype=np.uint8
-                )
-                path_2 = join(dir_b, 'test.npy')
-                write_chip(chip, path_2)
+            chip = np.random.randint(
+                0, 256, size=(100, 100, 8), dtype=np.uint8
+            )
+            path_2 = join(dir_b, 'test.npy')
+            write_chip(chip, path_2)
 
-                ds = make_image_folder_dataset(tmp_dir)
-                self.assertIsInstance(ds, DatasetFolder)
-                self.assertEqual(len(ds), 2)
+            ds = make_image_folder_dataset(tmp_dir)
+            self.assertIsInstance(ds, DatasetFolder)
+            self.assertEqual(len(ds), 2)
 
-                ds = make_image_folder_dataset(tmp_dir, classes=[dir_a])
-                self.assertIsInstance(ds, DatasetFolder)
-                self.assertEqual(len(ds), 1)
+            ds = make_image_folder_dataset(tmp_dir, classes=[dir_a])
+            self.assertIsInstance(ds, DatasetFolder)
+            self.assertEqual(len(ds), 1)
 
 
 if __name__ == '__main__':

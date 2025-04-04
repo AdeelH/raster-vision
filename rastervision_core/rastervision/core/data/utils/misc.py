@@ -279,6 +279,6 @@ def ensure_json_serializable(obj: Any) -> dict:
     return obj
 
 
-def save_img(im_array: np.ndarray, output_path: str):
+def save_img(im_array: np.ndarray, output_path: str) -> None:
     """Save numpy array as image file."""
     imsave(output_path, im_array)

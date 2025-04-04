@@ -16,7 +16,7 @@ class DeluxeMessageMakerConfig(MessageMakerConfig):
 
 
 class DeluxeMessageMaker(MessageMaker):
-    def make_message(self, name):
+    def make_message(self, name) -> str:
         # Uses the level field to determine the number of exclamation marks.
         exclamation_marks = '!' * self.config.level
         return f'{self.config.greeting} {name}{exclamation_marks}'

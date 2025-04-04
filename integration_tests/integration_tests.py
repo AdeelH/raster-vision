@@ -2,6 +2,7 @@
 
 import importlib
 import math
+import sys
 import traceback
 from os.path import abspath, dirname, isfile, join
 from pprint import pformat
@@ -70,12 +71,12 @@ def console_success(msg: str, **kwargs) -> None:
 
 
 class TestError:
-    def __init__(self, test, message, details=None):
+    def __init__(self, test, message, details=None) -> None:
         self.test = test
         self.message = message
         self.details = details
 
-    def __str__(self):
+    def __str__(self) -> str:
         return (
             'Error\n'
             '------\n'
@@ -335,7 +336,7 @@ def run_test(test_id: str, test_cfg: dict, tmp_dir: str) -> list[TestError]:
 @click.option(
     '--verbose', '-v', is_flag=True, help=('Sets the logging level to DEBUG.')
 )
-def main(tests, root_uri, verbose):
+def main(tests, root_uri, verbose) -> None:
     """Runs RV end-to-end and checks that evaluation metrics are correct."""
     if verbose:
         rv_config.set_verbosity(verbosity=Verbosity.DEBUG)
@@ -391,7 +392,7 @@ def main(tests, root_uri, verbose):
             )
             console_error('Error counts:')
             console_error(pformat({k: len(es) for k, es in errors.items()}))
-            exit(1)
+            sys.exit(1)
 
 
 if __name__ == '__main__':

@@ -16,10 +16,10 @@ class MessageMakerConfig(Config):
 
 
 class MessageMaker:
-    def __init__(self, config):
+    def __init__(self, config) -> None:
         self.config = config
 
-    def make_message(self, name):
+    def make_message(self, name) -> str:
         # Use the greeting field to make the message.
         return f'{self.config.greeting} {name}!'
 
@@ -34,7 +34,7 @@ class SamplePipeline2Config(PipelineConfig):
     def build(self, tmp_dir):
         return SamplePipeline2(self, tmp_dir)
 
-    def update(self):
+    def update(self) -> None:
         if self.message_uris is None:
             self.message_uris = [
                 join(self.root_uri, f'{name}.txt') for name in self.names
@@ -46,11 +46,11 @@ class SamplePipeline2(Pipeline):
     split_commands = ['save_messages']
     gpu_commands = []
 
-    def save_messages(self, split_ind=0, num_splits=1):
+    def save_messages(self, split_ind=0, num_splits=1) -> None:
         message_maker = self.config.message_maker.build()
 
         split_groups = split_into_groups(
-            list(zip(self.config.names, self.config.message_uris)), num_splits
+            list(zip(self.config.names, self.config.message_uris, strict=False)), num_splits
         )
         split_group = split_groups[split_ind]
 
@@ -58,9 +58,7 @@ class SamplePipeline2(Pipeline):
             # Unlike before, we use the message_maker to make the message.
             message = message_maker.make_message(name)
             str_to_file(message, message_uri)
-            print(f'Saved message to {message_uri}')
 
-    def print_messages(self):
+    def print_messages(self) -> None:
         for message_uri in self.config.message_uris:
-            message = file_to_str(message_uri)
-            print(message)
+            file_to_str(message_uri)

@@ -53,7 +53,7 @@ def apply_transform(transform: A.BasicTransform, **kwargs) -> dict:
 
     img = kwargs.pop('image')
     img_keys = transform._additional_targets.keys()
-    img_args = dict(zip(img_keys, img[1:]))
+    img_args = dict(zip(img_keys, img[1:], strict=False))
     out = transform(image=img[0], **kwargs, **img_args)
     out['image'] = np.stack([out.pop('image')] + [out[k] for k in img_keys])
 

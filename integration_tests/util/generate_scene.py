@@ -27,7 +27,7 @@ from rastervision.data import (
 @click.argument('labels_path')
 def generate_scene(
     task, tiff_path, labels_path, chip_size, chips_per_dimension
-):
+) -> None:
     """Generate a synthetic object detection scene.
 
     Randomly generates a GeoTIFF with red and greed boxes denoting two
@@ -65,9 +65,6 @@ def generate_scene(
     # save image as geotiff centered in philly
     transform = from_origin(-75.163506, 39.952536, 0.000001, 0.000001)
 
-    print(
-        f'Generated {len(boxes)} boxes with {len(set(class_ids))} different classes.'
-    )
 
     with rasterio.open(
         tiff_path,
@@ -100,7 +97,7 @@ def generate_scene(
     elif task == 'semantic_segmentation':
         label_image = np.zeros((ymax, xmax, 1)).astype(np.uint8)
 
-        for box, class_id in zip(boxes, class_ids):
+        for box, class_id in zip(boxes, class_ids, strict=False):
             label_image[box.ymin : box.ymax, box.xmin : box.xmax, 0] = class_id
 
         # save labels to raster

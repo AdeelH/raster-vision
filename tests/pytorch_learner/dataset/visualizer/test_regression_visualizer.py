@@ -17,7 +17,7 @@ class TestClassificationVisualizer(unittest.TestCase):
         # w/o z
         viz = RegressionVisualizer(
             class_names=['bg', 'fg'],
-            channel_display_groups=dict(RGB=[0, 1, 2], IR=[3]),
+            channel_display_groups={'RGB': [0, 1, 2], 'IR': [3]},
         )
         x = torch.randn(size=(2, 4, 256, 256))
         y = torch.tensor([0.2, 1.3])
@@ -26,7 +26,7 @@ class TestClassificationVisualizer(unittest.TestCase):
         # w/ z
         viz = RegressionVisualizer(
             class_names=['bg', 'fg'],
-            channel_display_groups=dict(RGB=[0, 1, 2], IR=[3]),
+            channel_display_groups={'RGB': [0, 1, 2], 'IR': [3]},
         )
         x = torch.randn(size=(2, 4, 256, 256))
         y = torch.tensor([0.2, 1.3])
@@ -36,7 +36,7 @@ class TestClassificationVisualizer(unittest.TestCase):
         # w/ z, w/o y
         viz = RegressionVisualizer(
             class_names=['bg', 'fg'],
-            channel_display_groups=dict(RGB=[0, 1, 2], IR=[3]),
+            channel_display_groups={'RGB': [0, 1, 2], 'IR': [3]},
         )
         x = torch.randn(size=(2, 4, 256, 256))
         y = None
@@ -47,7 +47,7 @@ class TestClassificationVisualizer(unittest.TestCase):
         # w/o z
         viz = RegressionVisualizer(
             class_names=['bg', 'fg'],
-            channel_display_groups=dict(RGB=[0, 1, 2], IR=[3]),
+            channel_display_groups={'RGB': [0, 1, 2], 'IR': [3]},
         )
         x = torch.randn(size=(2, 3, 4, 256, 256))
         y = torch.tensor([0.2, 1.3])
@@ -56,7 +56,7 @@ class TestClassificationVisualizer(unittest.TestCase):
         # w/ z
         viz = RegressionVisualizer(
             class_names=['bg', 'fg'],
-            channel_display_groups=dict(RGB=[0, 1, 2], IR=[3]),
+            channel_display_groups={'RGB': [0, 1, 2], 'IR': [3]},
         )
         x = torch.randn(size=(2, 3, 4, 256, 256))
         y = torch.tensor([0.2, 1.3])
@@ -66,7 +66,7 @@ class TestClassificationVisualizer(unittest.TestCase):
         # w/ z, w/o y
         viz = RegressionVisualizer(
             class_names=['bg', 'fg'],
-            channel_display_groups=dict(RGB=[0, 1, 2], IR=[3]),
+            channel_display_groups={'RGB': [0, 1, 2], 'IR': [3]},
         )
         x = torch.randn(size=(2, 3, 4, 256, 256))
         y = None

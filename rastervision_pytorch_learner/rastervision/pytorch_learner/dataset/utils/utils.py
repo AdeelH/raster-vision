@@ -9,7 +9,7 @@ import rasterio as rio
 from PIL import Image
 from torchvision.datasets.folder import IMG_EXTENSIONS, DatasetFolder
 
-IMG_EXTENSIONS = tuple([*IMG_EXTENSIONS, '.npy'])
+IMG_EXTENSIONS = (*IMG_EXTENSIONS, '.npy')
 
 
 class DatasetError(Exception):
@@ -38,7 +38,7 @@ def load_image(path: PathLike) -> np.ndarray:
     ext = splitext(path)[-1]
     if ext == '.npy':
         img = np.load(path)
-    elif ext == '.tif' or ext == '.tiff':
+    elif ext in {'.tif', '.tiff'}:
         with rio.open(path, 'r') as f:
             img = f.read()
             img = img.transpose(1, 2, 0)
@@ -70,7 +70,7 @@ def make_image_folder_dataset(
     class_dirs = [join(data_dir, c) for c in classes]
     classes_present = [
         c
-        for c, dir in zip(classes, class_dirs)
+        for c, dir in zip(classes, class_dirs, strict=False)
         if file_exists(dir, include_dir=True) and len(list_paths(dir)) > 0
     ]
     class_to_id = {c: classes.index(c) for c in classes_present}

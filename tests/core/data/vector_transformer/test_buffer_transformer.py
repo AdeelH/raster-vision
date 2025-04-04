@@ -22,7 +22,7 @@ class TestBufferTransformerConfig(unittest.TestCase):
 class TestBufferTransformer(unittest.TestCase):
     def test_transform(self):
         class_bufs = {0: 5}
-        properties = dict(class_id=0)
+        properties = {'class_id': 0}
 
         # polygons
         tf = BufferTransformer(

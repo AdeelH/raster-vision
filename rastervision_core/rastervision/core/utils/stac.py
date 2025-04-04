@@ -23,7 +23,7 @@ def setup_stac_io() -> None:
             return obj.get()['Body'].read().decode('utf-8')
         return DefaultStacIO.read_text_method(uri)
 
-    def write_method(uri: str, txt: str):
+    def write_method(uri: str, txt: str) -> None:
         parsed = urlparse(uri)
         if parsed.scheme == 's3':
             bucket = parsed.netloc
@@ -99,8 +99,8 @@ def parse_stac(stac_uri: str, item_limit: int | None = None) -> list[dict]:
         raise ValueError('Unable to find any label items in STAC catalog.')
 
     out = []
-    for label_item, image_item in zip(label_items, image_items):
-        label_uri: str = list(label_item.assets.values())[0].href
+    for label_item, image_item in zip(label_items, image_items, strict=False):
+        label_uri: str = next(iter(label_item.assets.values())).href
         label_bbox = box(*label_item.bbox)
         aoi_geometry: dict | None = label_item.geometry
 

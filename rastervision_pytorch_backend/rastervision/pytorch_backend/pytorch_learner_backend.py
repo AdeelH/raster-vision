@@ -1,6 +1,6 @@
 import tempfile
 from os.path import join, splitext
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NoReturn
 
 import numpy as np
 from tqdm.auto import tqdm
@@ -42,7 +42,7 @@ def get_image_ext(chip: np.ndarray) -> str:
 class PyTorchLearnerSampleWriter(SampleWriter):
     def __init__(
         self, output_uri: str, class_config: 'ClassConfig', tmp_dir: str
-    ):
+    ) -> None:
         """Constructor.
 
         Args:
@@ -115,13 +115,13 @@ class PyTorchLearnerBackend(Backend):
         pipeline_cfg: 'RVPipelineConfig',
         learner_cfg: 'LearnerConfig',
         tmp_dir: str,
-    ):
+    ) -> None:
         self.pipeline_cfg = pipeline_cfg
         self.learner_cfg = learner_cfg
         self.tmp_dir = tmp_dir
         self.learner = None
 
-    def train(self, source_bundle_uri=None):
+    def train(self, source_bundle_uri=None) -> None:
         if source_bundle_uri is not None:
             learner = self._build_learner_from_bundle(
                 bundle_uri=source_bundle_uri,
@@ -132,7 +132,7 @@ class PyTorchLearnerBackend(Backend):
             learner = self.learner_cfg.build(self.tmp_dir, training=True)
         learner.main()
 
-    def load_model(self, uri: str | None = None):
+    def load_model(self, uri: str | None = None) -> None:
         self.learner = self._build_learner_from_bundle(
             bundle_uri=uri, training=False
         )
@@ -149,20 +149,22 @@ class PyTorchLearnerBackend(Backend):
             bundle_uri, self.tmp_dir, cfg=cfg, training=training
         )
 
-    def get_sample_writer(self):
+    def get_sample_writer(self) -> NoReturn:
         raise NotImplementedError
 
     def chip_dataset(
         self,
         dataset: 'DatasetConfig',
         chip_options: 'ChipOptions',
-        dataloader_kw: dict = {},
+        dataloader_kw: dict | None = None,
     ) -> None:
+        if dataloader_kw is None:
+            dataloader_kw = {}
         data_config = self._make_chip_data_config(dataset, chip_options)
         train_ds, valid_ds, test_ds = data_config.build(for_chipping=True)
 
         with self.get_sample_writer() as sample_writer:
-            for split, ds in zip(SPLITS, [train_ds, valid_ds, test_ds]):
+            for split, ds in zip(SPLITS, [train_ds, valid_ds, test_ds], strict=False):
                 if len(ds) == 0:
                     continue
                 self.chip_pytorch_dataset(
@@ -179,10 +181,12 @@ class PyTorchLearnerBackend(Backend):
         sample_writer: 'PyTorchLearnerSampleWriter',
         chip_options: 'ChipOptions',
         split: str | None = None,
-        dataloader_kw: dict = {},
+        dataloader_kw: dict | None = None,
     ) -> None:
         from torch.utils.data import DataLoader
 
+        if dataloader_kw is None:
+            dataloader_kw = {}
         num_workers = rv_config.get_namespace_option(
             'rastervision',
             'CHIP_NUM_WORKERS',
@@ -194,12 +198,12 @@ class PyTorchLearnerBackend(Backend):
             default=self.learner_cfg.solver.batch_sz,
         )
 
-        dl_kw = dict(
-            batch_size=int(batch_size),
-            num_workers=int(num_workers),
-            shuffle=False,
-            pin_memory=True,
-        )
+        dl_kw = {
+            'batch_size': int(batch_size),
+            'num_workers': int(num_workers),
+            'shuffle': False,
+            'pin_memory': True,
+        }
         dl_kw.update(dataloader_kw)
         dl = DataLoader(dataset, **dl_kw)
 
@@ -209,7 +213,7 @@ class PyTorchLearnerBackend(Backend):
             desc = 'Chipping dataset.'
         with tqdm(total=len(dataset), desc=desc) as bar:
             for (xs, ys), ws in dl:
-                for x, y, w in zip(xs, ys, ws):
+                for x, y, w in zip(xs, ys, ws, strict=False):
                     if not chip_options.keep_chip(x, y):
                         continue
                     sample = DataSample(chip=x, label=y, window=w, split=split)
@@ -218,7 +222,7 @@ class PyTorchLearnerBackend(Backend):
 
     def predict_scene(
         self, scene: 'Scene', chip_sz: int, stride: int | None = None
-    ):
+    ) -> NoReturn:
         raise NotImplementedError
 
     def _make_chip_data_config(

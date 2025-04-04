@@ -1,5 +1,7 @@
+import functools
 import json
 import logging
+import operator
 import os
 import shutil
 import time
@@ -82,7 +84,7 @@ def sync_from_dir(
     dst_dir: str,
     delete: bool = False,
     fs: FileSystem | None = None,
-):
+) -> None:
     """Synchronize a source directory to local destination directory.
 
     Transfers files from source to destination directories so that the
@@ -119,14 +121,14 @@ def start_sync(
         fs: if supplied, use fs instead of automatically chosen FileSystem
     """
 
-    def _sync_dir():
+    def _sync_dir() -> None:
         while True:
             time.sleep(sync_interval)
             log.info(f'Syncing {src_dir} to {dst_dir_uri}...')
             sync_to_dir(src_dir, dst_dir_uri, delete=False, fs=fs)
 
     class SyncThread:
-        def __init__(self):
+        def __init__(self) -> None:
             thread = Timer(0.68, _sync_dir)
             thread.daemon = True
             thread.start()
@@ -348,7 +350,7 @@ def zipdir(dir: str, zip_path: str) -> None:
     make_dir(zip_path, use_dirname=True)
     with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as ziph:
         with tqdm(desc='Zipping', delay=5) as bar:
-            for dirpath, dirnames, filenames in os.walk(dir):
+            for dirpath, _dirnames, filenames in os.walk(dir):
                 for fn in filenames:
                     bar.set_postfix_str(fn)
                     src = join(dirpath, fn)
@@ -373,7 +375,7 @@ def is_local(uri: str) -> bool:
 
 def is_archive(uri: str) -> bool:
     """Check if the URI's extension represents an archived file."""
-    formats = sum((fmts for _, fmts, _ in shutil.get_unpack_formats()), [])
+    formats = functools.reduce(operator.iadd, (fmts for _, fmts, _ in shutil.get_unpack_formats()), [])
     return any(uri.endswith(fmt) for fmt in formats)
 
 

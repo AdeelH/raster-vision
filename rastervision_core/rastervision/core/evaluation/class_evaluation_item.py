@@ -39,7 +39,7 @@ class ClassEvaluationItem(EvaluationItem):
         fn: int,
         tn: int | None = None,
         **kwargs,
-    ):
+    ) -> None:
         """Constructor.
 
         Args:
@@ -201,9 +201,9 @@ class ClassEvaluationItem(EvaluationItem):
             out['conf_mat'] = cm.tolist()
             out['conf_mat_frac'] = cm_frac.tolist()
             [[TN, FP], [FN, TP]] = cm
-            out['conf_mat_dict'] = dict(TN=TN, FP=FP, FN=FN, TP=TP)
+            out['conf_mat_dict'] = {'TN': TN, 'FP': FP, 'FN': FN, 'TP': TP}
             [[TN, FP], [FN, TP]] = cm_frac
-            out['conf_mat_frac_dict'] = dict(TN=TN, FP=FP, FN=FN, TP=TP)
+            out['conf_mat_frac_dict'] = {'TN': TN, 'FP': FP, 'FN': FN, 'TP': TP}
 
         out.update(self.extra_info)
         return out

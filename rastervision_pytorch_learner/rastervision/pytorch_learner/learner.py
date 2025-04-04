@@ -118,7 +118,7 @@ class Learner(ABC):
         model_def_path: str | None = None,
         loss_def_path: str | None = None,
         training: bool = True,
-    ):
+    ) -> None:
         """Constructor.
 
         Args:
@@ -418,7 +418,7 @@ class Learner(ABC):
             )
         return learner
 
-    def main(self):
+    def main(self) -> None:
         """Main training sequence.
 
         This plots the dataset, runs a training and validation loop (which will
@@ -431,7 +431,7 @@ class Learner(ABC):
         else:
             self._main()
 
-    def _main(self):
+    def _main(self) -> None:
         cfg = self.cfg
         if not self.is_ddp_process or self.is_ddp_local_master:
             if not self.avoid_activating_cuda_runtime:
@@ -456,7 +456,7 @@ class Learner(ABC):
     ###########################
     # Training and validation
     ###########################
-    def train(self, epochs: int | None = None):
+    def train(self, epochs: int | None = None) -> None:
         """Run training loop, resuming training if appropriate"""
         start_epoch, end_epoch = self.get_start_and_end_epochs(epochs)
 
@@ -483,7 +483,7 @@ class Learner(ABC):
         else:
             self._train(start_epoch, end_epoch)
 
-    def _train(self, start_epoch: int, end_epoch: int):  # pragma: no cover
+    def _train(self, start_epoch: int, end_epoch: int) -> None:  # pragma: no cover
         """Training loop."""
         self.on_train_start()
         for epoch in range(start_epoch, end_epoch):
@@ -505,7 +505,7 @@ class Learner(ABC):
 
     def _train_distributed(
         self, start_epoch: int, end_epoch: int
-    ):  # pragma: no cover
+    ) -> None:  # pragma: no cover
         """Distributed training loop."""
         if self.is_ddp_master:
             self.on_train_start()
@@ -537,7 +537,7 @@ class Learner(ABC):
 
     def _run_train_distributed(
         self, rank: int, world_size: int, *args
-    ):  # pragma: no cover
+    ) -> None:  # pragma: no cover
         """Method executed by each DDP worker."""
         with self.ddp(rank, world_size):
             self.setup_model(
@@ -598,7 +598,7 @@ class Learner(ABC):
             dict with 'train_loss' as key and possibly other losses
         """
 
-    def on_train_start(self):
+    def on_train_start(self) -> None:
         """Hook that is called at start of train routine."""
         self.log_data_stats()
         self.plot_dataloaders(self.cfg.data.preview_batch_limit)
@@ -616,7 +616,7 @@ class Learner(ABC):
             metrics = self.reduce_distributed_metrics(metrics)
         return metrics
 
-    def validate(self, split: Literal['train', 'valid', 'test'] = 'valid'):
+    def validate(self, split: Literal['train', 'valid', 'test'] = 'valid') -> None:
         """Evaluate model on a particular data split."""
         if self.is_ddp_process:  # pragma: no cover
             self._run_validate_distributed(
@@ -636,7 +636,7 @@ class Learner(ABC):
 
     def _validate(
         self, split: Literal['train', 'valid', 'test'] = 'valid'
-    ):  # pragma: no cover
+    ) -> None:  # pragma: no cover
         """Evaluate model on a particular data split.
 
         Gets validation metrics and saves them along with prediction plots.
@@ -660,7 +660,7 @@ class Learner(ABC):
 
     def _run_validate_distributed(
         self, rank: int, world_size: int, *args
-    ):  # pragma: no cover
+    ) -> None:  # pragma: no cover
         """Method executed by each DDP worker."""
         with self.ddp(rank, world_size):
             self.setup_model(
@@ -679,14 +679,13 @@ class Learner(ABC):
             desc = f'Validating (GPU={self.ddp_rank})'
         else:
             desc = 'Validating'
-        with torch.inference_mode():
-            with tqdm(dl, desc=desc) as bar:
-                for batch_ind, (x, y) in enumerate(bar):
-                    x = self.to_device(x, self.device)
-                    y = self.to_device(y, self.device)
-                    batch = (x, y)
-                    output = self.validate_step(batch, batch_ind)
-                    outputs.append(output)
+        with torch.inference_mode(), tqdm(dl, desc=desc) as bar:
+            for batch_ind, (x, y) in enumerate(bar):
+                x = self.to_device(x, self.device)
+                y = self.to_device(y, self.device)
+                batch = (x, y)
+                output = self.validate_step(batch, batch_ind)
+                outputs.append(output)
         end = perf_counter()
         validate_time = datetime.timedelta(seconds=end - start)
 
@@ -779,10 +778,10 @@ class Learner(ABC):
         return_format: Literal['xyz', 'yz', 'z'] = 'z',
         raw_out: bool = True,
         numpy_out: bool = False,
-        predict_kw: dict = {},
-        dataloader_kw: dict = {},
+        predict_kw: dict | None = None,
+        dataloader_kw: dict | None = None,
         progress_bar: bool = True,
-        progress_bar_kw: dict = {},
+        progress_bar_kw: dict | None = None,
     ) -> Iterator[Any] | Iterator[tuple[Any, ...]]:
         """Returns an iterator over predictions on the given dataset.
 
@@ -816,6 +815,12 @@ class Learner(ABC):
             whatever type the predictions are. Otherwise, the returned value is
             an iterator of tuples.
         """
+        if progress_bar_kw is None:
+            progress_bar_kw = {}
+        if dataloader_kw is None:
+            dataloader_kw = {}
+        if predict_kw is None:
+            predict_kw = {}
         if return_format not in {'xyz', 'yz', 'z'}:
             raise ValueError('return_format must be one of "xyz", "yz", "z".')
 
@@ -825,13 +830,13 @@ class Learner(ABC):
             'rastervision', 'PREDICT_NUM_WORKERS', default=cfg.data.num_workers
         )
 
-        dl_kw = dict(
-            collate_fn=self.get_collate_fn(),
-            batch_size=cfg.solver.batch_sz if cfg.solver else 1,
-            num_workers=int(num_workers),
-            shuffle=False,
-            pin_memory=True,
-        )
+        dl_kw = {
+            'collate_fn': self.get_collate_fn(),
+            'batch_size': cfg.solver.batch_sz if cfg.solver else 1,
+            'num_workers': int(num_workers),
+            'shuffle': False,
+            'pin_memory': True,
+        }
         dl_kw.update(dataloader_kw)
         dl = DataLoader(dataset, **dl_kw)
 
@@ -851,7 +856,7 @@ class Learner(ABC):
                 preds = ((*p[:-1], self.output_to_numpy(p[-1])) for p in preds)
 
         if progress_bar:
-            pb_kw = dict(desc='Predicting', total=len(dataset))
+            pb_kw = {'desc': 'Predicting', 'total': len(dataset)}
             pb_kw.update(progress_bar_kw)
             preds = tqdm(preds, **pb_kw)
 
@@ -863,7 +868,7 @@ class Learner(ABC):
         batched_output: bool = True,
         return_format: Literal['xyz', 'yz', 'z'] = 'z',
         raw_out: bool = True,
-        predict_kw: dict = {},
+        predict_kw: dict | None = None,
     ) -> Iterator[Any] | Iterator[tuple[Any, ...]]:
         """Returns an iterator over predictions on the given dataloader.
 
@@ -892,6 +897,8 @@ class Learner(ABC):
             of whatever type the predictions are. Otherwise, the returned value
             is an iterator of tuples.
         """
+        if predict_kw is None:
+            predict_kw = {}
         if return_format not in {'xyz', 'yz', 'z'}:
             raise ValueError('return_format must be one of "xyz", "yz", "z".')
 
@@ -914,7 +921,7 @@ class Learner(ABC):
         dl: DataLoader,
         raw_out: bool = True,
         batched_output: bool = True,
-        predict_kw: dict = {},
+        predict_kw: dict | None = None,
     ) -> Iterator[tuple[Tensor, Any, Any]]:
         """Returns an iterator over predictions on the given dataloader.
 
@@ -937,6 +944,8 @@ class Learner(ABC):
                 might or might not be batched depending on the batched_output
                 argument.
         """
+        if predict_kw is None:
+            predict_kw = {}
         if self.onnx_mode:
             log.info('Running inference with ONNX runtime.')
         else:
@@ -951,8 +960,7 @@ class Learner(ABC):
             if batched_output:
                 yield x, y, z
             else:
-                for _x, _y, _z in zip(x, y, z):
-                    yield _x, _y, _z
+                yield from zip(x, y, z, strict=False)
 
     def output_to_numpy(self, out: Tensor) -> np.ndarray:
         """Convert output of model to numpy format.
@@ -974,7 +982,7 @@ class Learner(ABC):
     #########
     # Setup
     #########
-    def setup_ddp_params(self):
+    def setup_ddp_params(self) -> None:
         """Set up and validate params related to PyTorch DDP."""
         ddp_allowed = rv_config.get_namespace_option(
             'rastervision', 'USE_DDP', True, as_bool=True
@@ -1201,7 +1209,7 @@ class Learner(ABC):
         )
         return model
 
-    def setup_data(self, distributed: bool | None = None):
+    def setup_data(self, distributed: bool | None = None) -> None:
         """Set datasets and dataLoaders for train, validation, and test sets."""
         if distributed is None:
             distributed = self.distributed
@@ -1299,13 +1307,13 @@ class Learner(ABC):
             batch_sz //= world_sz
             log.debug('Per GPU batch size: %d', batch_sz)
 
-        args = dict(
-            batch_size=batch_sz,
-            num_workers=num_workers,
-            collate_fn=collate_fn,
-            pin_memory=True,
-            multiprocessing_context='fork' if distributed else None,
-        )
+        args = {
+            'batch_size': batch_sz,
+            'num_workers': num_workers,
+            'collate_fn': collate_fn,
+            'pin_memory': True,
+            'multiprocessing_context': 'fork' if distributed else None,
+        }
         args.update(**kwargs)
 
         if sampler is not None:
@@ -1411,7 +1419,7 @@ class Learner(ABC):
         split: Literal['train', 'valid', 'test'],
         batch_limit: int | None = None,
         show: bool = False,
-    ):
+    ) -> None:
         """Plot predictions for a split.
 
         Uses the first batch for the corresponding DataLoader.
@@ -1440,7 +1448,7 @@ class Learner(ABC):
         output_path: str,
         batch_limit: int | None = None,
         show: bool = False,
-    ):
+    ) -> None:
         """Plot images and ground truth labels for a DataLoader."""
         x, y = next(iter(dl))
         self.visualizer.plot_batch(
@@ -1449,7 +1457,7 @@ class Learner(ABC):
 
     def plot_dataloaders(
         self, batch_limit: int | None = None, show: bool = False
-    ):
+    ) -> None:
         """Plot images and ground truth labels for all DataLoaders."""
         if self.train_dl:
             log.info('Plotting sample training batch.')
@@ -1485,7 +1493,7 @@ class Learner(ABC):
     #########
     # Bundle
     #########
-    def save_model_bundle(self, export_onnx: bool = True):
+    def save_model_bundle(self, export_onnx: bool = True) -> None:
         """Save a model bundle.
 
         This is a zip file with the model weights in .pth format and a serialized
@@ -1588,10 +1596,10 @@ class Learner(ABC):
             torch.cuda.empty_cache()
         sample_input = self.to_device(sample_input, model_device)
 
-        args = dict(
-            input_names=['x'],
-            output_names=['out'],
-            dynamic_axes={
+        args = {
+            'input_names': ['x'],
+            'output_names': ['out'],
+            'dynamic_axes': {
                 'x': {
                     0: 'batch_size',
                     2: 'height',
@@ -1601,9 +1609,9 @@ class Learner(ABC):
                     0: 'batch_size',
                 },
             },
-            training=torch.onnx.TrainingMode.EVAL,
-            opset_version=15,
-        )
+            'training': torch.onnx.TrainingMode.EVAL,
+            'opset_version': 15,
+        }
         args.update(**kwargs)
         log.info('Exporting to model to ONNX.')
         torch.onnx.export(model, sample_input, path, **args)
@@ -1791,7 +1799,7 @@ class Learner(ABC):
         log.info(f'Loading model weights from: {uri}')
         self.load_weights(uri=uri, **args)
 
-    def save_weights(self, path: str):
+    def save_weights(self, path: str) -> None:
         """Save model weights to a local file."""
         model = self.model
         if isinstance(model, DDP):
@@ -1813,7 +1821,7 @@ class Learner(ABC):
             torch.load(weights_path, map_location=self.device), **kwargs
         )
 
-    def load_checkpoint(self):
+    def load_checkpoint(self) -> None:
         """Load last weights from previous run if available."""
         weights_path = self.last_model_weights_path
         if isfile(weights_path):
@@ -1829,7 +1837,7 @@ class Learner(ABC):
         onnx_model = ONNXRuntimeAdapter.from_file(path)
         return onnx_model
 
-    def log_data_stats(self):
+    def log_data_stats(self) -> None:
         """Log stats about each DataSet."""
         if self.train_ds is not None:
             log.info(f'train_ds: {len(self.train_ds)} items')
@@ -1838,15 +1846,15 @@ class Learner(ABC):
         if self.test_ds is not None:
             log.info(f'test_ds: {len(self.test_ds)} items')
 
-    def sync_to_cloud(self):
+    def sync_to_cloud(self) -> None:
         """Sync any output to the cloud at output_uri."""
         sync_to_dir(self.output_dir_local, self.output_dir)
 
-    def sync_from_cloud(self):
+    def sync_from_cloud(self) -> None:
         """Sync any previous output in the cloud to output_dir."""
         sync_from_dir(self.output_dir, self.output_dir_local)
 
-    def setup_tensorboard(self):
+    def setup_tensorboard(self) -> None:
         """Setup for logging stats to TB."""
         self.tb_writer = None
         if self.cfg.log_tensorboard:
@@ -1854,7 +1862,7 @@ class Learner(ABC):
             make_dir(self.tb_log_dir)
             self.tb_writer = SummaryWriter(log_dir=self.tb_log_dir)
 
-    def run_tensorboard(self):
+    def run_tensorboard(self) -> None:
         """Run TB server serving logged stats."""
         if self.cfg.run_tensorboard:  # pragma: no cover
             log.info('Starting tensorboard process')
@@ -1863,7 +1871,7 @@ class Learner(ABC):
             )
             terminate_at_exit(self.tb_process)
 
-    def stop_tensorboard(self):
+    def stop_tensorboard(self) -> None:
         """Stop TB logging and server if it's running."""
         if self.tb_writer is not None:
             self.tb_writer.close()

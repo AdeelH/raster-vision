@@ -50,7 +50,7 @@ class TestTemporalMultiRasterSource(unittest.TestCase):
         )
         self.assertNoError(lambda: TemporalMultiRasterSource([rs1, rs3]))
 
-        args = dict(raster_sources=[rs1, rs3], primary_source_idx=10)
+        args = {'raster_sources': [rs1, rs3], 'primary_source_idx': 10}
         self.assertRaises(
             IndexError, lambda: TemporalMultiRasterSource(**args)
         )

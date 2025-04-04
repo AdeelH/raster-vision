@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
-def print_error(msg):
+def print_error(msg) -> None:
     """Print error message to console in red."""
     click.echo(click.style(msg, fg='red'), err=True)
 
@@ -127,7 +127,7 @@ def get_configs_from_module(
     '-v', '--verbose', help='Increment the verbosity level.', count=True
 )
 @click.option('--tmpdir', help='Root of temporary directories to use.')
-def main(ctx: click.Context, profile: str | None, verbose: int, tmpdir: str):
+def main(ctx: click.Context, profile: str | None, verbose: int, tmpdir: str) -> None:
     """The main click command.
 
     Sets the profile, verbosity, and tmp_dir in RVConfig.
@@ -147,7 +147,7 @@ def _run_pipeline(
     splits: int = 1,
     commands: list[str] | None = None,
     pipeline_run_name: str = 'raster-vision',
-):
+) -> None:
     cfg.update()
     cfg.recursive_validate_config()
 
@@ -202,7 +202,7 @@ def run(
     arg: list[tuple[str, str]],
     splits: int,
     pipeline_run_name: str,
-):
+) -> None:
     """Run COMMANDS within pipelines in CFG_MODULE using RUNNER.
 
     RUNNER: name of the Runner to use
@@ -234,7 +234,7 @@ def _run_command(
     split_ind: int | None = None,
     num_splits: int | None = None,
     runner: str | None = None,
-):
+) -> None:
     """Run a single command using a serialized PipelineConfig.
 
     Args:
@@ -296,7 +296,7 @@ def run_command(
     split_ind: int | None,
     num_splits: int | None,
     runner: str,
-):
+) -> None:
     """Run a single COMMAND using a serialized PipelineConfig in CFG_JSON_URI."""
     _run_command(
         cfg_json_uri,
@@ -307,7 +307,7 @@ def run_command(
     )
 
 
-def _main():  # pragma: no cover
+def _main() -> None:  # pragma: no cover
     for pc in registry.get_plugin_commands():
         main.add_command(pc)
     main()

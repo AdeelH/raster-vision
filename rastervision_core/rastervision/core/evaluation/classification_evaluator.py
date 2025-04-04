@@ -3,13 +3,12 @@ from abc import abstractmethod
 from collections.abc import Iterable
 from typing import TYPE_CHECKING
 
-from rastervision.core.data import Labels
 from rastervision.core.evaluation import Evaluator
 
 log = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    from rastervision.core.data import ClassConfig, Scene
+    from rastervision.core.data import ClassConfig, Labels, Scene
     from rastervision.core.evaluation import ClassificationEvaluation
 
 
@@ -18,7 +17,7 @@ class ClassificationEvaluator(Evaluator):
 
     def __init__(
         self, class_config: 'ClassConfig', output_uri: str | None = None
-    ):
+    ) -> None:
         self.class_config = class_config
         self.output_uri = output_uri
 

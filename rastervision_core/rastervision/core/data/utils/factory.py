@@ -12,11 +12,11 @@ def make_ss_scene(
     label_raster_uri: str | list[str] | None = None,
     class_config: 'ClassConfig | None' = None,
     label_vector_uri: str | None = None,
-    aoi_uri: str | list[str] = [],
+    aoi_uri: str | list[str] | None = None,
     label_vector_default_class_id: int | None = None,
-    image_raster_source_kw: dict = {},
-    label_raster_source_kw: dict = {},
-    label_vector_source_kw: dict = {},
+    image_raster_source_kw: dict | None = None,
+    label_raster_source_kw: dict | None = None,
+    label_vector_source_kw: dict | None = None,
     scene_id: str | None = None,
 ) -> 'Scene':
     """Create a semantic segmentation scene from image and label URIs.
@@ -75,6 +75,14 @@ def make_ss_scene(
         SemanticSegmentationLabelSource,
     )
 
+    if label_vector_source_kw is None:
+        label_vector_source_kw = {}
+    if label_raster_source_kw is None:
+        label_raster_source_kw = {}
+    if image_raster_source_kw is None:
+        image_raster_source_kw = {}
+    if aoi_uri is None:
+        aoi_uri = []
     if label_raster_uri is not None and label_vector_uri is not None:
         raise ValueError(
             'Specify either label_raster_uri or '
@@ -105,9 +113,7 @@ def make_ss_scene(
                 default_class_id=label_vector_default_class_id
             )
             vector_tfs = label_vector_source_kw.get('vector_transformers', [])
-            label_vector_source_kw['vector_transformers'] = [
-                class_inf_tf
-            ] + vector_tfs
+            label_vector_source_kw['vector_transformers'] = [class_inf_tf, *vector_tfs]
         vector_source = GeoJSONVectorSource(
             uris=label_vector_uri,
             crs_transformer=crs_transformer,
@@ -143,11 +149,11 @@ def make_cc_scene(
     image_uri: str | list[str],
     label_vector_uri: str | None = None,
     class_config: 'ClassConfig | None' = None,
-    aoi_uri: str | list[str] = [],
+    aoi_uri: str | list[str] | None = None,
     label_vector_default_class_id: int | None = None,
-    image_raster_source_kw: dict = {},
-    label_vector_source_kw: dict = {},
-    label_source_kw: dict = {},
+    image_raster_source_kw: dict | None = None,
+    label_vector_source_kw: dict | None = None,
+    label_source_kw: dict | None = None,
     scene_id: str | None = None,
 ) -> 'Scene':
     """Create a chip classification scene from image and label URIs.
@@ -198,6 +204,14 @@ def make_cc_scene(
         Scene,
     )
 
+    if label_source_kw is None:
+        label_source_kw = {}
+    if label_vector_source_kw is None:
+        label_vector_source_kw = {}
+    if image_raster_source_kw is None:
+        image_raster_source_kw = {}
+    if aoi_uri is None:
+        aoi_uri = []
     image_uri = listify_uris(image_uri)
     raster_source = RasterioSource(image_uri, **image_raster_source_kw)
 
@@ -214,9 +228,7 @@ def make_cc_scene(
                 default_class_id=label_vector_default_class_id
             )
             vector_tfs = label_vector_source_kw.get('transformers', [])
-            label_vector_source_kw['transformers'] = [
-                class_inf_tf
-            ] + vector_tfs
+            label_vector_source_kw['transformers'] = [class_inf_tf, *vector_tfs]
         geojson_cfg = GeoJSONVectorSourceConfig(
             uris=label_vector_uri, **label_vector_source_kw
         )
@@ -243,11 +255,11 @@ def make_od_scene(
     image_uri: str | list[str],
     label_vector_uri: str | None = None,
     class_config: 'ClassConfig | None' = None,
-    aoi_uri: str | list[str] = [],
+    aoi_uri: str | list[str] | None = None,
     label_vector_default_class_id: int | None = None,
-    image_raster_source_kw: dict = {},
-    label_vector_source_kw: dict = {},
-    label_source_kw: dict = {},
+    image_raster_source_kw: dict | None = None,
+    label_vector_source_kw: dict | None = None,
+    label_source_kw: dict | None = None,
     scene_id: str | None = None,
 ) -> 'Scene':
     """Create an object detection scene from image and label URIs.
@@ -299,6 +311,14 @@ def make_od_scene(
         Scene,
     )
 
+    if label_source_kw is None:
+        label_source_kw = {}
+    if label_vector_source_kw is None:
+        label_vector_source_kw = {}
+    if image_raster_source_kw is None:
+        image_raster_source_kw = {}
+    if aoi_uri is None:
+        aoi_uri = []
     image_uri = listify_uris(image_uri)
     raster_source = RasterioSource(image_uri, **image_raster_source_kw)
 
@@ -315,9 +335,7 @@ def make_od_scene(
                 default_class_id=label_vector_default_class_id
             )
             vector_tfs = label_vector_source_kw.get('transformers', [])
-            label_vector_source_kw['transformers'] = [
-                class_inf_tf
-            ] + vector_tfs
+            label_vector_source_kw['transformers'] = [class_inf_tf, *vector_tfs]
         geojson_cfg = GeoJSONVectorSourceConfig(
             uris=label_vector_uri, **label_vector_source_kw
         )

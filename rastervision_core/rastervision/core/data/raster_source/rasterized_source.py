@@ -50,7 +50,7 @@ def geoms_to_raster(
 
     if len(shapes) > 0:
         raster = rasterize(
-            shapes=list(zip(shapes, class_ids)),
+            shapes=list(zip(shapes, class_ids, strict=False)),
             out_shape=window.size,
             fill=background_class_id,
             dtype=np.uint8,
@@ -71,8 +71,8 @@ class RasterizedSource(RasterSource):
         background_class_id: int,
         bbox: 'Box | None' = None,
         all_touched: bool = False,
-        raster_transformers: list['RasterTransformer'] = [],
-    ):
+        raster_transformers: list['RasterTransformer'] | None = None,
+    ) -> None:
         """Constructor.
 
         Args:
@@ -88,6 +88,8 @@ class RasterizedSource(RasterSource):
                 (See :func:`~rasterio.features.rasterize` for more details).
                 Defaults to False.
         """
+        if raster_transformers is None:
+            raster_transformers = []
         self.vector_source = vector_source
         self.background_class_id = background_class_id
         self.all_touched = all_touched

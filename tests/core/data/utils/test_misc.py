@@ -43,7 +43,7 @@ class TestMatchBboxes(unittest.TestCase):
         self.bbox_ls = Box(0, 0, 12, 12)
         geoms_pixel = [b.to_shapely() for b in self.bbox_ls.get_windows(2, 2)]
         geoms_map = [self.crs_tf.pixel_to_map(g) for g in geoms_pixel]
-        properties = [dict(class_id=0) for _ in geoms_map]
+        properties = [{'class_id': 0} for _ in geoms_map]
         geojson = geoms_to_geojson(geoms_map, properties)
         self._tmp_dir = get_tmp_dir()
         self.tmp_dir = self._tmp_dir.name
@@ -258,16 +258,16 @@ class TestEnsureJsonSerializable(unittest.TestCase):
 
     def test_dict(self):
         arr = {'a': np.ones(5, dtype=int)}
-        self.assertDictEqual(ensure_json_serializable(arr), dict(a=([1] * 5)))
+        self.assertDictEqual(ensure_json_serializable(arr), {'a': ([1] * 5)})
 
     def test_float_edge_cases(self):
-        d = dict(a=np.nan, b=np.inf, c=-np.inf)
+        d = {'a': np.nan, 'b': np.inf, 'c': -np.inf}
         d_serializable = ensure_json_serializable(d)
         self.assertNoError(lambda: json.dumps(d_serializable))
 
     def test_box(self):
         box = Box(0, 1, 2, 3)
-        box_dict = dict(ymin=0, xmin=1, ymax=2, xmax=3)
+        box_dict = {'ymin': 0, 'xmin': 1, 'ymax': 2, 'xmax': 3}
         self.assertDictEqual(ensure_json_serializable(box), box_dict)
 
 

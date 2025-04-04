@@ -46,12 +46,12 @@ class RasterioSource(RasterSource):
     def __init__(
         self,
         uris: str | list[str],
-        raster_transformers: list['RasterTransformer'] = [],
+        raster_transformers: list['RasterTransformer'] | None = None,
         allow_streaming: bool = False,
         channel_order: Sequence[int] | None = None,
         bbox: Box | None = None,
         tmp_dir: str | None = None,
-    ):
+    ) -> None:
         """Constructor.
 
         Args:
@@ -71,6 +71,8 @@ class RasterioSource(RasterSource):
                 ``uris`` or ``allow_streaming=True``). If ``None``,
                 will be auto-generated. Defaults to ``None``.
         """
+        if raster_transformers is None:
+            raster_transformers = []
         self.uris = listify_uris(uris)
         self.allow_streaming = allow_streaming
         self._num_channels = None
@@ -210,7 +212,7 @@ class RasterioSource(RasterSource):
         chip = self.get_chip(window, bands=c, out_shape=out_shape)
         return chip
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         arg_keys = [
             'uris',
             'channel_order',
@@ -220,6 +222,6 @@ class RasterioSource(RasterSource):
             'tmp_dir',
         ]
         arg_vals = [getattr(self, k) for k in arg_keys]
-        arg_strs = [f'{k}={v!r}' for k, v in zip(arg_keys, arg_vals)]
+        arg_strs = [f'{k}={v!r}' for k, v in zip(arg_keys, arg_vals, strict=False)]
         arg_str = ', '.join(arg_strs)
         return f'{type(self).__name__}({arg_str})'

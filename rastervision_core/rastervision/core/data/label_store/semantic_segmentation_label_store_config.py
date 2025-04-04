@@ -202,7 +202,7 @@ class SemanticSegmentationLabelStoreConfig(LabelStoreConfig):
         self,
         pipeline: 'RVPipelineConfig | None' = None,
         scene: 'SceneConfig | None' = None,
-    ):
+    ) -> None:
         if pipeline is not None and scene is not None:
             if self.uri is None:
                 self.uri = join(pipeline.predict_uri, f'{scene.id}')

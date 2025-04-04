@@ -1150,10 +1150,7 @@ class ImageDataConfig(DataConfig):
         dirs = [d for d in dirs if isdir(d)]
 
         base_transform, aug_transform = self.get_data_transforms()
-        if split == 'train':
-            tf = aug_transform
-        else:
-            tf = base_transform
+        tf = aug_transform if split == 'train' else base_transform
 
         ds = self._build_dataset(dirs, tf)
         return ds
@@ -1175,7 +1172,7 @@ class ImageDataConfig(DataConfig):
         if not sequence_like(group_sizes):
             group_sizes = [group_sizes] * len(uris)
 
-        for uri, size in zip(uris, group_sizes):
+        for uri, size in zip(uris, group_sizes, strict=False):
             train_ds, valid_ds, test_ds = self._get_datasets_from_uri(
                 uri, tmp_dir=tmp_dir
             )
@@ -1215,7 +1212,7 @@ class ImageDataConfig(DataConfig):
             group_sizes = [group_sizes] * len(uris)
 
         per_uri_dataset = []
-        for uri, size in zip(uris, group_sizes):
+        for uri, size in zip(uris, group_sizes, strict=False):
             ds = self._get_dataset_from_uri(uri, split=split, tmp_dir=tmp_dir)
             if size is not None:
                 if isinstance(size, float):
@@ -1459,10 +1456,7 @@ class GeoDataConfig(DataConfig):
         tmp_dir: str | None = None,
     ) -> Dataset:
         base_transform, aug_transform = self.get_data_transforms()
-        if split == 'train':
-            tf = aug_transform
-        else:
-            tf = base_transform
+        tf = aug_transform if split == 'train' else base_transform
 
         ds = self._build_dataset(split, tf, tmp_dir)
 

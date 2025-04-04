@@ -54,7 +54,7 @@ def rv_pipeline_config_upgrader(cfg_dict: dict, version: int) -> dict:
         method = chip_options.pop('method', 'sliding')
         if method != 'sliding':
             method = 'random'
-        chip_options['sampling'] = dict(size=train_chip_sz, method=method)
+        chip_options['sampling'] = {'size': train_chip_sz, 'method': method}
         chip_options['nodata_threshold'] = nodata_threshold
         cfg_dict['chip_options'] = chip_options
     elif version == 11:
@@ -130,7 +130,7 @@ class RVPipelineConfig(PipelineConfig):
         None, description='Config for predict stage.'
     )
 
-    def update(self):
+    def update(self) -> None:
         super().update()
 
         if self.analyze_uri is None:
@@ -160,7 +160,7 @@ class RVPipelineConfig(PipelineConfig):
     def get_model_bundle_uri(self):
         return join(self.bundle_uri, 'model-bundle.zip')
 
-    def _insert_analyzers(self):
+    def _insert_analyzers(self) -> None:
         # Inserts StatsAnalyzer if it's needed because a RasterSource has a
         # StatsTransformer, but there isn't a StatsAnalyzer in the list of Analyzers.
         has_stats_transformer = False

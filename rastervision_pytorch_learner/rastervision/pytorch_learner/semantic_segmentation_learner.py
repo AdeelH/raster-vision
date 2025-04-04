@@ -135,10 +135,10 @@ class SemanticSegmentationLearner(Learner):
         sample_input: torch.Tensor | None = None,
         **kwargs,
     ) -> None:
-        args = dict(
-            input_names=['x'],
-            output_names=['out'],
-            dynamic_axes={
+        args = {
+            'input_names': ['x'],
+            'output_names': ['out'],
+            'dynamic_axes': {
                 'x': {
                     0: 'batch_size',
                     2: 'height',
@@ -150,6 +150,6 @@ class SemanticSegmentationLearner(Learner):
                     3: 'width',
                 },
             },
-        )
+        }
         args.update(kwargs)
         return super().export_to_onnx(path, model, sample_input, **args)

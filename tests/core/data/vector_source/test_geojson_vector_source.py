@@ -67,11 +67,15 @@ class TestGeoJSONVectorSource(unittest.TestCase):
     def transform_geojson(
         self,
         geojson,
-        line_bufs={},
-        point_bufs={},
+        line_bufs=None,
+        point_bufs=None,
         crs_transformer=None,
         to_map_coords=False,
     ):
+        if point_bufs is None:
+            point_bufs = {}
+        if line_bufs is None:
+            line_bufs = {}
         if crs_transformer is None:
             crs_transformer = IdentityCRSTransformer()
         class_config = ClassConfig(names=['building'])

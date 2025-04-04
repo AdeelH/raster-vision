@@ -34,7 +34,7 @@ def flip_geom(m, b, geom):
 @click.argument('src_labels_path')
 @click.argument('dst_tiff_path')
 @click.argument('dst_labels_path')
-def flip_scene(src_tiff_path, src_labels_path, dst_tiff_path, dst_labels_path):
+def flip_scene(src_tiff_path, src_labels_path, dst_tiff_path, dst_labels_path) -> None:
     """Flips a scene and it's labels.
 
     Useful for generating multiple training scenes for integration test usage.
@@ -115,7 +115,6 @@ def flip_scene(src_tiff_path, src_labels_path, dst_tiff_path, dst_labels_path):
         with open(dst_labels_path, 'w') as dst_labels_file:
             dst_labels_file.write(json.dumps(dst_labels, indent=4))
 
-    print('done.')
 
 
 if __name__ == '__main__':

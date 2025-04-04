@@ -33,7 +33,7 @@ class StatsTransformer(RasterTransformer):
         means: Sequence[float],
         stds: Sequence[float],
         max_stds: float = 3.0,
-    ):
+    ) -> None:
         """Construct a new StatsTransformer.
 
         Args:

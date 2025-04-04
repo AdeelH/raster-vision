@@ -17,24 +17,24 @@ class TestClassConfig(unittest.TestCase):
             self.fail(msg)
 
     def test_len_validation(self):
-        args = dict(names=['a', 'b'], colors=['red', 'green'])
+        args = {'names': ['a', 'b'], 'colors': ['red', 'green']}
         self.assertNoError(lambda: ClassConfig(**args))
 
-        args = dict(names=['a', 'b'], colors=['red'])
+        args = {'names': ['a', 'b'], 'colors': ['red']}
         self.assertRaises(ValidationError, lambda: ClassConfig(**args))
 
     def test_auto_colors_initialization(self):
-        args = dict(names=['a', 'b'])
+        args = {'names': ['a', 'b']}
         self.assertNoError(lambda: ClassConfig(**args))
 
         cfg = ClassConfig(**args)
         self.assertEqual(len(cfg.names), len(cfg.colors))
 
     def test_null_class_validation(self):
-        args = dict(names=['a', 'b'], null_class='a')
+        args = {'names': ['a', 'b'], 'null_class': 'a'}
         self.assertNoError(lambda: ClassConfig(**args))
 
-        args = dict(names=['a', 'b'], null_class='c')
+        args = {'names': ['a', 'b'], 'null_class': 'c'}
         self.assertRaises(ValidationError, lambda: ClassConfig(**args))
 
         cfg = ClassConfig(
@@ -42,7 +42,7 @@ class TestClassConfig(unittest.TestCase):
         )
         self.assertEqual(cfg.null_class, DEFAULT_NULL_CLASS_NAME)
 
-        args = dict(names=['a', 'b', DEFAULT_NULL_CLASS_NAME], null_class='a')
+        args = {'names': ['a', 'b', DEFAULT_NULL_CLASS_NAME], 'null_class': 'a'}
         self.assertRaises(ValidationError, lambda: ClassConfig(**args))
 
     def test_ensure_null_class(self):

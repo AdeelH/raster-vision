@@ -21,7 +21,7 @@ class SamplePipelineConfig(PipelineConfig):
         # using this configuration.
         return SamplePipeline(self, tmp_dir)
 
-    def update(self):
+    def update(self) -> None:
         # The update method is used to set default values as a function of
         # other values.
         if self.message_uris is None:
@@ -41,14 +41,14 @@ class SamplePipeline(Pipeline):
     # on a GPU in this pipeline.
     gpu_commands = []
 
-    def save_messages(self, split_ind=0, num_splits=1):
+    def save_messages(self, split_ind=0, num_splits=1) -> None:
         # Save a file for each name with a message.
 
         # The num_splits is the number of parallel jobs to use and
         # split_ind tracks the index of the parallel job. In this case
         # we are splitting on the names/message_uris.
         split_groups = split_into_groups(
-            list(zip(self.config.names, self.config.message_uris)), num_splits
+            list(zip(self.config.names, self.config.message_uris, strict=False)), num_splits
         )
         split_group = split_groups[split_ind]
 
@@ -58,10 +58,8 @@ class SamplePipeline(Pipeline):
             # read and write transparently to different file systems based on
             # the URI pattern.
             str_to_file(message, message_uri)
-            print(f'Saved message to {message_uri}')
 
-    def print_messages(self):
+    def print_messages(self) -> None:
         # Read all the message files and print them.
         for message_uri in self.config.message_uris:
-            message = file_to_str(message_uri)
-            print(message)
+            file_to_str(message_uri)

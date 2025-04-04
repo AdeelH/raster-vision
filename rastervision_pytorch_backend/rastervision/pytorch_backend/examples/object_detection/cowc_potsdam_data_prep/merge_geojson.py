@@ -8,7 +8,7 @@ import click
 @click.command()
 @click.argument('input_dir')
 @click.argument('output_path')
-def merge_geojson(input_dir, output_path):
+def merge_geojson(input_dir, output_path) -> None:
     input_paths = glob.glob(os.path.join(input_dir, '*.json'))
     features = []
     for input_path in input_paths:

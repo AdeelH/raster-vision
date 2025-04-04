@@ -60,8 +60,7 @@ def gdal_cog_commands(
 
     # Step 2: Add overviews
     add_overviews = add_compression(
-        ['gdaladdo', '-r', resample_method, translate_path]
-        + list(map(lambda x: str(x), overviews)),
+        ['gdaladdo', '-r', resample_method, translate_path, *[str(x) for x in overviews]],
         overview=True,
     )
 
@@ -92,7 +91,7 @@ def gdal_cog_commands(
     return ([translate, add_overviews, create_cog], output_path)
 
 
-def run_cmd(cmd):
+def run_cmd(cmd) -> None:
     p = Popen(cmd)
     (out, err) = p.communicate(input)
     if p.returncode != 0:
@@ -113,7 +112,7 @@ def create_cog(
     resample_method=DEFAULT_RESAMPLE_METHOD,
     compression=DEFAULT_COMPRESSION,
     overviews=None,
-):
+) -> None:
     local_path = download_or_copy(source_uri, local_dir)
 
     commands, output_path = gdal_cog_commands(

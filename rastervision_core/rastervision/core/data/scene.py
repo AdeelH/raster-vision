@@ -19,7 +19,7 @@ class Scene:
         label_source: 'LabelSource | None' = None,
         label_store: 'LabelStore | None' = None,
         aoi_polygons: list['BaseGeometry'] | None = None,
-    ):
+    ) -> None:
         """Constructor.
 
         During initialization, ``Scene`` attempts to set the extents of the
@@ -75,8 +75,5 @@ class Scene:
 
     def __getitem__(self, key: Any) -> tuple[Any, Any]:
         x = self.raster_source[key]
-        if self.label_source is not None:
-            y = self.label_source[key]
-        else:
-            y = None
+        y = self.label_source[key] if self.label_source is not None else None
         return x, y

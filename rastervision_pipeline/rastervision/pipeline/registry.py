@@ -17,7 +17,7 @@ class RegistryError(Exception):
 class Registry:
     """A registry for resources that are built-in or contributed by plugins."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.runners = {}
         self.file_systems = []
         self.configs = {}
@@ -31,7 +31,7 @@ class Registry:
         self.type_hint_to_upgrader = {}
         self.renamed_type_hints = {}
 
-    def add_plugin_command(self, cmd: Command):
+    def add_plugin_command(self, cmd: Command) -> None:
         """Add a click command contributed by a plugin."""
         self.plugin_commands.append(cmd)
 
@@ -39,7 +39,7 @@ class Registry:
         """Get the click commands contributed by plugins."""
         return self.plugin_commands
 
-    def set_plugin_aliases(self, plugin: str, aliases: list[str]):
+    def set_plugin_aliases(self, plugin: str, aliases: list[str]) -> None:
         self.alias_to_plugin[plugin] = plugin
         for alias in aliases:
             self.alias_to_plugin[alias] = plugin
@@ -49,7 +49,7 @@ class Registry:
             return alias
         return self.alias_to_plugin.get(alias)
 
-    def set_plugin_version(self, plugin: str, version: int):
+    def set_plugin_version(self, plugin: str, version: int) -> None:
         """Set the latest version of a plugin.
 
         Args:
@@ -61,7 +61,7 @@ class Registry:
 
     def register_renamed_type_hints(
         self, type_hint_old: str, type_hint_new: str
-    ):
+    ) -> None:
         """Register renamed type_hints.
 
         Args:
@@ -97,7 +97,7 @@ class Registry:
         """Get function that upgrades config dicts for type_hint."""
         return self.type_hint_to_upgrader.get(type_hint)
 
-    def add_runner(self, runner_name: str, runner: type['Runner']):
+    def add_runner(self, runner_name: str, runner: type['Runner']) -> None:
         """Add a Runner.
 
         Args:
@@ -118,7 +118,7 @@ class Registry:
             return runner
         raise RegistryError(f'{runner_name} is not a registered runner.')
 
-    def add_file_system(self, file_system: 'FileSystem'):
+    def add_file_system(self, file_system: 'FileSystem') -> None:
         """Add a FileSystem.
 
         Args:
@@ -153,7 +153,7 @@ class Registry:
         config: type['Config'],
         plugin: str,
         upgrader=None,
-    ):
+    ) -> None:
         """Add a Config.
 
         Args:
@@ -188,7 +188,7 @@ class Registry:
 
     def add_rv_config_schema(
         self, config_section: str, config_fields: list[str]
-    ):
+    ) -> None:
         """Add section of schema used by RVConfig.
 
         Args:
@@ -201,7 +201,7 @@ class Registry:
         """Return RVConfig schema."""
         return self.rv_config_schema
 
-    def load_builtins(self):
+    def load_builtins(self) -> None:
         """Add all builtin resources."""
         from rastervision.pipeline.file_system import (
             HttpFileSystem,
@@ -225,7 +225,7 @@ class Registry:
 
         self.set_plugin_version('rastervision.pipeline', 0)
 
-    def update_config_info(self):
+    def update_config_info(self) -> None:
         config_class_to_type_hint = {}
         for type_hint, config_class in self.configs.items():
             config_class_to_type_hint[config_class] = type_hint

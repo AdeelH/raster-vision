@@ -37,7 +37,7 @@ class AWSBatchRunner(Runner):
         commands: list[str],
         num_splits: int = 1,
         pipeline_run_name: str = 'raster-vision',
-    ):  # pragma: no cover
+    ) -> None:  # pragma: no cover
         parent_job_ids = []
         for command in commands:
             cmd, args = self.build_cmd(
@@ -51,12 +51,12 @@ class AWSBatchRunner(Runner):
                 cmd, parent_job_ids=parent_job_ids, **args
             )
 
-            job_info = dict(
-                name=args['job_name'],
-                id=job_id,
-                parents=parent_job_ids,
-                cmd=cmd,
-            )
+            job_info = {
+                'name': args['job_name'],
+                'id': job_id,
+                'parents': parent_job_ids,
+                'cmd': cmd,
+            }
             job_info_str = pformat(job_info, sort_dicts=False)
             msg = f'Job submitted:\n{job_info_str}'
             log.info(msg)
@@ -96,13 +96,13 @@ class AWSBatchRunner(Runner):
             num_array_jobs = num_splits
             cmd += ['--num-splits', str(num_splits)]
 
-        args = dict(
-            job_name=job_name,
-            num_array_jobs=num_array_jobs,
-            use_gpu=use_gpu,
-            job_queue=job_queue,
-            job_def=job_def,
-        )
+        args = {
+            'job_name': job_name,
+            'num_array_jobs': num_array_jobs,
+            'use_gpu': use_gpu,
+            'job_queue': job_queue,
+            'job_def': job_def,
+        }
         return cmd, args
 
     def get_split_ind(self) -> int:
@@ -156,17 +156,7 @@ class AWSBatchRunner(Runner):
             job_def = batch_config(f'{device}_job_def')
 
         if debug:
-            cmd = [
-                'python',
-                '-m',
-                'ptvsd',
-                '--host',
-                '0.0.0.0',
-                '--port',
-                '6006',
-                '--wait',
-                '-m',
-            ] + cmd
+            cmd = ['python', '-m', 'ptvsd', '--host', '0.0.0.0', '--port', '6006', '--wait', '-m', *cmd]
 
         args = {
             'jobName': job_name,

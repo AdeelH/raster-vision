@@ -34,11 +34,11 @@ class TestStatsAnalyzer(unittest.TestCase):
     def tearDown(self):
         self.tmp_dir.cleanup()
 
-    def _test(self, is_random=False):
+    def _test(self, is_random=False) -> None:
         sample_prob = 0.5
 
         scenes, raster_sources, imgs = zip(
-            *[make_scene(i, is_random=is_random) for i in range(3)]
+            *[make_scene(i, is_random=is_random) for i in range(3)], strict=False
         )
 
         imgs: np.ndarray = np.stack(imgs)
@@ -75,7 +75,7 @@ class TestStatsAnalyzer(unittest.TestCase):
         self._test(is_random=False)
 
     def test_with_scene_group(self):
-        scenes, _, _ = zip(*[make_scene(i) for i in range(3)])
+        scenes, _, _ = zip(*[make_scene(i) for i in range(3)], strict=False)
 
         analyzer_cfg = StatsAnalyzerConfig(output_uri=self.tmp_dir.name)
         analyzer = analyzer_cfg.build(scene_group=('abc', set(range(3))))

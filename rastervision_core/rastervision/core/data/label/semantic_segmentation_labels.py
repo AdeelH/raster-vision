@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 class SemanticSegmentationLabels(Labels):
     """Representation of Semantic Segmentation labels."""
 
-    def __init__(self, extent: Box, num_classes: int, dtype: np.dtype):
+    def __init__(self, extent: Box, num_classes: int, dtype: np.dtype) -> None:
         """Constructor.
 
         Args:
@@ -260,7 +260,7 @@ class SemanticSegmentationLabels(Labels):
             )
         # If predictions is tqdm-wrapped, it needs to be the first arg to zip()
         # or the progress bar won't terminate with the correct count.
-        for prediction, window in zip(predictions, windows):
+        for prediction, window in zip(predictions, windows, strict=False):
             self[window] = prediction
 
 
@@ -273,7 +273,7 @@ class SemanticSegmentationDiscreteLabels(SemanticSegmentationLabels):
     turned into a score converting counts to probabilities.
     """
 
-    def __init__(self, extent: Box, num_classes: int, dtype: Any = np.uint8):
+    def __init__(self, extent: Box, num_classes: int, dtype: Any = np.uint8) -> None:
         """Constructor.
 
         Args:
@@ -461,7 +461,7 @@ class SemanticSegmentationSmoothLabels(SemanticSegmentationLabels):
         num_classes: int,
         dtype: Any = np.float16,
         dtype_hits: Any = np.uint8,
-    ):
+    ) -> None:
         """Constructor.
 
         Args:

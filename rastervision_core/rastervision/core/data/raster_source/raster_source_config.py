@@ -1,3 +1,4 @@
+import contextlib
 from typing import TYPE_CHECKING
 
 from rastervision.core.data.raster_transformer import RasterTransformerConfig
@@ -20,17 +21,13 @@ def rs_config_upgrader(
         # removed in version 7
         if cfg_dict.get('extent_crop') is not None:
             raise ConfigError('RasterSourceConfig.extent_crop is deprecated.')
-        try:
+        with contextlib.suppress(KeyError):
             del cfg_dict['extent_crop']
-        except KeyError:
-            pass
     elif version == 9:
         # renamed in version 10
         cfg_dict['bbox'] = cfg_dict.get('extent')
-        try:
+        with contextlib.suppress(KeyError):
             del cfg_dict['extent']
-        except KeyError:
-            pass
     return cfg_dict
 
 

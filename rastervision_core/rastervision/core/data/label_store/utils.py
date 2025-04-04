@@ -64,14 +64,14 @@ def boxes_to_geojson(
         delay=PROGRESSBAR_DELAY_SEC,
     ) as bar:
         properties = [
-            dict(class_id=id, class_name=class_config.get_name(id))
+            {'class_id': id, 'class_name': class_config.get_name(id)}
             for id in bar
         ]
 
     # add box properties (ID and name of predicted class)
     if scores is not None:
         with tqdm(
-            zip(properties, scores),
+            zip(properties, scores, strict=False),
             desc='Transforming boxes to map coords',
             delay=PROGRESSBAR_DELAY_SEC,
         ) as bar:

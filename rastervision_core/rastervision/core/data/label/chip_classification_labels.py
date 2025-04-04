@@ -30,7 +30,7 @@ class ChipClassificationLabels(Labels):
 
     def __init__(
         self, cell_to_label: dict[Box, tuple[int, Vector | None]] | None = None
-    ):
+    ) -> None:
         if cell_to_label is None:
             cell_to_label = {}
 
@@ -59,7 +59,7 @@ class ChipClassificationLabels(Labels):
     def __getitem__(self, cell: Box) -> ClassificationLabel:
         return self.cell_to_label[cell]
 
-    def __setitem__(self, window: Box, value: tuple[int, Vector | None]):
+    def __setitem__(self, window: Box, value: tuple[int, Vector | None]) -> None:
         class_id, scores = value
         self.set_cell(window, class_id, scores=scores)
 

@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING
 import click
 import numpy as np
 
-from rastervision.core.backend import Backend
 from rastervision.core.box import Box
 from rastervision.core.data import Labels, Scene
 from rastervision.core.data_sample import DataSample
@@ -26,6 +25,7 @@ from rastervision.pipeline.pipeline import Pipeline
 log = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
+    from rastervision.core.backend import Backend
     from rastervision.core.rv_pipeline import RVPipelineConfig
 
 ALL_COMMANDS = ['analyze', 'chip', 'train', 'predict', 'eval', 'bundle']
@@ -49,7 +49,7 @@ class RVPipeline(Pipeline):
     predictions using the Predictor.
     """
 
-    def __init__(self, config: 'RVPipelineConfig', tmp_dir: str):
+    def __init__(self, config: 'RVPipelineConfig', tmp_dir: str) -> None:
         super().__init__(config, tmp_dir)
         self.backend: Backend | None = None
         self.config: RVPipelineConfig
@@ -71,7 +71,7 @@ class RVPipeline(Pipeline):
     def gpu_commands(self):
         return self.config.backend.filter_commands(GPU_COMMANDS)
 
-    def analyze(self):
+    def analyze(self) -> None:
         """Run each analyzer over training scenes."""
         dataset = self.config.dataset
         class_config = dataset.class_config
@@ -123,7 +123,7 @@ class RVPipeline(Pipeline):
         """
         raise NotImplementedError
 
-    def chip(self, split_ind: int = 0, num_splits: int = 1):
+    def chip(self, split_ind: int = 0, num_splits: int = 1) -> None:
         """Save training and validation chips."""
         cfg = self.config
         log.info(f'Chip options: {cfg.chip_options}')
@@ -133,7 +133,7 @@ class RVPipeline(Pipeline):
         backend = cfg.backend.build(cfg, self.tmp_dir)
         backend.chip_dataset(dataset, cfg.chip_options)
 
-    def train(self):
+    def train(self) -> None:
         """Train a model and save it."""
         backend = self.config.backend.build(self.config, self.tmp_dir)
         backend.train(source_bundle_uri=self.config.source_bundle_uri)
@@ -155,7 +155,7 @@ class RVPipeline(Pipeline):
         """Post-process all labels at end of prediction."""
         return labels
 
-    def predict(self, split_ind=0, num_splits=1):
+    def predict(self, split_ind=0, num_splits=1) -> None:
         """Make predictions over each validation and test scene.
 
         This uses a sliding window.
@@ -180,7 +180,7 @@ class RVPipeline(Pipeline):
         labels = self.post_process_predictions(labels, scene)
         return labels
 
-    def eval(self):
+    def eval(self) -> None:
         """Evaluate predictions against ground truth."""
         dataset = self.config.dataset
         class_config = dataset.class_config
@@ -227,7 +227,7 @@ class RVPipeline(Pipeline):
                         'some scene.'
                     )
 
-    def bundle(self):
+    def bundle(self) -> None:
         """Save a model bundle with whatever is needed to make predictions.
 
         The model bundle is a zip file and it is used by the Predictor and

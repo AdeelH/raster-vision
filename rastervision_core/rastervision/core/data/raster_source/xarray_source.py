@@ -25,11 +25,11 @@ class XarraySource(RasterSource):
         self,
         data_array: DataArray,
         crs_transformer: 'CRSTransformer',
-        raster_transformers: list['RasterTransformer'] = [],
+        raster_transformers: list['RasterTransformer'] | None = None,
         channel_order: Sequence[int] | None = None,
         bbox: Box | None = None,
         temporal: bool = False,
-    ):
+    ) -> None:
         """Constructor.
 
         Args:
@@ -48,6 +48,8 @@ class XarraySource(RasterSource):
             temporal: If ``True``, data_array is expected to have a "time"
                 dimension and the chips returned will be of shape (T, H, W, C).
         """
+        if raster_transformers is None:
+            raster_transformers = []
         self.temporal = temporal
         if self.temporal:
             if set(data_array.dims) != {'x', 'y', 'band', 'time'}:
@@ -97,13 +99,13 @@ class XarraySource(RasterSource):
     def from_stac(
         cls,
         item_or_item_collection: 'Item | ItemCollection',
-        raster_transformers: list['RasterTransformer'] = [],
+        raster_transformers: list['RasterTransformer'] | None = None,
         channel_order: Sequence[int] | None = None,
         bbox: Box | tuple[int, int, int, int] | None = None,
         bbox_map_coords: Box | tuple[int, int, int, int] | None = None,
         temporal: bool = False,
         allow_streaming: bool = False,
-        stackstac_args: dict = dict(rescale=False),
+        stackstac_args: dict | None = None,
     ) -> 'XarraySource':
         """Construct an ``XarraySource`` from a STAC Item or ItemCollection.
 
@@ -132,6 +134,10 @@ class XarraySource(RasterSource):
         """
         import stackstac
 
+        if stackstac_args is None:
+            stackstac_args = {'rescale': False}
+        if raster_transformers is None:
+            raster_transformers = []
         data_array = stackstac.stack(item_or_item_collection, **stackstac_args)
 
         if not temporal and 'time' in data_array.dims:

@@ -99,9 +99,9 @@ class ObjectDetectionGeoDataConfig(ObjectDetectionDataConfig, GeoDataConfig):
 
         extra_args = {}
         if for_chipping:
-            extra_args = dict(
-                normalize=False, to_pytorch=False, return_window=True
-            )
+            extra_args = {
+                'normalize': False, 'to_pytorch': False, 'return_window': True
+            }
 
         if opts.method == WindowSamplingMethod.sliding:
             ds = ObjectDetectionSlidingWindowGeoDataset(

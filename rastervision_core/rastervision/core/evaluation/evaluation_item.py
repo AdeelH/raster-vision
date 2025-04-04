@@ -15,5 +15,5 @@ class EvaluationItem(ABC):
     def to_json(self) -> dict:
         return self.__dict__
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return pformat(self.to_json())

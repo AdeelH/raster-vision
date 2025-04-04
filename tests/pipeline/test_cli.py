@@ -127,9 +127,9 @@ class TestUtils(unittest.TestCase):
         print_error('error')
 
     def test_convert_bool_args(self):
-        args_in = dict(a='true', b='false')
+        args_in = {'a': 'true', 'b': 'false'}
         args_out = convert_bool_args(args_in)
-        self.assertDictEqual(args_out, dict(a=True, b=False))
+        self.assertDictEqual(args_out, {'a': True, 'b': False})
 
     def test_get_configs_json(self):
         cfg = SamplePipelineConfig(root_uri='abc', names=['x', 'y', 'z'])

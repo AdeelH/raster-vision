@@ -19,7 +19,7 @@ log = logging.getLogger(__name__)
 class SemanticSegmentationEvaluation(ClassificationEvaluation):
     """Evaluation for semantic segmentation."""
 
-    def __init__(self, class_config: 'ClassConfig'):
+    def __init__(self, class_config: 'ClassConfig') -> None:
         super().__init__()
         self.class_config = class_config
 

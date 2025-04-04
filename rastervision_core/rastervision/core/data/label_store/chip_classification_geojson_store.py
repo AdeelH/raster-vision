@@ -23,7 +23,7 @@ class ChipClassificationGeoJSONStore(LabelStore):
         class_config: 'ClassConfig',
         crs_transformer: 'CRSTransformer',
         bbox: 'Box | None' = None,
-    ):
+    ) -> None:
         """Constructor.
 
         Args:

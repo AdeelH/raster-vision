@@ -1,4 +1,5 @@
 import logging
+from typing import NoReturn
 
 from rastervision.core.backend import BackendConfig
 from rastervision.core.rv_pipeline import RVPipelineConfig
@@ -53,7 +54,7 @@ class PyTorchLearnerBackendConfig(BackendConfig):
     def get_bundle_filenames(self):
         return ['model-bundle.zip']
 
-    def update(self, pipeline: RVPipelineConfig | None = None):
+    def update(self, pipeline: RVPipelineConfig | None = None) -> None:
         super().update(pipeline=pipeline)
 
         if isinstance(self.data, ImageDataConfig):
@@ -66,10 +67,10 @@ class PyTorchLearnerBackendConfig(BackendConfig):
         if not self.data.img_channels:
             self.data.img_channels = self.get_img_channels(pipeline)
 
-    def get_learner_config(self, pipeline: RVPipelineConfig | None):
+    def get_learner_config(self, pipeline: RVPipelineConfig | None) -> NoReturn:
         raise NotImplementedError
 
-    def build(self, pipeline: RVPipelineConfig | None, tmp_dir: str):
+    def build(self, pipeline: RVPipelineConfig | None, tmp_dir: str) -> NoReturn:
         raise NotImplementedError
 
     def filter_commands(self, commands: list[str]) -> list[str]:

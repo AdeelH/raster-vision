@@ -23,7 +23,7 @@ class TestCalculateRequiredPadding(unittest.TestCase):
         stride: tuple[int, int],
         pad_direction: Literal['start', 'end', 'both'],
         crop_sz: int | None,
-    ):
+    ) -> None:
         extent = Box(0, 0, *extent_sz)
         padding = calculate_required_padding(
             extent_sz=extent.size,
@@ -85,36 +85,36 @@ class TestCalculateRequiredPadding(unittest.TestCase):
         )
 
     def test_error_if_chip_sz_lt_stride(self):
-        args = dict(
-            extent_sz=(100, 100),
-            chip_sz=(10, 10),
-            stride=(20, 20),
-            pad_direction='both',
-        )
+        args = {
+            'extent_sz': (100, 100),
+            'chip_sz': (10, 10),
+            'stride': (20, 20),
+            'pad_direction': 'both',
+        }
         self.assertRaises(
             ValueError, lambda: calculate_required_padding(**args)
         )
 
     def test_error_if_cropped_chip_sz_lt_stride(self):
-        args = dict(
-            extent_sz=(100, 100),
-            chip_sz=(20, 20),
-            stride=(20, 20),
-            pad_direction='both',
-            crop_sz=5,
-        )
+        args = {
+            'extent_sz': (100, 100),
+            'chip_sz': (20, 20),
+            'stride': (20, 20),
+            'pad_direction': 'both',
+            'crop_sz': 5,
+        }
         self.assertRaises(
             ValueError, lambda: calculate_required_padding(**args)
         )
 
     def test_error_if_crop_sz_with_wrong_pad_dir(self):
-        args = dict(
-            extent_sz=(100, 100),
-            chip_sz=(50, 50),
-            stride=(20, 20),
-            pad_direction='end',
-            crop_sz=5,
-        )
+        args = {
+            'extent_sz': (100, 100),
+            'chip_sz': (50, 50),
+            'stride': (20, 20),
+            'pad_direction': 'end',
+            'crop_sz': 5,
+        }
         self.assertRaises(
             ValueError, lambda: calculate_required_padding(**args)
         )

@@ -8,7 +8,7 @@ from rastervision.core.data.raster_transformer.raster_transformer import (
 class NanTransformer(RasterTransformer):
     """Removes NaN values from float raster."""
 
-    def __init__(self, to_value: float = 0.0):
+    def __init__(self, to_value: float = 0.0) -> None:
         """Constructor.
 
         Args:

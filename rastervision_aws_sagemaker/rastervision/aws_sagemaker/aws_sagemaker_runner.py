@@ -1,7 +1,6 @@
 import logging
 import tarfile
 from os.path import basename, join
-from pprint import pprint
 from typing import TYPE_CHECKING
 
 import boto3
@@ -77,9 +76,11 @@ class AWSSageMakerRunner(Runner):
         pipeline: 'Pipeline',
         commands: list[str],
         num_splits: int = 1,
-        cmd_prefix: list[str] = ['python', '-m', 'rastervision.pipeline.cli'],
+        cmd_prefix: list[str] | None = None,
         pipeline_run_name: str = 'rv',
-    ):
+    ) -> None:
+        if cmd_prefix is None:
+            cmd_prefix = ['python', '-m', 'rastervision.pipeline.cli']
         config = rv_config.get_namespace_config(AWS_SAGEMAKER)
         role = config('role')
 
@@ -96,9 +97,8 @@ class AWSSageMakerRunner(Runner):
         iam_client = boto3.client('iam')
         role_arn = iam_client.get_role(RoleName=role)['Role']['Arn']
         sagemaker_pipeline.upsert(role_arn=role_arn)
-        execution = sagemaker_pipeline.start()
+        sagemaker_pipeline.start()
 
-        pprint(execution.describe())
 
     def build_pipeline(
         self,
@@ -106,7 +106,7 @@ class AWSSageMakerRunner(Runner):
         pipeline: 'Pipeline',
         commands: list[str],
         num_splits: int = 1,
-        cmd_prefix: list[str] = ['python', '-m', 'rastervision.pipeline.cli'],
+        cmd_prefix: list[str] | None = None,
         pipeline_run_name: str = 'rv',
     ) -> 'SageMakerPipeline':
         """Build a SageMaker Pipeline with each command as a step within it."""
@@ -116,6 +116,8 @@ class AWSSageMakerRunner(Runner):
             PipelineDefinitionConfig,
         )
 
+        if cmd_prefix is None:
+            cmd_prefix = ['python', '-m', 'rastervision.pipeline.cli']
         verbosity = rv_config.get_verbosity_cli_opt()
         config = rv_config.get_namespace_config(AWS_SAGEMAKER)
         role = config('role')
@@ -172,12 +174,7 @@ class AWSSageMakerRunner(Runner):
                 # parallel).
                 step_splits = [None] * num_splits
                 for i in range(num_splits):
-                    split_cmd = cmd + [
-                        '--split-ind',
-                        str(i),
-                        '--num-splits',
-                        str(num_splits),
-                    ]
+                    split_cmd = [*cmd, '--split-ind', str(i), '--num-splits', str(num_splits)]
                     split_job_name = f'{job_name}_{i + 1}of{num_splits}'
                     step_split = self.build_step(
                         pipeline,
@@ -363,7 +360,7 @@ class AWSSageMakerRunner(Runner):
         from rastervision.aws_s3.s3_file_system import S3FileSystem
 
         if distribution is None:
-            distribution = dict(torch_distributed=dict(enabled=True))
+            distribution = {'torch_distributed': {'enabled': True}}
 
         train_uri = pipeline_cfg.train_uri
         if FileSystem.get_file_system(train_uri) != S3FileSystem:

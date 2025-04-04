@@ -23,10 +23,10 @@ def discard_prediction_edges(
     windows_cropped = [w.center_crop(crop_sz, crop_sz) for w in windows]
     array_slices = [
         wc.to_local_coords(w).to_slices()
-        for w, wc in zip(windows, windows_cropped)
+        for w, wc in zip(windows, windows_cropped, strict=False)
     ]
     predictions_cropped = (
         p[..., yslice, xslice]
-        for p, (xslice, yslice) in zip(predictions, array_slices)
+        for p, (xslice, yslice) in zip(predictions, array_slices, strict=False)
     )
     return windows_cropped, predictions_cropped

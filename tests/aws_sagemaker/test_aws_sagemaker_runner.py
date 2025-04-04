@@ -32,19 +32,19 @@ class TestAWSSageMakerRunner(unittest.TestCase):
         self.s3.create_bucket(Bucket=self.bucket_name)
 
         rv_config.set_everett_config(
-            config_overrides=dict(
-                SAGEMAKER_role='AmazonSageMakerExecutionRole',
-                SAGEMAKER_cpu_image='123.dkr.ecr.us-east-1.amazonaws.com/rv',
-                SAGEMAKER_cpu_instance_type='ml.p3.2xlarge',
-                SAGEMAKER_gpu_image='123.dkr.ecr.us-east-1.amazonaws.com/rv',
-                SAGEMAKER_gpu_instance_type='ml.p3.2xlarge',
-                SAGEMAKER_train_image='123.dkr.ecr.us-east-1.amazonaws.com/rv',
-                SAGEMAKER_train_instance_type='ml.p3.8xlarge',
-                SAGEMAKER_train_instance_count='2',
-                SAGEMAKER_use_spot_instances='yes',
-                SAGEMAKER_spot_instance_max_wait_time='86400',
-                SAGEMAKER_max_run_time='86400',
-            )
+            config_overrides={
+                'SAGEMAKER_role': 'AmazonSageMakerExecutionRole',
+                'SAGEMAKER_cpu_image': '123.dkr.ecr.us-east-1.amazonaws.com/rv',
+                'SAGEMAKER_cpu_instance_type': 'ml.p3.2xlarge',
+                'SAGEMAKER_gpu_image': '123.dkr.ecr.us-east-1.amazonaws.com/rv',
+                'SAGEMAKER_gpu_instance_type': 'ml.p3.2xlarge',
+                'SAGEMAKER_train_image': '123.dkr.ecr.us-east-1.amazonaws.com/rv',
+                'SAGEMAKER_train_instance_type': 'ml.p3.8xlarge',
+                'SAGEMAKER_train_instance_count': '2',
+                'SAGEMAKER_use_spot_instances': 'yes',
+                'SAGEMAKER_spot_instance_max_wait_time': '86400',
+                'SAGEMAKER_max_run_time': '86400',
+            }
         )
         os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
 

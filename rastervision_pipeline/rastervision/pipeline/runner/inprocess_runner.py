@@ -1,3 +1,5 @@
+from typing import NoReturn
+
 from rastervision.pipeline.cli import _run_command
 from rastervision.pipeline.runner.runner import Runner
 
@@ -17,7 +19,7 @@ class InProcessRunner(Runner):
         commands,
         num_splits=1,
         pipeline_run_name: str = 'raster-vision',
-    ):
+    ) -> None:
         for command in commands:
             if command in pipeline.split_commands and num_splits > 1:
                 for split_ind in range(num_splits):
@@ -25,7 +27,7 @@ class InProcessRunner(Runner):
             else:
                 _run_command(cfg_json_uri, command, 0, 1)
 
-    def run_command(self, cmd: list[str]):
+    def run_command(self, cmd: list[str]) -> NoReturn:
         raise NotImplementedError(
             'Use LocalRunner.run_command to run a command locally.'
         )

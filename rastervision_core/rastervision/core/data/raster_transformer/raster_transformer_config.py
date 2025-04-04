@@ -13,10 +13,10 @@ class RasterTransformerConfig(Config):
 
     def update(
         self, pipeline: 'RVPipelineConfig' = None, scene: 'SceneConfig' = None
-    ):
+    ) -> None:
         pass
 
-    def update_root(self, root_dir: str):
+    def update_root(self, root_dir: str) -> None:
         pass
 
     def build(

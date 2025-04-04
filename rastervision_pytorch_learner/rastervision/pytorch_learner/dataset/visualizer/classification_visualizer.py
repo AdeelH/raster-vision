@@ -46,7 +46,7 @@ class ClassificationVisualizer(Visualizer):
             if plot_title:
                 label_ax.set_title('Prediction')
 
-    def plot_gt(self, ax: 'Axes', class_names: Sequence[str], y: torch.Tensor):
+    def plot_gt(self, ax: 'Axes', class_names: Sequence[str], y: torch.Tensor) -> None:
         """Display ground truth class names as text."""
         class_name = class_names[y]
         ax.text(
@@ -67,7 +67,7 @@ class ClassificationVisualizer(Visualizer):
         class_names: Sequence[str],
         z: torch.Tensor,
         y: torch.Tensor | None = None,
-    ):
+    ) -> None:
         """Plot predictions.
 
         Plots predicted class probabilities as a horizontal bar plot. If ground

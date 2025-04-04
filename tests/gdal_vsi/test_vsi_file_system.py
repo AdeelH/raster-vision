@@ -75,7 +75,7 @@ class TestVsiFileSystem(unittest.TestCase):
             paths = fs.list_paths(dir_vsi, ext='txt')
             self.assertSetEqual(
                 set(paths),
-                set([join(tmp_dir, '1.txt'), join(tmp_dir, '2.txt')]),
+                {join(tmp_dir, '1.txt'), join(tmp_dir, '2.txt')},
             )
 
     def test_sync_to_from(self):
@@ -89,27 +89,23 @@ class TestVsiFileSystem(unittest.TestCase):
             paths = fs.list_paths(dst_vsi)
             self.assertSetEqual(
                 set(paths),
-                set(
-                    [
+                {
                         join(dst, 'subdir'),
                         join(dst, '1.txt'),
                         join(dst, '2.txt'),
-                    ]
-                ),
+                    },
             )
             paths = fs.list_paths(dst_vsi, ext='txt')
             self.assertSetEqual(
                 set(paths),
-                set(
-                    [
+                {
                         join(dst, '1.txt'),
                         join(dst, '2.txt'),
-                    ]
-                ),
+                    },
             )
             paths = fs.list_paths(join(dst_vsi, 'subdir'))
             self.assertSetEqual(
-                set(paths), set([join(dst, 'subdir', '3.txt')])
+                set(paths), {join(dst, 'subdir', '3.txt')}
             )
 
             with self.assertRaises(FileExistsError):
@@ -122,27 +118,23 @@ class TestVsiFileSystem(unittest.TestCase):
             paths = fs.list_paths(src_vsi)
             self.assertSetEqual(
                 set(paths),
-                set(
-                    [
+                {
                         join(src, 'subdir'),
                         join(src, '1.txt'),
                         join(src, '2.txt'),
-                    ]
-                ),
+                    },
             )
             paths = fs.list_paths(src_vsi, ext='txt')
             self.assertSetEqual(
                 set(paths),
-                set(
-                    [
+                {
                         join(src, '1.txt'),
                         join(src, '2.txt'),
-                    ]
-                ),
+                    },
             )
             paths = fs.list_paths(join(src, 'subdir'))
             self.assertSetEqual(
-                set(paths), set([join(src, 'subdir', '3.txt')])
+                set(paths), {join(src, 'subdir', '3.txt')}
             )
 
             with self.assertRaises(FileExistsError):

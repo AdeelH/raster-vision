@@ -107,9 +107,9 @@ class RegressionGeoDataConfig(RegressionDataConfig, GeoDataConfig):
 
         extra_args = {}
         if for_chipping:
-            extra_args = dict(
-                normalize=False, to_pytorch=False, return_window=True
-            )
+            extra_args = {
+                'normalize': False, 'to_pytorch': False, 'return_window': True
+            }
 
         if opts.method == WindowSamplingMethod.sliding:
             ds = RegressionSlidingWindowGeoDataset(
@@ -150,7 +150,7 @@ class RegressionModel(nn.Module):
         pos_out_inds: Sequence[int] | None = None,
         prob_out_inds: Sequence[int] | None = None,
         **kwargs,
-    ):
+    ) -> None:
         super().__init__()
         self.backbone = backbone
         in_features = self.backbone.fc.in_features
@@ -175,7 +175,7 @@ class RegressionModelConfig(ModelConfig):
 
     output_multiplier: list[float] | None = None
 
-    def update(self, learner=None):
+    def update(self, learner=None) -> None:
         if learner is not None and self.output_multiplier is None:
             self.output_multiplier = [1.0] * len(learner.data.class_names)
 

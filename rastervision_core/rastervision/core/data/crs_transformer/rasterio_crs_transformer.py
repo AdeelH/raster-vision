@@ -1,5 +1,6 @@
 import logging
-from typing import TYPE_CHECKING, Any, Callable
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import rasterio as rio
@@ -65,7 +66,7 @@ class RasterioCRSTransformer(CRSTransformer):
         image_crs: str,
         map_crs: str = 'epsg:4326',
         round_pixels: bool = True,
-    ):
+    ) -> None:
         """Constructor.
 
         Args:

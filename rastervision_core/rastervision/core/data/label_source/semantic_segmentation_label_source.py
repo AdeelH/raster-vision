@@ -21,7 +21,7 @@ class SemanticSegmentationLabelSource(LabelSource):
         raster_source: RasterSource,
         class_config: ClassConfig,
         bbox: Box | None = None,
-    ):
+    ) -> None:
         """Constructor.
 
         Args:
@@ -106,9 +106,9 @@ class SemanticSegmentationLabelSource(LabelSource):
             return self.get_label_arr(key)
         return super().__getitem__(key)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         arg_keys = ['raster_source', 'class_config', 'bbox']
         arg_vals = [getattr(self, k) for k in arg_keys]
-        arg_strs = [f'{k}={v!r}' for k, v in zip(arg_keys, arg_vals)]
+        arg_strs = [f'{k}={v!r}' for k, v in zip(arg_keys, arg_vals, strict=False)]
         arg_str = ', '.join(arg_strs)
         return f'{type(self).__name__}({arg_str})'

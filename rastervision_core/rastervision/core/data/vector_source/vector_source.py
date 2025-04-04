@@ -32,9 +32,9 @@ class VectorSource(ABC):
     def __init__(
         self,
         crs_transformer: 'CRSTransformer',
-        vector_transformers: list['VectorTransformer'] = [],
+        vector_transformers: list['VectorTransformer'] | None = None,
         bbox: Box | None = None,
-    ):
+    ) -> None:
         """Constructor.
 
         Args:
@@ -47,6 +47,8 @@ class VectorSource(ABC):
             bbox (Box | None): User-specified crop of the extent. If None,
                 the full extent available in the source file is used.
         """
+        if vector_transformers is None:
+            vector_transformers = []
         self.crs_transformer = crs_transformer
         self.vector_transformers = vector_transformers
         self._geojson = None

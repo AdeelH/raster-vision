@@ -8,8 +8,8 @@ from typing import Any
 log = logging.getLogger(__name__)
 
 
-def terminate_at_exit(process):
-    def terminate():
+def terminate_at_exit(process) -> None:
+    def terminate() -> None:
         log.debug(f'Terminating {process.pid}...')
         process.terminate()
 
@@ -36,7 +36,7 @@ def split_into_groups(lst: list, num_groups: int) -> list:
     Returns:
        A list of size between 1 and num_groups containing lists of items of l.
     """
-    group_sz = max(int(ceil((len(lst)) / num_groups)), 1)
+    group_sz = max(ceil((len(lst)) / num_groups), 1)
 
     return grouped(lst, group_sz)
 
@@ -59,3 +59,4 @@ def get_env_var(
         if out_type == bool:
             return val.lower() in ('1', 'true', 'y', 'yes')
         return out_type(val)
+    return None

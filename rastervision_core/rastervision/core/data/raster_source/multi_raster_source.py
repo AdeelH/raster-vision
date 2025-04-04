@@ -26,7 +26,7 @@ class MultiRasterSource(RasterSource):
         channel_order: Sequence[NonNegInt] | None = None,
         raster_transformers: Sequence['RasterTransformer'] = [],
         bbox: Box | None = None,
-    ):
+    ) -> None:
         """Constructor.
 
         Args:
@@ -83,7 +83,7 @@ class MultiRasterSource(RasterSource):
         item: Item,
         assets: list[str] | None,
         primary_source_idx: NonNegInt = 0,
-        raster_transformers: list['RasterTransformer'] = [],
+        raster_transformers: list['RasterTransformer'] | None = None,
         channel_order: Sequence[int] | None = None,
         bbox: Box | tuple[int, int, int, int] | None = None,
         bbox_map_coords: Box | tuple[int, int, int, int] | None = None,
@@ -122,6 +122,8 @@ class MultiRasterSource(RasterSource):
             allow_streaming: Passed to :class:`.RasterioSource`. If ``False``,
                 assets will be downloaded. Defaults to ``True``.
         """
+        if raster_transformers is None:
+            raster_transformers = []
         if bbox is not None and bbox_map_coords is not None:
             raise ValueError(
                 'Specify either bbox or bbox_map_coords, but not both.'
@@ -211,10 +213,7 @@ class MultiRasterSource(RasterSource):
             map: bool = False,
             out_shape: tuple[int, int] | None = None,
         ) -> np.ndarray:
-            if map:
-                func = rs.get_chip_by_map_window
-            else:
-                func = rs.get_chip
+            func = rs.get_chip_by_map_window if map else rs.get_chip
             return func(window, out_shape=out_shape)
 
         primary_rs = self.primary_source

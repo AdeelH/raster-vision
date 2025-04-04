@@ -14,7 +14,7 @@ def make_dir(
     check_empty: bool = False,
     force_empty: bool = False,
     use_dirname: bool = False,
-):
+) -> None:
     """Make a local directory.
 
     Args:
@@ -115,7 +115,7 @@ class LocalFileSystem(FileSystem):
             shutil.rmtree(dst_dir)
 
         # https://stackoverflow.com/a/15824216/841563
-        def recursive_overwrite(src, dest):
+        def recursive_overwrite(src, dest) -> None:
             if os.path.isdir(src):
                 if not os.path.isdir(dest):
                     os.makedirs(dest)

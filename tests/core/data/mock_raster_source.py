@@ -8,8 +8,10 @@ from rastervision.core.data import IdentityCRSTransformer, RasterSource
 
 class MockRasterSource(RasterSource):
     def __init__(
-        self, channel_order, num_channels_raw, raster_transformers=[]
-    ):
+        self, channel_order, num_channels_raw, raster_transformers=None
+    ) -> None:
+        if raster_transformers is None:
+            raster_transformers = []
         super().__init__(
             channel_order=channel_order,
             num_channels_raw=num_channels_raw,

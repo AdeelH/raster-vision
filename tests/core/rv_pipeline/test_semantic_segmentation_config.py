@@ -57,11 +57,11 @@ class TestSemanticSegmentationConfig(unittest.TestCase):
 
 class TestSemanticSegmentationPredictOptions(unittest.TestCase):
     def test_crop_sz_validator(self):
-        args = dict(chip_sz=10, stride=4, crop_sz='auto')
+        args = {'chip_sz': 10, 'stride': 4, 'crop_sz': 'auto'}
         cfg = SemanticSegmentationPredictOptions(**args)
         self.assertEqual(cfg.crop_sz, 3)
 
-        args = dict(chip_sz=10, stride=5, crop_sz='auto')
+        args = {'chip_sz': 10, 'stride': 5, 'crop_sz': 'auto'}
         cfg = SemanticSegmentationPredictOptions(**args)
         self.assertEqual(cfg.crop_sz, 2)
 

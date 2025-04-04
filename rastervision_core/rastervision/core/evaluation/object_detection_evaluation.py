@@ -42,10 +42,10 @@ def compute_metrics(
     pred_classes = pred_labels.get_class_ids()
 
     gt_df = gpd.GeoDataFrame(
-        dict(class_id=gt_classes, id=range(len(gt_geoms))), geometry=gt_geoms
+        {'class_id': gt_classes, 'id': range(len(gt_geoms))}, geometry=gt_geoms
     )
     pred_df = gpd.GeoDataFrame(
-        dict(class_id=pred_classes, id=range(len(pred_geoms))),
+        {'class_id': pred_classes, 'id': range(len(pred_geoms))},
         geometry=pred_geoms,
     )
 
@@ -89,7 +89,7 @@ def compute_metrics(
 
 
 class ObjectDetectionEvaluation(ClassificationEvaluation):
-    def __init__(self, class_config: 'ClassConfig', iou_thresh: float = 0.5):
+    def __init__(self, class_config: 'ClassConfig', iou_thresh: float = 0.5) -> None:
         super().__init__()
         self.class_config = class_config
         self.iou_thresh = iou_thresh
@@ -98,7 +98,7 @@ class ObjectDetectionEvaluation(ClassificationEvaluation):
         self,
         ground_truth_labels: 'ObjectDetectionLabels',
         prediction_labels: 'ObjectDetectionLabels',
-    ):
+    ) -> None:
         self.class_to_eval_item = ObjectDetectionEvaluation.compute_eval_items(
             ground_truth_labels,
             prediction_labels,
@@ -119,7 +119,7 @@ class ObjectDetectionEvaluation(ClassificationEvaluation):
             gt_labels, pred_labels, num_classes, iou_thresh
         )
         class_to_eval_item = {}
-        for class_id, (tp, fp, fn) in enumerate(zip(tps, fps, fns)):
+        for class_id, (tp, fp, fn) in enumerate(zip(tps, fps, fns, strict=False)):
             class_name = class_config.get_name(class_id)
             eval_item = ClassEvaluationItem(
                 class_id=class_id, class_name=class_name, tp=tp, fp=fp, fn=fn

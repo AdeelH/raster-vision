@@ -21,7 +21,7 @@ class ObjectDetectionLabelSource(LabelSource):
         bbox: Box | None = None,
         ioa_thresh: float | None = None,
         clip: bool = False,
-    ):
+    ) -> None:
         """Constructor.
 
         Args:

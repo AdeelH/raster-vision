@@ -109,23 +109,23 @@ class TestSemanticSegmentationLabelStore(unittest.TestCase):
             del label_store
 
             # test compatibility validation
-            args = dict(
-                uri=tmp_dir,
-                crs_transformer=IdentityCRSTransformer(),
-                class_config=ClassConfig(names=['bg', 'fg', 'null']),
-                smooth_output=True,
-                smooth_as_uint8=True,
-            )
+            args = {
+                'uri': tmp_dir,
+                'crs_transformer': IdentityCRSTransformer(),
+                'class_config': ClassConfig(names=['bg', 'fg', 'null']),
+                'smooth_output': True,
+                'smooth_as_uint8': True,
+            }
             with self.assertRaises(FileExistsError):
                 label_store = SemanticSegmentationLabelStore(**args)
 
-            args = dict(
-                uri=tmp_dir,
-                crs_transformer=IdentityCRSTransformer(),
-                class_config=class_config,
-                smooth_output=True,
-                smooth_as_uint8=True,
-            )
+            args = {
+                'uri': tmp_dir,
+                'crs_transformer': IdentityCRSTransformer(),
+                'class_config': class_config,
+                'smooth_output': True,
+                'smooth_as_uint8': True,
+            }
             label_store = SemanticSegmentationLabelStore(**args)
             self.assertIsNotNone(label_store.label_source)
             self.assertIsNotNone(label_store.score_source)

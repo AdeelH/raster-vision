@@ -41,7 +41,7 @@ class Visualizer(ABC):
         channel_display_groups: dict[str, ChannelInds]
         | Sequence[ChannelInds]
         | None = None,
-    ):
+    ) -> None:
         """Constructor.
 
         Args:
@@ -107,7 +107,7 @@ class Visualizer(ABC):
         z: Sequence | None = None,
         batch_limit: int | None = None,
         show: bool = False,
-    ):
+    ) -> None:
         """Plot a whole batch in a grid using plot_xyz.
 
         Args:
@@ -178,7 +178,7 @@ class Visualizer(ABC):
         x: Tensor,
         y: Sequence | None = None,
         z: Sequence | None = None,
-    ):
+    ) -> None:
         # (N, c, h, w) --> (N, h, w, c)
         x = x.permute(0, 2, 3, 1)
 

@@ -68,7 +68,7 @@ class SemanticSegmentationVisualizer(Visualizer):
         if class_names:
             legend_items = [
                 mpatches.Patch(facecolor=col, edgecolor='black', label=name)
-                for col, name in zip(colors, class_names)
+                for col, name in zip(colors, class_names, strict=False)
             ]
             axs[-1].legend(
                 handles=legend_items,
@@ -83,7 +83,7 @@ class SemanticSegmentationVisualizer(Visualizer):
         num_classes: int,
         cmap: 'Colormap',
         **kwargs,
-    ):
+    ) -> None:
         ax.imshow(
             y,
             vmin=0,
@@ -102,7 +102,7 @@ class SemanticSegmentationVisualizer(Visualizer):
         num_classes: int,
         cmap: 'Colormap',
         **kwargs,
-    ):
+    ) -> None:
         if z.ndim == 3:
             z = z.argmax(dim=0)
         self.plot_gt(ax, y=z, num_classes=num_classes, cmap=cmap, **kwargs)

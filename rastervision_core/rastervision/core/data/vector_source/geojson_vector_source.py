@@ -21,9 +21,9 @@ class GeoJSONVectorSource(VectorSource):
         self,
         uris: str | list[str],
         crs_transformer: 'CRSTransformer',
-        vector_transformers: list['VectorTransformer'] = [],
+        vector_transformers: list['VectorTransformer'] | None = None,
         bbox: Box | None = None,
-    ):
+    ) -> None:
         """Constructor.
 
         Args:
@@ -36,6 +36,8 @@ class GeoJSONVectorSource(VectorSource):
             bbox: User-specified crop of the extent. If ``None``, the full
                 extent available in the source file is used.
         """
+        if vector_transformers is None:
+            vector_transformers = []
         self.uris = listify_uris(uris)
         super().__init__(
             crs_transformer, vector_transformers=vector_transformers, bbox=bbox

@@ -35,7 +35,7 @@ class AlbumentationsDataset(Dataset):
         transform_type: TransformType = TransformType.noop,
         normalize=True,
         to_pytorch=True,
-    ):
+    ) -> None:
         """Constructor.
 
         Args:
@@ -74,13 +74,13 @@ class AlbumentationsDataset(Dataset):
 
         try:
             x, y = self.transform(val)
-        except Exception as exc:
+        except Exception:
             log.warning(
                 'Many albumentations transforms require uint8 input. Therefore, we '
                 'recommend passing a MinMaxTransformer or StatsTransformer to the '
                 'RasterSource so the input will be converted to uint8.'
             )
-            raise exc
+            raise
 
         if self.normalize and np.issubdtype(x.dtype, np.unsignedinteger):
             max_val = np.iinfo(x.dtype).max
@@ -101,7 +101,7 @@ class AlbumentationsDataset(Dataset):
 
         return x, y
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.orig_dataset)
 
 
@@ -124,7 +124,7 @@ class GeoDataset(AlbumentationsDataset):
         normalize: bool = True,
         to_pytorch: bool = True,
         return_window: bool = False,
-    ):
+    ) -> None:
         """Constructor.
 
         Args:
@@ -181,7 +181,7 @@ class GeoDataset(AlbumentationsDataset):
             transform = A.Compose([transform, resize_tf])
         return transform
 
-    def __len__(self):
+    def __len__(self) -> int:
         raise NotImplementedError
 
     @classmethod
@@ -206,7 +206,7 @@ class SlidingWindowGeoDataset(GeoDataset):
         normalize: bool = True,
         to_pytorch: bool = True,
         return_window: bool = False,
-    ):
+    ) -> None:
         """Constructor.
 
         Args:
@@ -286,7 +286,7 @@ class SlidingWindowGeoDataset(GeoDataset):
             return (out, window)
         return out
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.windows)
 
 
@@ -311,7 +311,7 @@ class RandomWindowGeoDataset(GeoDataset):
         normalize: bool = True,
         to_pytorch: bool = True,
         return_window: bool = False,
-    ):
+    ) -> None:
         """Constructor.
 
         Will sample square windows if size_lims is specified. Otherwise, will
@@ -517,5 +517,5 @@ class RandomWindowGeoDataset(GeoDataset):
             return (out, window)
         return out
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.max_windows

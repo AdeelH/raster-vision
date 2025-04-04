@@ -30,7 +30,7 @@ class Pipeline:
     split_commands: list[str] = ['test_cpu']
     gpu_commands: list[str] = ['test_gpu']
 
-    def __init__(self, config: 'PipelineConfig', tmp_dir: str):
+    def __init__(self, config: 'PipelineConfig', tmp_dir: str) -> None:
         """Constructor
 
         Args:
@@ -41,11 +41,11 @@ class Pipeline:
         self.config = config
         self.tmp_dir = tmp_dir
 
-    def test_cpu(self, split_ind: int = 0, num_splits: int = 1):
+    def test_cpu(self, split_ind: int = 0, num_splits: int = 1) -> None:
         """A command to test the ability to run split jobs on CPU."""
         log.info(f'test_cpu split: {split_ind}/{num_splits}')
         log.info(self.config)
 
-    def test_gpu(self):
+    def test_gpu(self) -> None:
         """A command to test the ability to run on GPU."""
         log.info(self.config)

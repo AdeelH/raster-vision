@@ -205,7 +205,7 @@ def deserialize_albumentation_transform(tf_dict: dict) -> A.BasicTransform:
 class SplitTensor(nn.Module):
     """Wrapper around `torch.split`"""
 
-    def __init__(self, size_or_sizes, dim):
+    def __init__(self, size_or_sizes, dim) -> None:
         super().__init__()
         self.size_or_sizes = size_or_sizes
         self.dim = dim
@@ -219,14 +219,14 @@ class Parallel(nn.ModuleList):
     Returns a tuple of outputs.
     """
 
-    def __init__(self, *args):
+    def __init__(self, *args) -> None:
         super().__init__(args)
 
     def forward(self, xs):
         if isinstance(xs, torch.Tensor):
             return tuple(m(xs) for m in self)
         assert len(xs) == len(self)
-        return tuple(m(x) for m, x in zip(self, xs))
+        return tuple(m(x) for m, x in zip(self, xs, strict=False))
 
 
 class AddTensors(nn.Module):
@@ -249,7 +249,7 @@ class MinMaxNormalize(ImageOnlyTransform):
         max_val=1.0,
         dtype=cv2.CV_32F,
         p=1.0,
-    ):
+    ) -> None:
         """Constructor.
 
         Args:
@@ -257,7 +257,7 @@ class MinMaxNormalize(ImageOnlyTransform):
             max_val: the maximum value that output should have
             dtype: the dtype of output image
         """
-        super(MinMaxNormalize, self).__init__(p)
+        super().__init__(p)
         self.min_val = min_val
         self.max_val = max_val
         self.dtype = dtype
@@ -345,7 +345,7 @@ def plot_channel_groups(
     channel_groups: dict,
     plot_title: bool = True,
 ) -> None:
-    for title, ax, img in zip(channel_groups.keys(), axs, imgs):
+    for title, ax, img in zip(channel_groups.keys(), axs, imgs, strict=False):
         ax.imshow(img)
         if plot_title:
             ax.set_title(title)
@@ -378,7 +378,7 @@ def channel_groups_to_imgs(
     return imgs
 
 
-def log_metrics_to_csv(csv_path: str, metrics: dict[str, Any]):
+def log_metrics_to_csv(csv_path: str, metrics: dict[str, Any]) -> None:
     """Append epoch metrics to CSV file."""
     # dict --> single-row DataFrame
     metrics_df = pd.DataFrame.from_records([metrics])
@@ -422,7 +422,7 @@ def aggregate_metrics(
     return metrics
 
 
-def log_system_details():
+def log_system_details() -> None:
     """Log some system details."""
     import os
     import sys
@@ -454,13 +454,7 @@ def log_system_details():
         with os.popen('nvidia-smi') as f:
             log.info(f.read())
         log.info('Devices:')
-        device_query = ' '.join(
-            [
-                'nvidia-smi',
-                '--format=csv',
-                '--query-gpu=index,name,driver_version,memory.total,memory.used,memory.free',
-            ]
-        )
+        device_query = 'nvidia-smi --format=csv --query-gpu=index,name,driver_version,memory.total,memory.used,memory.free'
         with os.popen(device_query) as f:
             log.info(f.read())
     except FileNotFoundError:
@@ -493,6 +487,7 @@ class ONNXRuntimeAdapter:
         if len(inputs) > 1:
             return ValueError('ONNX model must only take one input.')
         self.input_key = inputs[0].name
+        return None
 
     @classmethod
     def from_file(

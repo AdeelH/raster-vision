@@ -26,14 +26,14 @@ class ClassificationEvaluation(ABC):
         conf_mat: Confusion matrix.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.class_to_eval_item: dict[int, ClassEvaluationItem]
         self.scene_to_eval: dict[str, ClassificationEvaluation]
         self.avg_item: dict[str, Any] | None
         self.conf_mat: np.ndarray | None
         self.reset()
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset the Evaluation."""
         self.class_to_eval_item = {}
         self.scene_to_eval = {}

@@ -5,7 +5,7 @@ import urllib
 import urllib.request
 from datetime import datetime
 from functools import partial
-from typing import ContextManager
+from typing import ContextManager, NoReturn
 from urllib.parse import urlparse
 
 import requests
@@ -138,5 +138,5 @@ class HttpFileSystem(FileSystem):
         return None
 
     @staticmethod
-    def list_paths(uri, suffix=None):
+    def list_paths(uri, suffix=None) -> NoReturn:
         raise NotImplementedError

@@ -34,16 +34,16 @@ class TestRasterStats(unittest.TestCase):
         da = DataArray(arr, dims=['x', 'y', 'band'])
         rs = XarraySource(da, IdentityCRSTransformer())
         stats = RasterStats()
-        args = dict(raster_sources=[rs], chip_sz=10, stride=10)
+        args = {'raster_sources': [rs], 'chip_sz': 10, 'stride': 10}
         self.assertRaises(ValueError, lambda: stats.compute(**args))
-        args = dict(raster_sources=[rs], chip_sz=10, sample_prob=1)
+        args = {'raster_sources': [rs], 'chip_sz': 10, 'sample_prob': 1}
         self.assertRaises(ValueError, lambda: stats.compute(**args))
 
     def test_compute_from_pixels_validation(self):
         stats = RasterStats()
         pixels = np.zeros((5, 3), dtype=np.uint8)
         running_mean = np.zeros((3,), dtype=np.uint8)
-        args = dict(pixels=pixels, running_mean=running_mean)
+        args = {'pixels': pixels, 'running_mean': running_mean}
         self.assertRaises(
             ValueError, lambda: stats.compute_from_pixels(**args)
         )
@@ -136,7 +136,7 @@ class TestUtils(unittest.TestCase):
         arr = np.ones((20, 100, 4), dtype=np.uint8)
         da = DataArray(arr, dims=['x', 'y', 'band'])
         rs = XarraySource(da, IdentityCRSTransformer())
-        args = dict(raster_sources=[rs], chip_sz=40, sample_prob=0.5)
+        args = {'raster_sources': [rs], 'chip_sz': 40, 'sample_prob': 0.5}
         self.assertRaises(ValueError, lambda: list(random_chip_stream(**args)))
 
 

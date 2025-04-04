@@ -25,7 +25,7 @@ log = logging.getLogger(__name__)
 class SemanticSegmentationDataReader(Dataset):
     """Reads semantic segmentatioin images and labels from files."""
 
-    def __init__(self, img_dir: str, label_dir: str):
+    def __init__(self, img_dir: str, label_dir: str) -> None:
         """Constructor.
 
         Args:
@@ -49,7 +49,7 @@ class SemanticSegmentationDataReader(Dataset):
                 f'Found {len(self.img_paths)} image files and '
                 f'{len(self.label_paths)} label files.'
             )
-        for img_path, label_path in zip(self.img_paths, self.label_paths):
+        for img_path, label_path in zip(self.img_paths, self.label_paths, strict=False):
             if img_path.stem != label_path.stem:
                 raise ImageDatasetError(
                     f'Name mismatch between image file {img_path.stem} '
@@ -65,7 +65,7 @@ class SemanticSegmentationDataReader(Dataset):
 
         return x, y
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.img_paths)
 
 
@@ -75,7 +75,7 @@ class SemanticSegmentationImageDataset(ImageDataset):
     Uses :class:`.SemanticSegmentationDataReader` to read the data.
     """
 
-    def __init__(self, img_dir: str, label_dir: str, *args, **kwargs):
+    def __init__(self, img_dir: str, label_dir: str, *args, **kwargs) -> None:
         """Constructor.
 
         Args:
@@ -99,11 +99,11 @@ def make_ss_geodataset(
     label_raster_uri: str | list[str] | None = None,
     label_vector_uri: str | None = None,
     class_config: 'ClassConfig | None' = None,
-    aoi_uri: str | list[str] = [],
+    aoi_uri: str | list[str] | None = None,
     label_vector_default_class_id: int | None = None,
-    image_raster_source_kw: dict = {},
-    label_raster_source_kw: dict = {},
-    label_vector_source_kw: dict = {},
+    image_raster_source_kw: dict | None = None,
+    label_raster_source_kw: dict | None = None,
+    label_vector_source_kw: dict | None = None,
     **kwargs,
 ):
     """Create an instance of this class from image and label URIs.
@@ -152,6 +152,14 @@ def make_ss_geodataset(
     Returns:
         An instance of this GeoDataset subclass.
     """
+    if label_vector_source_kw is None:
+        label_vector_source_kw = {}
+    if label_raster_source_kw is None:
+        label_raster_source_kw = {}
+    if image_raster_source_kw is None:
+        image_raster_source_kw = {}
+    if aoi_uri is None:
+        aoi_uri = []
     scene = make_ss_scene(
         image_uri=image_uri,
         label_raster_uri=label_raster_uri,
@@ -170,7 +178,7 @@ def make_ss_geodataset(
 class SemanticSegmentationSlidingWindowGeoDataset(SlidingWindowGeoDataset):
     from_uris = classmethod(make_ss_geodataset)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(
             *args, **kwargs, transform_type=TransformType.semantic_segmentation
         )
@@ -179,7 +187,7 @@ class SemanticSegmentationSlidingWindowGeoDataset(SlidingWindowGeoDataset):
 class SemanticSegmentationRandomWindowGeoDataset(RandomWindowGeoDataset):
     from_uris = classmethod(make_ss_geodataset)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(
             *args, **kwargs, transform_type=TransformType.semantic_segmentation
         )

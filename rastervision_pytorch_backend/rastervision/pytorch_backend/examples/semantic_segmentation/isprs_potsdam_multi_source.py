@@ -234,7 +234,7 @@ def get_config(
 class UriPath:
     """Workaround for pathlib.Path converting "s3://abc to s3:/abc" """
 
-    def __init__(self, s):
+    def __init__(self, s) -> None:
         from pathlib import Path
 
         self._path = Path(s)
@@ -250,7 +250,7 @@ class UriPath:
     def __truediv__(self, val):
         return UriPath(self._path / val)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         import re
 
         s = str(self._path)

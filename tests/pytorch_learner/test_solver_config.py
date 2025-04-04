@@ -58,27 +58,27 @@ class TestSolverConfig(unittest.TestCase):
         self.assertEqual(loss.ignore_index, 1)
 
     def test_disallow_loss_opts_if_external(self):
-        args = dict(
-            external_loss_def=ExternalModuleConfig(
+        args = {
+            'external_loss_def': ExternalModuleConfig(
                 uri='abc/def', entrypoint='foo'
             ),
-            class_loss_weights=[1, 2],
-        )
+            'class_loss_weights': [1, 2],
+        }
         self.assertRaises(ValidationError, lambda: SolverConfig(**args))
 
-        args = dict(
-            external_loss_def=ExternalModuleConfig(
+        args = {
+            'external_loss_def': ExternalModuleConfig(
                 uri='abc/def', entrypoint='foo'
             ),
-            ignore_class_index=1,
-        )
+            'ignore_class_index': 1,
+        }
         self.assertRaises(ValidationError, lambda: SolverConfig(**args))
 
-        args = dict(
-            external_loss_def=ExternalModuleConfig(
+        args = {
+            'external_loss_def': ExternalModuleConfig(
                 uri='abc/def', entrypoint='foo'
             )
-        )
+        }
         self.assertNoError(lambda: SolverConfig(**args))
 
     def test_build_loss(self):

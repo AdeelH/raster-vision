@@ -63,7 +63,7 @@ class LocalRunner(Runner):
         makefile_path_local = download_if_needed(makefile_path)
         return self.run_command(['make', '-j', '-f', makefile_path_local])
 
-    def run_command(self, cmd: list[str]):
+    def run_command(self, cmd: list[str]) -> int | None:
         process = Popen(cmd)
         terminate_at_exit(process)
         exitcode = process.wait()

@@ -6,10 +6,7 @@ import sys
 from subprocess import call, check_output
 
 if not len(sys.argv) >= 4:
-    print(
-        f'Usage: {sys.argv[0]} <input_rgb.tif> <input_label.tif> <output_label.tif>'
-    )
-    exit()
+    sys.exit()
 
 input_rgb = sys.argv[1]
 input_label = sys.argv[2]

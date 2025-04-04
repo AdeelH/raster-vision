@@ -37,7 +37,7 @@ class Predictor:
         update_stats: bool = False,
         channel_order: list[int] | None = None,
         scene_group: str | None = None,
-    ):
+    ) -> None:
         """Creates a new Predictor.
 
         Args:
@@ -162,7 +162,7 @@ class ScenePredictor:
         model_bundle_uri: str,
         predict_options: 'str | dict | PredictOptions | None' = None,
         tmp_dir: str | None = None,
-    ):
+    ) -> None:
         """Creates a new Predictor.
 
         Args:

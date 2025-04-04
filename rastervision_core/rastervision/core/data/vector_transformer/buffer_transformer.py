@@ -15,7 +15,7 @@ class BufferTransformer(VectorTransformer):
         geom_type: str,
         class_bufs: dict[int, float | None] | None = None,
         default_buf: float | None = None,
-    ):
+    ) -> None:
         """Constructor.
 
         Args:

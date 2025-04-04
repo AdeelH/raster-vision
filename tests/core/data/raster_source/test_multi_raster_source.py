@@ -54,7 +54,7 @@ def make_cfg_diverse(
         ]
     rs_cfgs = [
         RasterioSourceConfig(uris=[path], transformers=tfs)
-        for path, tfs in zip(img_paths, transformers)
+        for path, tfs in zip(img_paths, transformers, strict=False)
     ]
     cfg = MultiRasterSourceConfig(raster_sources=rs_cfgs, **kwargs)
     return cfg
@@ -269,12 +269,12 @@ class TestMultiRasterSource(unittest.TestCase):
         self.assertEqual(rs.bbox, Box(ymin=51, xmin=50, ymax=207, xmax=206))
 
         # test error if both bbox and bbox_map_coords specified
-        args = dict(
-            item=item,
-            assets=['red', 'green'],
-            bbox=bbox,
-            bbox_map_coords=bbox_map_coords,
-        )
+        args = {
+            'item': item,
+            'assets': ['red', 'green'],
+            'bbox': bbox,
+            'bbox_map_coords': bbox_map_coords,
+        }
         self.assertRaises(
             ValueError, lambda: MultiRasterSource.from_stac(**args)
         )

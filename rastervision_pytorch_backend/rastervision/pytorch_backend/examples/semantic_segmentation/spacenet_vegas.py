@@ -40,7 +40,7 @@ ROADS = 'roads'
 
 
 class SpacenetConfig:
-    def __init__(self, raw_uri):
+    def __init__(self, raw_uri) -> None:
         self.raw_uri = raw_uri
 
     @staticmethod
@@ -82,7 +82,7 @@ class SpacenetConfig:
 
 
 class VegasRoads(SpacenetConfig):
-    def __init__(self, raw_uri):
+    def __init__(self, raw_uri) -> None:
         self.base_dir = 'spacenet/SN3_roads/train/AOI_2_Vegas/'
         self.raster_dir = 'PS-RGB/'
         self.label_dir = 'geojson_roads/'
@@ -102,7 +102,7 @@ class VegasRoads(SpacenetConfig):
 
 
 class VegasBuildings(SpacenetConfig):
-    def __init__(self, raw_uri):
+    def __init__(self, raw_uri) -> None:
         self.base_dir = 'spacenet/SN2_buildings/train/AOI_2_Vegas'
         self.raster_dir = 'PS-RGB'
         self.label_dir = 'geojson_buildings'

@@ -99,7 +99,7 @@ class ClassConfig(Config):
         return self.get_class_id(self.null_class)
 
     def get_color_to_class_id(self) -> dict[str | tuple[int, int, int], int]:
-        return dict([(self.colors[i], i) for i in range(len(self.colors))])
+        return {self.colors[i]: i for i in range(len(self.colors))}
 
     def ensure_null_class(self) -> None:
         """Add a null class if one isn't set. This method is idempotent."""

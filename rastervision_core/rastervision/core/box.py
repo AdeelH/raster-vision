@@ -30,7 +30,7 @@ class BoxSizeError(ValueError):
 class Box:
     """A multi-purpose box (ie. rectangle) representation."""
 
-    def __init__(self, ymin: int, xmin: int, ymax: int, xmax: int):
+    def __init__(self, ymin: int, xmin: int, ymax: int, xmax: int) -> None:
         """Constructor.
 
         Although primarily intended for representing integer pixel coordinates
@@ -233,9 +233,7 @@ class Box:
         box2 = other.normalize()
         if box1.ymax <= box2.ymin or box1.ymin >= box2.ymax:
             return False
-        if box1.xmax <= box2.xmin or box1.xmin >= box2.xmax:
-            return False
-        return True
+        return not (box1.xmax <= box2.xmin or box1.xmin >= box2.xmax)
 
     @classmethod
     def from_npbox(cls, npbox: np.ndarray) -> 'Self':
@@ -354,10 +352,10 @@ class Box:
         """
         buffer_sz = max(0.0, buffer_sz)
         if buffer_sz < 1.0:
-            delta_width = int(round(buffer_sz * self.width))
-            delta_height = int(round(buffer_sz * self.height))
+            delta_width = round(buffer_sz * self.width)
+            delta_height = round(buffer_sz * self.height)
         else:
-            delta_height = delta_width = int(round(buffer_sz))
+            delta_height = delta_width = round(buffer_sz)
 
         return Box(
             max(0, math.floor(self.ymin - delta_height)),
@@ -540,7 +538,7 @@ class SlidingWindows(Sequence[Box]):
         stride: PosInt | tuple[PosInt, PosInt],
         padding: NonNegInt | tuple[NonNegInt, NonNegInt] | None = None,
         pad_direction: Literal['both', 'start', 'end'] = 'end',
-    ):
+    ) -> None:
         """Constructor.
 
         Each of ``size``, ``stride``, and ``padding`` can be either a positive

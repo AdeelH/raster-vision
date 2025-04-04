@@ -1,7 +1,7 @@
 import logging
-from collections.abc import Callable
 from enum import Enum
 from os.path import join
+from typing import TYPE_CHECKING
 
 import albumentations as A
 from torch import nn
@@ -30,6 +30,9 @@ from rastervision.pytorch_learner.learner_config import (
     ModelConfig,
 )
 from rastervision.pytorch_learner.utils import adjust_conv_channels
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 log = logging.getLogger(__name__)
 
@@ -99,7 +102,7 @@ class SemanticSegmentationImageDataConfig(
         SemanticSegmentationDataFormat.default
     )
 
-    def update(self, *args, **kwargs):
+    def update(self, *args, **kwargs) -> None:
         SemanticSegmentationDataConfig.update(self)
         ImageDataConfig.update(self, *args, **kwargs)
 
@@ -126,7 +129,7 @@ class SemanticSegmentationGeoDataConfig(
     :mod:`rastervision.pytorch_learner.dataset.semantic_segmentation_dataset`.
     """
 
-    def update(self, *args, **kwargs):
+    def update(self, *args, **kwargs) -> None:
         SemanticSegmentationDataConfig.update(self)
         GeoDataConfig.update(self, *args, **kwargs)
 
@@ -143,9 +146,9 @@ class SemanticSegmentationGeoDataConfig(
 
         extra_args = {}
         if for_chipping:
-            extra_args = dict(
-                normalize=False, to_pytorch=False, return_window=True
-            )
+            extra_args = {
+                'normalize': False, 'to_pytorch': False, 'return_window': True
+            }
 
         if opts.method == WindowSamplingMethod.sliding:
             ds = SemanticSegmentationSlidingWindowGeoDataset(

@@ -14,7 +14,7 @@ class StatsAnalyzer(Analyzer):
         sample_prob: float = 0.1,
         chip_sz: int = 300,
         nodata_value: float | None = 0,
-    ):
+    ) -> None:
         self.stats_uri = stats_uri
         self.sample_prob = sample_prob
         self.chip_sz = chip_sz

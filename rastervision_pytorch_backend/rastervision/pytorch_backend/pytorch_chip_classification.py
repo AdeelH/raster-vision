@@ -2,8 +2,6 @@ import uuid
 from os.path import join
 from typing import TYPE_CHECKING
 
-from rastervision.core.data import ChipClassificationLabels
-from rastervision.core.data_sample import DataSample
 from rastervision.pipeline.file_system import make_dir
 from rastervision.pytorch_backend.pytorch_learner_backend import (
     PyTorchLearnerBackend,
@@ -13,13 +11,18 @@ from rastervision.pytorch_backend.utils import chip_collate_fn_cc
 from rastervision.pytorch_learner.utils import predict_scene_cc
 
 if TYPE_CHECKING:
-    from rastervision.core.data import DatasetConfig, Scene
+    from rastervision.core.data import (
+        ChipClassificationLabels,
+        DatasetConfig,
+        Scene,
+    )
+    from rastervision.core.data_sample import DataSample
     from rastervision.core.rv_pipeline import ChipOptions, PredictOptions
     from rastervision.pytorch_learner import ClassificationGeoDataConfig
 
 
 class PyTorchChipClassificationSampleWriter(PyTorchLearnerSampleWriter):
-    def write_sample(self, sample: 'DataSample'):
+    def write_sample(self, sample: 'DataSample') -> None:
         """This writes a training or validation sample to
         (train|valid)/{class_name}/{scene_id}-{ind}.png
         """
@@ -55,8 +58,10 @@ class PyTorchChipClassification(PyTorchLearnerBackend):
         self,
         dataset: 'DatasetConfig',
         chip_options: 'ChipOptions',
-        dataloader_kw: dict = {},
+        dataloader_kw: dict | None = None,
     ) -> None:
+        if dataloader_kw is None:
+            dataloader_kw = {}
         dataloader_kw = dict(**dataloader_kw, collate_fn=chip_collate_fn_cc)
         return super().chip_dataset(dataset, chip_options, dataloader_kw)
 

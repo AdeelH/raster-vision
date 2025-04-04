@@ -18,7 +18,7 @@ log = logging.getLogger(__name__)
 
 
 class RegressionDataReader(Dataset):
-    def __init__(self, data_dir: str, class_names: Iterable[str]):
+    def __init__(self, data_dir: str, class_names: Iterable[str]) -> None:
         self.data_dir = data_dir
 
         img_dir = join(data_dir, 'img')
@@ -40,14 +40,14 @@ class RegressionDataReader(Dataset):
         y = np.array(targets)
         return x, y
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.labels)
 
 
 class RegressionImageDataset(ImageDataset):
     def __init__(
         self, data_dir: str, class_names: Iterable[str], *args, **kwargs
-    ):
+    ) -> None:
         ds = RegressionDataReader(data_dir, class_names)
         super().__init__(
             ds, *args, **kwargs, transform_type=TransformType.regression
@@ -55,14 +55,14 @@ class RegressionImageDataset(ImageDataset):
 
 
 class RegressionSlidingWindowGeoDataset(SlidingWindowGeoDataset):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(
             *args, **kwargs, transform_type=TransformType.regression
         )
 
 
 class RegressionRandomWindowGeoDataset(RandomWindowGeoDataset):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(
             *args, **kwargs, transform_type=TransformType.regression
         )

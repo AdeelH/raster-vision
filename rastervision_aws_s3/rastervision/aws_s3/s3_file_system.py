@@ -34,12 +34,12 @@ def get_matching_s3_objects(
         suffix: Only fetch objects whose keys end with this suffix.
     """
     s3 = S3FileSystem.get_client()
-    kwargs = dict(
-        Bucket=bucket,
-        RequestPayer=request_payer,
-        Delimiter=delimiter,
-        Prefix=prefix,
-    )
+    kwargs = {
+        'Bucket': bucket,
+        'RequestPayer': request_payer,
+        'Delimiter': delimiter,
+        'Prefix': prefix,
+    }
     while True:
         resp: dict = s3.list_objects_v2(**kwargs)
         dirs: list[dict[str, Any]] = resp.get('CommonPrefixes', {})

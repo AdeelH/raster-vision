@@ -35,7 +35,7 @@ class DatasetConfig(Config):
         '"test_scenes"',
     )
 
-    def update(self, pipeline=None):
+    def update(self, pipeline=None) -> None:
         super().update()
 
         self.class_config.update(pipeline=pipeline)
@@ -54,7 +54,7 @@ class DatasetConfig(Config):
             s.id for s in self.validation_scenes
         }
 
-    def validate_config(self):
+    def validate_config(self) -> None:
         ids = [s.id for s in self.train_scenes]
         if len(set(ids)) != len(ids):
             raise ConfigError('All training scene ids must be unique.')
@@ -99,7 +99,7 @@ class DatasetConfig(Config):
     def all_scenes(self) -> list[SceneConfig]:
         return self.train_scenes + self.validation_scenes + self.test_scenes
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         num_train = len(self.train_scenes)
         num_val = len(self.validation_scenes)
         num_test = len(self.test_scenes)

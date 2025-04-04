@@ -71,9 +71,7 @@ class SemanticSegmentationChipOptions(ChipOptions):
         if self.target_class_ids is not None:
             if self.enough_target_pixels(label):
                 return True
-            if np.random.sample() <= self.negative_survival_prob:
-                return True
-            return False
+            return np.random.sample() <= self.negative_survival_prob
         return keep
 
     def enough_target_pixels(self, label_arr: np.ndarray) -> bool:
@@ -153,11 +151,11 @@ class SemanticSegmentationConfig(RVPipelineConfig):
 
         return SemanticSegmentation(self, tmp_dir)
 
-    def update(self):
+    def update(self) -> None:
         self.dataset.class_config.ensure_null_class()
         super().update()
 
-    def validate_config(self):
+    def validate_config(self) -> None:
         super().validate_config()
 
     def get_default_label_store(self, scene):

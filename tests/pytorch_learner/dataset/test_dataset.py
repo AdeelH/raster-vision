@@ -40,7 +40,7 @@ def make_overlapping_geojson(uri: str) -> str:
     xmax, ymax = crs_tf.pixel_to_map((10, 10))
     polygon = Polygon.from_bounds(xmin, ymin, xmax, ymax)
     geometry = mapping(polygon)
-    feature = geometry_to_feature(geometry, properties=dict(class_id=1))
+    feature = geometry_to_feature(geometry, properties={'class_id': 1})
     geojson = features_to_geojson([feature])
     return geojson
 
@@ -116,7 +116,7 @@ class TestGeoDatasetFromURIs(unittest.TestCase):
             class_config=class_config,
             image_uri=image_uri,
             label_vector_uri=label_vector_uri,
-            label_source_kw=dict(background_class_id=0),
+            label_source_kw={'background_class_id': 0},
             size=10,
             stride=10,
             padding=0,
@@ -256,45 +256,45 @@ class TestRandomWindowGeoDataset(unittest.TestCase):
         scene = MockScene()
 
         # neither size_lims or h/w_lims specified
-        args = dict(
-            scene=scene,
-            out_size=10,
-            max_windows=10,
-            transform_type=TransformType.noop,
-        )
+        args = {
+            'scene': scene,
+            'out_size': 10,
+            'max_windows': 10,
+            'transform_type': TransformType.noop,
+        }
         self.assertRaises(ValueError, lambda: RandomWindowGeoDataset(**args))
 
         # size_lims + h_lims specified
-        args = dict(
-            scene=scene,
-            out_size=10,
-            size_lims=(10, 11),
-            h_lims=(10, 11),
-            max_windows=10,
-            transform_type=TransformType.noop,
-        )
+        args = {
+            'scene': scene,
+            'out_size': 10,
+            'size_lims': (10, 11),
+            'h_lims': (10, 11),
+            'max_windows': 10,
+            'transform_type': TransformType.noop,
+        }
         self.assertRaises(ValueError, lambda: RandomWindowGeoDataset(**args))
 
         # size_lims + h_lims + w_lims specified
-        args = dict(
-            scene=scene,
-            out_size=10,
-            size_lims=(10, 11),
-            h_lims=(10, 11),
-            w_lims=(10, 11),
-            max_windows=10,
-            transform_type=TransformType.noop,
-        )
+        args = {
+            'scene': scene,
+            'out_size': 10,
+            'size_lims': (10, 11),
+            'h_lims': (10, 11),
+            'w_lims': (10, 11),
+            'max_windows': 10,
+            'transform_type': TransformType.noop,
+        }
         self.assertRaises(ValueError, lambda: RandomWindowGeoDataset(**args))
 
         # only w_lims specified
-        args = dict(
-            scene=scene,
-            out_size=10,
-            w_lims=(10, 11),
-            max_windows=10,
-            transform_type=TransformType.noop,
-        )
+        args = {
+            'scene': scene,
+            'out_size': 10,
+            'w_lims': (10, 11),
+            'max_windows': 10,
+            'transform_type': TransformType.noop,
+        }
         self.assertRaises(ValueError, lambda: RandomWindowGeoDataset(**args))
 
         # out_size=None
@@ -398,13 +398,13 @@ class TestRandomWindowGeoDataset(unittest.TestCase):
 
         sys.modules['triangle'] = None
         scene = MockScene()
-        args = dict(
-            scene=scene,
-            out_size=10,
-            size_lims=(5, 6),
-            max_windows=10,
-            transform_type=TransformType.noop,
-        )
+        args = {
+            'scene': scene,
+            'out_size': 10,
+            'size_lims': (5, 6),
+            'max_windows': 10,
+            'transform_type': TransformType.noop,
+        }
         self.assertNoError(lambda: RandomWindowGeoDataset(**args))
         ds = RandomWindowGeoDataset(**args)
         self.assertIsNone(ds.aoi_sampler)

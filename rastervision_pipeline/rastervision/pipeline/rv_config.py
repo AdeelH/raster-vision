@@ -33,7 +33,7 @@ def load_conf_list(s):
         # single quotes with double quotes lets us parse it as a JSON list.
         return json.loads(s.replace("'", '"'))
     except json.JSONDecodeError:
-        return list(map(lambda x: x.strip(), s.split(',')))
+        return [x.strip() for x in s.split(',')]
 
 
 # TODO change name to SystemConfig so it's not tied to RV?
@@ -52,12 +52,12 @@ class RVConfig:
     DEFAULT_PROFILE: str = 'default'
     DEFAULT_TMP_DIR_ROOT: str = '/opt/data/tmp'
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.set_verbosity()
         self.set_tmp_dir_root()
         self.set_everett_config()
 
-    def set_verbosity(self, verbosity: Verbosity = Verbosity.NORMAL):
+    def set_verbosity(self, verbosity: Verbosity = Verbosity.NORMAL) -> None:
         """Set verbosity level for logging."""
         self.verbosity = verbosity
         root_log = logging.getLogger('rastervision')
@@ -91,7 +91,7 @@ class RVConfig:
         """Return the root of all temp dirs."""
         return self.tmp_dir_root
 
-    def set_tmp_dir_root(self, tmp_dir_root: str | None = None):
+    def set_tmp_dir_root(self, tmp_dir_root: str | None = None) -> None:
         """Set root of all temporary directories.
 
         To set the value, the following rules are used in decreasing priority:
@@ -108,7 +108,7 @@ class RVConfig:
             if k in os.environ
         ]
 
-        dir_arr = [tmp_dir_root] + env_arr + [RVConfig.DEFAULT_TMP_DIR_ROOT]
+        dir_arr = [tmp_dir_root, *env_arr, RVConfig.DEFAULT_TMP_DIR_ROOT]
         dir_arr = [d for d in dir_arr if d is not None]
         tmp_dir_root = dir_arr[0]
 
@@ -147,7 +147,7 @@ class RVConfig:
         profile: str | None = None,
         rv_home: str | None = None,
         config_overrides: dict[str, str] | None = None,
-    ):
+    ) -> None:
         """Set Everett config.
 
         This sets up any other configuration using the Everett library.
@@ -303,10 +303,13 @@ class RVConfig:
         # If the profile is not default, and there is no config that exists,
         # then throw an error.
         if not any(results_that_exist) and profile != RVConfig.DEFAULT_PROFILE:
-            raise Exception(
+            msg = (
                 'Configuration Profile {} not found. Checked: {}'.format(
                     profile, ', '.join(result)
                 )
+            )
+            raise Exception(
+                msg
             )
 
         return results_that_exist

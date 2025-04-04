@@ -12,7 +12,7 @@ from rv.utils import make_empty_dir
 @click.option(
     '--resolution', default=0.3, help='Output resolution in meters/pixel'
 )
-def resample_geotiffs(input_dir, output_dir, resolution):
+def resample_geotiffs(input_dir, output_dir, resolution) -> None:
     input_paths = glob.glob(os.path.join(input_dir, '*.tif'))
     make_empty_dir(output_dir)
 

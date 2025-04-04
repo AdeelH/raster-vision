@@ -104,6 +104,6 @@ class MultiRasterSourceConfig(RasterSourceConfig):
             )
         return multi_raster_source
 
-    def update(self, pipeline=None, scene=None):
+    def update(self, pipeline=None, scene=None) -> None:
         for t in self.transformers:
             t.update(pipeline, scene)

@@ -77,9 +77,7 @@ class VsiFileSystem(FileSystem):
     def matches_uri(uri: str, mode: str) -> bool:
         if not uri.startswith('/vsi'):
             return False
-        if mode == 'w' and '/vsicurl/' in uri:
-            return False
-        return True
+        return not (mode == 'w' and '/vsicurl/' in uri)
 
     @staticmethod
     def file_exists(vsipath: str, include_dir: bool = True) -> bool:
@@ -112,7 +110,7 @@ class VsiFileSystem(FileSystem):
         return VsiFileSystem.read_bytes(uri).decode('UTF-8')
 
     @staticmethod
-    def write_bytes(vsipath: str, data: bytes):
+    def write_bytes(vsipath: str, data: bytes) -> None:
         try:
             handle = gdal.VSIFOpenL(vsipath, 'wb')
             gdal.VSIFWriteL(data, 1, len(data), handle)
@@ -120,12 +118,12 @@ class VsiFileSystem(FileSystem):
             gdal.VSIFCloseL(handle)
 
     @staticmethod
-    def write_str(uri: str, data: str):
+    def write_str(uri: str, data: str) -> None:
         VsiFileSystem.write_bytes(uri, data.encode())
 
     @staticmethod
-    def sync_to_dir(src_dir: str, dst_dir_uri: str, delete: bool = False):
-        def work(src: Path, vsi_dest: str):
+    def sync_to_dir(src_dir: str, dst_dir_uri: str, delete: bool = False) -> None:
+        def work(src: Path, vsi_dest: str) -> None:
             gdal.Mkdir(vsi_dest, 0o777)
 
             for item in src.iterdir():
@@ -153,8 +151,8 @@ class VsiFileSystem(FileSystem):
         work(src, dst_dir_uri)
 
     @staticmethod
-    def sync_from_dir(src_dir_uri: str, dst_dir: str, delete: bool = False):
-        def work(vsi_src: str, dest: Path):
+    def sync_from_dir(src_dir_uri: str, dst_dir: str, delete: bool = False) -> None:
+        def work(vsi_src: str, dest: Path) -> None:
             if dest.exists():
                 if not dest.is_dir():
                     raise ValueError(
@@ -182,13 +180,13 @@ class VsiFileSystem(FileSystem):
         work(src_dir_uri, Path(dst_dir))
 
     @staticmethod
-    def copy_to(src_path: str, dst_uri: str):
+    def copy_to(src_path: str, dst_uri: str) -> None:
         with open(src_path, 'rb') as f:
             buf = f.read()
         VsiFileSystem.write_bytes(dst_uri, buf)
 
     @staticmethod
-    def copy_from(src_uri: str, dst_path: str):
+    def copy_from(src_uri: str, dst_path: str) -> None:
         buf = VsiFileSystem.read_bytes(src_uri)
         with open(dst_path, 'wb') as f:
             f.write(buf)

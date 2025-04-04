@@ -1,4 +1,5 @@
 import subprocess
+import sys
 from genericpath import exists
 from os.path import basename, join, relpath, split
 from pprint import pformat
@@ -141,7 +142,7 @@ cfg = [
 # commands
 ######################
 @click.group()
-def test():
+def test() -> None:
     pass
 
 
@@ -166,12 +167,16 @@ def test():
     default=[],
     help='Override experiment config.',
 )
-def run(keys=[], test=False, remote=False, commands=None, overrides=[]):
+def run(keys=None, test=False, remote=False, commands=None, overrides=None) -> None:
     """Run RV on a set of examples.
 
     Args:
         keys: the names of the examples.
     """
+    if overrides is None:
+        overrides = []
+    if keys is None:
+        keys = []
     overrides = dict(overrides)
 
     run_all = len(keys) == 0
@@ -208,11 +213,13 @@ def run(keys=[], test=False, remote=False, commands=None, overrides=[]):
     default=[],
     help='Override experiment config.',
 )
-def collect(keys, collect_dir, remote, paths, overrides=[]):
+def collect(keys, collect_dir, remote, paths, overrides=None) -> None:
     """Download outputs of paths for each example.
 
     By default, only downloads eval and bundle.
     """
+    if overrides is None:
+        overrides = []
     overrides = dict(overrides)
     if paths is None:
         paths = [
@@ -273,8 +280,10 @@ def collect(keys, collect_dir, remote, paths, overrides=[]):
     default=[],
     help='Override experiment config.',
 )
-def predict(keys, collect_dir, remote, overrides=[]):
+def predict(keys, collect_dir, remote, overrides=None) -> None:
     """Test model bundles using predict command on output of collect command."""
+    if overrides is None:
+        overrides = []
     overrides = dict(overrides)
 
     run_all = len(keys) == 0
@@ -310,7 +319,8 @@ def compare(
 ) -> None:
     """Compare different runs of the same example."""
     if root_uri_old is None and root_uri_new is None:
-        assert examples_root_old is not None and examples_root_new is not None
+        assert examples_root_old is not None
+        assert examples_root_new is not None
         for exp_cfg in cfg:
             key = exp_cfg['key']
             root_uri_old = join(examples_root_old, key)
@@ -354,8 +364,10 @@ def _compare(
     default=[],
     help='Override experiment config.',
 )
-def upload(keys, collect_dir, upload_dir, overrides=[]):
+def upload(keys, collect_dir, upload_dir, overrides=None) -> None:
     """Upload eval, bundle, and sample predictions to the target dir."""
+    if overrides is None:
+        overrides = []
     overrides = dict(overrides)
 
     run_all = len(keys) == 0
@@ -378,7 +390,7 @@ def _run(
     exp_cfg: dict,
     test: bool = False,
     remote: bool = False,
-    commands: list[str] = None,
+    commands: list[str] | None = None,
 ) -> None:
     """Builds a command from the params in exp_cfg and other arguments and
     then executes it.
@@ -416,7 +428,7 @@ def _predict(exp_cfg: dict, collect_dir: str) -> None:
         console_failure(
             f'Bundle does not exist: {model_bundle_uri}', bold=True
         )
-        exit(1)
+        sys.exit(1)
 
     pred_dir = join(collect_dir, 'sample-predictions')
     sample_filename = f'sample-img-{key}.tif'
@@ -440,11 +452,13 @@ def _compare_runs(
     root_uri_old: str,
     root_uri_new: str,
     download_dir: str | None,
-    commands=['eval'],
+    commands=None,
 ) -> None:
     """Compare outputs of commands for two runs of an example.
     Currently only supports eval, but can be extended to include others.
     """
+    if commands is None:
+        commands = ['eval']
     for cmd in commands:
         key_old = basename(root_uri_old)
         key_new = basename(root_uri_new)
@@ -462,9 +476,11 @@ def _compare_evals(
     root_uri_old: str,
     root_uri_new: str,
     float_tol: float = 1e-2,
-    exclude_keys: list = ['conf_mat', 'count', 'per_scene'],
+    exclude_keys: list | None = None,
 ) -> None:
     """Compare outputs of the eval command for two runs of an example."""
+    if exclude_keys is None:
+        exclude_keys = ['conf_mat', 'count', 'per_scene']
     console_heading('Comparing keys and values in eval.json files...')
     try:
         eval_json_old = join(root_uri_old, 'validation_scenes', 'eval.json')
@@ -483,7 +499,8 @@ def validate_keys(keys: list[str]) -> None:
     exp_keys = [exp_cfg['key'] for exp_cfg in cfg]
     invalid_keys = set(keys).difference(exp_keys)
     if invalid_keys:
-        raise ValueError('{} are invalid keys'.format(', '.join(invalid_keys)))
+        msg = '{} are invalid keys'.format(', '.join(invalid_keys))
+        raise ValueError(msg)
 
 
 def run_command(cmd: str) -> None:
@@ -495,7 +512,7 @@ def run_command(cmd: str) -> None:
         console_failure(
             f'Error: process returned {proc.returncode}', bold=True
         )
-        exit()
+        sys.exit()
 
 
 def override_cfg(cfg: dict, overrides: dict, sep='.') -> None:
@@ -576,7 +593,7 @@ def _compare_dicts(
     dict_old: dict,
     dict_new: dict,
     float_tol: float = 1e-2,
-    exclude_keys: list = [],
+    exclude_keys: list | None = None,
 ) -> None:
     """Compare the keys and values of the two dicts.
 
@@ -588,6 +605,8 @@ def _compare_dicts(
         exclude_keys (list, optional): Ignore the following keys when
             comparing values. Defaults to [].
     """
+    if exclude_keys is None:
+        exclude_keys = []
     dict_old = flatten_dict(dict_old)
     dict_new: dict[str, Any] = flatten_dict(dict_new)
     keys_old, keys_new = set(dict_old.keys()), set(dict_new.keys())

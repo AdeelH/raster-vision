@@ -27,7 +27,7 @@ log = logging.getLogger(__name__)
 class CocoDataset(Dataset):
     """Read Object Detection data in the COCO format."""
 
-    def __init__(self, img_dir: str, annotation_uri: str):
+    def __init__(self, img_dir: str, annotation_uri: str) -> None:
         """Constructor.
 
         Args:
@@ -66,7 +66,7 @@ class CocoDataset(Dataset):
             class_ids = np.empty((0,), dtype=np.int64)
         return x, (bboxes, class_ids, 'xywh')
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.img_anns)
 
 
@@ -76,7 +76,7 @@ class ObjectDetectionImageDataset(ImageDataset):
     Uses :class:`.CocoDataset` to read the data.
     """
 
-    def __init__(self, img_dir: str, annotation_uri: str, *args, **kwargs):
+    def __init__(self, img_dir: str, annotation_uri: str, *args, **kwargs) -> None:
         """Constructor.
 
         Args:
@@ -98,11 +98,11 @@ def make_od_geodataset(
     image_uri: str | list[str],
     label_vector_uri: str | None = None,
     class_config: 'ClassConfig | None' = None,
-    aoi_uri: str | list[str] = [],
+    aoi_uri: str | list[str] | None = None,
     label_vector_default_class_id: int | None = None,
-    image_raster_source_kw: dict = {},
-    label_vector_source_kw: dict = {},
-    label_source_kw: dict = {},
+    image_raster_source_kw: dict | None = None,
+    label_vector_source_kw: dict | None = None,
+    label_source_kw: dict | None = None,
     **kwargs,
 ):
     """Create an instance of this class from image and label URIs.
@@ -145,6 +145,14 @@ def make_od_geodataset(
     Returns:
         An instance of this GeoDataset subclass.
     """
+    if label_source_kw is None:
+        label_source_kw = {}
+    if label_vector_source_kw is None:
+        label_vector_source_kw = {}
+    if image_raster_source_kw is None:
+        image_raster_source_kw = {}
+    if aoi_uri is None:
+        aoi_uri = []
     scene = make_od_scene(
         image_uri=image_uri,
         label_vector_uri=label_vector_uri,
@@ -162,7 +170,7 @@ def make_od_geodataset(
 class ObjectDetectionSlidingWindowGeoDataset(SlidingWindowGeoDataset):
     from_uris = classmethod(make_od_geodataset)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(
             *args, **kwargs, transform_type=TransformType.object_detection
         )
@@ -171,7 +179,7 @@ class ObjectDetectionSlidingWindowGeoDataset(SlidingWindowGeoDataset):
 class ObjectDetectionRandomWindowGeoDataset(RandomWindowGeoDataset):
     from_uris = classmethod(make_od_geodataset)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         """Constructor.
 
         Args:

@@ -23,7 +23,7 @@ class RasterStats:
         means: Sequence[float] | None = None,
         stds: Sequence[float] | None = None,
         counts: Sequence[float] | None = None,
-    ):
+    ) -> None:
         """Constructor.
 
         Args:
@@ -40,7 +40,8 @@ class RasterStats:
     def load(cls, stats_uri: str) -> 'Self':
         """Load stats from file."""
         stats_json = file_to_json(stats_uri)
-        assert 'means' in stats_json and 'stds' in stats_json
+        assert 'means' in stats_json
+        assert 'stds' in stats_json
         stats = RasterStats(
             means=stats_json['means'],
             stds=stats_json['stds'],
@@ -161,12 +162,13 @@ class RasterStats:
         return running_mean, running_var, running_count
 
     def to_dict(self) -> dict:
-        stats_dict = dict(means=self.means, stds=self.stds, counts=self.counts)
+        stats_dict = {'means': self.means, 'stds': self.stds, 'counts': self.counts}
         return stats_dict
 
     def save(self, stats_uri: str) -> None:
         """Save stats to file."""
-        assert self.means is not None and self.stds is not None
+        assert self.means is not None
+        assert self.stds is not None
         stats_dict = self.to_dict()
         stats_dict = ensure_json_serializable(stats_dict)
         json_to_file(stats_dict, stats_uri)

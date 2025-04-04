@@ -68,7 +68,7 @@ class RasterizedSourceConfig(Config):
 
         return v
 
-    def update(self, pipeline=None, scene=None):
+    def update(self, pipeline=None, scene=None) -> None:
         super().update(pipeline, scene)
         self.vector_source.update(pipeline, scene)
 

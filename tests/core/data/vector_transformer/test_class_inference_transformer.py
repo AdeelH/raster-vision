@@ -15,7 +15,7 @@ from rastervision.core.data.vector_transformer.label_maker.filter import (
 
 
 def make_feature(**kwargs) -> dict:
-    geometry = dict(type='Polygon', coordinates=[])
+    geometry = {'type': 'Polygon', 'coordinates': []}
     return geometry_to_feature(geometry, properties=kwargs)
 
 
@@ -28,9 +28,9 @@ class TestClassInferenceTransformerConfig(unittest.TestCase):
 
 class TestClassInferenceTransformer(unittest.TestCase):
     def test_init(self):
-        args = dict(
-            default_class_id=None, class_name_mapping=dict(old_name='new_name')
-        )
+        args = {
+            'default_class_id': None, 'class_name_mapping': {'old_name': 'new_name'}
+        }
         self.assertRaises(
             ValueError, lambda: ClassInferenceTransformer(**args)
         )
@@ -62,11 +62,11 @@ class TestClassInferenceTransformer(unittest.TestCase):
 
     def test_inference_with_class_name_mapping(self):
         feat = make_feature(class_name='old_name')
-        args = dict(
-            feature=feat,
-            default_class_id=None,
-            class_name_mapping=dict(old_name='new_name'),
-        )
+        args = {
+            'feature': feat,
+            'default_class_id': None,
+            'class_name_mapping': {'old_name': 'new_name'},
+        }
         self.assertRaises(
             ValueError,
             lambda: ClassInferenceTransformer.infer_feature_class_id(**args),
@@ -77,7 +77,7 @@ class TestClassInferenceTransformer(unittest.TestCase):
             feat,
             default_class_id=None,
             class_config=ClassConfig(names=['bg', 'new_name']),
-            class_name_mapping=dict(old_name='new_name'),
+            class_name_mapping={'old_name': 'new_name'},
         )
         self.assertEqual(class_id, 1)
 
@@ -86,7 +86,7 @@ class TestClassInferenceTransformer(unittest.TestCase):
             feat,
             default_class_id=None,
             class_config=ClassConfig(names=['bg', 'new_name']),
-            class_name_mapping=dict(old_name='new_name'),
+            class_name_mapping={'old_name': 'new_name'},
         )
         self.assertEqual(class_id, 1)
 

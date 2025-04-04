@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 
 class ChipClassificationEvaluation(ClassificationEvaluation):
-    def __init__(self, class_config: 'ClassConfig'):
+    def __init__(self, class_config: 'ClassConfig') -> None:
         super().__init__()
         self.class_config = class_config
 

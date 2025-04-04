@@ -51,7 +51,7 @@ def write_window(
             dataset.write_band(i, band, window=window)
 
 
-def write_bbox(path: str, arr: np.ndarray, bbox: Box, crs_wkt: str, **kwargs):
+def write_bbox(path: str, arr: np.ndarray, bbox: Box, crs_wkt: str, **kwargs) -> None:
     """Write a (H, W[, C]) array to a GeoTIFF, georeferenced to the given bbox.
 
     Args:
@@ -68,15 +68,15 @@ def write_bbox(path: str, arr: np.ndarray, bbox: Box, crs_wkt: str, **kwargs):
     h_bbox, w_bbox = bbox.size
     resolution = w_bbox / w_arr, h_bbox / h_arr
     transform = from_origin(bbox.xmin, bbox.ymax, *resolution)
-    out_profile = dict(
-        driver='GTiff',
-        height=h_arr,
-        width=w_arr,
-        crs=crs_wkt,
-        count=num_channels,
-        dtype=arr.dtype,
-        transform=transform,
-    )
+    out_profile = {
+        'driver': 'GTiff',
+        'height': h_arr,
+        'width': w_arr,
+        'crs': crs_wkt,
+        'count': num_channels,
+        'dtype': arr.dtype,
+        'transform': transform,
+    }
     out_profile.update(kwargs)
     with rio.open(path, 'w', **out_profile) as ds:
         write_window(ds, arr)
@@ -115,7 +115,7 @@ def write_geotiff_like_geojson(
     write_bbox(path, arr, bbox=bbox, crs_wkt=crs_wkt, **kwargs)
 
 
-def crop_geotiff(src_uri: str, window: Box, dst_uri: str):
+def crop_geotiff(src_uri: str, window: Box, dst_uri: str) -> None:
     """Create a new GeoTIFF from a crop of an existing GeoTIFF.
 
     Args:

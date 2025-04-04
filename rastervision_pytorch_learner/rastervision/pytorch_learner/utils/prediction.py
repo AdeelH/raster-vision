@@ -1,5 +1,4 @@
 import logging
-from collections.abc import Iterator
 from typing import TYPE_CHECKING
 
 from rastervision.core.data import (
@@ -10,6 +9,8 @@ from rastervision.core.data import (
 from rastervision.core.utils import calculate_required_padding
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
+
     import numpy as np
 
     from rastervision.core.data import Scene, SemanticSegmentationLabelStore
@@ -50,9 +51,9 @@ def predict_scene_cc(
         ds,
         raw_out=True,
         numpy_out=True,
-        dataloader_kw=dict(batch_size=batch_sz),
+        dataloader_kw={'batch_size': batch_sz},
         progress_bar=True,
-        progress_bar_kw=dict(desc=f'Making predictions on {scene.id}'),
+        progress_bar_kw={'desc': f'Making predictions on {scene.id}'},
     )
 
     labels = ChipClassificationLabels.from_predictions(ds.windows, predictions)
@@ -83,10 +84,10 @@ def predict_scene_od(
         ds,
         raw_out=True,
         numpy_out=True,
-        predict_kw=dict(out_shape=(chip_sz, chip_sz)),
-        dataloader_kw=dict(batch_size=batch_sz),
+        predict_kw={'out_shape': (chip_sz, chip_sz)},
+        dataloader_kw={'batch_size': batch_sz},
         progress_bar=True,
-        progress_bar_kw=dict(desc=f'Making predictions on {scene.id}'),
+        progress_bar_kw={'desc': f'Making predictions on {scene.id}'},
     )
 
     labels = ObjectDetectionLabels.from_predictions(ds.windows, predictions)
@@ -146,10 +147,10 @@ def predict_scene_ss(
         ds,
         raw_out=raw_out,
         numpy_out=True,
-        predict_kw=dict(out_shape=(chip_sz, chip_sz)),
-        dataloader_kw=dict(batch_size=batch_sz),
+        predict_kw={'out_shape': (chip_sz, chip_sz)},
+        dataloader_kw={'batch_size': batch_sz},
         progress_bar=True,
-        progress_bar_kw=dict(desc=f'Making predictions on {scene.id}'),
+        progress_bar_kw={'desc': f'Making predictions on {scene.id}'},
     )
 
     labels = SemanticSegmentationLabels.from_predictions(
