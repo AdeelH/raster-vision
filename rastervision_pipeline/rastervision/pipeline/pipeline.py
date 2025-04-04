@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from rastervision.pipeline.pipeline_config import PipelineConfig  # noqa
 
 
-class Pipeline():
+class Pipeline:
     """A pipeline of commands to run sequentially.
 
     This is an abstraction over a sequence of commands. Each command is
@@ -25,6 +25,7 @@ class Pipeline():
         gpu_commands: names of commands that should be executed on GPUs if
             available
     """
+
     commands: list[str] = ['test_cpu', 'test_gpu']
     split_commands: list[str] = ['test_cpu']
     gpu_commands: list[str] = ['test_gpu']

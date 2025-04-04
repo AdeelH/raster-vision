@@ -8,19 +8,23 @@ from urllib.parse import urlparse
 import boto3
 from tqdm.auto import tqdm
 
-from rastervision.pipeline.file_system import (FileSystem, NotReadableError,
-                                               NotWritableError)
+from rastervision.pipeline.file_system import (
+    FileSystem,
+    NotReadableError,
+    NotWritableError,
+)
 
 AWS_S3 = 'aws_s3'
 
 
 # Code from https://alexwlchan.net/2017/07/listing-s3-keys/
 def get_matching_s3_objects(
-        bucket: str,
-        prefix: str = '',
-        suffix: str = '',
-        delimiter: str = '/',
-        request_payer: str = 'None') -> Iterator[tuple[str, Any]]:
+    bucket: str,
+    prefix: str = '',
+    suffix: str = '',
+    delimiter: str = '/',
+    request_payer: str = 'None',
+) -> Iterator[tuple[str, Any]]:
     """Generate objects in an S3 bucket.
 
     Args:
@@ -56,11 +60,13 @@ def get_matching_s3_objects(
             break
 
 
-def get_matching_s3_keys(bucket: str,
-                         prefix: str = '',
-                         suffix: str = '',
-                         delimiter: str = '/',
-                         request_payer: str = 'None') -> Iterator[str]:
+def get_matching_s3_keys(
+    bucket: str,
+    prefix: str = '',
+    suffix: str = '',
+    delimiter: str = '/',
+    request_payer: str = 'None',
+) -> Iterator[str]:
     """Generate the keys in an S3 bucket.
 
     Args:
@@ -73,7 +79,8 @@ def get_matching_s3_keys(bucket: str,
         prefix=prefix,
         suffix=suffix,
         delimiter=delimiter,
-        request_payer=request_payer)
+        request_payer=request_payer,
+    )
     out = (key for key, _ in obj_iterator)
     return out
 
@@ -86,7 +93,8 @@ def progressbar(total_size: int, desc: str):
         unit_scale=True,
         unit_divisor=1024,
         mininterval=0.5,
-        delay=5)
+        delay=5,
+    )
 
 
 class S3FileSystem(FileSystem):
@@ -95,7 +103,7 @@ class S3FileSystem(FileSystem):
     Uses Everett configuration of form:
     ```
     [AWS_S3]
-    requester_pays=True
+    requester_pays = True
     ```
 
     """
@@ -108,8 +116,10 @@ class S3FileSystem(FileSystem):
         if request_payer == 'None':
             # Import here to avoid circular reference.
             from rastervision.pipeline import rv_config_ as rv_config
+
             requester_pays = rv_config.get_namespace_option(
-                AWS_S3, 'requester_pays', as_bool=True)
+                AWS_S3, 'requester_pays', as_bool=True
+            )
             if requester_pays:
                 request_payer = 'requester'
         return request_payer
@@ -123,6 +133,7 @@ class S3FileSystem(FileSystem):
         if os.getenv('AWS_NO_SIGN_REQUEST', '').lower() == 'yes':
             from botocore import UNSIGNED
             from botocore.config import Config
+
             s3 = boto3.client('s3', config=Config(signature_version=UNSIGNED))
             return s3
         return S3FileSystem.get_session().client('s3')
@@ -161,7 +172,8 @@ class S3FileSystem(FileSystem):
                     Bucket=bucket,
                     Prefix=dir_key,
                     MaxKeys=1,
-                    RequestPayer=request_payer)
+                    RequestPayer=request_payer,
+                )
                 if response['KeyCount'] == 0:
                     return S3FileSystem.file_exists(uri, include_dir=False)
                 return True
@@ -189,7 +201,8 @@ class S3FileSystem(FileSystem):
         with io.BytesIO() as file_buffer:
             try:
                 obj = s3.head_object(
-                    Bucket=bucket, Key=key, RequestPayer=request_payer)
+                    Bucket=bucket, Key=key, RequestPayer=request_payer
+                )
                 file_size = obj['ContentLength']
                 with progressbar(file_size, desc='Downloading') as bar:
                     s3.download_fileobj(
@@ -197,7 +210,8 @@ class S3FileSystem(FileSystem):
                         Key=key,
                         Fileobj=file_buffer,
                         Callback=lambda bytes: bar.update(bytes),
-                        ExtraArgs={'RequestPayer': request_payer})
+                        ExtraArgs={'RequestPayer': request_payer},
+                    )
                 return file_buffer.getvalue()
             except botocore.exceptions.ClientError as e:
                 raise NotReadableError('Could not read {}'.format(uri)) from e
@@ -219,13 +233,15 @@ class S3FileSystem(FileSystem):
                         Fileobj=str_buffer,
                         Bucket=bucket,
                         Key=key,
-                        Callback=lambda bytes: bar.update(bytes))
+                        Callback=lambda bytes: bar.update(bytes),
+                    )
             except Exception as e:
                 raise NotWritableError(f'Could not write {uri}') from e
 
     @staticmethod
-    def sync_from_dir(src_dir_uri: str, dst_dir: str,
-                      delete: bool = False) -> None:  # pragma: no cover
+    def sync_from_dir(
+        src_dir_uri: str, dst_dir: str, delete: bool = False
+    ) -> None:  # pragma: no cover
         command = ['aws', 's3', 'sync', src_dir_uri, dst_dir]
         if delete:
             command.append('--delete')
@@ -235,8 +251,9 @@ class S3FileSystem(FileSystem):
         subprocess.run(command)
 
     @staticmethod
-    def sync_to_dir(src_dir: str, dst_dir_uri: str,
-                    delete: bool = False) -> None:  # pragma: no cover
+    def sync_to_dir(
+        src_dir: str, dst_dir_uri: str, delete: bool = False
+    ) -> None:  # pragma: no cover
         S3FileSystem.sync_from_dir(src_dir, dst_dir_uri, delete=delete)
 
     @staticmethod
@@ -251,7 +268,8 @@ class S3FileSystem(FileSystem):
                         Filename=src_path,
                         Bucket=bucket,
                         Key=key,
-                        Callback=lambda bytes: bar.update(bytes))
+                        Callback=lambda bytes: bar.update(bytes),
+                    )
             except Exception as e:
                 raise NotWritableError(f'Could not write {dst_uri}') from e
         else:
@@ -266,7 +284,8 @@ class S3FileSystem(FileSystem):
         bucket, key = S3FileSystem.parse_uri(src_uri)
         try:
             obj = s3.head_object(
-                Bucket=bucket, Key=key, RequestPayer=request_payer)
+                Bucket=bucket, Key=key, RequestPayer=request_payer
+            )
             file_size = obj['ContentLength']
             with progressbar(file_size, desc=f'Downloading') as bar:
                 s3.download_file(
@@ -274,15 +293,17 @@ class S3FileSystem(FileSystem):
                     Key=key,
                     Filename=dst_path,
                     Callback=lambda bytes: bar.update(bytes),
-                    ExtraArgs={'RequestPayer': request_payer})
+                    ExtraArgs={'RequestPayer': request_payer},
+                )
         except botocore.exceptions.ClientError:
             raise NotReadableError(f'Could not read {src_uri}')
 
     @staticmethod
     def local_path(uri: str, download_dir: str) -> None:
         parsed_uri = urlparse(uri)
-        path = os.path.join(download_dir, 's3', parsed_uri.netloc,
-                            parsed_uri.path[1:])
+        path = os.path.join(
+            download_dir, 's3', parsed_uri.netloc, parsed_uri.path[1:]
+        )
         return path
 
     @staticmethod
@@ -291,7 +312,8 @@ class S3FileSystem(FileSystem):
         s3 = S3FileSystem.get_client()
         request_payer = S3FileSystem.get_request_payer()
         head_data = s3.head_object(
-            Bucket=bucket, Key=key, RequestPayer=request_payer)
+            Bucket=bucket, Key=key, RequestPayer=request_payer
+        )
         return head_data['LastModified']
 
     @staticmethod
@@ -307,6 +329,7 @@ class S3FileSystem(FileSystem):
             prefix,
             suffix=ext,
             delimiter=delimiter,
-            request_payer=request_payer)
+            request_payer=request_payer,
+        )
         paths = [os.path.join('s3://', bucket, key) for key in keys]
         return paths

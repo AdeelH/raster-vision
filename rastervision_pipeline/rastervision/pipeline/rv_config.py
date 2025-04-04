@@ -5,8 +5,12 @@ from pathlib import Path
 import logging
 import json
 
-from everett.manager import (ConfigManager, ConfigDictEnv, ConfigOSEnv,
-                             ConfigurationMissingError)
+from everett.manager import (
+    ConfigManager,
+    ConfigDictEnv,
+    ConfigOSEnv,
+    ConfigurationMissingError,
+)
 from everett.ext.inifile import ConfigIniEnv
 
 from rastervision.pipeline.verbosity import Verbosity
@@ -44,6 +48,7 @@ class RVConfig:
         DEFAULT_PROFILE: the default RV configuration profile name
         DEFAULT_TMP_DIR_ROOT: the default location for root of temporary directories
     """
+
     DEFAULT_PROFILE: str = 'default'
     DEFAULT_TMP_DIR_ROOT: str = '/opt/data/tmp'
 
@@ -98,7 +103,8 @@ class RVConfig:
         """
         # Check the various possibilities in order of priority.
         env_arr = [
-            os.environ.get(k) for k in ['TMPDIR', 'TEMP', 'TMP']
+            os.environ.get(k)
+            for k in ['TMPDIR', 'TEMP', 'TMP']
             if k in os.environ
         ]
 
@@ -123,13 +129,16 @@ class RVConfig:
         except Exception:
             system_tmp_dir = TemporaryDirectory().name
             log.warning(
-                'Root temporary directory cannot be used: {}. Using root: {}'.
-                format(tmp_dir_root, system_tmp_dir))
+                'Root temporary directory cannot be used: {}. Using root: {}'.format(
+                    tmp_dir_root, system_tmp_dir
+                )
+            )
             self.tmp_dir_root = system_tmp_dir
         finally:
             os.makedirs(self.tmp_dir_root, exist_ok=True)
-            log.debug('Temporary directory root is: {}'.format(
-                self.tmp_dir_root))
+            log.debug(
+                'Temporary directory root is: {}'.format(self.tmp_dir_root)
+            )
 
     def get_cache_dir(self) -> TemporaryDirectory:
         """Return the cache directory."""
@@ -137,10 +146,12 @@ class RVConfig:
         os.makedirs(cache_dir, exist_ok=True)
         return cache_dir
 
-    def set_everett_config(self,
-                           profile: str | None = None,
-                           rv_home: str | None = None,
-                           config_overrides: dict[str, str] | None = None):
+    def set_everett_config(
+        self,
+        profile: str | None = None,
+        rv_home: str | None = None,
+        config_overrides: dict[str, str] | None = None,
+    ):
         """Set Everett config.
 
         This sets up any other configuration using the Everett library.
@@ -154,16 +165,16 @@ class RVConfig:
         Configuration files are in the following format:
         ```
         [namespace_1]
-        key_11=val_11
+        key_11 = val_11
         ...
-        key_1n=val_1n
+        key_1n = val_1n
 
         ...
 
         [namespace_m]
-        key_m1=val_m1
+        key_m1 = val_m1
         ...
-        key_mn=val_mn
+        key_mn = val_mn
         ```
 
         Each namespace can be used for the configuration of a different plugin.
@@ -196,7 +207,8 @@ class RVConfig:
         self.rv_home = rv_home
 
         config_file_locations = self._discover_config_file_locations(
-            self.profile)
+            self.profile
+        )
         config_ini_env = ConfigIniEnv(config_file_locations)
 
         self.config = ConfigManager(
@@ -208,17 +220,21 @@ class RVConfig:
             doc=(
                 'Check https://docs.rastervision.io/ for docs. '
                 'Switch to the version being run and search for Raster Vision '
-                'Configuration.'))
+                'Configuration.'
+            ),
+        )
 
     def get_namespace_config(self, namespace: str) -> ConfigManager:
         """Get the key-val pairs associated with a namespace."""
         return self.config.with_namespace(namespace)
 
-    def get_namespace_option(self,
-                             namespace: str,
-                             key: str,
-                             default: Any | None = None,
-                             as_bool: bool = False) -> Any | None:
+    def get_namespace_option(
+        self,
+        namespace: str,
+        key: str,
+        default: Any | None = None,
+        as_bool: bool = False,
+    ) -> Any | None:
         """Get the value of an option from a namespace."""
         namespace_options = self.config.with_namespace(namespace)
         try:
@@ -232,7 +248,8 @@ class RVConfig:
             return default
 
     def get_config_dict(
-            self, rv_config_schema: dict[str, list[str]]) -> dict[str, str]:
+        self, rv_config_schema: dict[str, list[str]]
+    ) -> dict[str, str]:
         """Get all Everett configuration.
 
         This method is used to serialize an Everett configuration so it can be used on
@@ -290,7 +307,10 @@ class RVConfig:
         # If the profile is not default, and there is no config that exists,
         # then throw an error.
         if not any(results_that_exist) and profile != RVConfig.DEFAULT_PROFILE:
-            raise Exception('Configuration Profile {} not found. '
-                            'Checked: {}'.format(profile, ', '.join(result)))
+            raise Exception(
+                'Configuration Profile {} not found. Checked: {}'.format(
+                    profile, ', '.join(result)
+                )
+            )
 
         return results_that_exist

@@ -30,12 +30,14 @@ class AWSBatchRunner(Runner):
         attempts=
     """
 
-    def run(self,
-            cfg_json_uri: str,
-            pipeline: 'Pipeline',
-            commands: list[str],
-            num_splits: int = 1,
-            pipeline_run_name: str = 'raster-vision'):  # pragma: no cover
+    def run(
+        self,
+        cfg_json_uri: str,
+        pipeline: 'Pipeline',
+        commands: list[str],
+        num_splits: int = 1,
+        pipeline_run_name: str = 'raster-vision',
+    ):  # pragma: no cover
         parent_job_ids = []
         for command in commands:
             cmd, args = self.build_cmd(
@@ -43,9 +45,11 @@ class AWSBatchRunner(Runner):
                 cfg_json_uri,
                 pipeline,
                 num_splits,
-                pipeline_run_name=pipeline_run_name)
+                pipeline_run_name=pipeline_run_name,
+            )
             job_id = self.run_command(
-                cmd, parent_job_ids=parent_job_ids, **args)
+                cmd, parent_job_ids=parent_job_ids, **args
+            )
 
             job_info = dict(
                 name=args['job_name'],
@@ -54,19 +58,19 @@ class AWSBatchRunner(Runner):
                 cmd=cmd,
             )
             job_info_str = pformat(job_info, sort_dicts=False)
-            msg = (f'Job submitted:\n{job_info_str}')
+            msg = f'Job submitted:\n{job_info_str}'
             log.info(msg)
 
             parent_job_ids = [job_id]
 
-    def build_cmd(self,
-                  command: str,
-                  cfg_json_uri: str,
-                  pipeline: 'Pipeline',
-                  num_splits: int = 1,
-                  pipeline_run_name: str = 'raster-vision'
-                  ) -> tuple[list[str], dict[str, Any]]:
-
+    def build_cmd(
+        self,
+        command: str,
+        cfg_json_uri: str,
+        pipeline: 'Pipeline',
+        num_splits: int = 1,
+        pipeline_run_name: str = 'raster-vision',
+    ) -> tuple[list[str], dict[str, Any]]:
         verbosity = rv_config.get_verbosity_cli_opt()
 
         # pipeline-specific job queue and job definition
@@ -104,17 +108,19 @@ class AWSBatchRunner(Runner):
     def get_split_ind(self) -> int:
         return int(os.environ.get('AWS_BATCH_JOB_ARRAY_INDEX', 0))
 
-    def run_command(self,
-                    cmd: list[str],
-                    job_name: str | None = None,
-                    debug: bool = False,
-                    attempts: int = 1,
-                    parent_job_ids: list[str] | None = None,
-                    num_array_jobs: int | None = None,
-                    use_gpu: bool = False,
-                    job_queue: str | None = None,
-                    job_def: str | None = None,
-                    **kwargs) -> str:  # pragma: no cover
+    def run_command(
+        self,
+        cmd: list[str],
+        job_name: str | None = None,
+        debug: bool = False,
+        attempts: int = 1,
+        parent_job_ids: list[str] | None = None,
+        num_array_jobs: int | None = None,
+        use_gpu: bool = False,
+        job_queue: str | None = None,
+        job_def: str | None = None,
+        **kwargs,
+    ) -> str:  # pragma: no cover
         """Submit a command as a job to AWS Batch.
 
         Args:
@@ -151,20 +157,23 @@ class AWSBatchRunner(Runner):
 
         if debug:
             cmd = [
-                'python', '-m', 'ptvsd', '--host', '0.0.0.0', '--port', '6006',
-                '--wait', '-m'
+                'python',
+                '-m',
+                'ptvsd',
+                '--host',
+                '0.0.0.0',
+                '--port',
+                '6006',
+                '--wait',
+                '-m',
             ] + cmd
 
         args = {
             'jobName': job_name,
             'jobQueue': job_queue,
             'jobDefinition': job_def,
-            'containerOverrides': {
-                'command': cmd
-            },
-            'retryStrategy': {
-                'attempts': attempts
-            },
+            'containerOverrides': {'command': cmd},
+            'retryStrategy': {'attempts': attempts},
         }
         if parent_job_ids:
             args['dependsOn'] = [{'jobId': id} for id in parent_job_ids]

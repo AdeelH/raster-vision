@@ -10,13 +10,25 @@ from torchvision.models.detection.faster_rcnn import FasterRCNN
 
 from rastervision.core.data import Scene
 from rastervision.core.rv_pipeline import WindowSamplingMethod
-from rastervision.pipeline.config import (Config, register_config, Field,
-                                          field_validator, ConfigError)
+from rastervision.pipeline.config import (
+    Config,
+    register_config,
+    Field,
+    field_validator,
+    ConfigError,
+)
 from rastervision.pytorch_learner.learner_config import (
-    LearnerConfig, ModelConfig, Backbone, ImageDataConfig, GeoDataConfig)
+    LearnerConfig,
+    ModelConfig,
+    Backbone,
+    ImageDataConfig,
+    GeoDataConfig,
+)
 from rastervision.pytorch_learner.dataset import (
-    ObjectDetectionImageDataset, ObjectDetectionSlidingWindowGeoDataset,
-    ObjectDetectionRandomWindowGeoDataset)
+    ObjectDetectionImageDataset,
+    ObjectDetectionSlidingWindowGeoDataset,
+    ObjectDetectionRandomWindowGeoDataset,
+)
 from rastervision.pytorch_learner.utils import adjust_conv_channels
 
 if TYPE_CHECKING:
@@ -25,7 +37,8 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 DEFAULT_BBOX_PARAMS = A.BboxParams(
-    format='albumentations', label_fields=['category_id'])
+    format='albumentations', label_fields=['category_id']
+)
 
 
 class ObjectDetectionDataFormat(Enum):
@@ -45,18 +58,21 @@ class ObjectDetectionDataConfig(Config):
 
 
 @register_config('object_detection_image_data')
-class ObjectDetectionImageDataConfig(ObjectDetectionDataConfig,
-                                     ImageDataConfig):
+class ObjectDetectionImageDataConfig(
+    ObjectDetectionDataConfig, ImageDataConfig
+):
     """Configure :class:`ObjectDetectionImageDatasets <.ObjectDetectionImageDataset>`."""
 
     data_format: ObjectDetectionDataFormat = ObjectDetectionDataFormat.coco
 
-    def dir_to_dataset(self, data_dir: str, transform: A.BasicTransform
-                       ) -> ObjectDetectionImageDataset:
+    def dir_to_dataset(
+        self, data_dir: str, transform: A.BasicTransform
+    ) -> ObjectDetectionImageDataset:
         img_dir = join(data_dir, 'img')
         annotation_uri = join(data_dir, 'labels.json')
         ds = ObjectDetectionImageDataset(
-            img_dir, annotation_uri, transform=transform)
+            img_dir, annotation_uri, transform=transform
+        )
         return ds
 
 
@@ -68,12 +84,15 @@ class ObjectDetectionGeoDataConfig(ObjectDetectionDataConfig, GeoDataConfig):
     """
 
     def scene_to_dataset(
-            self,
-            scene: Scene,
-            transform: A.BasicTransform | None = None,
-            bbox_params: A.BboxParams | None = DEFAULT_BBOX_PARAMS,
-            for_chipping: bool = False
-    ) -> ObjectDetectionSlidingWindowGeoDataset | ObjectDetectionRandomWindowGeoDataset:
+        self,
+        scene: Scene,
+        transform: A.BasicTransform | None = None,
+        bbox_params: A.BboxParams | None = DEFAULT_BBOX_PARAMS,
+        for_chipping: bool = False,
+    ) -> (
+        ObjectDetectionSlidingWindowGeoDataset
+        | ObjectDetectionRandomWindowGeoDataset
+    ):
         if isinstance(self.sampling, dict):
             opts = self.sampling[scene.id]
         else:
@@ -82,7 +101,8 @@ class ObjectDetectionGeoDataConfig(ObjectDetectionDataConfig, GeoDataConfig):
         extra_args = {}
         if for_chipping:
             extra_args = dict(
-                normalize=False, to_pytorch=False, return_window=True)
+                normalize=False, to_pytorch=False, return_window=True
+            )
 
         if opts.method == WindowSamplingMethod.sliding:
             ds = ObjectDetectionSlidingWindowGeoDataset(
@@ -126,24 +146,30 @@ class ObjectDetectionModelConfig(ModelConfig):
 
     backbone: Backbone = Field(
         Backbone.resnet50,
-        description=
-        ('The torchvision.models backbone to use, which must be in the resnet* '
-         'family.'))
+        description=(
+            'The torchvision.models backbone to use, which must be in the resnet* '
+            'family.'
+        ),
+    )
 
     @field_validator('backbone')
     @classmethod
     def only_valid_backbones(cls, v):
         if v not in [
-                Backbone.resnet18, Backbone.resnet34, Backbone.resnet50,
-                Backbone.resnet101, Backbone.resnet152
+            Backbone.resnet18,
+            Backbone.resnet34,
+            Backbone.resnet50,
+            Backbone.resnet101,
+            Backbone.resnet152,
         ]:
             raise ValueError(
-                'The backbone for Faster-RCNN must be in the resnet* '
-                'family.')
+                'The backbone for Faster-RCNN must be in the resnet* family.'
+            )
         return v
 
-    def build_default_model(self, num_classes: int, in_channels: int,
-                            img_sz: int) -> FasterRCNN:
+    def build_default_model(
+        self, num_classes: int, in_channels: int, img_sz: int
+    ) -> FasterRCNN:
         """Returns a FasterRCNN model.
 
         Note that the model returned will have (num_classes + 2) output
@@ -158,7 +184,8 @@ class ObjectDetectionModelConfig(ModelConfig):
         pretrained = self.pretrained
         weights = 'DEFAULT' if pretrained else None
         backbone = resnet_fpn_backbone(
-            backbone_name=backbone_arch, weights=weights)
+            backbone_name=backbone_arch, weights=weights
+        )
 
         # default values from FasterRCNN constructor
         image_mean = [0.485, 0.456, 0.406]
@@ -171,7 +198,8 @@ class ObjectDetectionModelConfig(ModelConfig):
             backbone.body['conv1'] = adjust_conv_channels(
                 old_conv=backbone.body['conv1'],
                 in_channels=in_channels,
-                pretrained=pretrained)
+                pretrained=pretrained,
+            )
 
             # adjust stats
             if extra_channels < 0:
@@ -180,8 +208,8 @@ class ObjectDetectionModelConfig(ModelConfig):
             else:
                 # arbitrarily set mean and stds of the new channels to
                 # something similar to the values of the other 3 channels
-                image_mean = image_mean + [.45] * extra_channels
-                image_std = image_std + [.225] * extra_channels
+                image_mean = image_mean + [0.45] * extra_channels
+                image_std = image_std + [0.225] * extra_channels
 
         model = FasterRCNN(
             backbone=backbone,
@@ -205,32 +233,39 @@ class ObjectDetectionLearnerConfig(LearnerConfig):
 
     model: ObjectDetectionModelConfig | None = None
 
-    def build(self,
-              tmp_dir=None,
-              model_weights_path=None,
-              model_def_path=None,
-              loss_def_path=None,
-              training=True):
+    def build(
+        self,
+        tmp_dir=None,
+        model_weights_path=None,
+        model_def_path=None,
+        loss_def_path=None,
+        training=True,
+    ):
         from rastervision.pytorch_learner.object_detection_learner import (
-            ObjectDetectionLearner)
+            ObjectDetectionLearner,
+        )
+
         return ObjectDetectionLearner(
             self,
             tmp_dir=tmp_dir,
             model_weights_path=model_weights_path,
             model_def_path=model_def_path,
             loss_def_path=loss_def_path,
-            training=training)
+            training=training,
+        )
 
     @field_validator('solver')
     @classmethod
     def validate_solver_config(cls, v: 'SolverConfig') -> 'SolverConfig':
         if v.ignore_class_index is not None:
             raise ConfigError(
-                'ignore_last_class is not supported for Object Detection.')
+                'ignore_last_class is not supported for Object Detection.'
+            )
         if v.class_loss_weights is not None:
             raise ConfigError(
                 'class_loss_weights is currently not supported for '
-                'Object Detection.')
+                'Object Detection.'
+            )
         if v.external_loss_def is not None:
             raise ConfigError(
                 'external_loss_def is currently not supported for '
@@ -240,5 +275,6 @@ class ObjectDetectionLearnerConfig(LearnerConfig):
                 'you want to use a custom loss function, you can create a '
                 'custom model that implements that loss function and use that '
                 'model via external_model_def. See cowc_potsdam.py for an '
-                'example of how to use a custom object detection model.')
+                'example of how to use a custom object detection model.'
+            )
         return v

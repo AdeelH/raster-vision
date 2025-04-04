@@ -31,7 +31,8 @@ root_logger = logging.getLogger('rastervision')
 sh = logging.StreamHandler()
 sh.setLevel(logging.DEBUG)
 formatter = logging.Formatter(
-    '%(asctime)s:%(name)s: %(levelname)s - %(message)s', '%Y-%m-%d %H:%M:%S')
+    '%(asctime)s:%(name)s: %(levelname)s - %(message)s', '%Y-%m-%d %H:%M:%S'
+)
 sh.setFormatter(formatter)
 root_logger.addHandler(sh)
 

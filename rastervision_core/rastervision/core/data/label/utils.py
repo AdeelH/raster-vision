@@ -1,12 +1,13 @@
-from typing import (TYPE_CHECKING, Iterable, Iterator)
+from typing import TYPE_CHECKING, Iterable, Iterator
+
 if TYPE_CHECKING:
     import numpy as np
     from rastervision.core.box import Box
 
 
 def discard_prediction_edges(
-        windows: Iterable['Box'], predictions: Iterable['np.ndarray'],
-        crop_sz: int) -> tuple[list['Box'], Iterator['np.ndarray']]:
+    windows: Iterable['Box'], predictions: Iterable['np.ndarray'], crop_sz: int
+) -> tuple[list['Box'], Iterator['np.ndarray']]:
     """Discard the edges of predicted chips.
 
     Args:
@@ -22,7 +23,8 @@ def discard_prediction_edges(
         wc.to_local_coords(w).to_slices()
         for w, wc in zip(windows, windows_cropped)
     ]
-    predictions_cropped = (p[..., yslice, xslice]
-                           for p, (xslice,
-                                   yslice) in zip(predictions, array_slices))
+    predictions_cropped = (
+        p[..., yslice, xslice]
+        for p, (xslice, yslice) in zip(predictions, array_slices)
+    )
     return windows_cropped, predictions_cropped

@@ -6,8 +6,14 @@ import numpy as np
 from torch.utils.data import Dataset
 
 from rastervision.pytorch_learner.dataset import (
-    ImageDataset, TransformType, SlidingWindowGeoDataset,
-    RandomWindowGeoDataset, load_image, discover_images, ImageDatasetError)
+    ImageDataset,
+    TransformType,
+    SlidingWindowGeoDataset,
+    RandomWindowGeoDataset,
+    load_image,
+    discover_images,
+    ImageDatasetError,
+)
 from rastervision.core.data.utils import make_ss_scene
 
 if TYPE_CHECKING:
@@ -41,12 +47,14 @@ class SemanticSegmentationDataReader(Dataset):
             raise ImageDatasetError(
                 'There should be a label file for every image file. '
                 f'Found {len(self.img_paths)} image files and '
-                f'{len(self.label_paths)} label files.')
+                f'{len(self.label_paths)} label files.'
+            )
         for img_path, label_path in zip(self.img_paths, self.label_paths):
             if img_path.stem != label_path.stem:
                 raise ImageDatasetError(
                     f'Name mismatch between image file {img_path.stem} '
-                    f'and label file {label_path.stem}.')
+                    f'and label file {label_path.stem}.'
+                )
 
     def __getitem__(self, ind: int) -> tuple[np.ndarray, np.ndarray]:
         img_path = self.img_paths[ind]
@@ -82,20 +90,23 @@ class SemanticSegmentationImageDataset(ImageDataset):
             ds,
             *args,
             **kwargs,
-            transform_type=TransformType.semantic_segmentation)
+            transform_type=TransformType.semantic_segmentation,
+        )
 
 
-def make_ss_geodataset(cls,
-                       image_uri: str | list[str],
-                       label_raster_uri: str | list[str] | None = None,
-                       label_vector_uri: str | None = None,
-                       class_config: 'ClassConfig | None' = None,
-                       aoi_uri: str | list[str] = [],
-                       label_vector_default_class_id: int | None = None,
-                       image_raster_source_kw: dict = {},
-                       label_raster_source_kw: dict = {},
-                       label_vector_source_kw: dict = {},
-                       **kwargs):
+def make_ss_geodataset(
+    cls,
+    image_uri: str | list[str],
+    label_raster_uri: str | list[str] | None = None,
+    label_vector_uri: str | None = None,
+    class_config: 'ClassConfig | None' = None,
+    aoi_uri: str | list[str] = [],
+    label_vector_default_class_id: int | None = None,
+    image_raster_source_kw: dict = {},
+    label_raster_source_kw: dict = {},
+    label_vector_source_kw: dict = {},
+    **kwargs,
+):
     """Create an instance of this class from image and label URIs.
 
     This is a convenience method. For more fine-grained control, it is
@@ -151,7 +162,8 @@ def make_ss_geodataset(cls,
         label_vector_default_class_id=label_vector_default_class_id,
         image_raster_source_kw=image_raster_source_kw,
         label_raster_source_kw=label_raster_source_kw,
-        label_vector_source_kw=label_vector_source_kw)
+        label_vector_source_kw=label_vector_source_kw,
+    )
     ds = cls(scene, **kwargs)
     return ds
 
@@ -161,9 +173,8 @@ class SemanticSegmentationSlidingWindowGeoDataset(SlidingWindowGeoDataset):
 
     def __init__(self, *args, **kwargs):
         super().__init__(
-            *args,
-            **kwargs,
-            transform_type=TransformType.semantic_segmentation)
+            *args, **kwargs, transform_type=TransformType.semantic_segmentation
+        )
 
 
 class SemanticSegmentationRandomWindowGeoDataset(RandomWindowGeoDataset):
@@ -171,6 +182,5 @@ class SemanticSegmentationRandomWindowGeoDataset(RandomWindowGeoDataset):
 
     def __init__(self, *args, **kwargs):
         super().__init__(
-            *args,
-            **kwargs,
-            transform_type=TransformType.semantic_segmentation)
+            *args, **kwargs, transform_type=TransformType.semantic_segmentation
+        )

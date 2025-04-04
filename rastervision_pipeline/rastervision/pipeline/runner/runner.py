@@ -3,7 +3,7 @@ from abc import abstractmethod
 from rastervision.pipeline.pipeline import Pipeline
 
 
-class Runner():
+class Runner:
     """A method for running a Pipeline.
 
     This can be subclassed to provide the ability to run on different cloud
@@ -11,12 +11,14 @@ class Runner():
     """
 
     @abstractmethod
-    def run(self,
-            cfg_json_uri: str,
-            pipeline: Pipeline,
-            commands: list[str],
-            num_splits: int = 1,
-            pipeline_run_name: str = 'raster-vision'):
+    def run(
+        self,
+        cfg_json_uri: str,
+        pipeline: Pipeline,
+        commands: list[str],
+        num_splits: int = 1,
+        pipeline_run_name: str = 'raster-vision',
+    ):
         """Run commands in a Pipeline using a serialized PipelineConfig.
 
         Args:

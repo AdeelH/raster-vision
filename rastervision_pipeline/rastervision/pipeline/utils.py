@@ -20,7 +20,7 @@ def grouped(lst: list, size: int) -> list:
     """Returns a list of lists of length 'size'.
     The last list will have size <= 'size'.
     """
-    return [lst[n:n + size] for n in range(0, len(lst), size)]
+    return [lst[n : n + size] for n in range(0, len(lst), size)]
 
 
 def split_into_groups(lst: list, num_groups: int) -> list:
@@ -49,9 +49,11 @@ def repr_with_args(obj: Any, **kwargs) -> str:
     return f'{cls}({arg_str})'
 
 
-def get_env_var(key: str,
-                default: Any | None = None,
-                out_type: type | Callable | None = None) -> Any | None:
+def get_env_var(
+    key: str,
+    default: Any | None = None,
+    out_type: type | Callable | None = None,
+) -> Any | None:
     val = os.environ.get(key, default)
     if val is not None and out_type is not None:
         if out_type == bool:

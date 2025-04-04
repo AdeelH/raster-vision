@@ -16,10 +16,12 @@ if TYPE_CHECKING:
 class SemanticSegmentationLabelSource(LabelSource):
     """A read-only label source for semantic segmentation."""
 
-    def __init__(self,
-                 raster_source: RasterSource,
-                 class_config: ClassConfig,
-                 bbox: Box | None = None):
+    def __init__(
+        self,
+        raster_source: RasterSource,
+        class_config: ClassConfig,
+        bbox: Box | None = None,
+    ):
         """Constructor.
 
         Args:
@@ -36,8 +38,9 @@ class SemanticSegmentationLabelSource(LabelSource):
         if bbox is not None:
             self.set_bbox(bbox)
 
-    def get_labels(self,
-                   window: Box | None = None) -> SemanticSegmentationLabels:
+    def get_labels(
+        self, window: Box | None = None
+    ) -> SemanticSegmentationLabels:
         """Get labels for a window.
 
         Args:
@@ -54,7 +57,8 @@ class SemanticSegmentationLabelSource(LabelSource):
         labels = SemanticSegmentationLabels.make_empty(
             extent=self.extent,
             num_classes=len(self.class_config),
-            smooth=False)
+            smooth=False,
+        )
         labels[window] = label_arr
 
         return labels
@@ -81,8 +85,9 @@ class SemanticSegmentationLabelSource(LabelSource):
             label_arr = np.squeeze(label_arr, axis=2)
         h, w = label_arr.shape
         if h < window.height or w < window.width:
-            label_arr = pad_to_window_size(label_arr, window, self.extent,
-                                           self.class_config.null_class_id)
+            label_arr = pad_to_window_size(
+                label_arr, window, self.extent, self.class_config.null_class_id
+            )
         return label_arr
 
     @property

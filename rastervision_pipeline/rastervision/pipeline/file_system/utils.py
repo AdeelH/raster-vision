@@ -14,7 +14,9 @@ from tqdm.auto import tqdm
 from rastervision.pipeline import rv_config_ as rv_config
 from rastervision.pipeline.file_system import FileSystem
 from rastervision.pipeline.file_system.local_file_system import (
-    LocalFileSystem, make_dir)
+    LocalFileSystem,
+    make_dir,
+)
 
 if TYPE_CHECKING:
     from tempfile import TemporaryDirectory
@@ -22,8 +24,9 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
-def get_local_path(uri: str, download_dir: str,
-                   fs: FileSystem | None = None) -> str:
+def get_local_path(
+    uri: str, download_dir: str, fs: FileSystem | None = None
+) -> str:
     """Return the path where a local copy of URI should be stored.
 
     If ``uri`` is local, return it. If it's remote, we generate a path for it
@@ -49,10 +52,12 @@ def get_local_path(uri: str, download_dir: str,
     return path
 
 
-def sync_to_dir(src_dir: str,
-                dst_dir_uri: str,
-                delete: bool = False,
-                fs: FileSystem | None = None) -> None:  # pragma: no cover
+def sync_to_dir(
+    src_dir: str,
+    dst_dir_uri: str,
+    delete: bool = False,
+    fs: FileSystem | None = None,
+) -> None:  # pragma: no cover
     """Synchronize a local source directory to destination directory.
 
     Transfers files from source to destination directories so that the
@@ -72,10 +77,12 @@ def sync_to_dir(src_dir: str,
     fs.sync_to_dir(src_dir, dst_dir_uri, delete=delete)
 
 
-def sync_from_dir(src_dir_uri: str,
-                  dst_dir: str,
-                  delete: bool = False,
-                  fs: FileSystem | None = None):
+def sync_from_dir(
+    src_dir_uri: str,
+    dst_dir: str,
+    delete: bool = False,
+    fs: FileSystem | None = None,
+):
     """Synchronize a source directory to local destination directory.
 
     Transfers files from source to destination directories so that the
@@ -95,10 +102,12 @@ def sync_from_dir(src_dir_uri: str,
     fs.sync_from_dir(src_dir_uri, dst_dir, delete=delete)
 
 
-def start_sync(src_dir: str,
-               dst_dir_uri: str,
-               sync_interval: int = 600,
-               fs: FileSystem | None = None) -> None:  # pragma: no cover
+def start_sync(
+    src_dir: str,
+    dst_dir_uri: str,
+    sync_interval: int = 600,
+    fs: FileSystem | None = None,
+) -> None:  # pragma: no cover
     """Repeatedly sync a local source directory to a destination on a schedule.
 
     Calls :func:`sync_to_dir` on a schedule.
@@ -132,10 +141,12 @@ def start_sync(src_dir: str,
     return SyncThread()
 
 
-def download_if_needed(uri: str,
-                       download_dir: str | None = None,
-                       fs: FileSystem | None = None,
-                       use_cache: bool = True) -> str:
+def download_if_needed(
+    uri: str,
+    download_dir: str | None = None,
+    fs: FileSystem | None = None,
+    use_cache: bool = True,
+) -> str:
     """Download a file to a directory if remote and return its local path.
 
     The full local path, within ``download_dir``, is determined by
@@ -180,8 +191,9 @@ def download_if_needed(uri: str,
     return local_path
 
 
-def download_or_copy(uri: str, target_dir: str,
-                     fs: FileSystem | None = None) -> str:
+def download_or_copy(
+    uri: str, target_dir: str, fs: FileSystem | None = None
+) -> str:
     """Download or copy a file to a directory and return the local file path.
 
     If the file already exists in ``target_dir``, nothing is done. If the file
@@ -208,9 +220,9 @@ def download_or_copy(uri: str, target_dir: str,
     return target_path
 
 
-def file_exists(uri: str,
-                fs: FileSystem | None = None,
-                include_dir: bool = True) -> bool:
+def file_exists(
+    uri: str, fs: FileSystem | None = None, include_dir: bool = True
+) -> bool:
     """Check if file exists.
 
     Args:
@@ -226,8 +238,9 @@ def file_exists(uri: str,
     return fs.file_exists(uri, include_dir)
 
 
-def list_paths(uri: str, ext: str = '', fs: FileSystem | None = None,
-               **kwargs) -> list[str]:
+def list_paths(
+    uri: str, ext: str = '', fs: FileSystem | None = None, **kwargs
+) -> list[str]:
     """List paths rooted at URI.
 
     Optionally only include paths with a certain file extension.
@@ -248,8 +261,9 @@ def list_paths(uri: str, ext: str = '', fs: FileSystem | None = None,
     return fs.list_paths(uri, ext=ext, **kwargs)
 
 
-def upload_or_copy(src_path: str, dst_uri: str,
-                   fs: FileSystem | None = None) -> None:
+def upload_or_copy(
+    src_path: str, dst_uri: str, fs: FileSystem | None = None
+) -> None:
     """Upload or copy a file.
 
     If ``dst_uri`` is local, the file is copied. Otherwise, it is uploaded.
@@ -294,8 +308,9 @@ def file_to_str(uri: str, fs: FileSystem | None = None) -> str:
     return fs.read_str(uri)
 
 
-def str_to_file(content_str: str, uri: str,
-                fs: FileSystem | None = None) -> None:
+def str_to_file(
+    content_str: str, uri: str, fs: FileSystem | None = None
+) -> None:
     """Writes string to text file.
 
     Args:
@@ -337,7 +352,7 @@ def zipdir(dir: str, zip_path: str) -> None:
                 for fn in filenames:
                     bar.set_postfix_str(fn)
                     src = join(dirpath, fn)
-                    dst = join(dirpath[len(dir):], fn)
+                    dst = join(dirpath[len(dir) :], fn)
                     ziph.write(src, dst)
                     bar.update(1)
 
@@ -362,9 +377,9 @@ def is_archive(uri: str) -> bool:
     return any(uri.endswith(fmt) for fmt in formats)
 
 
-def extract(uri: str,
-            target_dir: str | None = None,
-            download_dir: str | None = None) -> str:
+def extract(
+    uri: str, target_dir: str | None = None, download_dir: str | None = None
+) -> str:
     """Extract a compressed file."""
     if target_dir is None:
         target_dir = rv_config.get_cache_dir()

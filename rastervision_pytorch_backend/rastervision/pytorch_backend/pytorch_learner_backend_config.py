@@ -1,17 +1,23 @@
 import logging
 
-from rastervision.pipeline.config import (register_config, Field)
+from rastervision.pipeline.config import register_config, Field
 from rastervision.pipeline.file_system import get_tmp_dir
 from rastervision.core.backend import BackendConfig
 from rastervision.core.rv_pipeline import RVPipelineConfig
 from rastervision.pytorch_learner.learner_config import (
-    SolverConfig, ModelConfig, DataConfig, ImageDataConfig, GeoDataConfig)
+    SolverConfig,
+    ModelConfig,
+    DataConfig,
+    ImageDataConfig,
+    GeoDataConfig,
+)
 
 log = logging.getLogger(__name__)
 
 
-def pytorch_learner_backend_config_upgrader(cfg_dict: dict,
-                                            version: int) -> dict:
+def pytorch_learner_backend_config_upgrader(
+    cfg_dict: dict, version: int
+) -> dict:
     if version == 1:
         # removed in version 2
         cfg_dict.pop('test_mode', None)
@@ -19,8 +25,8 @@ def pytorch_learner_backend_config_upgrader(cfg_dict: dict,
 
 
 @register_config(
-    'pytorch_learner_backend',
-    upgrader=pytorch_learner_backend_config_upgrader)
+    'pytorch_learner_backend', upgrader=pytorch_learner_backend_config_upgrader
+)
 class PyTorchLearnerBackendConfig(BackendConfig):
     """Configure a :class:`.PyTorchLearnerBackend`."""
 
@@ -28,17 +34,21 @@ class PyTorchLearnerBackendConfig(BackendConfig):
     solver: SolverConfig
     data: DataConfig
     log_tensorboard: bool = Field(
-        True, description='If True, log events to Tensorboard log files.')
+        True, description='If True, log events to Tensorboard log files.'
+    )
     run_tensorboard: bool = Field(
         False,
-        description='If True, run Tensorboard server pointing at log files.')
+        description='If True, run Tensorboard server pointing at log files.',
+    )
     save_all_checkpoints: bool = Field(
         False,
         description=(
             'If True, all checkpoints would be saved. The latest checkpoint '
             'would be saved as `last-model.pth`. The checkpoints prior to '
             'last epoch are stored as `model-ckpt-epoch-{N}.pth` where `N` '
-            'is the epoch number.'))
+            'is the epoch number.'
+        ),
+    )
 
     def get_bundle_filenames(self):
         return ['model-bundle.zip']
@@ -80,11 +90,13 @@ class PyTorchLearnerBackendConfig(BackendConfig):
             'Could not determine number of image channels from '
             'DataConfig.img_channels or RasterSourceConfig.channel_order. '
             'Building first scene to figure it out. This might take some '
-            'time. To avoid this, specify one of the above.')
+            'time. To avoid this, specify one of the above.'
+        )
         with get_tmp_dir() as tmp_dir:
             scene = all_scenes[0].build(
                 pipeline_cfg.dataset.class_config,
                 tmp_dir,
-                use_transformers=True)
+                use_transformers=True,
+            )
             img_channels = scene.raster_source.num_channels
         return img_channels

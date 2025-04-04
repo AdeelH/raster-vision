@@ -10,14 +10,15 @@ if TYPE_CHECKING:
 class RasterTransformerConfig(Config):
     """Configure a :class:`.RasterTransformer`."""
 
-    def update(self,
-               pipeline: 'RVPipelineConfig' = None,
-               scene: 'SceneConfig' = None):
+    def update(
+        self, pipeline: 'RVPipelineConfig' = None, scene: 'SceneConfig' = None
+    ):
         pass
 
     def update_root(self, root_dir: str):
         pass
 
-    def build(self,
-              channel_order: list[int] | None = None) -> 'RasterTransformer':
+    def build(
+        self, channel_order: list[int] | None = None
+    ) -> 'RasterTransformer':
         raise NotImplementedError()

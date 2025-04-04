@@ -8,12 +8,18 @@ import numpy as np
 import rasterio as rio
 import rasterio.windows as rio_windows
 from rasterio.transform import from_origin
-from rasterio.enums import (ColorInterp, MaskFlags, Resampling)
+from rasterio.enums import ColorInterp, MaskFlags, Resampling
 from rasterio.session import AWSSession
 
 from rastervision.pipeline.file_system.utils import (
-    file_to_json, get_local_path, get_tmp_dir, make_dir, upload_or_copy,
-    download_if_needed, uri_to_vsi_path)
+    file_to_json,
+    get_local_path,
+    get_tmp_dir,
+    make_dir,
+    upload_or_copy,
+    download_if_needed,
+    uri_to_vsi_path,
+)
 from rastervision.core.box import Box
 
 if TYPE_CHECKING:
@@ -23,9 +29,9 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
-def write_window(dataset: 'DatasetReader',
-                 arr: np.ndarray,
-                 window: Box | None = None) -> None:
+def write_window(
+    dataset: 'DatasetReader', arr: np.ndarray, window: Box | None = None
+) -> None:
     """Write a (H, W[, C]) array out to a rasterio dataset.
 
     Args:
@@ -75,11 +81,13 @@ def write_bbox(path: str, arr: np.ndarray, bbox: Box, crs_wkt: str, **kwargs):
         write_window(ds, arr)
 
 
-def write_geotiff_like_geojson(path: str,
-                               arr: np.ndarray,
-                               geojson_path: str,
-                               crs: str | None = None,
-                               **kwargs) -> None:
+def write_geotiff_like_geojson(
+    path: str,
+    arr: np.ndarray,
+    geojson_path: str,
+    crs: str | None = None,
+    **kwargs,
+) -> None:
     """Write array to GeoTIFF, georeferenced to same bbox as the given GeoJSON.
 
     Args:
@@ -148,9 +156,9 @@ def build_vrt(vrt_path: str, image_uris: list[str]) -> None:
     subprocess.run(cmd, env=os.environ)
 
 
-def download_and_build_vrt(image_uris: list[str],
-                           vrt_dir: str,
-                           stream: bool = False) -> str:
+def download_and_build_vrt(
+    image_uris: list[str], vrt_dir: str, stream: bool = False
+) -> str:
     """Download images (if needed) and build a VRT for a set of TIFF files.
 
     Args:
@@ -169,12 +177,14 @@ def download_and_build_vrt(image_uris: list[str],
     return vrt_path
 
 
-def read_window(dataset: 'DatasetReader',
-                bands: int | Sequence[int] | None = None,
-                window: tuple[tuple[int, int], tuple[int, int]] | None = None,
-                is_masked: bool = False,
-                out_shape: tuple[int, ...] | None = None,
-                session: 'Session | None' = None) -> np.ndarray:
+def read_window(
+    dataset: 'DatasetReader',
+    bands: int | Sequence[int] | None = None,
+    window: tuple[tuple[int, int], tuple[int, int]] | None = None,
+    is_masked: bool = False,
+    out_shape: tuple[int, ...] | None = None,
+    session: 'Session | None' = None,
+) -> np.ndarray:
     """Load a window of an image using Rasterio.
 
     Args:
@@ -201,7 +211,8 @@ def read_window(dataset: 'DatasetReader',
             boundless=True,
             masked=is_masked,
             out_shape=out_shape,
-            resampling=Resampling.bilinear)
+            resampling=Resampling.bilinear,
+        )
 
     if is_masked:
         im = np.ma.filled(im, fill_value=0)
@@ -236,7 +247,8 @@ def get_channel_order_from_dataset(dataset: 'DatasetReader') -> list[int]:
     colorinterp = dataset.colorinterp
     if colorinterp:
         channel_order = [
-            i for i, color_interp in enumerate(colorinterp)
+            i
+            for i, color_interp in enumerate(colorinterp)
             if color_interp != ColorInterp.alpha
         ]
     else:
@@ -255,9 +267,11 @@ def get_aws_session() -> 'Session':
     """Build a rasterio AWS session from environment variables."""
     try:
         from rastervision.aws_s3 import S3FileSystem
+
         requester_pays = S3FileSystem.get_request_payer()
     except ModuleNotFoundError:
-        requester_pays = os.getenv('AWS_REQUEST_PAYER',
-                                   '').lower() == 'requestor'
+        requester_pays = (
+            os.getenv('AWS_REQUEST_PAYER', '').lower() == 'requestor'
+        )
     session = AWSSession.from_environ(requester_pays=requester_pays)
     return session

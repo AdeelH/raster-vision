@@ -9,8 +9,9 @@ import torch
 
 from rastervision.pytorch_learner.object_detection_utils import BoxList
 
-TransformFunc = Callable[[tuple[np.ndarray, Any], A.BasicTransform], tuple[
-    np.ndarray, Any]]
+TransformFunc = Callable[
+    [tuple[np.ndarray, Any], A.BasicTransform], tuple[np.ndarray, Any]
+]
 
 
 class TransformType(Enum):
@@ -41,7 +42,8 @@ def apply_transform(transform: A.BasicTransform, **kwargs) -> dict:
 
     if img.ndim != 4:
         raise NotImplementedError(
-            f'Image should have 3 or 4 dims. Found {img.ndim}.')
+            f'Image should have 3 or 4 dims. Found {img.ndim}.'
+        )
 
     batch_size = len(img)
 
@@ -60,16 +62,14 @@ def apply_transform(transform: A.BasicTransform, **kwargs) -> dict:
 
 @overload
 def classification_transformer(
-        inp: tuple[np.ndarray, int],
-        transform: A.BasicTransform | None) -> tuple[np.ndarray, np.ndarray]:
-    ...
+    inp: tuple[np.ndarray, int], transform: A.BasicTransform | None
+) -> tuple[np.ndarray, np.ndarray]: ...
 
 
 @overload
 def classification_transformer(
-        inp: tuple[np.ndarray, None],
-        transform: A.BasicTransform | None) -> tuple[np.ndarray, None]:
-    ...
+    inp: tuple[np.ndarray, None], transform: A.BasicTransform | None
+) -> tuple[np.ndarray, None]: ...
 
 
 def classification_transformer(inp, transform):
@@ -86,16 +86,14 @@ def classification_transformer(inp, transform):
 
 @overload
 def regression_transformer(
-        inp: tuple[np.ndarray, Any],
-        transform: A.BasicTransform | None) -> tuple[np.ndarray, np.ndarray]:
-    ...
+    inp: tuple[np.ndarray, Any], transform: A.BasicTransform | None
+) -> tuple[np.ndarray, np.ndarray]: ...
 
 
 @overload
 def regression_transformer(
-        inp: tuple[np.ndarray, None],
-        transform: A.BasicTransform | None) -> tuple[np.ndarray, None]:
-    ...
+    inp: tuple[np.ndarray, None], transform: A.BasicTransform | None
+) -> tuple[np.ndarray, None]: ...
 
 
 def regression_transformer(inp, transform):
@@ -110,8 +108,9 @@ def regression_transformer(inp, transform):
     return x, y
 
 
-def yxyx_to_albu(yxyx: np.ndarray,
-                 img_size: tuple[PosInt, PosInt]) -> np.ndarray:
+def yxyx_to_albu(
+    yxyx: np.ndarray, img_size: tuple[PosInt, PosInt]
+) -> np.ndarray:
     """Unnormalized [ymin, xmin, ymax, xmax] to Albumentations format i.e.
     normalized [ymin, xmin, ymax, xmax].
     """
@@ -120,17 +119,18 @@ def yxyx_to_albu(yxyx: np.ndarray,
     ymin, ymax = ymin / h, ymax / h
     xmin, xmax = xmin / w, xmax / w
 
-    xmin = np.clip(xmin, 0., 1., out=xmin)
-    xmax = np.clip(xmax, 0., 1., out=xmax)
-    ymin = np.clip(ymin, 0., 1., out=ymin)
-    ymax = np.clip(ymax, 0., 1., out=ymax)
+    xmin = np.clip(xmin, 0.0, 1.0, out=xmin)
+    xmax = np.clip(xmax, 0.0, 1.0, out=xmax)
+    ymin = np.clip(ymin, 0.0, 1.0, out=ymin)
+    ymax = np.clip(ymax, 0.0, 1.0, out=ymax)
 
     xyxy = np.stack([xmin, ymin, xmax, ymax], axis=1).reshape((-1, 4))
     return xyxy
 
 
-def xywh_to_albu(xywh: np.ndarray,
-                 img_size: tuple[PosInt, PosInt]) -> np.ndarray:
+def xywh_to_albu(
+    xywh: np.ndarray, img_size: tuple[PosInt, PosInt]
+) -> np.ndarray:
     """Unnormalized [xmin, ymin, w, h] to Albumentations format i.e.
     normalized [ymin, xmin, ymax, xmax].
     """
@@ -140,17 +140,18 @@ def xywh_to_albu(xywh: np.ndarray,
     xmin, box_w = xmin / w, box_w / w
     xmin, ymin, xmax, ymax = xmin, ymin, xmin + box_w, ymin + box_h
 
-    xmin = np.clip(xmin, 0., 1., out=xmin)
-    xmax = np.clip(xmax, 0., 1., out=xmax)
-    ymin = np.clip(ymin, 0., 1., out=ymin)
-    ymax = np.clip(ymax, 0., 1., out=ymax)
+    xmin = np.clip(xmin, 0.0, 1.0, out=xmin)
+    xmax = np.clip(xmax, 0.0, 1.0, out=xmax)
+    ymin = np.clip(ymin, 0.0, 1.0, out=ymin)
+    ymax = np.clip(ymax, 0.0, 1.0, out=ymax)
 
     xyxy = np.stack([xmin, ymin, xmax, ymax], axis=1).reshape((-1, 4))
     return xyxy
 
 
-def albu_to_yxyx(xyxy: np.ndarray,
-                 img_size: tuple[PosInt, PosInt]) -> np.ndarray:
+def albu_to_yxyx(
+    xyxy: np.ndarray, img_size: tuple[PosInt, PosInt]
+) -> np.ndarray:
     """Albumentations format (i.e. normalized [ymin, xmin, ymax, xmax]) to
     unnormalized [ymin, xmin, ymax, xmax].
     """
@@ -158,10 +159,10 @@ def albu_to_yxyx(xyxy: np.ndarray,
     xmin, ymin, xmax, ymax = xyxy.T
     xmin, ymin, xmax, ymax = xmin * w, ymin * h, xmax * w, ymax * h
 
-    xmin = np.clip(xmin, 0., w, out=xmin)
-    xmax = np.clip(xmax, 0., w, out=xmax)
-    ymin = np.clip(ymin, 0., h, out=ymin)
-    ymax = np.clip(ymax, 0., h, out=ymax)
+    xmin = np.clip(xmin, 0.0, w, out=xmin)
+    xmax = np.clip(xmax, 0.0, w, out=xmax)
+    ymin = np.clip(ymin, 0.0, h, out=ymin)
+    ymax = np.clip(ymax, 0.0, h, out=ymax)
 
     yxyx = np.stack([ymin, xmin, ymax, xmax], axis=1).reshape((-1, 4))
     return yxyx
@@ -169,17 +170,15 @@ def albu_to_yxyx(xyxy: np.ndarray,
 
 @overload
 def object_detection_transformer(
-        inp: tuple[np.ndarray, tuple[np.ndarray, np.ndarray, str]],
-        transform: A.BasicTransform | None
-) -> tuple[torch.Tensor, BoxList | None]:
-    ...
+    inp: tuple[np.ndarray, tuple[np.ndarray, np.ndarray, str]],
+    transform: A.BasicTransform | None,
+) -> tuple[torch.Tensor, BoxList | None]: ...
 
 
 @overload
 def object_detection_transformer(
-        inp: tuple[np.ndarray, None],
-        transform: A.BasicTransform | None) -> tuple[torch.Tensor, None]:
-    ...
+    inp: tuple[np.ndarray, None], transform: A.BasicTransform | None
+) -> tuple[torch.Tensor, None]: ...
 
 
 def object_detection_transformer(inp, transform):
@@ -208,8 +207,9 @@ def object_detection_transformer(inp, transform):
 
     if transform is not None:
         if y is None:
-            x = apply_transform(
-                transform, image=x, bboxes=[], category_id=[])['image']
+            x = apply_transform(transform, image=x, bboxes=[], category_id=[])[
+                'image'
+            ]
         else:
             # The albumentations transform expects the bboxes to be in the
             # Albumentations format i.e. [ymin, xmin, ymax, xmax], so we convert to
@@ -222,7 +222,8 @@ def object_detection_transformer(inp, transform):
                 raise NotImplementedError(f'Unknown box_format: {box_format}.')
 
             out = apply_transform(
-                transform, image=x, bboxes=boxes, category_id=class_ids)
+                transform, image=x, bboxes=boxes, category_id=class_ids
+            )
             x = out['image']
             boxes = np.array(out['bboxes']).reshape((-1, 4))
             class_ids = np.array(out['category_id'])
@@ -252,16 +253,14 @@ def object_detection_transformer(inp, transform):
 
 @overload
 def semantic_segmentation_transformer(
-        inp: tuple[np.ndarray, np.ndarray], transform: A.BasicTransform | None
-) -> tuple[np.ndarray, np.ndarray | None]:
-    ...
+    inp: tuple[np.ndarray, np.ndarray], transform: A.BasicTransform | None
+) -> tuple[np.ndarray, np.ndarray | None]: ...
 
 
 @overload
 def semantic_segmentation_transformer(
-        inp: tuple[np.ndarray, None],
-        transform: A.BasicTransform | None) -> tuple[np.ndarray, None]:
-    ...
+    inp: tuple[np.ndarray, None], transform: A.BasicTransform | None
+) -> tuple[np.ndarray, None]: ...
 
 
 def semantic_segmentation_transformer(inp, transform):
@@ -285,5 +284,5 @@ TF_TYPE_TO_TF_FUNC: dict[TransformType, TransformFunc] = {
     TransformType.classification: classification_transformer,
     TransformType.regression: regression_transformer,
     TransformType.object_detection: object_detection_transformer,
-    TransformType.semantic_segmentation: semantic_segmentation_transformer
+    TransformType.semantic_segmentation: semantic_segmentation_transformer,
 }

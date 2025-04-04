@@ -15,7 +15,7 @@ class MessageMakerConfig(Config):
         return MessageMaker(self)
 
 
-class MessageMaker():
+class MessageMaker:
     def __init__(self, config):
         self.config = config
 
@@ -50,7 +50,8 @@ class SamplePipeline2(Pipeline):
         message_maker = self.config.message_maker.build()
 
         split_groups = split_into_groups(
-            list(zip(self.config.names, self.config.message_uris)), num_splits)
+            list(zip(self.config.names, self.config.message_uris)), num_splits
+        )
         split_group = split_groups[split_ind]
 
         for name, message_uri in split_group:

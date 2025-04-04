@@ -8,7 +8,9 @@ class TestObjectDetectionModelConfig(unittest.TestCase):
         cfg = ObjectDetectionModelConfig(
             backbone=Backbone.resnet18,
             pretrained=False,
-            extra_args=dict(box_nms_thresh=0.4))
+            extra_args=dict(box_nms_thresh=0.4),
+        )
         model = cfg.build_default_model(
-            num_classes=2, in_channels=3, img_sz=256)
+            num_classes=2, in_channels=3, img_sz=256
+        )
         self.assertEqual(model.roi_heads.nms_thresh, 0.4)

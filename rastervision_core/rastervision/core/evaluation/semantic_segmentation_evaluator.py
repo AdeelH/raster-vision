@@ -1,8 +1,10 @@
 from typing import TYPE_CHECKING
 import logging
 
-from rastervision.core.evaluation import (ClassificationEvaluator,
-                                          SemanticSegmentationEvaluation)
+from rastervision.core.evaluation import (
+    ClassificationEvaluator,
+    SemanticSegmentationEvaluation,
+)
 
 log = logging.getLogger(__name__)
 
@@ -23,9 +25,11 @@ class SemanticSegmentationEvaluator(ClassificationEvaluator):
         predictions = scene.label_store.get_labels()
 
         if scene.aoi_polygons:
-            ground_truth = ground_truth.filter_by_aoi(scene.aoi_polygons,
-                                                      null_class_id)
-            predictions = predictions.filter_by_aoi(scene.aoi_polygons,
-                                                    null_class_id)
+            ground_truth = ground_truth.filter_by_aoi(
+                scene.aoi_polygons, null_class_id
+            )
+            predictions = predictions.filter_by_aoi(
+                scene.aoi_polygons, null_class_id
+            )
         evaluation = self.evaluate_predictions(ground_truth, predictions)
         return evaluation

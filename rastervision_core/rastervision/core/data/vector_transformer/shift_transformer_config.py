@@ -1,8 +1,10 @@
 from typing import TYPE_CHECKING
 
 from rastervision.pipeline.config import register_config, Field
-from rastervision.core.data.vector_transformer import (VectorTransformerConfig,
-                                                       ShiftTransformer)
+from rastervision.core.data.vector_transformer import (
+    VectorTransformerConfig,
+    ShiftTransformer,
+)
 
 if TYPE_CHECKING:
     from rastervision.core.data import ClassConfig
@@ -15,19 +17,23 @@ class ShiftTransformerConfig(VectorTransformerConfig):
     x_shift: float = Field(
         0.0,
         description='Distance in meters to shift along the x-axis. '
-        'Postive values shift eastward.')
+        'Postive values shift eastward.',
+    )
     y_shift: float = Field(
         0.0,
         description='Distance in meters to shift along the y-axis. '
-        'Postive values shift northward.')
+        'Postive values shift northward.',
+    )
     round_pixels: bool = Field(
         True,
         description='Whether to round shifted pixel values to integers.',
     )
 
-    def build(self,
-              class_config: 'ClassConfig | None' = None) -> ShiftTransformer:
+    def build(
+        self, class_config: 'ClassConfig | None' = None
+    ) -> ShiftTransformer:
         return ShiftTransformer(
             x_shift=self.x_shift,
             y_shift=self.y_shift,
-            round_pixels=self.round_pixels)
+            round_pixels=self.round_pixels,
+        )

@@ -18,12 +18,14 @@ class EvaluatorConfig(Config):
         description='URI of directory where evaluator output will be saved. '
         'Evaluations for each scene-group will be save in a JSON file at '
         '<output_uri>/<scene-group-name>/eval.json. If None, and this Config '
-        'is part of an RVPipeline, this field will be auto-generated.')
+        'is part of an RVPipeline, this field will be auto-generated.',
+    )
 
-    def build(self,
-              class_config: 'ClassConfig',
-              scene_group: tuple[str, Iterable[str]] | None = None
-              ) -> 'Evaluator':
+    def build(
+        self,
+        class_config: 'ClassConfig',
+        scene_group: tuple[str, Iterable[str]] | None = None,
+    ) -> 'Evaluator':
         pass
 
     def get_output_uri(self, scene_group_name: str | None = None) -> str:

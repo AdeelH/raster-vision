@@ -1,6 +1,6 @@
 import unittest
 
-from rastervision.pipeline import (rv_config_ as rv_config)
+from rastervision.pipeline import rv_config_ as rv_config
 
 
 class TestRVConfig(unittest.TestCase):

@@ -8,22 +8,32 @@ from tempfile import TemporaryDirectory
 import click
 
 from rastervision.pipeline.file_system import (
-    file_to_json, sync_from_dir, download_or_copy, file_exists, sync_to_dir,
-    NotReadableError, download_if_needed)
+    file_to_json,
+    sync_from_dir,
+    download_or_copy,
+    file_exists,
+    sync_to_dir,
+    NotReadableError,
+    download_if_needed,
+)
 
 NEW_VERSION_FULL = '0.31.0'  # x.y.z
 NEW_VERSION_MAJOR_MINOR = '0.31'  # x.y
 
 EXAMPLES_MODULE_ROOT = 'rastervision.pytorch_backend.examples'
 EXAMPLES_PATH_ROOT = '/opt/src/rastervision_pytorch_backend/rastervision/pytorch_backend/examples'  # noqa
-REMOTE_PROCESSED_ROOT = f's3://raster-vision/examples/{NEW_VERSION_FULL}/processed-data'
+REMOTE_PROCESSED_ROOT = (
+    f's3://raster-vision/examples/{NEW_VERSION_FULL}/processed-data'
+)
 REMOTE_OUTPUT_ROOT = f's3://raster-vision/examples/{NEW_VERSION_FULL}/output'
 LOCAL_RAW_ROOT = '/opt/data/raw-data'
 LOCAL_PROCESSED_ROOT = f'/opt/data/examples/{NEW_VERSION_FULL}/processed-data'
 LOCAL_OUTPUT_ROOT = f'/opt/data/examples/{NEW_VERSION_FULL}/output'
 LOCAL_COLLECT_ROOT = f'/opt/data/examples/{NEW_VERSION_FULL}/collect'
 ZOO_UPLOAD_ROOT = f's3://azavea-research-public-data/raster-vision/examples/model-zoo-{NEW_VERSION_MAJOR_MINOR}'  # noqa
-SAMPLE_IMG_DIR = f's3://azavea-research-public-data/raster-vision/examples/sample_images'  # noqa
+SAMPLE_IMG_DIR = (
+    f's3://azavea-research-public-data/raster-vision/examples/sample_images'  # noqa
+)
 
 ######################
 # Default configuration for the examples.
@@ -38,44 +48,42 @@ cfg = [
         'local': {
             'raw_uri': f'{LOCAL_RAW_ROOT}/spacenet-dataset',
             'processed_uri': f'{LOCAL_PROCESSED_ROOT}/spacenet-rio-cc',
-            'root_uri': f'{LOCAL_OUTPUT_ROOT}/spacenet-rio-cc'
+            'root_uri': f'{LOCAL_OUTPUT_ROOT}/spacenet-rio-cc',
         },
         'remote': {
             'raw_uri': 's3://spacenet-dataset/',
             'processed_uri': f'{REMOTE_PROCESSED_ROOT}/spacenet-rio-cc',
-            'root_uri': f'{REMOTE_OUTPUT_ROOT}/spacenet-rio-cc'
+            'root_uri': f'{REMOTE_OUTPUT_ROOT}/spacenet-rio-cc',
         },
     },
     {
         'key': 'isprs-potsdam-ss',
         'task': 'ss',
         'pred_ext': '',
-        'module':
-        f'{EXAMPLES_MODULE_ROOT}.semantic_segmentation.isprs_potsdam',
+        'module': f'{EXAMPLES_MODULE_ROOT}.semantic_segmentation.isprs_potsdam',
         'local': {
             'raw_uri': f'{LOCAL_RAW_ROOT}/isprs-potsdam/',
             'processed_uri': f'{LOCAL_PROCESSED_ROOT}/isprs-potsdam-ss',
-            'root_uri': f'{LOCAL_OUTPUT_ROOT}/isprs-potsdam-ss/'
+            'root_uri': f'{LOCAL_OUTPUT_ROOT}/isprs-potsdam-ss/',
         },
         'remote': {
             'raw_uri': 's3://raster-vision-raw-data/isprs-potsdam',
             'processed_uri': f'{REMOTE_PROCESSED_ROOT}/isprs-potsdam-ss',
-            'root_uri': f'{REMOTE_OUTPUT_ROOT}/isprs-potsdam-ss'
+            'root_uri': f'{REMOTE_OUTPUT_ROOT}/isprs-potsdam-ss',
         },
     },
     {
         'key': 'spacenet-vegas-buildings-ss',
         'task': 'ss',
         'pred_ext': '',
-        'module':
-        f'{EXAMPLES_MODULE_ROOT}.semantic_segmentation.spacenet_vegas',
+        'module': f'{EXAMPLES_MODULE_ROOT}.semantic_segmentation.spacenet_vegas',
         'local': {
             'raw_uri': 's3://spacenet-dataset/',
-            'root_uri': f'{LOCAL_OUTPUT_ROOT}/spacenet-vegas-buildings-ss'
+            'root_uri': f'{LOCAL_OUTPUT_ROOT}/spacenet-vegas-buildings-ss',
         },
         'remote': {
             'raw_uri': 's3://spacenet-dataset/',
-            'root_uri': f'{REMOTE_OUTPUT_ROOT}/spacenet-vegas-buildings-ss'
+            'root_uri': f'{REMOTE_OUTPUT_ROOT}/spacenet-vegas-buildings-ss',
         },
         'extra_args': [['target', 'buildings']],
     },
@@ -83,15 +91,14 @@ cfg = [
         'key': 'spacenet-vegas-roads-ss',
         'task': 'ss',
         'pred_ext': '',
-        'module':
-        f'{EXAMPLES_MODULE_ROOT}.semantic_segmentation.spacenet_vegas',
+        'module': f'{EXAMPLES_MODULE_ROOT}.semantic_segmentation.spacenet_vegas',
         'local': {
             'raw_uri': 's3://spacenet-dataset/',
-            'root_uri': f'{LOCAL_OUTPUT_ROOT}/spacenet-vegas-roads-ss'
+            'root_uri': f'{LOCAL_OUTPUT_ROOT}/spacenet-vegas-roads-ss',
         },
         'remote': {
             'raw_uri': 's3://spacenet-dataset/',
-            'root_uri': f'{REMOTE_OUTPUT_ROOT}/spacenet-vegas-roads-ss'
+            'root_uri': f'{REMOTE_OUTPUT_ROOT}/spacenet-vegas-roads-ss',
         },
         'extra_args': [['target', 'roads']],
     },
@@ -103,12 +110,12 @@ cfg = [
         'local': {
             'raw_uri': f'{LOCAL_RAW_ROOT}/isprs-potsdam',
             'processed_uri': f'{LOCAL_PROCESSED_ROOT}/cowc-potsdam-od',
-            'root_uri': f'{LOCAL_OUTPUT_ROOT}/cowc-potsdam-od'
+            'root_uri': f'{LOCAL_OUTPUT_ROOT}/cowc-potsdam-od',
         },
         'remote': {
             'raw_uri': 's3://raster-vision-raw-data/isprs-potsdam',
             'processed_uri': f'{REMOTE_PROCESSED_ROOT}/cowc-potsdam-od',
-            'root_uri': f'{REMOTE_OUTPUT_ROOT}/cowc-potsdam-od'
+            'root_uri': f'{REMOTE_OUTPUT_ROOT}/cowc-potsdam-od',
         },
     },
     {
@@ -119,12 +126,12 @@ cfg = [
         'local': {
             'raw_uri': 's3://raster-vision-xview-example/raw-data',
             'processed_uri': f'{LOCAL_PROCESSED_ROOT}/xview-od',
-            'root_uri': f'{LOCAL_OUTPUT_ROOT}/xview-od'
+            'root_uri': f'{LOCAL_OUTPUT_ROOT}/xview-od',
         },
         'remote': {
             'raw_uri': 's3://raster-vision-xview-example/raw-data',
             'processed_uri': f'{REMOTE_PROCESSED_ROOT}/xview-od',
-            'root_uri': f'{REMOTE_OUTPUT_ROOT}/xview-od'
+            'root_uri': f'{REMOTE_OUTPUT_ROOT}/xview-od',
         },
     },
 ]
@@ -148,7 +155,8 @@ def test():
 @click.option(
     '--commands',
     help='Space-separated string with RV command to run.',
-    default=None)
+    default=None,
+)
 @click.option(
     '--overrides',
     '-o',
@@ -156,7 +164,8 @@ def test():
     multiple=True,
     metavar='KEY VALUE',
     default=[],
-    help='Override experiment config.')
+    help='Override experiment config.',
+)
 def run(keys=[], test=False, remote=False, commands=None, overrides=[]):
     """Run RV on a set of examples.
 
@@ -188,7 +197,8 @@ def run(keys=[], test=False, remote=False, commands=None, overrides=[]):
     '--paths',
     '-p',
     help='Space-separated string with URIs to files or dirs to collect.',
-    default=None)
+    default=None,
+)
 @click.option(
     '--overrides',
     '-o',
@@ -196,7 +206,8 @@ def run(keys=[], test=False, remote=False, commands=None, overrides=[]):
     multiple=True,
     metavar='KEY VALUE',
     default=[],
-    help='Override experiment config.')
+    help='Override experiment config.',
+)
 def collect(keys, collect_dir, remote, paths, overrides=[]):
     """Download outputs of paths for each example.
 
@@ -260,10 +271,10 @@ def collect(keys, collect_dir, remote, paths, overrides=[]):
     multiple=True,
     metavar='KEY VALUE',
     default=[],
-    help='Override experiment config.')
+    help='Override experiment config.',
+)
 def predict(keys, collect_dir, remote, overrides=[]):
-    """Test model bundles using predict command on output of collect command.
-    """
+    """Test model bundles using predict command on output of collect command."""
     overrides = dict(overrides)
 
     run_all = len(keys) == 0
@@ -290,11 +301,13 @@ def predict(keys, collect_dir, remote, overrides=[]):
 @click.option('--examples_root_old', default=None)
 @click.option('--examples_root_new', default=None)
 @click.option('--download_dir', '-d', default=LOCAL_COLLECT_ROOT)
-def compare(root_uri_old: str | None,
-            root_uri_new: str | None,
-            examples_root_old: str | None = None,
-            examples_root_new: str | None = None,
-            download_dir: str | None = LOCAL_COLLECT_ROOT) -> None:
+def compare(
+    root_uri_old: str | None,
+    root_uri_new: str | None,
+    examples_root_old: str | None = None,
+    examples_root_new: str | None = None,
+    download_dir: str | None = LOCAL_COLLECT_ROOT,
+) -> None:
     """Compare different runs of the same example."""
     if root_uri_old is None and root_uri_new is None:
         assert examples_root_old is not None and examples_root_new is not None
@@ -308,9 +321,11 @@ def compare(root_uri_old: str | None,
     return _compare(root_uri_old, root_uri_new, download_dir)
 
 
-def _compare(root_uri_old: str | None,
-             root_uri_new: str | None,
-             download_dir: str | None = None) -> None:
+def _compare(
+    root_uri_old: str | None,
+    root_uri_new: str | None,
+    download_dir: str | None = None,
+) -> None:
     """Compare different runs of the same example."""
     if root_uri_old != '/':
         root_uri_old = root_uri_old.rstrip('/')
@@ -337,7 +352,8 @@ def _compare(root_uri_old: str | None,
     multiple=True,
     metavar='KEY VALUE',
     default=[],
-    help='Override experiment config.')
+    help='Override experiment config.',
+)
 def upload(keys, collect_dir, upload_dir, overrides=[]):
     """Upload eval, bundle, and sample predictions to the target dir."""
     overrides = dict(overrides)
@@ -358,10 +374,12 @@ def upload(keys, collect_dir, upload_dir, overrides=[]):
 ######################
 # utils
 ######################
-def _run(exp_cfg: dict,
-         test: bool = False,
-         remote: bool = False,
-         commands: list[str] = None) -> None:
+def _run(
+    exp_cfg: dict,
+    test: bool = False,
+    remote: bool = False,
+    commands: list[str] = None,
+) -> None:
     """Builds a command from the params in exp_cfg and other arguments and
     then executes it.
     """
@@ -389,15 +407,15 @@ def _run(exp_cfg: dict,
 
 
 def _predict(exp_cfg: dict, collect_dir: str) -> None:
-    """Download sample image and make predictions on it using the model bundle.
-    """
+    """Download sample image and make predictions on it using the model bundle."""
     key = exp_cfg['key']
     console_heading(f'Testing model bundle for {key}...')
 
     model_bundle_uri = join(collect_dir, 'bundle', 'model-bundle.zip')
     if not exists(model_bundle_uri):
         console_failure(
-            f'Bundle does not exist: {model_bundle_uri}', bold=True)
+            f'Bundle does not exist: {model_bundle_uri}', bold=True
+        )
         exit(1)
 
     pred_dir = join(collect_dir, 'sample-predictions')
@@ -409,15 +427,21 @@ def _predict(exp_cfg: dict, collect_dir: str) -> None:
     pred_ext = exp_cfg['pred_ext']
     out_uri = join(pred_dir, f'sample-pred-{key}{pred_ext}')
     cmd = [
-        'rastervision', 'predict', model_bundle_uri, sample_uri_dst, out_uri
+        'rastervision',
+        'predict',
+        model_bundle_uri,
+        sample_uri_dst,
+        out_uri,
     ]
     run_command(cmd)
 
 
-def _compare_runs(root_uri_old: str,
-                  root_uri_new: str,
-                  download_dir: str | None,
-                  commands=['eval']) -> None:
+def _compare_runs(
+    root_uri_old: str,
+    root_uri_new: str,
+    download_dir: str | None,
+    commands=['eval'],
+) -> None:
     """Compare outputs of commands for two runs of an example.
     Currently only supports eval, but can be extended to include others.
     """
@@ -425,18 +449,21 @@ def _compare_runs(root_uri_old: str,
         key_old = basename(root_uri_old)
         key_new = basename(root_uri_new)
         cmd_root_uri_old_local = fetch_cmd_dir(
-            root_uri_old, cmd, join(download_dir, 'old', key_old))
-        cmd_root_uri_new_local = fetch_cmd_dir(root_uri_new, cmd,
-                                               join(download_dir, key_new))
+            root_uri_old, cmd, join(download_dir, 'old', key_old)
+        )
+        cmd_root_uri_new_local = fetch_cmd_dir(
+            root_uri_new, cmd, join(download_dir, key_new)
+        )
         if cmd == 'eval':
             _compare_evals(cmd_root_uri_old_local, cmd_root_uri_new_local)
 
 
-def _compare_evals(root_uri_old: str,
-                   root_uri_new: str,
-                   float_tol: float = 1e-2,
-                   exclude_keys: list = ['conf_mat', 'count',
-                                         'per_scene']) -> None:
+def _compare_evals(
+    root_uri_old: str,
+    root_uri_new: str,
+    float_tol: float = 1e-2,
+    exclude_keys: list = ['conf_mat', 'count', 'per_scene'],
+) -> None:
     """Compare outputs of the eval command for two runs of an example."""
     console_heading('Comparing keys and values in eval.json files...')
     try:
@@ -448,7 +475,8 @@ def _compare_evals(root_uri_old: str,
     eval_json_new = join(root_uri_new, 'validation_scenes', 'eval.json')
     eval_new = file_to_json(download_if_needed(eval_json_new))
     _compare_dicts(
-        eval_old, eval_new, float_tol=float_tol, exclude_keys=exclude_keys)
+        eval_old, eval_new, float_tol=float_tol, exclude_keys=exclude_keys
+    )
 
 
 def validate_keys(keys: list[str]) -> None:
@@ -465,7 +493,8 @@ def run_command(cmd: str) -> None:
     proc = subprocess.run(cmd)
     if proc.returncode != 0:
         console_failure(
-            f'Error: process returned {proc.returncode}', bold=True)
+            f'Error: process returned {proc.returncode}', bold=True
+        )
         exit()
 
 
@@ -500,7 +529,8 @@ def fetch_cmd_dir(root_uri: str, cmd: str, download_dir: str) -> str:
     cmd_root_uri = join(root_uri, cmd)
     console_info(f'Fetching {cmd} directory: {cmd_root_uri}')
     cmd_root_uri_local = to_local_uri(
-        cmd_root_uri, download_dir, full_path=False)
+        cmd_root_uri, download_dir, full_path=False
+    )
     sync_from_dir(cmd_root_uri, cmd_root_uri_local)
     return cmd_root_uri_local
 
@@ -542,10 +572,12 @@ def flatten_dict(d: dict | list, sep: str = '.') -> dict:
     return flat_d
 
 
-def _compare_dicts(dict_old: dict,
-                   dict_new: dict,
-                   float_tol: float = 1e-2,
-                   exclude_keys: list = []) -> None:
+def _compare_dicts(
+    dict_old: dict,
+    dict_new: dict,
+    float_tol: float = 1e-2,
+    exclude_keys: list = [],
+) -> None:
     """Compare the keys and values of the two dicts.
 
     Args:
@@ -582,13 +614,15 @@ def _compare_dicts(dict_old: dict,
             if v_new - v_old > float_tol:
                 diff_count += 1
                 _diff = v_new - v_old
-                console_success(f'diff: {k}: '
-                                f'{v_new:.6f} - {v_old:.6f}  = {_diff:.6f}')
+                console_success(
+                    f'diff: {k}: {v_new:.6f} - {v_old:.6f}  = {_diff:.6f}'
+                )
             elif v_old - v_new > float_tol:
                 diff_count += 1
                 _diff = v_new - v_old
-                console_failure(f'diff: {k}: '
-                                f'{v_new:.6f} - {v_old:.6f}  = {_diff:.6f}')
+                console_failure(
+                    f'diff: {k}: {v_new:.6f} - {v_old:.6f}  = {_diff:.6f}'
+                )
         elif isinstance(v_new, int) and isinstance(v_old, int):
             if v_old != v_new:
                 diff_count += 1

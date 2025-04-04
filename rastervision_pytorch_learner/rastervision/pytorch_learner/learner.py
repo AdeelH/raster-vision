@@ -1,4 +1,4 @@
-from typing import (TYPE_CHECKING, Any, Iterator, Literal)
+from typing import TYPE_CHECKING, Any, Iterator, Literal
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from os.path import join, isfile, basename, isdir
@@ -27,16 +27,30 @@ import torch.multiprocessing as mp
 from rastervision.pipeline import rv_config_ as rv_config
 from rastervision.pipeline.utils import get_env_var
 from rastervision.pipeline.file_system import (
-    sync_to_dir, json_to_file, make_dir, zipdir, download_if_needed,
-    download_or_copy, sync_from_dir, get_local_path, unzip, is_local,
-    get_tmp_dir)
+    sync_to_dir,
+    json_to_file,
+    make_dir,
+    zipdir,
+    download_if_needed,
+    download_or_copy,
+    sync_from_dir,
+    get_local_path,
+    unzip,
+    is_local,
+    get_tmp_dir,
+)
 from rastervision.pipeline.file_system.utils import file_exists
 from rastervision.pipeline.utils import terminate_at_exit
 from rastervision.pipeline.config import build_config
 from rastervision.pytorch_learner.utils import (
-    aggregate_metrics, DDPContextManager, get_hubconf_dir_from_cfg,
-    get_learner_config_from_bundle_dir, log_metrics_to_csv, log_system_details,
-    ONNXRuntimeAdapter)
+    aggregate_metrics,
+    DDPContextManager,
+    get_hubconf_dir_from_cfg,
+    get_learner_config_from_bundle_dir,
+    log_metrics_to_csv,
+    log_system_details,
+    ONNXRuntimeAdapter,
+)
 from rastervision.pytorch_learner.dataset.visualizer import Visualizer
 
 if TYPE_CHECKING:
@@ -88,22 +102,24 @@ class Learner(ABC):
 
     """
 
-    def __init__(self,
-                 cfg: 'LearnerConfig',
-                 output_dir: str | None = None,
-                 train_ds: 'Dataset | None' = None,
-                 valid_ds: 'Dataset | None' = None,
-                 test_ds: 'Dataset | None' = None,
-                 model: nn.Module | None = None,
-                 loss: Callable[..., Tensor] | None = None,
-                 optimizer: 'Optimizer | None' = None,
-                 epoch_scheduler: '_LRScheduler | None' = None,
-                 step_scheduler: '_LRScheduler | None' = None,
-                 tmp_dir: str | None = None,
-                 model_weights_path: str | None = None,
-                 model_def_path: str | None = None,
-                 loss_def_path: str | None = None,
-                 training: bool = True):
+    def __init__(
+        self,
+        cfg: 'LearnerConfig',
+        output_dir: str | None = None,
+        train_ds: 'Dataset | None' = None,
+        valid_ds: 'Dataset | None' = None,
+        test_ds: 'Dataset | None' = None,
+        model: nn.Module | None = None,
+        loss: Callable[..., Tensor] | None = None,
+        optimizer: 'Optimizer | None' = None,
+        epoch_scheduler: '_LRScheduler | None' = None,
+        step_scheduler: '_LRScheduler | None' = None,
+        tmp_dir: str | None = None,
+        model_weights_path: str | None = None,
+        model_def_path: str | None = None,
+        loss_def_path: str | None = None,
+        training: bool = True,
+    ):
         """Constructor.
 
         Args:
@@ -148,14 +164,17 @@ class Learner(ABC):
         """
         self.cfg = cfg
         self.training = training
-        self._onnx_mode = (model_weights_path is not None
-                           and model_weights_path.lower().endswith('.onnx'))
+        self._onnx_mode = (
+            model_weights_path is not None
+            and model_weights_path.lower().endswith('.onnx')
+        )
         if self.onnx_mode and self.training:
             raise ValueError('Training mode is not supported for ONNX models.')
         if model is None and cfg.model is None and not self.onnx_mode:
             raise ValueError(
                 'cfg.model can only be None if a custom model is specified '
-                'or if model_weights_path is an .onnx file.')
+                'or if model_weights_path is an .onnx file.'
+            )
 
         if tmp_dir is None:
             self._tmp_dir = get_tmp_dir()
@@ -205,26 +224,31 @@ class Learner(ABC):
 
         if self.training:
             if output_dir is None and cfg.output_uri is None:
-                raise ValueError('output_dir or LearnerConfig.output_uri must '
-                                 'be specified in training mode.')
+                raise ValueError(
+                    'output_dir or LearnerConfig.output_uri must '
+                    'be specified in training mode.'
+                )
             if output_dir is not None and cfg.output_uri is not None:
                 log.warning(
                     'Both output_dir and LearnerConfig.output_uri specified. '
-                    'LearnerConfig.output_uri will be ignored.')
+                    'LearnerConfig.output_uri will be ignored.'
+                )
             if output_dir is None:
                 assert cfg.output_uri is not None
                 self.output_dir = cfg.output_uri
                 self.model_bundle_uri = cfg.get_model_bundle_uri()
             else:
                 self.output_dir = output_dir
-                self.model_bundle_uri = join(self.output_dir,
-                                             'model-bundle.zip')
+                self.model_bundle_uri = join(
+                    self.output_dir, 'model-bundle.zip'
+                )
             if is_local(self.output_dir):
                 self.output_dir_local = self.output_dir
                 make_dir(self.output_dir_local)
             else:
-                self.output_dir_local = get_local_path(self.output_dir,
-                                                       tmp_dir)
+                self.output_dir_local = get_local_path(
+                    self.output_dir, tmp_dir
+                )
                 make_dir(self.output_dir_local, force_empty=True)
                 if self.training:
                     self.sync_from_cloud()
@@ -232,8 +256,9 @@ class Learner(ABC):
                 log.info(f'Remote output dir: {self.output_dir}')
 
             self.modules_dir = join(self.output_dir, MODULES_DIRNAME)
-            self.checkpoints_dir_local = join(self.output_dir_local,
-                                              CHECKPOINTS_DIRNAME)
+            self.checkpoints_dir_local = join(
+                self.output_dir_local, CHECKPOINTS_DIRNAME
+            )
             make_dir(self.checkpoints_dir_local)
 
         # ---------------------------
@@ -244,7 +269,8 @@ class Learner(ABC):
         if not self.distributed:
             self.setup_model(
                 model_weights_path=model_weights_path,
-                model_def_path=model_def_path)
+                model_def_path=model_def_path,
+            )
 
         if self.training:
             self.setup_training(loss_def_path=loss_def_path)
@@ -255,18 +281,22 @@ class Learner(ABC):
                 self.model.eval()
 
         self.visualizer = self.get_visualizer_class()(
-            cfg.data.class_names, cfg.data.class_colors,
+            cfg.data.class_names,
+            cfg.data.class_colors,
             cfg.data.plot_options.transform,
-            cfg.data.plot_options.channel_display_groups)
+            cfg.data.plot_options.channel_display_groups,
+        )
 
     @classmethod
-    def from_model_bundle(cls: type,
-                          model_bundle_uri: str,
-                          tmp_dir: str | None = None,
-                          cfg: 'LearnerConfig | None' = None,
-                          training: bool = False,
-                          use_onnx_model: bool | None = None,
-                          **kwargs) -> 'Self':
+    def from_model_bundle(
+        cls: type,
+        model_bundle_uri: str,
+        tmp_dir: str | None = None,
+        cfg: 'LearnerConfig | None' = None,
+        training: bool = False,
+        use_onnx_model: bool | None = None,
+        **kwargs,
+    ) -> 'Self':
         """Create a Learner from a model bundle.
 
         .. note::
@@ -322,7 +352,8 @@ class Learner(ABC):
         if ext_cfg is not None:
             model_def_path = get_hubconf_dir_from_cfg(ext_cfg, parent=hub_dir)
             log.info(
-                f'Using model definition found in bundle: {model_def_path}')
+                f'Using model definition found in bundle: {model_def_path}'
+            )
 
         # retrieve existing loss function definition, if available
         ext_cfg = cfg.solver.external_loss_def
@@ -340,13 +371,15 @@ class Learner(ABC):
                 if not file_exists(tf['lambda_transforms_path']):
                     raise FileNotFoundError(
                         f'Custom transform definition file {tf_bundle_path} '
-                        'was not found inside the bundle.')
+                        'was not found inside the bundle.'
+                    )
             # config has been altered, so re-validate
             cfg = build_config(cfg.dict())
 
         if use_onnx_model is None:
             use_onnx_model = rv_config.get_namespace_option(
-                'rastervision', 'USE_ONNX', as_bool=True)
+                'rastervision', 'USE_ONNX', as_bool=True
+            )
         onnx_mode = False
         if not training and use_onnx_model:
             onnx_path = join(model_bundle_dir, 'model.onnx')
@@ -358,21 +391,26 @@ class Learner(ABC):
             if cfg.model is None and kwargs.get('model') is None:
                 raise ValueError(
                     'Model definition is not saved in the model-bundle. '
-                    'Please specify the model explicitly.')
-            model_weights_path = join(model_bundle_dir,
-                                      BUNDLE_MODEL_WEIGHTS_FILENAME)
+                    'Please specify the model explicitly.'
+                )
+            model_weights_path = join(
+                model_bundle_dir, BUNDLE_MODEL_WEIGHTS_FILENAME
+            )
 
         if cls == Learner:
             if len(kwargs) > 0:
-                raise ValueError('kwargs are only supported if calling '
-                                 '.from_model_bundle() on a Learner subclass '
-                                 '-- not Learner itself.')
+                raise ValueError(
+                    'kwargs are only supported if calling '
+                    '.from_model_bundle() on a Learner subclass '
+                    '-- not Learner itself.'
+                )
             learner: cls = cfg.build(
                 tmp_dir=tmp_dir,
                 model_weights_path=model_weights_path,
                 model_def_path=model_def_path,
                 loss_def_path=loss_def_path,
-                training=training)
+                training=training,
+            )
         else:
             learner = cls(
                 cfg=cfg,
@@ -381,7 +419,8 @@ class Learner(ABC):
                 model_def_path=model_def_path,
                 loss_def_path=loss_def_path,
                 training=training,
-                **kwargs)
+                **kwargs,
+            )
         return learner
 
     def main(self):
@@ -430,12 +469,13 @@ class Learner(ABC):
             log.info('Training already completed. Skipping.')
             return
 
-        if (start_epoch > 0 and start_epoch < end_epoch):
+        if start_epoch > 0 and start_epoch < end_epoch:
             log.info('Resuming training from epoch %d', start_epoch)
 
         if self.is_ddp_process:  # pragma: no cover
-            self._run_train_distributed(self.ddp_rank, self.ddp_world_size,
-                                        start_epoch, end_epoch)
+            self._run_train_distributed(
+                self.ddp_rank, self.ddp_world_size, start_epoch, end_epoch
+            )
         elif self.distributed:  # pragma: no cover
             log.info('Spawning %d DDP processes', self.ddp_world_size)
             mp.start_processes(
@@ -443,7 +483,8 @@ class Learner(ABC):
                 args=(self.ddp_world_size, start_epoch, end_epoch),
                 nprocs=self.ddp_world_size,
                 join=True,
-                start_method=self.ddp_start_method)
+                start_method=self.ddp_start_method,
+            )
         else:
             self._train(start_epoch, end_epoch)
 
@@ -454,7 +495,8 @@ class Learner(ABC):
             log.info(f'epoch: {epoch}')
 
             train_metrics = self.train_epoch(
-                optimizer=self.opt, step_scheduler=self.step_scheduler)
+                optimizer=self.opt, step_scheduler=self.step_scheduler
+            )
 
             if self.epoch_scheduler:
                 self.epoch_scheduler.step()
@@ -466,8 +508,9 @@ class Learner(ABC):
 
             self.on_epoch_end(epoch, metrics)
 
-    def _train_distributed(self, start_epoch: int,
-                           end_epoch: int):  # pragma: no cover
+    def _train_distributed(
+        self, start_epoch: int, end_epoch: int
+    ):  # pragma: no cover
         """Distributed training loop."""
         if self.is_ddp_master:
             self.on_train_start()
@@ -482,7 +525,8 @@ class Learner(ABC):
             train_metrics = self.train_epoch(
                 optimizer=self.opt,
                 step_scheduler=self.step_scheduler,
-                dataloader=train_dl)
+                dataloader=train_dl,
+            )
 
             valid_metrics = self.validate_epoch(val_dl)
 
@@ -496,21 +540,24 @@ class Learner(ABC):
 
             dist.barrier()
 
-    def _run_train_distributed(self, rank: int, world_size: int,
-                               *args):  # pragma: no cover
+    def _run_train_distributed(
+        self, rank: int, world_size: int, *args
+    ):  # pragma: no cover
         """Method executed by each DDP worker."""
         with self.ddp(rank, world_size):
             self.setup_model(
                 model_weights_path=self.init_model_weights_path,
-                model_def_path=self.init_model_def_path)
+                model_def_path=self.init_model_def_path,
+            )
             self.setup_training(self.init_loss_def_path)
             self._train_distributed(*args)
 
     def train_epoch(
-            self,
-            optimizer: 'Optimizer',
-            dataloader: DataLoader | None = None,
-            step_scheduler: '_LRScheduler | None' = None) -> MetricDict:
+        self,
+        optimizer: 'Optimizer',
+        dataloader: DataLoader | None = None,
+        step_scheduler: '_LRScheduler | None' = None,
+    ) -> MetricDict:
         """Train for a single epoch."""
         self.model.train()
         if dataloader is None:
@@ -561,8 +608,9 @@ class Learner(ABC):
         self.log_data_stats()
         self.plot_dataloaders(self.cfg.data.preview_batch_limit)
 
-    def train_end(self,
-                  outputs: list[dict[str, float | Tensor]]) -> MetricDict:
+    def train_end(
+        self, outputs: list[dict[str, float | Tensor]]
+    ) -> MetricDict:
         """Aggregate the output of train_step at the end of the epoch.
 
         Args:
@@ -576,8 +624,9 @@ class Learner(ABC):
     def validate(self, split: Literal['train', 'valid', 'test'] = 'valid'):
         """Evaluate model on a particular data split."""
         if self.is_ddp_process:  # pragma: no cover
-            self._run_validate_distributed(self.ddp_rank, self.ddp_world_size,
-                                           split)
+            self._run_validate_distributed(
+                self.ddp_rank, self.ddp_world_size, split
+            )
         elif self.distributed:  # pragma: no cover
             log.info('Spawning DDP processes')
             mp.start_processes(
@@ -585,12 +634,14 @@ class Learner(ABC):
                 args=(self.ddp_world_size, split),
                 nprocs=self.ddp_world_size,
                 join=True,
-                start_method=self.ddp_start_method)
+                start_method=self.ddp_start_method,
+            )
         else:
             self._validate(split)
 
-    def _validate(self, split: Literal['train', 'valid', 'test'] = 'valid'
-                  ):  # pragma: no cover
+    def _validate(
+        self, split: Literal['train', 'valid', 'test'] = 'valid'
+    ):  # pragma: no cover
         """Evaluate model on a particular data split.
 
         Gets validation metrics and saves them along with prediction plots.
@@ -607,17 +658,20 @@ class Learner(ABC):
         if self.is_ddp_process and not self.is_ddp_master:
             return
         log.info(f'metrics: {metrics}')
-        json_to_file(metrics,
-                     join(self.output_dir_local, f'{split}_metrics.json'))
+        json_to_file(
+            metrics, join(self.output_dir_local, f'{split}_metrics.json')
+        )
         self.plot_predictions(split, self.cfg.data.preview_batch_limit)
 
-    def _run_validate_distributed(self, rank: int, world_size: int,
-                                  *args):  # pragma: no cover
+    def _run_validate_distributed(
+        self, rank: int, world_size: int, *args
+    ):  # pragma: no cover
         """Method executed by each DDP worker."""
         with self.ddp(rank, world_size):
             self.setup_model(
                 model_weights_path=self.init_model_weights_path,
-                model_def_path=self.init_model_def_path)
+                model_def_path=self.init_model_def_path,
+            )
             self.setup_training(self.init_loss_def_path)
             self._validate(*args)
 
@@ -657,8 +711,9 @@ class Learner(ABC):
             dict with metric names mapped to metric values
         """
 
-    def validate_end(self,
-                     outputs: list[dict[str, float | Tensor]]) -> MetricDict:
+    def validate_end(
+        self, outputs: list[dict[str, float | Tensor]]
+    ) -> MetricDict:
         """Aggregate the output of validate_step at the end of the epoch.
 
         Args:
@@ -723,16 +778,17 @@ class Learner(ABC):
             out = self.prob_to_pred(self.post_forward(out))
         return out
 
-    def predict_dataset(self,
-                        dataset: 'Dataset',
-                        return_format: Literal['xyz', 'yz', 'z'] = 'z',
-                        raw_out: bool = True,
-                        numpy_out: bool = False,
-                        predict_kw: dict = {},
-                        dataloader_kw: dict = {},
-                        progress_bar: bool = True,
-                        progress_bar_kw: dict = {}
-                        ) -> Iterator[Any] | Iterator[tuple[Any, ...]]:
+    def predict_dataset(
+        self,
+        dataset: 'Dataset',
+        return_format: Literal['xyz', 'yz', 'z'] = 'z',
+        raw_out: bool = True,
+        numpy_out: bool = False,
+        predict_kw: dict = {},
+        dataloader_kw: dict = {},
+        progress_bar: bool = True,
+        progress_bar_kw: dict = {},
+    ) -> Iterator[Any] | Iterator[tuple[Any, ...]]:
         """Returns an iterator over predictions on the given dataset.
 
         Args:
@@ -772,16 +828,16 @@ class Learner(ABC):
         cfg = self.cfg
 
         num_workers = rv_config.get_namespace_option(
-            'rastervision',
-            'PREDICT_NUM_WORKERS',
-            default=cfg.data.num_workers)
+            'rastervision', 'PREDICT_NUM_WORKERS', default=cfg.data.num_workers
+        )
 
         dl_kw = dict(
             collate_fn=self.get_collate_fn(),
             batch_size=cfg.solver.batch_sz if cfg.solver else 1,
             num_workers=int(num_workers),
             shuffle=False,
-            pin_memory=True)
+            pin_memory=True,
+        )
         dl_kw.update(dataloader_kw)
         dl = DataLoader(dataset, **dl_kw)
 
@@ -790,7 +846,8 @@ class Learner(ABC):
             return_format=return_format,
             raw_out=raw_out,
             batched_output=False,
-            predict_kw=predict_kw)
+            predict_kw=predict_kw,
+        )
 
         if numpy_out:
             if return_format == 'z':
@@ -806,13 +863,14 @@ class Learner(ABC):
 
         return preds
 
-    def predict_dataloader(self,
-                           dl: DataLoader,
-                           batched_output: bool = True,
-                           return_format: Literal['xyz', 'yz', 'z'] = 'z',
-                           raw_out: bool = True,
-                           predict_kw: dict = {}
-                           ) -> Iterator[Any] | Iterator[tuple[Any, ...]]:
+    def predict_dataloader(
+        self,
+        dl: DataLoader,
+        batched_output: bool = True,
+        return_format: Literal['xyz', 'yz', 'z'] = 'z',
+        raw_out: bool = True,
+        predict_kw: dict = {},
+    ) -> Iterator[Any] | Iterator[tuple[Any, ...]]:
         """Returns an iterator over predictions on the given dataloader.
 
         Args:
@@ -848,7 +906,8 @@ class Learner(ABC):
             dl,
             raw_out=raw_out,
             batched_output=batched_output,
-            predict_kw=predict_kw)
+            predict_kw=predict_kw,
+        )
 
         if return_format == 'yz':
             preds = ((y, z) for _, y, z in preds)
@@ -858,11 +917,12 @@ class Learner(ABC):
         return preds
 
     def _predict_dataloader(
-            self,
-            dl: DataLoader,
-            raw_out: bool = True,
-            batched_output: bool = True,
-            predict_kw: dict = {}) -> Iterator[tuple[Tensor, Any, Any]]:
+        self,
+        dl: DataLoader,
+        raw_out: bool = True,
+        batched_output: bool = True,
+        predict_kw: dict = {},
+    ) -> Iterator[tuple[Tensor, Any, Any]]:
         """Returns an iterator over predictions on the given dataloader.
 
         Args:
@@ -926,9 +986,11 @@ class Learner(ABC):
         """Set up and validate params related to PyTorch DDP."""
 
         ddp_allowed = rv_config.get_namespace_option(
-            'rastervision', 'USE_DDP', True, as_bool=True)
+            'rastervision', 'USE_DDP', True, as_bool=True
+        )
         self.ddp_start_method = rv_config.get_namespace_option(
-            'rastervision', 'DDP_START_METHOD', 'spawn').lower()
+            'rastervision', 'DDP_START_METHOD', 'spawn'
+        ).lower()
 
         self.is_ddp_process = False
         self.is_ddp_master = False
@@ -940,7 +1002,8 @@ class Learner(ABC):
         self.ddp_local_rank = get_env_var('LOCAL_RANK', None, int)
         ddp_vars_set = all(
             v is not None
-            for v in [self.ddp_world_size, self.ddp_rank, self.ddp_local_rank])
+            for v in [self.ddp_world_size, self.ddp_rank, self.ddp_local_rank]
+        )
 
         if not ddp_allowed or not self.training:
             self.distributed = False
@@ -958,7 +1021,8 @@ class Learner(ABC):
             if self.ddp_world_size is None:
                 raise ValueError(
                     'WORLD_SIZE env variable must be specified if '
-                    'RASTERVISION_DDP_START_METHOD is not "spawn".')
+                    'RASTERVISION_DDP_START_METHOD is not "spawn".'
+                )
             self.distributed = True
             self.avoid_activating_cuda_runtime = True
         elif torch.cuda.is_available():
@@ -969,13 +1033,17 @@ class Learner(ABC):
             if self.distributed:
                 log.info(
                     'Multiple GPUs detected (%d), will use DDP for training.',
-                    gpu_count)
+                    gpu_count,
+                )
                 world_size_is_set = self.ddp_world_size is not None
                 if not world_size_is_set:
                     self.ddp_world_size = gpu_count
                 if world_size_is_set and self.ddp_world_size < gpu_count:
-                    log.info('Using only WORLD_SIZE=%d of total %d GPUs.',
-                             self.ddp_world_size, gpu_count)
+                    log.info(
+                        'Using only WORLD_SIZE=%d of total %d GPUs.',
+                        self.ddp_world_size,
+                        gpu_count,
+                    )
         else:
             self.distributed = False
 
@@ -987,7 +1055,8 @@ class Learner(ABC):
             raise ValueError(
                 'In distributed mode, the model must be specified via '
                 'ModelConfig in LearnerConfig rather than be passed '
-                'as an instantiated object.')
+                'as an instantiated object.'
+            )
 
         dses_passed = any([self.train_ds, self.valid_ds, self.test_ds])
         if dses_passed and self.ddp_start_method != 'fork':
@@ -995,7 +1064,8 @@ class Learner(ABC):
                 'In distributed mode, if '
                 'RASTERVISION_DDP_START_METHOD != "fork", datasets must be '
                 'specified via DataConfig in LearnerConfig rather than be '
-                'passed as instantiated objects.')
+                'passed as instantiated objects.'
+            )
 
         if self.ddp_local_rank is not None:
             self.device = torch.device('cuda', self.ddp_local_rank)
@@ -1024,8 +1094,9 @@ class Learner(ABC):
         self.config_path = join(self.output_dir_local, 'learner-config.json')
         cfg.to_file(self.config_path)
         self.log_path = join(self.output_dir_local, 'log.csv')
-        self.last_model_weights_path = join(self.output_dir_local,
-                                            'last-model.pth')
+        self.last_model_weights_path = join(
+            self.output_dir_local, 'last-model.pth'
+        )
 
         if not self.distributed:
             # data
@@ -1067,8 +1138,9 @@ class Learner(ABC):
             if self.ddp_start_method == 'fork':
                 self.setup_data()
 
-    def get_start_and_end_epochs(self,
-                                 epochs: int | None = None) -> tuple[int, int]:
+    def get_start_and_end_epochs(
+        self, epochs: int | None = None
+    ) -> tuple[int, int]:
         """Get start and end epochs given epochs."""
         start_epoch = self.get_start_epoch()
         if epochs is None:
@@ -1094,9 +1166,11 @@ class Learner(ABC):
             start_epoch = last_epoch + 1
         return start_epoch
 
-    def setup_model(self,
-                    model_weights_path: str | None = None,
-                    model_def_path: str | None = None) -> None:
+    def setup_model(
+        self,
+        model_weights_path: str | None = None,
+        model_def_path: str | None = None,
+    ) -> None:
         """Setup self.model.
 
         Args:
@@ -1112,8 +1186,9 @@ class Learner(ABC):
         if self.model is None:
             self.model = self.build_model(model_def_path=model_def_path)
         self.model.to(device=self.device)
-        if self.is_ddp_process and not isinstance(self.model,
-                                                  DDP):  # pragma: no cover
+        if self.is_ddp_process and not isinstance(
+            self.model, DDP
+        ):  # pragma: no cover
             self.model = nn.SyncBatchNorm.convert_sync_batchnorm(self.model)
             self.model = DDP(self.model, device_ids=[self.ddp_local_rank])
         self.load_init_weights(model_weights_path=model_weights_path)
@@ -1132,12 +1207,12 @@ class Learner(ABC):
             in_channels=in_channels,
             save_dir=self.modules_dir,
             hubconf_dir=model_def_path,
-            ddp_rank=self.ddp_local_rank)
+            ddp_rank=self.ddp_local_rank,
+        )
         return model
 
     def setup_data(self, distributed: bool | None = None):
-        """Set datasets and dataLoaders for train, validation, and test sets.
-        """
+        """Set datasets and dataLoaders for train, validation, and test sets."""
         if distributed is None:
             distributed = self.distributed
 
@@ -1167,7 +1242,8 @@ class Learner(ABC):
 
         log.info('Building dataloaders')
         self.train_dl, self.valid_dl, self.test_dl = self.build_dataloaders(
-            distributed=distributed)
+            distributed=distributed
+        )
 
     def build_datasets(self) -> tuple['Dataset', 'Dataset', 'Dataset']:
         """Build Datasets for train, validation, and test splits."""
@@ -1175,15 +1251,16 @@ class Learner(ABC):
         train_ds, val_ds, test_ds = self.cfg.data.build(tmp_dir=self.tmp_dir)
         return train_ds, val_ds, test_ds
 
-    def build_dataset(self,
-                      split: Literal['train', 'valid', 'test']) -> 'Dataset':
+    def build_dataset(
+        self, split: Literal['train', 'valid', 'test']
+    ) -> 'Dataset':
         """Build Dataset for split."""
         log.info('Building %s dataset ...', split)
         ds = self.cfg.data.build_dataset(split=split, tmp_dir=self.tmp_dir)
         return ds
 
     def build_dataloaders(
-            self, distributed: bool | None = None
+        self, distributed: bool | None = None
     ) -> tuple[DataLoader, DataLoader, DataLoader | None]:
         """Build DataLoaders for train, validation, and test splits."""
         if distributed is None:
@@ -1198,10 +1275,12 @@ class Learner(ABC):
 
         return train_dl, val_dl, test_dl
 
-    def build_dataloader(self,
-                         split: Literal['train', 'valid', 'test'],
-                         distributed: bool | None = None,
-                         **kwargs) -> DataLoader:
+    def build_dataloader(
+        self,
+        split: Literal['train', 'valid', 'test'],
+        distributed: bool | None = None,
+        **kwargs,
+    ) -> DataLoader:
         """Build DataLoader for split."""
         if distributed is None:
             distributed = self.distributed
@@ -1218,11 +1297,15 @@ class Learner(ABC):
         if distributed:  # pragma: no cover
             world_sz = self.ddp_world_size
             if world_sz is None:
-                raise ValueError('World size not set. '
-                                 'Cannot determine per-process batch size.')
+                raise ValueError(
+                    'World size not set. '
+                    'Cannot determine per-process batch size.'
+                )
             if world_sz > batch_sz:
-                raise ValueError(f'World size ({world_sz}) is greater '
-                                 f'than total batch size ({batch_sz}).')
+                raise ValueError(
+                    f'World size ({world_sz}) is greater '
+                    f'than total batch size ({batch_sz}).'
+                )
             batch_sz //= world_sz
             log.debug('Per GPU batch size: %d', batch_sz)
 
@@ -1257,10 +1340,12 @@ class Learner(ABC):
         """
         return None
 
-    def build_sampler(self,
-                      ds: 'Dataset',
-                      split: Literal['train', 'valid', 'test'],
-                      distributed: bool = False) -> 'Sampler | None':
+    def build_sampler(
+        self,
+        ds: 'Dataset',
+        split: Literal['train', 'valid', 'test'],
+        distributed: bool = False,
+    ) -> 'Sampler | None':
         """Build an optional sampler for the split's dataloader."""
         split = split.lower()
         sampler = None
@@ -1270,14 +1355,16 @@ class Learner(ABC):
                     ds,
                     shuffle=True,
                     num_replicas=self.ddp_world_size,
-                    rank=self.ddp_rank)
+                    rank=self.ddp_rank,
+                )
         elif split == 'valid':
             if distributed:  # pragma: no cover
                 sampler = DistributedSampler(
                     ds,
                     shuffle=False,
                     num_replicas=self.ddp_world_size,
-                    rank=self.ddp_rank)
+                    rank=self.ddp_rank,
+                )
         return sampler
 
     def setup_loss(self, loss_def_path: str | None = None) -> None:
@@ -1293,14 +1380,16 @@ class Learner(ABC):
         if self.loss is not None and isinstance(self.loss, nn.Module):
             self.loss.to(self.device)
 
-    def build_loss(self,
-                   loss_def_path: str | None = None) -> Callable[..., Tensor]:
+    def build_loss(
+        self, loss_def_path: str | None = None
+    ) -> Callable[..., Tensor]:
         """Build a loss Callable."""
         cfg = self.cfg
         loss = cfg.solver.build_loss(
             num_classes=cfg.data.num_classes,
             save_dir=self.modules_dir,
-            hubconf_dir=loss_def_path)
+            hubconf_dir=loss_def_path,
+        )
         return loss
 
     def build_optimizer(self) -> 'Optimizer':
@@ -1312,12 +1401,14 @@ class Learner(ABC):
         return self.cfg.solver.build_step_scheduler(
             optimizer=self.opt,
             train_ds_sz=len(self.train_ds),
-            last_epoch=(start_epoch - 1))
+            last_epoch=(start_epoch - 1),
+        )
 
     def build_epoch_scheduler(self, start_epoch: int = 0) -> '_LRScheduler':
         """Returns an LR scheduler that changes the LR each epoch."""
         return self.cfg.solver.build_epoch_scheduler(
-            optimizer=self.opt, last_epoch=(start_epoch - 1))
+            optimizer=self.opt, last_epoch=(start_epoch - 1)
+        )
 
     ################
     # Visualization
@@ -1326,10 +1417,12 @@ class Learner(ABC):
     def get_visualizer_class(self) -> type[Visualizer]:
         """Returns a Visualizer class object for plotting data samples."""
 
-    def plot_predictions(self,
-                         split: Literal['train', 'valid', 'test'],
-                         batch_limit: int | None = None,
-                         show: bool = False):
+    def plot_predictions(
+        self,
+        split: Literal['train', 'valid', 'test'],
+        batch_limit: int | None = None,
+        show: bool = False,
+    ):
         """Plot predictions for a split.
 
         Uses the first batch for the corresponding DataLoader.
@@ -1339,54 +1432,66 @@ class Learner(ABC):
             batch_limit: optional limit on (rendered) batch size
         """
         log.info(
-            f'Making and plotting sample predictions on the {split} set...')
+            f'Making and plotting sample predictions on the {split} set...'
+        )
         dl = self.get_dataloader(split)
         output_path = join(self.output_dir_local, f'{split}_preds.png')
         preds = self.predict_dataloader(
-            dl, return_format='xyz', batched_output=True, raw_out=True)
+            dl, return_format='xyz', batched_output=True, raw_out=True
+        )
         x, y, z = next(preds)
         self.visualizer.plot_batch(
-            x, y, output_path, z=z, batch_limit=batch_limit, show=show)
+            x, y, output_path, z=z, batch_limit=batch_limit, show=show
+        )
         log.info(f'Sample predictions written to {output_path}.')
 
-    def plot_dataloader(self,
-                        dl: DataLoader,
-                        output_path: str,
-                        batch_limit: int | None = None,
-                        show: bool = False):
+    def plot_dataloader(
+        self,
+        dl: DataLoader,
+        output_path: str,
+        batch_limit: int | None = None,
+        show: bool = False,
+    ):
         """Plot images and ground truth labels for a DataLoader."""
         x, y = next(iter(dl))
         self.visualizer.plot_batch(
-            x, y, output_path, batch_limit=batch_limit, show=show)
+            x, y, output_path, batch_limit=batch_limit, show=show
+        )
 
-    def plot_dataloaders(self,
-                         batch_limit: int | None = None,
-                         show: bool = False):
+    def plot_dataloaders(
+        self, batch_limit: int | None = None, show: bool = False
+    ):
         """Plot images and ground truth labels for all DataLoaders."""
         if self.train_dl:
             log.info('Plotting sample training batch.')
             self.plot_dataloader(
                 self.train_dl,
-                output_path=join(self.output_dir_local,
-                                 'dataloaders/train.png'),
+                output_path=join(
+                    self.output_dir_local, 'dataloaders/train.png'
+                ),
                 batch_limit=batch_limit,
-                show=show)
+                show=show,
+            )
         if self.valid_dl:
             log.info('Plotting sample validation batch.')
             self.plot_dataloader(
                 self.valid_dl,
-                output_path=join(self.output_dir_local,
-                                 'dataloaders/valid.png'),
+                output_path=join(
+                    self.output_dir_local, 'dataloaders/valid.png'
+                ),
                 batch_limit=batch_limit,
-                show=show)
+                show=show,
+            )
         if self.test_dl:
             log.info('Plotting sample test batch.')
             self.plot_dataloader(
                 self.test_dl,
-                output_path=join(self.output_dir_local,
-                                 'dataloaders/test.png'),
+                output_path=join(
+                    self.output_dir_local, 'dataloaders/test.png'
+                ),
                 batch_limit=batch_limit,
-                show=show)
+                show=show,
+            )
 
     #########
     # Bundle
@@ -1402,7 +1507,8 @@ class Learner(ABC):
                 'Model was not configured via ModelConfig, and therefore, '
                 'will not be reconstructable form the model-bundle. You will '
                 'need to initialize the model yourself and pass it to '
-                'from_model_bundle().')
+                'from_model_bundle().'
+            )
 
         log.info('Creating bundle.')
         model_bundle_dir = join(self.tmp_dir, 'model-bundle')
@@ -1419,8 +1525,9 @@ class Learner(ABC):
         log.info(f'Saving bundle to {zip_path}.')
         zipdir(model_bundle_dir, zip_path)
 
-    def _bundle_model(self, model_bundle_dir: str,
-                      export_onnx: bool = True) -> None:
+    def _bundle_model(
+        self, model_bundle_dir: str, export_onnx: bool = True
+    ) -> None:
         """Save model weights and copy them to bundle dir."""
         model_not_set = self.model is None
         if model_not_set:
@@ -1442,12 +1549,14 @@ class Learner(ABC):
             self.model = None
             gc.collect()
 
-    def export_to_onnx(self,
-                       path: str,
-                       model: nn.Module | None = None,
-                       sample_input: Tensor | None = None,
-                       validate_export: bool = True,
-                       **kwargs) -> None:
+    def export_to_onnx(
+        self,
+        path: str,
+        model: nn.Module | None = None,
+        sample_input: Tensor | None = None,
+        validate_export: bool = True,
+        **kwargs,
+    ) -> None:
         """Export model to ONNX format via :func:`torch.onnx.export`.
 
         Args:
@@ -1481,7 +1590,8 @@ class Learner(ABC):
             dl = self.valid_dl
             if dl is None:
                 dl = self.build_dataloader(
-                    'valid', batch_size=1, num_workers=0, distributed=False)
+                    'valid', batch_size=1, num_workers=0, distributed=False
+                )
             sample_input, _ = next(iter(dl))
 
         model_device = next(model.parameters()).device
@@ -1513,6 +1623,7 @@ class Learner(ABC):
 
         if validate_export:
             import onnx
+
             model_onnx = onnx.load(path)
             onnx.checker.check_model(model_onnx)
 
@@ -1543,18 +1654,20 @@ class Learner(ABC):
         make_dir(bundle_transforms_dir)
 
         for tf in transforms:
-            tf_bundle_path = download_or_copy(tf['lambda_transforms_path'],
-                                              bundle_transforms_dir)
+            tf_bundle_path = download_or_copy(
+                tf['lambda_transforms_path'], bundle_transforms_dir
+            )
             # convert to a relative path
-            tf['lambda_transforms_path'] = join('model-bundle',
-                                                TRANSFORMS_DIRNAME,
-                                                basename(tf_bundle_path))
+            tf['lambda_transforms_path'] = join(
+                'model-bundle', TRANSFORMS_DIRNAME, basename(tf_bundle_path)
+            )
 
     #########
     # Misc.
     #########
-    def ddp(self, rank: int | None = None, world_size: int | None = None
-            ) -> DDPContextManager:  # pragma: no cover
+    def ddp(
+        self, rank: int | None = None, world_size: int | None = None
+    ) -> DDPContextManager:  # pragma: no cover
         """Return a :class:`DDPContextManager`.
 
         This should be used to wrap code that needs to be executed in parallel.
@@ -1622,8 +1735,9 @@ class Learner(ABC):
         else:
             return x.to(device)
 
-    def get_dataset(self, split: Literal['train', 'valid', 'test']
-                    ) -> DataLoader | None:
+    def get_dataset(
+        self, split: Literal['train', 'valid', 'test']
+    ) -> DataLoader | None:
         """Get the Dataset for a split.
 
         Args:
@@ -1637,8 +1751,9 @@ class Learner(ABC):
             return self.test_ds
         raise ValueError(f'{split} is not a valid split')
 
-    def get_dataloader(self,
-                       split: Literal['train', 'valid', 'test']) -> DataLoader:
+    def get_dataloader(
+        self, split: Literal['train', 'valid', 'test']
+    ) -> DataLoader:
         """Get the DataLoader for a split.
 
         Args:
@@ -1707,7 +1822,8 @@ class Learner(ABC):
         if isinstance(model, DDP):
             model = model.module
         model.load_state_dict(
-            torch.load(weights_path, map_location=self.device), **kwargs)
+            torch.load(weights_path, map_location=self.device), **kwargs
+        )
 
     def load_checkpoint(self):
         """Load last weights from previous run if available."""
@@ -1755,7 +1871,8 @@ class Learner(ABC):
         if self.cfg.run_tensorboard:  # pragma: no cover
             log.info('Starting tensorboard process')
             self.tb_process = Popen(
-                ['tensorboard', '--bind_all', f'--logdir={self.tb_log_dir}'])
+                ['tensorboard', '--bind_all', f'--logdir={self.tb_log_dir}']
+            )
             terminate_at_exit(self.tb_process)
 
     def stop_tensorboard(self):

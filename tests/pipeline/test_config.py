@@ -4,8 +4,13 @@ import unittest
 
 from rastervision.pipeline.file_system.utils import get_tmp_dir, json_to_file
 from rastervision.pipeline.config import (
-    Config, register_config, build_config, upgrade_config, ValidationError)
-from rastervision.pipeline.pipeline_config import (PipelineConfig)
+    Config,
+    register_config,
+    build_config,
+    upgrade_config,
+    ValidationError,
+)
+from rastervision.pipeline.pipeline_config import PipelineConfig
 from rastervision.pipeline import registry_ as registry
 
 
@@ -74,51 +79,29 @@ class TestConfig(unittest.TestCase):
 
     def test_to_from(self):
         cfg = CConfig(
-            al=[AConfig(), ASub1Config(),
-                ASub2Config()],
+            al=[AConfig(), ASub1Config(), ASub2Config()],
             bl=[BConfig()],
             a=ASub1Config(),
             b=BConfig(),
             plugin_versions=self.plugin_versions,
             root_uri=None,
-            rv_config=None)
+            rv_config=None,
+        )
 
         exp_dict = {
-            'plugin_versions':
-            self.plugin_versions,
-            'root_uri':
-            None,
-            'rv_config':
-            None,
-            'type_hint':
-            'c',
-            'a': {
-                'type_hint': 'asub1',
-                'x': 'x',
-                'y': 'y'
-            },
-            'al': [{
-                'type_hint': 'a',
-                'x': 'x'
-            }, {
-                'type_hint': 'asub1',
-                'x': 'x',
-                'y': 'y'
-            }, {
-                'type_hint': 'asub2',
-                'x': 'x',
-                'y': 'y'
-            }],
-            'b': {
-                'type_hint': 'b',
-                'x': 'x'
-            },
-            'bl': [{
-                'type_hint': 'b',
-                'x': 'x'
-            }],
-            'x':
-            'x'
+            'plugin_versions': self.plugin_versions,
+            'root_uri': None,
+            'rv_config': None,
+            'type_hint': 'c',
+            'a': {'type_hint': 'asub1', 'x': 'x', 'y': 'y'},
+            'al': [
+                {'type_hint': 'a', 'x': 'x'},
+                {'type_hint': 'asub1', 'x': 'x', 'y': 'y'},
+                {'type_hint': 'asub2', 'x': 'x', 'y': 'y'},
+            ],
+            'b': {'type_hint': 'b', 'x': 'x'},
+            'bl': [{'type_hint': 'b', 'x': 'x'}],
+            'x': 'x',
         }
 
         self.assertDictEqual(cfg.dict(with_rv_metadata=False), exp_dict)
@@ -136,79 +119,35 @@ class TestConfig(unittest.TestCase):
         # after upgrading: the y field in the root should get converted to x, and
         # the z field in the instances of a should get convert to x.
         c_dict_v0 = {
-            'plugin_versions':
-            plugin_versions_v0,
-            'root_uri':
-            None,
-            'rv_config':
-            None,
-            'type_hint':
-            'c',
-            'a': {
-                'type_hint': 'asub1',
-                'z': 'x',
-                'y': 'y'
-            },
-            'al': [{
-                'type_hint': 'a',
-                'z': 'x'
-            }, {
-                'type_hint': 'asub1',
-                'z': 'x',
-                'y': 'y'
-            }, {
-                'type_hint': 'asub2',
-                'z': 'x',
-                'y': 'y'
-            }],
-            'b': {
-                'type_hint': 'b',
-                'x': 'x'
-            },
-            'bl': [{
-                'type_hint': 'b',
-                'x': 'x'
-            }],
-            'y':
-            'x'
+            'plugin_versions': plugin_versions_v0,
+            'root_uri': None,
+            'rv_config': None,
+            'type_hint': 'c',
+            'a': {'type_hint': 'asub1', 'z': 'x', 'y': 'y'},
+            'al': [
+                {'type_hint': 'a', 'z': 'x'},
+                {'type_hint': 'asub1', 'z': 'x', 'y': 'y'},
+                {'type_hint': 'asub2', 'z': 'x', 'y': 'y'},
+            ],
+            'b': {'type_hint': 'b', 'x': 'x'},
+            'bl': [{'type_hint': 'b', 'x': 'x'}],
+            'y': 'x',
         }
 
         c_dict_v1 = {
-            'plugin_versions':
-            plugin_versions_v0,
-            'root_uri':
-            None,
-            'rv_config':
-            None,
-            'type_hint':
-            'c',
-            'a': {
-                'type_hint': 'asub1',
-                'x': 'x',
-                'y': 'y'
-            },
-            'al': [{
-                'type_hint': 'a',
-                'x': 'x'
-            }, {
-                'type_hint': 'asub1',
-                'x': 'x',
-                'y': 'y'
-            }, {
-                'type_hint': 'asub2',
-                'x': 'x',
-                'y': 'y'
-            }],
-            'b': {
-                'type_hint': 'b',
-                'x': 'x'
-            },
-            'bl': [{
-                'type_hint': 'b',
-                'x': 'x'
-            }],
-            'x':
-            'x'
+            'plugin_versions': plugin_versions_v0,
+            'root_uri': None,
+            'rv_config': None,
+            'type_hint': 'c',
+            'a': {'type_hint': 'asub1', 'x': 'x', 'y': 'y'},
+            'al': [
+                {'type_hint': 'a', 'x': 'x'},
+                {'type_hint': 'asub1', 'x': 'x', 'y': 'y'},
+                {'type_hint': 'asub2', 'x': 'x', 'y': 'y'},
+            ],
+            'b': {'type_hint': 'b', 'x': 'x'},
+            'bl': [{'type_hint': 'b', 'x': 'x'}],
+            'x': 'x',
         }
 
         upgraded_c_dict = upgrade_config(c_dict_v0)

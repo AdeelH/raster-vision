@@ -1,11 +1,15 @@
 import unittest
 
-from shapely.geometry import (Polygon, Point, LineString, mapping, shape)
+from shapely.geometry import Polygon, Point, LineString, mapping, shape
 
-from rastervision.core.data.vector_transformer import (BufferTransformer,
-                                                       BufferTransformerConfig)
-from rastervision.core.data.utils import (geometry_to_feature,
-                                          geometries_to_geojson)
+from rastervision.core.data.vector_transformer import (
+    BufferTransformer,
+    BufferTransformerConfig,
+)
+from rastervision.core.data.utils import (
+    geometry_to_feature,
+    geometries_to_geojson,
+)
 
 
 class TestBufferTransformerConfig(unittest.TestCase):
@@ -22,7 +26,8 @@ class TestBufferTransformer(unittest.TestCase):
 
         # polygons
         tf = BufferTransformer(
-            geom_type='Polygon', class_bufs=class_bufs, default_buf=1)
+            geom_type='Polygon', class_bufs=class_bufs, default_buf=1
+        )
         geom_in = Polygon.from_bounds(0, 0, 10, 10)
         feat_in = geometry_to_feature(mapping(geom_in), properties)
         geojson_in = geometries_to_geojson([feat_in])
@@ -32,7 +37,8 @@ class TestBufferTransformer(unittest.TestCase):
 
         # points
         tf = BufferTransformer(
-            geom_type='Point', class_bufs=class_bufs, default_buf=1)
+            geom_type='Point', class_bufs=class_bufs, default_buf=1
+        )
         geom_in = Point(0, 0)
         feat_in = geometry_to_feature(mapping(geom_in), properties)
         geojson_in = geometries_to_geojson([feat_in])
@@ -42,7 +48,8 @@ class TestBufferTransformer(unittest.TestCase):
 
         # linestrings
         tf = BufferTransformer(
-            geom_type='LineString', class_bufs=class_bufs, default_buf=1)
+            geom_type='LineString', class_bufs=class_bufs, default_buf=1
+        )
         geom_in = LineString([(0, 0), (1, 1), (2, 2)])
         feat_in = geometry_to_feature(mapping(geom_in), properties)
         geojson_in = geometries_to_geojson([feat_in])
@@ -52,7 +59,8 @@ class TestBufferTransformer(unittest.TestCase):
 
         # mismatched geom_type
         tf = BufferTransformer(
-            geom_type='Point', class_bufs=class_bufs, default_buf=1)
+            geom_type='Point', class_bufs=class_bufs, default_buf=1
+        )
         geom_in = Polygon.from_bounds(0, 0, 10, 10)
         feat_in = geometry_to_feature(mapping(geom_in), properties)
         geojson_in = geometries_to_geojson([feat_in])

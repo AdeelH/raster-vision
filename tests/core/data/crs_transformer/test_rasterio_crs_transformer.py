@@ -33,31 +33,41 @@ class TestRasterioCRSTransformer(unittest.TestCase):
 
     def test_map_to_pixel_array(self):
         # w/o bbox
-        map_point = np.array([
-            self.lon_lat,
-            self.lon_lat,
-        ])
-        pix_point = self.crs_tf.map_to_pixel((map_point[:, 0],
-                                              map_point[:, 1]))
-        pix_point_expected = np.array([
-            self.pix_point,
-            self.pix_point,
-        ])
+        map_point = np.array(
+            [
+                self.lon_lat,
+                self.lon_lat,
+            ]
+        )
+        pix_point = self.crs_tf.map_to_pixel(
+            (map_point[:, 0], map_point[:, 1])
+        )
+        pix_point_expected = np.array(
+            [
+                self.pix_point,
+                self.pix_point,
+            ]
+        )
         np.testing.assert_equal(pix_point[0], pix_point_expected[:, 0])
         np.testing.assert_equal(pix_point[1], pix_point_expected[:, 1])
 
         # w/ bbox
         bbox = Box(20, 20, 80, 80)
-        map_point = np.array([
-            self.lon_lat,
-            self.lon_lat,
-        ])
+        map_point = np.array(
+            [
+                self.lon_lat,
+                self.lon_lat,
+            ]
+        )
         pix_point = self.crs_tf.map_to_pixel(
-            (map_point[:, 0], map_point[:, 1]), bbox=bbox)
-        pix_point_expected = np.array([
-            self.pix_point,
-            self.pix_point,
-        ])
+            (map_point[:, 0], map_point[:, 1]), bbox=bbox
+        )
+        pix_point_expected = np.array(
+            [
+                self.pix_point,
+                self.pix_point,
+            ]
+        )
         pix_point_expected -= 20
         np.testing.assert_equal(pix_point[0], pix_point_expected[:, 0])
         np.testing.assert_equal(pix_point[1], pix_point_expected[:, 1])
@@ -96,8 +106,9 @@ class TestRasterioCRSTransformer(unittest.TestCase):
         self.assertEqual(pix_geom, pix_geom_expected)
 
     def test_map_to_pixel_invalid_input(self):
-        self.assertRaises(TypeError,
-                          lambda: self.crs_tf.map_to_pixel((1, 2, 3)))
+        self.assertRaises(
+            TypeError, lambda: self.crs_tf.map_to_pixel((1, 2, 3))
+        )
 
     def test_pixel_to_map_point(self):
         # w/o bbox
@@ -105,7 +116,8 @@ class TestRasterioCRSTransformer(unittest.TestCase):
         map_point = self.crs_tf.pixel_to_map(pix_point)
         map_point_expected = self.lon_lat
         np.testing.assert_almost_equal(
-            map_point, map_point_expected, decimal=3)
+            map_point, map_point_expected, decimal=3
+        )
 
         # w/ bbox
         bbox = Box(20, 20, 80, 80)
@@ -114,42 +126,57 @@ class TestRasterioCRSTransformer(unittest.TestCase):
         map_point = self.crs_tf.pixel_to_map(pix_point, bbox=bbox)
         map_point_expected = self.lon_lat
         np.testing.assert_almost_equal(
-            map_point, map_point_expected, decimal=3)
+            map_point, map_point_expected, decimal=3
+        )
 
     def test_pixel_to_map_array(self):
         # w/o bbox
-        pix_point = np.array([
-            self.pix_point,
-            self.pix_point,
-        ])
-        map_point = self.crs_tf.pixel_to_map((pix_point[:, 0],
-                                              pix_point[:, 1]))
-        map_point_expected = np.array([
-            self.lon_lat,
-            self.lon_lat,
-        ])
+        pix_point = np.array(
+            [
+                self.pix_point,
+                self.pix_point,
+            ]
+        )
+        map_point = self.crs_tf.pixel_to_map(
+            (pix_point[:, 0], pix_point[:, 1])
+        )
+        map_point_expected = np.array(
+            [
+                self.lon_lat,
+                self.lon_lat,
+            ]
+        )
         np.testing.assert_almost_equal(
-            map_point[0], map_point_expected[:, 0], decimal=3)
+            map_point[0], map_point_expected[:, 0], decimal=3
+        )
         np.testing.assert_almost_equal(
-            map_point[1], map_point_expected[:, 1], decimal=3)
+            map_point[1], map_point_expected[:, 1], decimal=3
+        )
 
         # w/ bbox
         bbox = Box(20, 20, 80, 80)
-        pix_point = np.array([
-            self.pix_point,
-            self.pix_point,
-        ])
+        pix_point = np.array(
+            [
+                self.pix_point,
+                self.pix_point,
+            ]
+        )
         pix_point -= 20
         map_point = self.crs_tf.pixel_to_map(
-            (pix_point[:, 0], pix_point[:, 1]), bbox=bbox)
-        map_point_expected = np.array([
-            self.lon_lat,
-            self.lon_lat,
-        ])
+            (pix_point[:, 0], pix_point[:, 1]), bbox=bbox
+        )
+        map_point_expected = np.array(
+            [
+                self.lon_lat,
+                self.lon_lat,
+            ]
+        )
         np.testing.assert_almost_equal(
-            map_point[0], map_point_expected[:, 0], decimal=3)
+            map_point[0], map_point_expected[:, 0], decimal=3
+        )
         np.testing.assert_almost_equal(
-            map_point[1], map_point_expected[:, 1], decimal=3)
+            map_point[1], map_point_expected[:, 1], decimal=3
+        )
 
     def test_pixel_to_map_box(self):
         # w/o bbox
@@ -161,7 +188,8 @@ class TestRasterioCRSTransformer(unittest.TestCase):
         np.testing.assert_almost_equal(
             np.array(map_box.tuple_format()),
             np.array(map_box_expected.tuple_format()),
-            decimal=3)
+            decimal=3,
+        )
 
         # w/ bbox
         bbox = Box(20, 20, 80, 80)
@@ -173,7 +201,8 @@ class TestRasterioCRSTransformer(unittest.TestCase):
         np.testing.assert_almost_equal(
             np.array(map_box.tuple_format()),
             np.array(map_box_expected.tuple_format()),
-            decimal=3)
+            decimal=3,
+        )
 
     def test_pixel_to_map_shapely(self):
         # w/o bbox
@@ -183,7 +212,8 @@ class TestRasterioCRSTransformer(unittest.TestCase):
         np.testing.assert_almost_equal(
             np.concatenate(map_geom.xy).reshape(-1),
             np.concatenate(map_geom_expected.xy).reshape(-1),
-            decimal=3)
+            decimal=3,
+        )
 
         # w/o bbox
         bbox = Box(20, 20, 80, 80)
@@ -194,11 +224,13 @@ class TestRasterioCRSTransformer(unittest.TestCase):
         np.testing.assert_almost_equal(
             np.concatenate(map_geom.xy).reshape(-1),
             np.concatenate(map_geom_expected.xy).reshape(-1),
-            decimal=3)
+            decimal=3,
+        )
 
     def test_pixel_to_map_invalid_input(self):
-        self.assertRaises(TypeError,
-                          lambda: self.crs_tf.pixel_to_map((1, 2, 3)))
+        self.assertRaises(
+            TypeError, lambda: self.crs_tf.pixel_to_map((1, 2, 3))
+        )
 
     def test_from_dataset(self):
         # default map_crs

@@ -12,8 +12,9 @@ from tests.core.data.mock_raster_source import MockRasterSource
 chip_sz = 300
 
 
-def make_scene(i: int, is_random: bool = False
-               ) -> tuple[Scene, MockRasterSource, np.ndarray]:
+def make_scene(
+    i: int, is_random: bool = False
+) -> tuple[Scene, MockRasterSource, np.ndarray]:
     rs = MockRasterSource([0, 1, 2], 3)
     img = np.zeros((600, 600, 3))
     img[:, :, 0] = 1 + i
@@ -37,7 +38,8 @@ class TestStatsAnalyzer(unittest.TestCase):
         sample_prob = 0.5
 
         scenes, raster_sources, imgs = zip(
-            *[make_scene(i, is_random=is_random) for i in range(3)])
+            *[make_scene(i, is_random=is_random) for i in range(3)]
+        )
 
         imgs: np.ndarray = np.stack(imgs)
         pixels = imgs.reshape(-1, 3)
@@ -48,12 +50,12 @@ class TestStatsAnalyzer(unittest.TestCase):
             analyzer_cfg = StatsAnalyzerConfig(
                 output_uri=self.tmp_dir.name,
                 chip_sz=chip_sz,
-                sample_prob=sample_prob)
+                sample_prob=sample_prob,
+            )
         else:
             analyzer_cfg = StatsAnalyzerConfig(
-                output_uri=self.tmp_dir.name,
-                chip_sz=chip_sz,
-                sample_prob=None)
+                output_uri=self.tmp_dir.name, chip_sz=chip_sz, sample_prob=None
+            )
         analyzer = analyzer_cfg.build()
         analyzer.process(scenes, self.tmp_dir.name)
 

@@ -10,13 +10,14 @@ class InProcessRunner(Runner):
     Useful for testing and debugging.
     """
 
-    def run(self,
-            cfg_json_uri,
-            pipeline,
-            commands,
-            num_splits=1,
-            pipeline_run_name: str = 'raster-vision'):
-
+    def run(
+        self,
+        cfg_json_uri,
+        pipeline,
+        commands,
+        num_splits=1,
+        pipeline_run_name: str = 'raster-vision',
+    ):
         for command in commands:
             if command in pipeline.split_commands and num_splits > 1:
                 for split_ind in range(num_splits):
@@ -26,4 +27,5 @@ class InProcessRunner(Runner):
 
     def run_command(self, cmd: list[str]):
         raise NotImplementedError(
-            'Use LocalRunner.run_command to run a command locally.')
+            'Use LocalRunner.run_command to run a command locally.'
+        )

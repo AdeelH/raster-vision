@@ -12,8 +12,10 @@ from rastervision.core.utils import ensure_tuple
 from rastervision.core.data import Scene
 from rastervision.core.data.utils import AoiSampler
 from rastervision.pytorch_learner.learner_config import PosInt, NonNegInt
-from rastervision.pytorch_learner.dataset.transform import (TransformType,
-                                                            TF_TYPE_TO_TF_FUNC)
+from rastervision.pytorch_learner.dataset.transform import (
+    TransformType,
+    TF_TYPE_TO_TF_FUNC,
+)
 
 if TYPE_CHECKING:
     from typing import Self
@@ -25,12 +27,14 @@ log = logging.getLogger(__name__)
 class AlbumentationsDataset(Dataset):
     """An adapter to use arbitrary datasets with albumentations transforms."""
 
-    def __init__(self,
-                 orig_dataset: Any,
-                 transform: A.BasicTransform | None = None,
-                 transform_type: TransformType = TransformType.noop,
-                 normalize=True,
-                 to_pytorch=True):
+    def __init__(
+        self,
+        orig_dataset: Any,
+        transform: A.BasicTransform | None = None,
+        transform_type: TransformType = TransformType.noop,
+        normalize=True,
+        to_pytorch=True,
+    ):
         """Constructor.
 
         Args:
@@ -73,7 +77,8 @@ class AlbumentationsDataset(Dataset):
             log.warning(
                 'Many albumentations transforms require uint8 input. Therefore, we '
                 'recommend passing a MinMaxTransformer or StatsTransformer to the '
-                'RasterSource so the input will be converted to uint8.')
+                'RasterSource so the input will be converted to uint8.'
+            )
             raise exc
 
         if self.normalize and np.issubdtype(x.dtype, np.unsignedinteger):
@@ -100,23 +105,25 @@ class AlbumentationsDataset(Dataset):
 
 
 class ImageDataset(AlbumentationsDataset):
-    """ Dataset that reads from image files. """
+    """Dataset that reads from image files."""
 
 
 class GeoDataset(AlbumentationsDataset):
-    """ Dataset that reads directly from a Scene
-        (i.e. a raster source and a label source).
+    """Dataset that reads directly from a Scene
+    (i.e. a raster source and a label source).
     """
 
-    def __init__(self,
-                 scene: Scene,
-                 out_size: PosInt | tuple[PosInt, PosInt] | None = None,
-                 within_aoi: bool = True,
-                 transform: A.BasicTransform | None = None,
-                 transform_type: TransformType | None = None,
-                 normalize: bool = True,
-                 to_pytorch: bool = True,
-                 return_window: bool = False):
+    def __init__(
+        self,
+        scene: Scene,
+        out_size: PosInt | tuple[PosInt, PosInt] | None = None,
+        within_aoi: bool = True,
+        transform: A.BasicTransform | None = None,
+        transform_type: TransformType | None = None,
+        normalize: bool = True,
+        to_pytorch: bool = True,
+        return_window: bool = False,
+    ):
         """Constructor.
 
         Args:
@@ -157,13 +164,16 @@ class GeoDataset(AlbumentationsDataset):
             transform=transform,
             transform_type=transform_type,
             normalize=normalize,
-            to_pytorch=to_pytorch)
+            to_pytorch=to_pytorch,
+        )
 
     def append_resize_transform(
-            self, transform: A.BasicTransform | None,
-            out_size: tuple[PosInt, PosInt]) -> A.Resize | A.Compose:
+        self,
+        transform: A.BasicTransform | None,
+        out_size: tuple[PosInt, PosInt],
+    ) -> A.Resize | A.Compose:
         """Get transform to use for resizing windows to out_size."""
-        resize_tf = A.Resize(*out_size, p=1.)
+        resize_tf = A.Resize(*out_size, p=1.0)
         if transform is None:
             transform = resize_tf
         else:
@@ -179,23 +189,23 @@ class GeoDataset(AlbumentationsDataset):
 
 
 class SlidingWindowGeoDataset(GeoDataset):
-    """Read the scene left-to-right, top-to-bottom, using a sliding window.
-    """
+    """Read the scene left-to-right, top-to-bottom, using a sliding window."""
 
     def __init__(
-            self,
-            scene: Scene,
-            size: PosInt | tuple[PosInt, PosInt],
-            stride: PosInt | tuple[PosInt, PosInt],
-            out_size: PosInt | tuple[PosInt, PosInt] | None = None,
-            padding: NonNegInt | tuple[NonNegInt, NonNegInt] | None = None,
-            pad_direction: Literal['both', 'start', 'end'] = 'end',
-            within_aoi: bool = True,
-            transform: A.BasicTransform | None = None,
-            transform_type: TransformType | None = None,
-            normalize: bool = True,
-            to_pytorch: bool = True,
-            return_window: bool = False):
+        self,
+        scene: Scene,
+        size: PosInt | tuple[PosInt, PosInt],
+        stride: PosInt | tuple[PosInt, PosInt],
+        out_size: PosInt | tuple[PosInt, PosInt] | None = None,
+        padding: NonNegInt | tuple[NonNegInt, NonNegInt] | None = None,
+        pad_direction: Literal['both', 'start', 'end'] = 'end',
+        within_aoi: bool = True,
+        transform: A.BasicTransform | None = None,
+        transform_type: TransformType | None = None,
+        normalize: bool = True,
+        to_pytorch: bool = True,
+        return_window: bool = False,
+    ):
         """Constructor.
 
         Args:
@@ -241,7 +251,8 @@ class SlidingWindowGeoDataset(GeoDataset):
             transform_type=transform_type,
             normalize=normalize,
             to_pytorch=to_pytorch,
-            return_window=return_window)
+            return_window=return_window,
+        )
         self.size: tuple[PosInt, PosInt] = ensure_tuple(size)
         self.stride: tuple[PosInt, PosInt] = ensure_tuple(stride)
         self.padding = padding
@@ -255,12 +266,14 @@ class SlidingWindowGeoDataset(GeoDataset):
             self.size,
             stride=self.stride,
             padding=self.padding,
-            pad_direction=self.pad_direction)
+            pad_direction=self.pad_direction,
+        )
         if len(self.scene.aoi_polygons_bbox_coords) > 0:
             windows, _ = Box.filter_by_aoi(
                 windows,
                 self.scene.aoi_polygons_bbox_coords,
-                within=self.within_aoi)
+                within=self.within_aoi,
+            )
         self.windows = windows
 
     def __getitem__(self, idx: int):
@@ -277,27 +290,27 @@ class SlidingWindowGeoDataset(GeoDataset):
 
 
 class RandomWindowGeoDataset(GeoDataset):
-    """Read the scene by sampling random window sizes and locations.
-    """
+    """Read the scene by sampling random window sizes and locations."""
 
     def __init__(
-            self,
-            scene: Scene,
-            *,
-            out_size: PosInt | tuple[PosInt, PosInt] | None,
-            size_lims: tuple[PosInt, PosInt] | None = None,
-            h_lims: tuple[PosInt, PosInt] | None = None,
-            w_lims: tuple[PosInt, PosInt] | None = None,
-            padding: NonNegInt | tuple[NonNegInt, NonNegInt] | None = None,
-            max_windows: NonNegInt,
-            max_sample_attempts: PosInt = 100,
-            efficient_aoi_sampling: bool = True,
-            within_aoi: bool = True,
-            transform: A.BasicTransform | None = None,
-            transform_type: TransformType | None = None,
-            normalize: bool = True,
-            to_pytorch: bool = True,
-            return_window: bool = False):
+        self,
+        scene: Scene,
+        *,
+        out_size: PosInt | tuple[PosInt, PosInt] | None,
+        size_lims: tuple[PosInt, PosInt] | None = None,
+        h_lims: tuple[PosInt, PosInt] | None = None,
+        w_lims: tuple[PosInt, PosInt] | None = None,
+        padding: NonNegInt | tuple[NonNegInt, NonNegInt] | None = None,
+        max_windows: NonNegInt,
+        max_sample_attempts: PosInt = 100,
+        efficient_aoi_sampling: bool = True,
+        within_aoi: bool = True,
+        transform: A.BasicTransform | None = None,
+        transform_type: TransformType | None = None,
+        normalize: bool = True,
+        to_pytorch: bool = True,
+        return_window: bool = False,
+    ):
         """Constructor.
 
         Will sample square windows if size_lims is specified. Otherwise, will
@@ -351,7 +364,7 @@ class RandomWindowGeoDataset(GeoDataset):
                 to pytorch tensors. Defaults to ``True``.
             return_window: Make ``__getitem__`` return the window coordinates
                 used to generate the image. Defaults to ``False``.
-        """ # noqa
+        """  # noqa
         has_size_lims = size_lims is not None
         has_h_lims = h_lims is not None
         has_w_lims = w_lims is not None
@@ -361,8 +374,10 @@ class RandomWindowGeoDataset(GeoDataset):
             raise ValueError('h_lims and w_lims must both be specified')
 
         if out_size is None:
-            log.warning('out_size is None, chips will not be normalized or '
-                        'converted to PyTorch Tensors.')
+            log.warning(
+                'out_size is None, chips will not be normalized or '
+                'converted to PyTorch Tensors.'
+            )
             normalize, to_pytorch = False, False
 
         super().__init__(
@@ -373,7 +388,8 @@ class RandomWindowGeoDataset(GeoDataset):
             transform_type=transform_type,
             normalize=normalize,
             to_pytorch=to_pytorch,
-            return_window=return_window)
+            return_window=return_window,
+        )
 
         if padding is None:
             if has_size_lims:
@@ -394,8 +410,12 @@ class RandomWindowGeoDataset(GeoDataset):
         # include padding in the extent
         ymin, xmin, ymax, xmax = scene.extent
         h_padding, w_padding = self.padding
-        self.extent = Box(ymin - h_padding, xmin - w_padding, ymax + h_padding,
-                          xmax + w_padding)
+        self.extent = Box(
+            ymin - h_padding,
+            xmin - w_padding,
+            ymax + h_padding,
+            xmax + w_padding,
+        )
 
         self.aoi_sampler = None
         aoi_polygons = self.scene.aoi_polygons_bbox_coords
@@ -409,8 +429,10 @@ class RandomWindowGeoDataset(GeoDataset):
                 try:
                     self.aoi_sampler = AoiSampler([self.aoi])
                 except ModuleNotFoundError:
-                    log.info('Ignoring efficient_aoi_sampling since triangle '
-                             'is not installed.')
+                    log.info(
+                        'Ignoring efficient_aoi_sampling since triangle '
+                        'is not installed.'
+                    )
 
     @property
     def min_size(self):
@@ -430,20 +452,20 @@ class RandomWindowGeoDataset(GeoDataset):
             sz_min, sz_max = self.size_lims
             if sz_max == sz_min + 1:
                 return sz_min, sz_min
-            size = torch.randint(low=sz_min, high=sz_max, size=(1, )).item()
+            size = torch.randint(low=sz_min, high=sz_max, size=(1,)).item()
             return size, size
         hmin, hmax = self.h_lims
         wmin, wmax = self.w_lims
-        h = torch.randint(low=hmin, high=hmax, size=(1, )).item()
-        w = torch.randint(low=wmin, high=wmax, size=(1, )).item()
+        h = torch.randint(low=hmin, high=hmax, size=(1,)).item()
+        w = torch.randint(low=wmin, high=wmax, size=(1,)).item()
         return h, w
 
     def sample_window_loc(self, h: int, w: int) -> tuple[int, int]:
         """Randomly sample coordinates of the top left corner of the window."""
         if not self.aoi_sampler:
             ymin, xmin, ymax, xmax = self.extent
-            y = torch.randint(low=ymin, high=ymax - h, size=(1, )).item()
-            x = torch.randint(low=xmin, high=xmax - w, size=(1, )).item()
+            y = torch.randint(low=ymin, high=ymax - h, size=(1,)).item()
+            x = torch.randint(low=xmin, high=xmax - w, size=(1,)).item()
         else:
             x, y = self.aoi_sampler.sample().round().T
             x, y = int(x.item()), int(y.item())
@@ -481,8 +503,10 @@ class RandomWindowGeoDataset(GeoDataset):
             else:
                 if Box.intersects_aoi(window, self.aoi):
                     return window
-        raise StopIteration('Failed to find valid window within scene AOI in '
-                            f'{self.max_sample_attempts} attempts.')
+        raise StopIteration(
+            'Failed to find valid window within scene AOI in '
+            f'{self.max_sample_attempts} attempts.'
+        )
 
     def __getitem__(self, idx: int):
         if idx >= len(self):

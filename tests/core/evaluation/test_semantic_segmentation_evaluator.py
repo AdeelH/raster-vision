@@ -8,12 +8,18 @@ from rastervision.pipeline.file_system import file_to_json, get_tmp_dir
 from rastervision.core.data import ClassConfig
 from rastervision.core import Box
 from rastervision.core.data import (
-    Scene, IdentityCRSTransformer, SemanticSegmentationLabelSource,
-    RasterizedSourceConfig, RasterizerConfig, GeoJSONVectorSourceConfig,
-    PolygonVectorOutputConfig, ClassInferenceTransformerConfig)
+    Scene,
+    IdentityCRSTransformer,
+    SemanticSegmentationLabelSource,
+    RasterizedSourceConfig,
+    RasterizerConfig,
+    GeoJSONVectorSourceConfig,
+    PolygonVectorOutputConfig,
+    ClassInferenceTransformerConfig,
+)
 from rastervision.core.evaluation import SemanticSegmentationEvaluator
 
-from tests.core.data.mock_raster_source import (MockRasterSource)
+from tests.core.data.mock_raster_source import MockRasterSource
 from tests import data_file_path
 
 
@@ -62,8 +68,9 @@ class TestSemanticSegmentationEvaluator(unittest.TestCase):
         scenes[0].label_store.vector_outputs = None
         scenes[1].label_store.vector_outputs = None
 
-        evaluator = SemanticSegmentationEvaluator(self.class_config,
-                                                  output_uri)
+        evaluator = SemanticSegmentationEvaluator(
+            self.class_config, output_uri
+        )
         evaluator.process(scenes, self.tmp_dir.name)
         eval_json = file_to_json(output_uri)
         exp_eval_json = file_to_json(data_file_path('expected-eval.json'))
@@ -85,8 +92,10 @@ class TestSemanticSegmentationEvaluator(unittest.TestCase):
                 uris=gt_uri,
                 transformers=[
                     ClassInferenceTransformerConfig(default_class_id=0)
-                ]),
-            rasterizer_config=RasterizerConfig(background_class_id=1))
+                ],
+            ),
+            rasterizer_config=RasterizerConfig(background_class_id=1),
+        )
         gt_rs = config.build(self.class_config, crs_transformer, extent)
         gt_ls = SemanticSegmentationLabelSource(gt_rs, self.class_config)
 
@@ -95,13 +104,16 @@ class TestSemanticSegmentationEvaluator(unittest.TestCase):
                 uris=pred_uri,
                 transformers=[
                     ClassInferenceTransformerConfig(default_class_id=0)
-                ]),
-            rasterizer_config=RasterizerConfig(background_class_id=1))
+                ],
+            ),
+            rasterizer_config=RasterizerConfig(background_class_id=1),
+        )
         pred_rs = config.build(self.class_config, crs_transformer, extent)
         pred_ls = SemanticSegmentationLabelSource(pred_rs, self.class_config)
         pred_ls.vector_outputs = [
             PolygonVectorOutputConfig(
-                uri=pred_uri, denoise=0, class_id=class_id)
+                uri=pred_uri, denoise=0, class_id=class_id
+            )
         ]
 
         if use_aoi:

@@ -13,7 +13,7 @@ class RegistryError(Exception):
     """Exception raised for invalid use of registry."""
 
 
-class Registry():
+class Registry:
     """A registry for resources that are built-in or contributed by plugins."""
 
     def __init__(self):
@@ -58,8 +58,9 @@ class Registry():
         """
         self.plugin_versions[plugin] = version
 
-    def register_renamed_type_hints(self, type_hint_old: str,
-                                    type_hint_new: str):
+    def register_renamed_type_hints(
+        self, type_hint_old: str, type_hint_new: str
+    ):
         """Register renamed type_hints.
 
         Args:
@@ -89,8 +90,9 @@ class Registry():
         """Get module path of plugin when Config class with type_hint is defined."""
         return self.type_hint_to_plugin[type_hint]
 
-    def get_upgrader(self,
-                     type_hint: str) -> Callable[[dict, int], dict] | None:
+    def get_upgrader(
+        self, type_hint: str
+    ) -> Callable[[dict, int], dict] | None:
         """Get function that upgrades config dicts for type_hint."""
         return self.type_hint_to_upgrader.get(type_hint)
 
@@ -102,8 +104,9 @@ class Registry():
             runner: the Runner class
         """
         if runner_name in self.runners:
-            raise RegistryError(f'There is already a {runner_name} runner in '
-                                'the registry.')
+            raise RegistryError(
+                f'There is already a {runner_name} runner in the registry.'
+            )
 
         self.runners[runner_name] = runner
 
@@ -123,8 +126,7 @@ class Registry():
         """
         self.file_systems.append(file_system)
 
-    def get_file_system(self, uri: str,
-                        mode: str = 'r') -> type['FileSystem']:  # noqa
+    def get_file_system(self, uri: str, mode: str = 'r') -> type['FileSystem']:  # noqa
         """Get a FileSystem used to handle the file type of a URI.
 
         Args:
@@ -138,17 +140,21 @@ class Registry():
             if fs.matches_uri(uri, mode):
                 return fs
         if mode == 'w':
-            raise RegistryError('No matching file_system to handle '
-                                f'writing to uri {uri}')
+            raise RegistryError(
+                f'No matching file_system to handle writing to uri {uri}'
+            )
         else:
-            raise RegistryError('No matching file_system to handle '
-                                f'reading from uri {uri}')
+            raise RegistryError(
+                f'No matching file_system to handle reading from uri {uri}'
+            )
 
-    def add_config(self,
-                   type_hint: str,
-                   config: type['Config'],
-                   plugin: str,
-                   upgrader=None):
+    def add_config(
+        self,
+        type_hint: str,
+        config: type['Config'],
+        plugin: str,
+        upgrader=None,
+    ):
         """Add a Config.
 
         Args:
@@ -157,8 +163,10 @@ class Registry():
             config: Config class
         """
         if type_hint in self.configs:
-            raise RegistryError('There is already a config registered for '
-                                f'type_hint "{type_hint}".')
+            raise RegistryError(
+                'There is already a config registered for '
+                f'type_hint "{type_hint}".'
+            )
 
         self.configs[type_hint] = config
         self.type_hint_to_plugin[type_hint] = plugin
@@ -177,10 +185,12 @@ class Registry():
                 f'{type_hint} is not a registered config type hint. This may '
                 'be because you forgot to use the register_config decorator, '
                 'or forgot to import the module in the top-level __init__.py '
-                'file for the plugin.')
+                'file for the plugin.'
+            )
 
-    def add_rv_config_schema(self, config_section: str,
-                             config_fields: list[str]):
+    def add_rv_config_schema(
+        self, config_section: str, config_fields: list[str]
+    ):
         """Add section of schema used by RVConfig.
 
         Args:
@@ -195,10 +205,16 @@ class Registry():
 
     def load_builtins(self):
         """Add all builtin resources."""
-        from rastervision.pipeline.runner import (InProcessRunner, INPROCESS,
-                                                  LocalRunner, LOCAL)
-        from rastervision.pipeline.file_system import (HttpFileSystem,
-                                                       LocalFileSystem)
+        from rastervision.pipeline.runner import (
+            InProcessRunner,
+            INPROCESS,
+            LocalRunner,
+            LOCAL,
+        )
+        from rastervision.pipeline.file_system import (
+            HttpFileSystem,
+            LocalFileSystem,
+        )
 
         self.add_runner(INPROCESS, InProcessRunner)
         self.add_runner(LOCAL, LocalRunner)
@@ -208,6 +224,7 @@ class Registry():
         # import so register_config decorators are called
         # TODO can we get rid of this now?
         import rastervision.pipeline.pipeline_config  # noqa
+
         self.set_plugin_version('rastervision.pipeline', 0)
 
     def update_config_info(self):
@@ -218,7 +235,8 @@ class Registry():
         for type_hint, config_class in self.configs.items():
             lineage = inspect.getmro(config_class)
             th_lineage = [
-                config_class_to_type_hint[cc] for cc in lineage
+                config_class_to_type_hint[cc]
+                for cc in lineage
                 if config_class_to_type_hint.get(cc)
             ]
             th_lineage.reverse()

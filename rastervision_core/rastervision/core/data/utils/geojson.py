@@ -1,4 +1,4 @@
-from typing import (TYPE_CHECKING, Iterable, Iterator)
+from typing import TYPE_CHECKING, Iterable, Iterator
 from collections.abc import Callable
 from copy import deepcopy
 
@@ -28,8 +28,7 @@ def geometry_to_feature(mapping: dict, properties: dict | None = None) -> dict:
 
 
 def geometries_to_geojson(geometries: Iterable[dict]) -> dict:
-    """Convert serialized geometries to a serialized GeoJSON FeatureCollection.
-    """
+    """Convert serialized geometries to a serialized GeoJSON FeatureCollection."""
     features = [geometry_to_feature(g) for g in geometries]
     return features_to_geojson(features)
 
@@ -39,10 +38,12 @@ def features_to_geojson(features: list[dict]) -> dict:
     return {'type': 'FeatureCollection', 'features': features}
 
 
-def map_features(func: Callable[[dict], dict],
-                 geojson: dict,
-                 include_geom_types: Iterable[str] = [],
-                 progressbar_kw: dict | None = None) -> dict:
+def map_features(
+    func: Callable[[dict], dict],
+    geojson: dict,
+    include_geom_types: Iterable[str] = [],
+    progressbar_kw: dict | None = None,
+) -> dict:
     """Map GeoJSON features to new features. Returns a new GeoJSON dict."""
     features_in = geojson['features']
 
@@ -50,15 +51,17 @@ def map_features(func: Callable[[dict], dict],
         progressbar_kw = dict(desc='Transforming features')
 
     with tqdm(
-            features_in,
-            delay=PROGRESSBAR_DELAY_SEC,
-            mininterval=0.5,
-            **progressbar_kw) as bar:
+        features_in,
+        delay=PROGRESSBAR_DELAY_SEC,
+        mininterval=0.5,
+        **progressbar_kw,
+    ) as bar:
         if len(include_geom_types) > 0:
             include_geom_types = set(include_geom_types)
             features_out = [
                 func(f)
-                if f['geometry']['type'] in include_geom_types else deepcopy(f)
+                if f['geometry']['type'] in include_geom_types
+                else deepcopy(f)
                 for f in bar
             ]
         else:
@@ -67,10 +70,12 @@ def map_features(func: Callable[[dict], dict],
     return features_to_geojson(features_out)
 
 
-def map_geoms(func: Callable[['BaseGeometry', dict], dict],
-              geojson: dict,
-              include_geom_types: Iterable[str] = [],
-              progressbar_kw: dict | None = None) -> dict:
+def map_geoms(
+    func: Callable[['BaseGeometry', dict], dict],
+    geojson: dict,
+    include_geom_types: Iterable[str] = [],
+    progressbar_kw: dict | None = None,
+) -> dict:
     """Map GeoJSON features to new features by applying ``func`` to geometries.
 
     For each feature, the geometry is deserialized to a shapely geom, ``func``
@@ -92,8 +97,9 @@ def map_geoms(func: Callable[['BaseGeometry', dict], dict],
         # back to dict
         geom_out = mapping(geom_out)
         # new feature with updated geometry
-        feature_out = geometry_to_feature(geom_out,
-                                          feature_in.get('properties', {}))
+        feature_out = geometry_to_feature(
+            geom_out, feature_in.get('properties', {})
+        )
         return feature_out
 
     if progressbar_kw is None:
@@ -103,7 +109,8 @@ def map_geoms(func: Callable[['BaseGeometry', dict], dict],
         feat_func,
         geojson,
         include_geom_types=include_geom_types,
-        progressbar_kw=progressbar_kw)
+        progressbar_kw=progressbar_kw,
+    )
 
 
 def geojson_to_geoms(geojson: dict) -> Iterator['BaseGeometry']:
@@ -112,14 +119,16 @@ def geojson_to_geoms(geojson: dict) -> Iterator['BaseGeometry']:
     return geoms
 
 
-def geoms_to_geojson(geoms: Iterable['BaseGeometry'],
-                     properties: Iterable[dict] | None = None) -> dict:
+def geoms_to_geojson(
+    geoms: Iterable['BaseGeometry'], properties: Iterable[dict] | None = None
+) -> dict:
     """Serialize shapely geometries to GeoJSON."""
     with tqdm(
-            geoms,
-            delay=PROGRESSBAR_DELAY_SEC,
-            mininterval=0.5,
-            desc='Serializing geoms') as bar:
+        geoms,
+        delay=PROGRESSBAR_DELAY_SEC,
+        mininterval=0.5,
+        desc='Serializing geoms',
+    ) as bar:
         if properties is None:
             features = [geom_to_feature(g) for g in bar]
         else:
@@ -128,17 +137,20 @@ def geoms_to_geojson(geoms: Iterable['BaseGeometry'],
     return geojson
 
 
-def geom_to_feature(geom: 'BaseGeometry',
-                    properties: dict | None = None) -> dict:
+def geom_to_feature(
+    geom: 'BaseGeometry', properties: dict | None = None
+) -> dict:
     """Serialize a single shapely geometry to a GeoJSON Feature."""
     geometry = mapping(geom)
     feature = geometry_to_feature(geometry, properties=properties)
     return feature
 
 
-def filter_features(func: Callable[[dict], bool],
-                    geojson: dict,
-                    progressbar_kw: dict | None = None) -> dict:
+def filter_features(
+    func: Callable[[dict], bool],
+    geojson: dict,
+    progressbar_kw: dict | None = None,
+) -> dict:
     """Filter GeoJSON features. Returns a new GeoJSON dict."""
     features_in = geojson['features']
 
@@ -146,10 +158,11 @@ def filter_features(func: Callable[[dict], bool],
         progressbar_kw = dict(desc='Filtering features.')
 
     with tqdm(
-            features_in,
-            delay=PROGRESSBAR_DELAY_SEC,
-            mininterval=0.5,
-            **progressbar_kw) as bar:
+        features_in,
+        delay=PROGRESSBAR_DELAY_SEC,
+        mininterval=0.5,
+        **progressbar_kw,
+    ) as bar:
         features_out = list(filter(func, bar))
 
     return features_to_geojson(features_out)
@@ -188,7 +201,8 @@ def remove_empty_features(geojson: dict) -> dict:
     return filter_features(
         lambda f: not is_empty_feature(f),
         geojson,
-        progressbar_kw=dict(desc='Removing empty features'))
+        progressbar_kw=dict(desc='Removing empty features'),
+    )
 
 
 def split_multi_geometries(geojson: dict) -> dict:
@@ -224,10 +238,11 @@ def split_multi_geometries(geojson: dict) -> dict:
 
     new_features = []
     with tqdm(
-            geojson['features'],
-            desc='Splitting multi-part geoms',
-            delay=PROGRESSBAR_DELAY_SEC,
-            mininterval=0.5) as bar:
+        geojson['features'],
+        desc='Splitting multi-part geoms',
+        delay=PROGRESSBAR_DELAY_SEC,
+        mininterval=0.5,
+    ) as bar:
         for f in bar:
             geom_type = f['geometry']['type']
             if geom_type not in include_geom_types:
@@ -237,27 +252,32 @@ def split_multi_geometries(geojson: dict) -> dict:
             split_geoms = split_geom(geom)
             for g in split_geoms:
                 new_feature = geometry_to_feature(
-                    mapping(g), f.get('properties', {}))
+                    mapping(g), f.get('properties', {})
+                )
                 new_features.append(new_feature)
     return features_to_geojson(new_features)
 
 
-def map_to_pixel_coords(geojson: dict,
-                        crs_transformer: 'CRSTransformer') -> dict:
+def map_to_pixel_coords(
+    geojson: dict, crs_transformer: 'CRSTransformer'
+) -> dict:
     """Convert a GeoJSON dict from map to pixel coordinates."""
     return map_geoms(
         lambda g, **kw: crs_transformer.map_to_pixel(g),
         geojson,
-        progressbar_kw=dict(desc='Transforming to pixel coords'))
+        progressbar_kw=dict(desc='Transforming to pixel coords'),
+    )
 
 
-def pixel_to_map_coords(geojson: dict,
-                        crs_transformer: 'CRSTransformer') -> dict:
+def pixel_to_map_coords(
+    geojson: dict, crs_transformer: 'CRSTransformer'
+) -> dict:
     """Convert a GeoJSON dict from pixel to map coordinates."""
     return map_geoms(
         lambda g, **kw: crs_transformer.pixel_to_map(g),
         geojson,
-        progressbar_kw=dict(desc='Transforming to map coords'))
+        progressbar_kw=dict(desc='Transforming to map coords'),
+    )
 
 
 def simplify_polygons(geojson: dict) -> dict:
@@ -285,16 +305,19 @@ def simplify_polygons(geojson: dict) -> dict:
         lambda g, **kw: g.buffer(0),
         geojson,
         include_geom_types=['Polygon'],
-        progressbar_kw=dict(desc='Simplifying polygons'))
+        progressbar_kw=dict(desc='Simplifying polygons'),
+    )
     geojson_cleaned = remove_empty_features(geojson_buffered)
     geojson_split = split_multi_geometries(geojson_cleaned)
     return geojson_split
 
 
-def buffer_geoms(geojson: dict,
-                 geom_type: str,
-                 class_bufs: dict[int, float | None] = {},
-                 default_buf: float | None = 1) -> dict:
+def buffer_geoms(
+    geojson: dict,
+    geom_type: str,
+    class_bufs: dict[int, float | None] = {},
+    default_buf: float | None = 1,
+) -> dict:
     """Buffer geometries.
 
     Geometries in features without a class_id property will be ignored.
@@ -310,10 +333,12 @@ def buffer_geoms(geojson: dict,
         dict: FeatureCollection with buffered geometries.
     """
 
-    def buffer_geom(geom: 'BaseGeometry',
-                    feature: dict | None = None) -> 'BaseGeometry':
-        has_class_id = (('properties' in feature)
-                        and ('class_id' in feature['properties']))
+    def buffer_geom(
+        geom: 'BaseGeometry', feature: dict | None = None
+    ) -> 'BaseGeometry':
+        has_class_id = ('properties' in feature) and (
+            'class_id' in feature['properties']
+        )
         if has_class_id:
             class_id = feature['properties']['class_id']
             buf = class_bufs.get(class_id, default_buf)
@@ -334,7 +359,8 @@ def buffer_geoms(geojson: dict,
         buffer_geom,
         geojson,
         include_geom_types=[geom_type],
-        progressbar_kw=dict(desc=f'Buffering {geom_type}s (if any)'))
+        progressbar_kw=dict(desc=f'Buffering {geom_type}s (if any)'),
+    )
     return geojson_buffered
 
 
@@ -344,17 +370,20 @@ def all_geoms_valid(geojson: dict):
     return all(g.is_valid for g in geoms)
 
 
-def get_polygons_from_uris(uris: str | list[str],
-                           crs_transformer: 'CRSTransformer',
-                           bbox: 'Box | None' = None,
-                           map_coords: bool = False) -> list['BaseGeometry']:
+def get_polygons_from_uris(
+    uris: str | list[str],
+    crs_transformer: 'CRSTransformer',
+    bbox: 'Box | None' = None,
+    map_coords: bool = False,
+) -> list['BaseGeometry']:
     """Load and return polygons (in pixel coords) from one or more URIs."""
 
     # use local imports to avoid circular import problems
     from rastervision.core.data import GeoJSONVectorSource
 
     source = GeoJSONVectorSource(
-        uris=uris, crs_transformer=crs_transformer, bbox=bbox)
+        uris=uris, crs_transformer=crs_transformer, bbox=bbox
+    )
     polygons = source.get_geoms(to_map_coords=map_coords)
     return polygons
 
@@ -393,8 +422,9 @@ def filter_geojson_to_window(geojson: dict, window: Box) -> dict:
     return out_geojson
 
 
-def geoms_to_bbox_coords(geoms: Iterable['BaseGeometry'],
-                         bbox: Box) -> Iterator['BaseGeometry']:
+def geoms_to_bbox_coords(
+    geoms: Iterable['BaseGeometry'], bbox: Box
+) -> Iterator['BaseGeometry']:
     xmin, ymin = bbox.xmin, bbox.ymin
     out = (translate(p, xoff=-xmin, yoff=-ymin) for p in geoms)
     return out

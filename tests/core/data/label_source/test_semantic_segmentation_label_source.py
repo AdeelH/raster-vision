@@ -4,10 +4,16 @@ import numpy as np
 
 from rastervision.core import Box
 from rastervision.core.data import (
-    ClassConfig, ClassInferenceTransformerConfig, GeoJSONVectorSourceConfig,
-    IdentityCRSTransformer, RasterizedSourceConfig, RasterizerConfig,
-    RGBClassTransformer, SemanticSegmentationLabelSource,
-    SemanticSegmentationLabelSourceConfig)
+    ClassConfig,
+    ClassInferenceTransformerConfig,
+    GeoJSONVectorSourceConfig,
+    IdentityCRSTransformer,
+    RasterizedSourceConfig,
+    RasterizerConfig,
+    RGBClassTransformer,
+    SemanticSegmentationLabelSource,
+    SemanticSegmentationLabelSourceConfig,
+)
 
 from tests.core.data.mock_raster_source import MockRasterSource
 from tests import data_file_path
@@ -23,8 +29,10 @@ class TestSemanticSegmentationLabelSourceConfig(unittest.TestCase):
                 uris=uri,
                 transformers=[
                     ClassInferenceTransformerConfig(default_class_id=1)
-                ]),
-            rasterizer_config=RasterizerConfig(background_class_id=0))
+                ],
+            ),
+            rasterizer_config=RasterizerConfig(background_class_id=0),
+        )
         cfg = SemanticSegmentationLabelSourceConfig(raster_source=rs_cfg)
         rs = cfg.build(class_config, crs_transformer)
         self.assertIsInstance(rs, SemanticSegmentationLabelSource)
@@ -37,8 +45,9 @@ class TestSemanticSegmentationLabelSource(unittest.TestCase):
         class_config = ClassConfig(names=['bg', 'fg', 'null'])
         raster_source = MockRasterSource([0], 1)
         raster_source.set_raster(data)
-        label_source = SemanticSegmentationLabelSource(raster_source,
-                                                       class_config)
+        label_source = SemanticSegmentationLabelSource(
+            raster_source, class_config
+        )
         window = Box.make_square(7, 7, 3)
         labels = label_source.get_labels(window=window)
         label_arr = labels.get_label_arr(window)
@@ -51,8 +60,9 @@ class TestSemanticSegmentationLabelSource(unittest.TestCase):
         class_config = ClassConfig(names=['bg', 'fg', 'null'])
         raster_source = MockRasterSource([0], 1)
         raster_source.set_raster(data)
-        label_source = SemanticSegmentationLabelSource(raster_source,
-                                                       class_config)
+        label_source = SemanticSegmentationLabelSource(
+            raster_source, class_config
+        )
         window = Box.make_square(7, 7, 6)
         label_arr = label_source.get_label_arr(window)
         expected_label_arr = np.full((6, 6), class_config.null_class_id)
@@ -70,10 +80,12 @@ class TestSemanticSegmentationLabelSource(unittest.TestCase):
             3,
             raster_transformers=[
                 RGBClassTransformer(class_config=rgb_class_config)
-            ])
+            ],
+        )
         raster_source.set_raster(data)
-        label_source = SemanticSegmentationLabelSource(raster_source,
-                                                       class_config)
+        label_source = SemanticSegmentationLabelSource(
+            raster_source, class_config
+        )
         window = Box.make_square(7, 7, 3)
         labels = label_source.get_labels(window=window)
         label_arr = labels.get_label_arr(window)

@@ -29,8 +29,9 @@ class OptionEatAll(click.Option):
 
         retval = super().add_to_parser(parser, ctx)
         for name in self.opts:
-            our_parser = (parser._long_opt.get(name)
-                          or parser._short_opt.get(name))
+            our_parser = parser._long_opt.get(name) or parser._short_opt.get(
+                name
+            )
             if our_parser:
                 self._eat_all_parser = our_parser
                 self._previous_parser_process = our_parser.process
@@ -41,7 +42,8 @@ class OptionEatAll(click.Option):
 
 
 @click.command(
-    'predict', short_help='Use a model bundle to predict on new images.')
+    'predict', short_help='Use a model bundle to predict on new images.'
+)
 @click.argument('model_bundle')
 @click.argument('image_uri')
 @click.argument('label_uri')
@@ -49,26 +51,33 @@ class OptionEatAll(click.Option):
     '--update-stats',
     '-a',
     is_flag=True,
-    help=('Run an analysis on this individual image, as '
-          'opposed to using any analysis like statistics '
-          'that exist in the prediction package'))
+    help=(
+        'Run an analysis on this individual image, as '
+        'opposed to using any analysis like statistics '
+        'that exist in the prediction package'
+    ),
+)
 @click.option(
     '--channel-order',
     cls=OptionEatAll,
     # https://stackoverflow.com/questions/48391777/nargs-equivalent-for-options-in-click#comment121399899_48394004
     type=list,
-    help='List of indices comprising channel_order. Example: 2 1 0')
+    help='List of indices comprising channel_order. Example: 2 1 0',
+)
 @click.option(
     '--scene-group',
     help='Name of the scene group whose stats will be used by the '
     'StatsTransformer. Requires the stats for this scene group to be present '
-    'inside the bundle.')
-def predict(model_bundle: str,
-            image_uri: str,
-            label_uri: str,
-            update_stats: bool = False,
-            channel_order: list[str] | None = None,
-            scene_group: str | None = None):
+    'inside the bundle.',
+)
+def predict(
+    model_bundle: str,
+    image_uri: str,
+    label_uri: str,
+    update_stats: bool = False,
+    channel_order: list[str] | None = None,
+    scene_group: str | None = None,
+):
     """Make predictions on the images at IMAGE_URI
     using MODEL_BUNDLE and store the prediction output at LABEL_URI.
     """
@@ -76,24 +85,28 @@ def predict(model_bundle: str,
         channel_order: list[int] = [int(i) for i in channel_order]
 
     with get_tmp_dir() as tmp_dir:
-        predictor = Predictor(model_bundle, tmp_dir, update_stats,
-                              channel_order, scene_group)
+        predictor = Predictor(
+            model_bundle, tmp_dir, update_stats, channel_order, scene_group
+        )
         predictor.predict([image_uri], label_uri)
 
 
 @click.command(
-    'predict_scene',
-    short_help='Use a model bundle to predict on a new scene.')
+    'predict_scene', short_help='Use a model bundle to predict on a new scene.'
+)
 @click.argument('model_bundle_uri')
 @click.argument('scene_config_uri')
 @click.option(
     '--predict_options_uri',
     type=str,
     default=None,
-    help='Optional URI to serialized Raster Vision PredictOptions config.')
-def predict_scene(model_bundle_uri: str,
-                  scene_config_uri: str,
-                  predict_options_uri: str | None = None):
+    help='Optional URI to serialized Raster Vision PredictOptions config.',
+)
+def predict_scene(
+    model_bundle_uri: str,
+    scene_config_uri: str,
+    predict_options_uri: str | None = None,
+):
     """Use a model-bundle to make predictions on a scene.
 
     \b

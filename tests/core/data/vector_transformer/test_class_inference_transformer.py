@@ -2,11 +2,16 @@ import unittest
 
 from rastervision.core.data import ClassConfig
 from rastervision.core.data.vector_transformer import (
-    ClassInferenceTransformer, ClassInferenceTransformerConfig)
-from rastervision.core.data.utils import (geometries_to_geojson,
-                                          geometry_to_feature)
+    ClassInferenceTransformer,
+    ClassInferenceTransformerConfig,
+)
+from rastervision.core.data.utils import (
+    geometries_to_geojson,
+    geometry_to_feature,
+)
 from rastervision.core.data.vector_transformer.label_maker.filter import (
-    create_filter)
+    create_filter,
+)
 
 
 def make_feature(**kwargs) -> dict:
@@ -24,15 +29,17 @@ class TestClassInferenceTransformerConfig(unittest.TestCase):
 class TestClassInferenceTransformer(unittest.TestCase):
     def test_init(self):
         args = dict(
-            default_class_id=None,
-            class_name_mapping=dict(old_name='new_name'))
-        self.assertRaises(ValueError,
-                          lambda: ClassInferenceTransformer(**args))
+            default_class_id=None, class_name_mapping=dict(old_name='new_name')
+        )
+        self.assertRaises(
+            ValueError, lambda: ClassInferenceTransformer(**args)
+        )
 
     def test_inference_with_class_id(self):
         feat = make_feature(class_id=1)
         class_id = ClassInferenceTransformer.infer_feature_class_id(
-            feat, default_class_id=None)
+            feat, default_class_id=None
+        )
         self.assertEqual(class_id, 1)
 
     def test_inference_with_class_name(self):
@@ -40,7 +47,8 @@ class TestClassInferenceTransformer(unittest.TestCase):
         class_id = ClassInferenceTransformer.infer_feature_class_id(
             feat,
             default_class_id=None,
-            class_config=ClassConfig(names=['bg', 'fg']))
+            class_config=ClassConfig(names=['bg', 'fg']),
+        )
         self.assertEqual(class_id, 0)
 
     def test_inference_with_label(self):
@@ -48,7 +56,8 @@ class TestClassInferenceTransformer(unittest.TestCase):
         class_id = ClassInferenceTransformer.infer_feature_class_id(
             feat,
             default_class_id=None,
-            class_config=ClassConfig(names=['bg', 'fg']))
+            class_config=ClassConfig(names=['bg', 'fg']),
+        )
         self.assertEqual(class_id, 0)
 
     def test_inference_with_class_name_mapping(self):
@@ -56,17 +65,20 @@ class TestClassInferenceTransformer(unittest.TestCase):
         args = dict(
             feature=feat,
             default_class_id=None,
-            class_name_mapping=dict(old_name='new_name'))
+            class_name_mapping=dict(old_name='new_name'),
+        )
         self.assertRaises(
             ValueError,
-            lambda: ClassInferenceTransformer.infer_feature_class_id(**args))
+            lambda: ClassInferenceTransformer.infer_feature_class_id(**args),
+        )
 
         feat = make_feature(class_name='old_name')
         class_id = ClassInferenceTransformer.infer_feature_class_id(
             feat,
             default_class_id=None,
             class_config=ClassConfig(names=['bg', 'new_name']),
-            class_name_mapping=dict(old_name='new_name'))
+            class_name_mapping=dict(old_name='new_name'),
+        )
         self.assertEqual(class_id, 1)
 
         feat = make_feature(label='old_name')
@@ -74,41 +86,46 @@ class TestClassInferenceTransformer(unittest.TestCase):
             feat,
             default_class_id=None,
             class_config=ClassConfig(names=['bg', 'new_name']),
-            class_name_mapping=dict(old_name='new_name'))
+            class_name_mapping=dict(old_name='new_name'),
+        )
         self.assertEqual(class_id, 1)
 
     def test_inference_with_filter(self):
         class_id_to_filter = {
-            2:
-            create_filter(['==', 'type', 'building']),
-            3:
-            create_filter(
-                ['any', ['==', 'type', 'car'], ['==', 'type', 'auto']])
+            2: create_filter(['==', 'type', 'building']),
+            3: create_filter(
+                ['any', ['==', 'type', 'car'], ['==', 'type', 'auto']]
+            ),
         }
 
         feat = make_feature(type='building')
         class_id = ClassInferenceTransformer.infer_feature_class_id(
-            feat, default_class_id=None, class_id_to_filter=class_id_to_filter)
+            feat, default_class_id=None, class_id_to_filter=class_id_to_filter
+        )
         self.assertEqual(class_id, 2)
 
         feat = make_feature(type='car')
         class_id = ClassInferenceTransformer.infer_feature_class_id(
-            feat, default_class_id=None, class_id_to_filter=class_id_to_filter)
+            feat, default_class_id=None, class_id_to_filter=class_id_to_filter
+        )
         self.assertEqual(class_id, 3)
 
         feat = make_feature(type='auto')
         class_id = ClassInferenceTransformer.infer_feature_class_id(
-            feat, default_class_id=None, class_id_to_filter=class_id_to_filter)
+            feat, default_class_id=None, class_id_to_filter=class_id_to_filter
+        )
         self.assertEqual(class_id, 3)
 
     def test_inference_default(self):
         feat = make_feature()
         class_id = ClassInferenceTransformer.infer_feature_class_id(
-            feat, default_class_id=None)
+            feat, default_class_id=None
+        )
         self.assertIsNone(class_id)
 
         class_id = ClassInferenceTransformer.infer_feature_class_id(
-            feat, default_class_id=0)
+            feat, default_class_id=0
+        )
         self.assertEqual(class_id, 0)
 
     def test_transform(self):
@@ -137,7 +154,8 @@ class TestClassInferenceTransformer(unittest.TestCase):
         self.assertListEqual(class_ids_out, [0, 1, 0, 0, 0, 0, 0])
 
         tf = ClassInferenceTransformer(
-            default_class_id=0, class_config=ClassConfig(names=['bg', 'fg']))
+            default_class_id=0, class_config=ClassConfig(names=['bg', 'fg'])
+        )
         geojson_out = tf(geojson_in)
         features_out = geojson_out['features']
         class_ids_out = [f['properties']['class_id'] for f in features_out]
@@ -146,12 +164,13 @@ class TestClassInferenceTransformer(unittest.TestCase):
 
         class_id_to_filter = {
             2: ['==', 'type', 'building'],
-            3: ['any', ['==', 'type', 'car'], ['==', 'type', 'auto']]
+            3: ['any', ['==', 'type', 'car'], ['==', 'type', 'auto']],
         }
         tf = ClassInferenceTransformer(
             default_class_id=0,
             class_config=ClassConfig(names=['bg', 'fg']),
-            class_id_to_filter=class_id_to_filter)
+            class_id_to_filter=class_id_to_filter,
+        )
         geojson_out = tf(geojson_in)
         features_out = geojson_out['features']
         class_ids_out = [f['properties']['class_id'] for f in features_out]

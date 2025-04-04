@@ -48,8 +48,9 @@ class Backend(ABC):
         """
 
     @abstractmethod
-    def predict_scene(self, scene: 'Scene',
-                      predict_options: 'PredictOptions') -> 'Labels':
+    def predict_scene(
+        self, scene: 'Scene', predict_options: 'PredictOptions'
+    ) -> 'Labels':
         """Return predictions for an entire scene using the model.
 
         Args:
@@ -61,8 +62,9 @@ class Backend(ABC):
         """
 
     @abstractmethod
-    def chip_dataset(self, dataset: 'DatasetConfig',
-                     chip_options: 'ChipOptions') -> None:
+    def chip_dataset(
+        self, dataset: 'DatasetConfig', chip_options: 'ChipOptions'
+    ) -> None:
         """Create and write chips for scenes in a :class:`.DatasetConfig`.
 
         Args:

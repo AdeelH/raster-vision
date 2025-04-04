@@ -1,4 +1,4 @@
-from typing import (TYPE_CHECKING, Iterable, Iterator, Sequence)
+from typing import TYPE_CHECKING, Iterable, Iterator, Sequence
 
 import numpy as np
 from tqdm.auto import tqdm
@@ -16,10 +16,12 @@ if TYPE_CHECKING:
 class RasterStats:
     """Band-wise means and standard deviations."""
 
-    def __init__(self,
-                 means: Sequence[float] | None = None,
-                 stds: Sequence[float] | None = None,
-                 counts: Sequence[float] | None = None):
+    def __init__(
+        self,
+        means: Sequence[float] | None = None,
+        stds: Sequence[float] | None = None,
+        counts: Sequence[float] | None = None,
+    ):
         """Constructor.
 
         Args:
@@ -40,15 +42,18 @@ class RasterStats:
         stats = RasterStats(
             means=stats_json['means'],
             stds=stats_json['stds'],
-            counts=stats_json.get('counts'))
+            counts=stats_json.get('counts'),
+        )
         return stats
 
-    def compute(self,
-                raster_sources: Sequence['RasterSource'],
-                sample_prob: float | None = None,
-                chip_sz: int = 300,
-                stride: int | None = None,
-                nodata_value: float | None = 0) -> None:
+    def compute(
+        self,
+        raster_sources: Sequence['RasterSource'],
+        sample_prob: float | None = None,
+        chip_sz: int = 300,
+        stride: int | None = None,
+        nodata_value: float | None = 0,
+    ) -> None:
         """Compute the mean and stds over all the raster_sources.
 
         This ignores NODATA values if nodata_value is not None.
@@ -73,34 +78,36 @@ class RasterStats:
             if stride is None:
                 stride = chip_sz
             chip_stream = sliding_chip_stream(
-                raster_sources, chip_sz, stride, nodata_value=nodata_value)
+                raster_sources, chip_sz, stride, nodata_value=nodata_value
+            )
         else:
             chip_stream = random_chip_stream(
-                raster_sources,
-                chip_sz,
-                sample_prob,
-                nodata_value=nodata_value)
+                raster_sources, chip_sz, sample_prob, nodata_value=nodata_value
+            )
 
         means, vars, counts = self.compute_from_chips(
             chip_stream,
             running_mean=self.means,
             running_var=self.vars,
-            running_count=self.counts)
+            running_count=self.counts,
+        )
         if means is None or vars is None:
-            raise ValueError('No valid chips found in raster sources to '
-                             'compute stats from. This may be because all '
-                             'sampled chips were entirely composed of NODATA '
-                             'pixels.')
+            raise ValueError(
+                'No valid chips found in raster sources to '
+                'compute stats from. This may be because all '
+                'sampled chips were entirely composed of NODATA '
+                'pixels.'
+            )
         self.means = means
         self.stds = np.sqrt(vars)
         self.counts = counts
 
     def compute_from_chips(
-            self,
-            chips: Iterable[np.ndarray],
-            running_mean: np.ndarray | None = None,
-            running_var: np.ndarray | None = None,
-            running_count: np.ndarray | None = None
+        self,
+        chips: Iterable[np.ndarray],
+        running_mean: np.ndarray | None = None,
+        running_var: np.ndarray | None = None,
+        running_count: np.ndarray | None = None,
     ) -> tuple[None, None, None] | tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Compute running mean and var from chips in stream."""
         with tqdm(chips, desc='Analyzing chips') as bar:
@@ -108,18 +115,20 @@ class RasterStats:
                 num_channels = chip.shape[-1]
                 # (..., H, W, C) --> (... * H * W, C)
                 pixels = chip.reshape(-1, num_channels)
-                stats = self.compute_from_pixels(pixels, running_mean,
-                                                 running_var, running_count)
+                stats = self.compute_from_pixels(
+                    pixels, running_mean, running_var, running_count
+                )
                 running_mean, running_var, running_count = stats
 
         return running_mean, running_var, running_count
 
-    def compute_from_pixels(self,
-                            pixels: np.ndarray,
-                            running_mean: np.ndarray | None = None,
-                            running_var: np.ndarray | None = None,
-                            running_count: np.ndarray | None = None
-                            ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def compute_from_pixels(
+        self,
+        pixels: np.ndarray,
+        running_mean: np.ndarray | None = None,
+        running_var: np.ndarray | None = None,
+        running_count: np.ndarray | None = None,
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Update running mean and var from pixel values."""
         running_stats = [running_mean, running_var, running_count]
         has_running_stats = any(s is not None for s in running_stats)
@@ -134,11 +143,17 @@ class RasterStats:
         if not has_running_stats:
             return channel_means, channel_vars, channel_counts
 
-        running_var = parallel_variance(channel_means, channel_counts,
-                                        channel_vars, running_mean,
-                                        running_count, running_var)
-        running_mean = parallel_mean(channel_means, channel_counts,
-                                     running_mean, running_count)
+        running_var = parallel_variance(
+            channel_means,
+            channel_counts,
+            channel_vars,
+            running_mean,
+            running_count,
+            running_var,
+        )
+        running_mean = parallel_mean(
+            channel_means, channel_counts, running_mean, running_count
+        )
         running_count += channel_counts
 
         return running_mean, running_var, running_count
@@ -210,10 +225,11 @@ def parallel_mean(mean_a, count_a, mean_b, count_b):
 
 
 def sliding_chip_stream(
-        raster_sources: Iterable['RasterSource'],
-        chip_sz: int,
-        stride: int,
-        nodata_value: float | None = 0) -> Iterator[np.ndarray]:
+    raster_sources: Iterable['RasterSource'],
+    chip_sz: int,
+    stride: int,
+    nodata_value: float | None = 0,
+) -> Iterator[np.ndarray]:
     """Get stream of chips using a sliding window."""
     for raster_source in raster_sources:
         windows = raster_source.extent.get_windows(chip_sz, stride)
@@ -224,15 +240,18 @@ def sliding_chip_stream(
             yield chip
 
 
-def random_chip_stream(raster_sources: Iterable['RasterSource'],
-                       chip_sz: int,
-                       sample_prob: float,
-                       nodata_value: float | None = 0) -> Iterator[np.ndarray]:
+def random_chip_stream(
+    raster_sources: Iterable['RasterSource'],
+    chip_sz: int,
+    sample_prob: float,
+    nodata_value: float | None = 0,
+) -> Iterator[np.ndarray]:
     """Get random stream of chips."""
     for raster_source in raster_sources:
         extent = raster_source.extent
-        num_chips_to_sample = get_num_chips_to_sample(extent, chip_sz,
-                                                      sample_prob)
+        num_chips_to_sample = get_num_chips_to_sample(
+            extent, chip_sz, sample_prob
+        )
         if num_chips_to_sample == 0:
             windows = [extent]
         else:
@@ -247,9 +266,11 @@ def random_chip_stream(raster_sources: Iterable['RasterSource'],
             yield chip
 
 
-def get_chip(raster_source: 'RasterSource',
-             window: 'Box',
-             nodata_value: float | None = 0) -> np.ndarray | None:
+def get_chip(
+    raster_source: 'RasterSource',
+    window: 'Box',
+    nodata_value: float | None = 0,
+) -> np.ndarray | None:
     """Return chip or None if all values are NODATA."""
     chip = raster_source.get_chip(window).astype(float)
 
@@ -263,12 +284,13 @@ def get_chip(raster_source: 'RasterSource',
     return chip
 
 
-def get_num_chips_to_sample(extent: 'Box', chip_sz: int,
-                            sample_prob: float) -> int:
+def get_num_chips_to_sample(
+    extent: 'Box', chip_sz: int, sample_prob: float
+) -> int:
     num_pixels_total = extent.area
     num_pixels_per_chip = chip_sz**2
     if num_pixels_per_chip > num_pixels_total:
         return 0
-    num_chips_total = (num_pixels_total / num_pixels_per_chip)
+    num_chips_total = num_pixels_total / num_pixels_per_chip
     num_chips_to_sample = round(sample_prob * num_chips_total)
     return max(1, num_chips_to_sample)

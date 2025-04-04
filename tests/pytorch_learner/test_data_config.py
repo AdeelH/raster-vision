@@ -2,26 +2,45 @@ from collections.abc import Callable
 import unittest
 
 from rastervision.pipeline.file_system import get_tmp_dir
-from rastervision.pipeline.config import (ValidationError, build_config)
-from rastervision.core.rv_pipeline import (WindowSamplingConfig,
-                                           WindowSamplingMethod)
+from rastervision.pipeline.config import ValidationError, build_config
+from rastervision.core.rv_pipeline import (
+    WindowSamplingConfig,
+    WindowSamplingMethod,
+)
 from rastervision.pytorch_learner import (
-    DataConfig, ImageDataConfig, SemanticSegmentationDataConfig,
-    SemanticSegmentationImageDataConfig, SemanticSegmentationGeoDataConfig,
-    ClassificationDataConfig, ClassificationImageDataConfig,
-    RegressionDataConfig, RegressionImageDataConfig, ObjectDetectionDataConfig,
-    ObjectDetectionImageDataConfig, data_config_upgrader,
-    ss_data_config_upgrader, clf_data_config_upgrader,
-    reg_data_config_upgrader, objdet_data_config_upgrader, GeoDataConfig,
-    PlotOptions, ss_image_data_config_upgrader)
+    DataConfig,
+    ImageDataConfig,
+    SemanticSegmentationDataConfig,
+    SemanticSegmentationImageDataConfig,
+    SemanticSegmentationGeoDataConfig,
+    ClassificationDataConfig,
+    ClassificationImageDataConfig,
+    RegressionDataConfig,
+    RegressionImageDataConfig,
+    ObjectDetectionDataConfig,
+    ObjectDetectionImageDataConfig,
+    data_config_upgrader,
+    ss_data_config_upgrader,
+    clf_data_config_upgrader,
+    reg_data_config_upgrader,
+    objdet_data_config_upgrader,
+    GeoDataConfig,
+    PlotOptions,
+    ss_image_data_config_upgrader,
+)
 from rastervision.core.data import DatasetConfig, ClassConfig
 
 
 class TestDataConfigToImageDataConfigUpgrade(unittest.TestCase):
     """Version 1 DataConfig should get upgraded to ImageDataConfigs."""
 
-    def _test_config_upgrader(self, old_cfg_type: type, new_cfg_type: type,
-                              upgrader: Callable, curr_version: int):
+    def _test_config_upgrader(
+        self,
+        old_cfg_type: type,
+        new_cfg_type: type,
+        upgrader: Callable,
+        curr_version: int,
+    ):
         old_cfg = old_cfg_type()
         old_cfg_dict = old_cfg.dict()
         for i in range(curr_version):
@@ -34,35 +53,40 @@ class TestDataConfigToImageDataConfigUpgrade(unittest.TestCase):
             old_cfg_type=DataConfig,
             new_cfg_type=ImageDataConfig,
             upgrader=data_config_upgrader,
-            curr_version=3)
+            curr_version=3,
+        )
 
     def test_ss_data_config_upgrader(self):
         self._test_config_upgrader(
             old_cfg_type=SemanticSegmentationDataConfig,
             new_cfg_type=SemanticSegmentationImageDataConfig,
             upgrader=ss_data_config_upgrader,
-            curr_version=3)
+            curr_version=3,
+        )
 
     def test_clf_data_config_upgrader(self):
         self._test_config_upgrader(
             old_cfg_type=ClassificationDataConfig,
             new_cfg_type=ClassificationImageDataConfig,
             upgrader=clf_data_config_upgrader,
-            curr_version=3)
+            curr_version=3,
+        )
 
     def test_reg_data_config_upgrader(self):
         self._test_config_upgrader(
             old_cfg_type=RegressionDataConfig,
             new_cfg_type=RegressionImageDataConfig,
             upgrader=reg_data_config_upgrader,
-            curr_version=3)
+            curr_version=3,
+        )
 
     def test_objdet_data_config_upgrader(self):
         self._test_config_upgrader(
             old_cfg_type=ObjectDetectionDataConfig,
             new_cfg_type=ObjectDetectionImageDataConfig,
             upgrader=objdet_data_config_upgrader,
-            curr_version=3)
+            curr_version=3,
+        )
 
 
 class TestDataConfig(unittest.TestCase):
@@ -113,11 +137,13 @@ class TestSemanticSegmentationGeoDataConfig(unittest.TestCase):
         scene_dataset = DatasetConfig(
             train_scenes=[],
             validation_scenes=[],
-            class_config=ClassConfig(names=['abc']))
+            class_config=ClassConfig(names=['abc']),
+        )
         old_cfg = SemanticSegmentationGeoDataConfig(
             scene_dataset=scene_dataset,
             sampling=WindowSamplingConfig(size=100),
-            img_channels=8)
+            img_channels=8,
+        )
         old_cfg_dict = old_cfg.dict()
         old_cfg_dict['channel_display_groups'] = None
 
@@ -145,7 +171,8 @@ class TestSemanticSegmentationImageDataConfig(unittest.TestCase):
         self.assertNotIn('img_format', new_cfg_dict)
         self.assertNotIn('label_format', new_cfg_dict)
         new_cfg: SemanticSegmentationImageDataConfig = build_config(
-            new_cfg_dict)
+            new_cfg_dict
+        )
         self.assertEqual(new_cfg.img_channels, old_cfg.img_channels)
 
 
@@ -162,27 +189,30 @@ class TestImageDataConfig(unittest.TestCase):
         # test missing group_uris
         args = dict(group_train_sz=1)
         self.assertRaises(ValidationError, lambda: ImageDataConfig(**args))
-        args = dict(group_train_sz_rel=.5)
+        args = dict(group_train_sz_rel=0.5)
         self.assertRaises(ValidationError, lambda: ImageDataConfig(**args))
         # test both group_train_sz and group_train_sz_rel specified
         args = dict(
-            group_uris=group_uris, group_train_sz=1, group_train_sz_rel=.5)
+            group_uris=group_uris, group_train_sz=1, group_train_sz_rel=0.5
+        )
         self.assertRaises(ValidationError, lambda: ImageDataConfig(**args))
         # test length check
         args = dict(group_uris=group_uris, group_train_sz=[1])
         self.assertRaises(ValidationError, lambda: ImageDataConfig(**args))
-        args = dict(group_uris=group_uris, group_train_sz_rel=[.5])
+        args = dict(group_uris=group_uris, group_train_sz_rel=[0.5])
         self.assertRaises(ValidationError, lambda: ImageDataConfig(**args))
         # test valid configs
         args = dict(group_uris=group_uris, group_train_sz=1)
         self.assertNoError(lambda: ImageDataConfig(**args))
         args = dict(
-            group_uris=group_uris, group_train_sz=[1] * len(group_uris))
+            group_uris=group_uris, group_train_sz=[1] * len(group_uris)
+        )
         self.assertNoError(lambda: ImageDataConfig(**args))
-        args = dict(group_uris=group_uris, group_train_sz_rel=.1)
+        args = dict(group_uris=group_uris, group_train_sz_rel=0.1)
         self.assertNoError(lambda: ImageDataConfig(**args))
         args = dict(
-            group_uris=group_uris, group_train_sz_rel=[.1] * len(group_uris))
+            group_uris=group_uris, group_train_sz_rel=[0.1] * len(group_uris)
+        )
         self.assertNoError(lambda: ImageDataConfig(**args))
 
     def test_build_cc(self):
@@ -190,7 +220,9 @@ class TestImageDataConfig(unittest.TestCase):
         from os.path import join
         import numpy as np
         from rastervision.pytorch_backend.pytorch_learner_backend import (
-            get_image_ext, write_chip)
+            get_image_ext,
+            write_chip,
+        )
         from rastervision.pipeline.file_system import zipdir
 
         nclasses = 2
@@ -213,7 +245,8 @@ class TestImageDataConfig(unittest.TestCase):
                             0,
                             256,
                             size=(chip_sz, chip_sz, nchannels),
-                            dtype=np.uint8)
+                            dtype=np.uint8,
+                        )
                         ext = get_image_ext(chip)
                         path = join(class_dir, f'{i}.{ext}')
                         write_chip(chip, path)
@@ -223,7 +256,8 @@ class TestImageDataConfig(unittest.TestCase):
                 uri=data_dir,
                 class_config=class_config,
                 img_channels=nchannels,
-                img_sz=img_sz)
+                img_sz=img_sz,
+            )
             train_ds, val_ds, test_ds = data_cfg.build(tmp_dir)
             self.assertEqual(len(train_ds), nclasses * nchips)
             self.assertEqual(len(val_ds), nclasses * nchips)
@@ -245,7 +279,8 @@ class TestImageDataConfig(unittest.TestCase):
                 uri=zip_path,
                 class_config=class_config,
                 img_channels=nchannels,
-                img_sz=img_sz)
+                img_sz=img_sz,
+            )
             train_ds, val_ds, test_ds = data_cfg.build(tmp_dir)
             self.assertEqual(len(train_ds), nclasses * nchips)
             self.assertEqual(len(val_ds), nclasses * nchips)
@@ -265,7 +300,8 @@ class TestImageDataConfig(unittest.TestCase):
         from os.path import join
         import numpy as np
         from rastervision.pytorch_backend.pytorch_learner_backend import (
-            write_chip)
+            write_chip,
+        )
 
         nclasses = 2
         class_names = [f'class_{i}' for i in range(nclasses)]
@@ -288,7 +324,8 @@ class TestImageDataConfig(unittest.TestCase):
                         0,
                         256,
                         size=(chip_sz, chip_sz, nchannels),
-                        dtype=np.uint8)
+                        dtype=np.uint8,
+                    )
                     label = (chip[..., 0] > 128).astype(np.uint8)
                     img_path = join(img_dir, f'{i}.npy')
                     label_path = join(label_dir, f'{i}.npy')
@@ -300,7 +337,8 @@ class TestImageDataConfig(unittest.TestCase):
                 uri=data_dir,
                 class_config=class_config,
                 img_channels=nchannels,
-                img_sz=img_sz)
+                img_sz=img_sz,
+            )
             train_ds, val_ds, test_ds = data_cfg.build(tmp_dir)
             self.assertEqual(len(train_ds), nchips)
             self.assertEqual(len(val_ds), nchips)
@@ -339,27 +377,33 @@ class TestGeoDataConfig(unittest.TestCase):
             size=10,
             size_lims=(10, 20),
             h_lims=(10, 20),
-            w_lims=(10, 20))
-        self.assertRaises(ValidationError,
-                          lambda: WindowSamplingConfig(**args))
+            w_lims=(10, 20),
+        )
+        self.assertRaises(
+            ValidationError, lambda: WindowSamplingConfig(**args)
+        )
 
         # require both h_lims and w_lims if either specified
         args = dict(
             method=WindowSamplingMethod.random,
             size=10,
             h_lims=None,
-            w_lims=(10, 20))
-        self.assertRaises(ValidationError,
-                          lambda: WindowSamplingConfig(**args))
+            w_lims=(10, 20),
+        )
+        self.assertRaises(
+            ValidationError, lambda: WindowSamplingConfig(**args)
+        )
 
         # require both h_lims and w_lims if either specified
         args = dict(
             method=WindowSamplingMethod.random,
             size=10,
             h_lims=(10, 20),
-            w_lims=None)
-        self.assertRaises(ValidationError,
-                          lambda: WindowSamplingConfig(**args))
+            w_lims=None,
+        )
+        self.assertRaises(
+            ValidationError, lambda: WindowSamplingConfig(**args)
+        )
 
         # only allow one of size_lims and h_lims+w_lims
         args = dict(
@@ -367,14 +411,17 @@ class TestGeoDataConfig(unittest.TestCase):
             size=10,
             size_lims=(10, 20),
             h_lims=(10, 20),
-            w_lims=None)
-        self.assertRaises(ValidationError,
-                          lambda: WindowSamplingConfig(**args))
+            w_lims=None,
+        )
+        self.assertRaises(
+            ValidationError, lambda: WindowSamplingConfig(**args)
+        )
 
     def test_get_class_config_from_dataset_if_needed(self):
         class_config = ClassConfig(names=['bg', 'fg'])
         scene_dataset = DatasetConfig(
-            class_config=class_config, train_scenes=[], validation_scenes=[])
+            class_config=class_config, train_scenes=[], validation_scenes=[]
+        )
         args = dict(scene_dataset=scene_dataset, sampling={})
         self.assertNoError(lambda: GeoDataConfig(**args))
 
@@ -386,9 +433,14 @@ class TestGeoDataConfig(unittest.TestCase):
         from uuid import uuid4
         import numpy as np
         from rastervision.core.data import (
-            ClassConfig, DatasetConfig, RasterioSourceConfig,
-            MultiRasterSourceConfig, ReclassTransformerConfig, SceneConfig,
-            SemanticSegmentationLabelSourceConfig)
+            ClassConfig,
+            DatasetConfig,
+            RasterioSourceConfig,
+            MultiRasterSourceConfig,
+            ReclassTransformerConfig,
+            SceneConfig,
+            SemanticSegmentationLabelSourceConfig,
+        )
         from tests import data_file_path
 
         def make_scene(num_channels: int, num_classes: int) -> SceneConfig:
@@ -400,24 +452,31 @@ class TestGeoDataConfig(unittest.TestCase):
                     channel_order=[0],
                     transformers=[
                         ReclassTransformerConfig(
-                            mapping={100: np.random.randint(0, 256)})
-                    ])
+                            mapping={100: np.random.randint(0, 256)}
+                        )
+                    ],
+                )
                 rs_cfgs_img.append(rs_cfg)
             rs_cfg_img = MultiRasterSourceConfig(
                 raster_sources=rs_cfgs_img,
-                channel_order=list(range(num_channels)))
+                channel_order=list(range(num_channels)),
+            )
             rs_cfg_label = RasterioSourceConfig(
                 uris=[path],
                 channel_order=[0],
                 transformers=[
                     ReclassTransformerConfig(
-                        mapping={100: np.random.randint(0, num_classes)})
-                ])
+                        mapping={100: np.random.randint(0, num_classes)}
+                    )
+                ],
+            )
             scene_cfg = SceneConfig(
                 id=str(uuid4()),
                 raster_source=rs_cfg_img,
                 label_source=SemanticSegmentationLabelSourceConfig(
-                    raster_source=rs_cfg_label))
+                    raster_source=rs_cfg_label
+                ),
+            )
             return scene_cfg
 
         nclasses = 2
@@ -425,27 +484,30 @@ class TestGeoDataConfig(unittest.TestCase):
         chip_sz = 100
         img_sz = 200
         class_config = ClassConfig(
-            names=[f'class_{i}' for i in range(nclasses)],
-            null_class='class_0')
+            names=[f'class_{i}' for i in range(nclasses)], null_class='class_0'
+        )
         dataset_cfg = DatasetConfig(
             class_config=class_config,
             train_scenes=[make_scene(nchannels, nclasses) for _ in range(4)],
             validation_scenes=[
                 make_scene(nchannels, nclasses) for _ in range(2)
             ],
-            test_scenes=[make_scene(nchannels, nclasses) for _ in range(0)])
+            test_scenes=[make_scene(nchannels, nclasses) for _ in range(0)],
+        )
         data_cfg = SemanticSegmentationGeoDataConfig(
             scene_dataset=dataset_cfg,
             sampling=WindowSamplingConfig(
-                size=chip_sz, stride=chip_sz, padding=0),
+                size=chip_sz, stride=chip_sz, padding=0
+            ),
             class_config=class_config,
             img_sz=img_sz,
-            num_workers=0)
+            num_workers=0,
+        )
         with get_tmp_dir() as tmp_dir:
             train_ds, val_ds, test_ds = data_cfg.build(tmp_dir)
-            self.assertEqual(len(train_ds), 4 * (600 // chip_sz)**2)
-            self.assertEqual(len(val_ds), 2 * (600 // chip_sz)**2)
-            self.assertEqual(len(test_ds), 0 * (600 // chip_sz)**2)
+            self.assertEqual(len(train_ds), 4 * (600 // chip_sz) ** 2)
+            self.assertEqual(len(val_ds), 2 * (600 // chip_sz) ** 2)
+            self.assertEqual(len(test_ds), 0 * (600 // chip_sz) ** 2)
             x, y = train_ds[0]
             self.assertEqual(x.shape, (nchannels, img_sz, img_sz))
             self.assertEqual(y.shape, (img_sz, img_sz))
@@ -489,16 +551,20 @@ class TestPlotOptions(unittest.TestCase):
         # check auto conversion to dict
         data_cfg = DataConfig(
             img_channels=6,
-            plot_options=PlotOptions(channel_display_groups=[(0, 1, 2), (4, 3,
-                                                                         5)]))
+            plot_options=PlotOptions(
+                channel_display_groups=[(0, 1, 2), (4, 3, 5)]
+            ),
+        )
         opts = data_cfg.plot_options
         self.assertIsInstance(opts.channel_display_groups, dict)
         self.assertIn('Channels: [0, 1, 2]', opts.channel_display_groups)
         self.assertIn('Channels: [4, 3, 5]', opts.channel_display_groups)
         self.assertListEqual(
-            opts.channel_display_groups['Channels: [0, 1, 2]'], [0, 1, 2])
+            opts.channel_display_groups['Channels: [0, 1, 2]'], [0, 1, 2]
+        )
         self.assertListEqual(
-            opts.channel_display_groups['Channels: [4, 3, 5]'], [4, 3, 5])
+            opts.channel_display_groups['Channels: [4, 3, 5]'], [4, 3, 5]
+        )
 
 
 if __name__ == '__main__':

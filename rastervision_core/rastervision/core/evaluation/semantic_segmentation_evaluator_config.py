@@ -2,16 +2,19 @@ from typing import TYPE_CHECKING, Iterable
 
 from rastervision.pipeline.config import register_config
 from rastervision.core.evaluation.classification_evaluator_config import (
-    ClassificationEvaluatorConfig)
+    ClassificationEvaluatorConfig,
+)
 from rastervision.core.evaluation.semantic_segmentation_evaluator import (
-    SemanticSegmentationEvaluator)
+    SemanticSegmentationEvaluator,
+)
 
 if TYPE_CHECKING:
     from rastervision.core.data import ClassConfig
 
 
-def ss_evaluator_config_upgrader(cfg_dict: dict,
-                                 version: int) -> dict:  # pragma: no cover
+def ss_evaluator_config_upgrader(
+    cfg_dict: dict, version: int
+) -> dict:  # pragma: no cover
     if version == 2:
         # removed in version 3
         cfg_dict.pop('vector_output_uri', None)
@@ -19,14 +22,16 @@ def ss_evaluator_config_upgrader(cfg_dict: dict,
 
 
 @register_config(
-    'semantic_segmentation_evaluator', upgrader=ss_evaluator_config_upgrader)
+    'semantic_segmentation_evaluator', upgrader=ss_evaluator_config_upgrader
+)
 class SemanticSegmentationEvaluatorConfig(ClassificationEvaluatorConfig):
     """Configure a :class:`.SemanticSegmentationEvaluator`."""
 
-    def build(self,
-              class_config: 'ClassConfig',
-              scene_group: tuple[str, Iterable[str]] | None = None
-              ) -> SemanticSegmentationEvaluator:
+    def build(
+        self,
+        class_config: 'ClassConfig',
+        scene_group: tuple[str, Iterable[str]] | None = None,
+    ) -> SemanticSegmentationEvaluator:
         if scene_group is None:
             output_uri = self.get_output_uri()
         else:

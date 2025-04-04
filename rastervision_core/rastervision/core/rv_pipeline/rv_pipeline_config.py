@@ -2,15 +2,23 @@ from typing import TYPE_CHECKING
 from os.path import join
 
 from rastervision.pipeline.pipeline_config import PipelineConfig
-from rastervision.core.data import (DatasetConfig, StatsTransformerConfig,
-                                    LabelStoreConfig, SceneConfig)
+from rastervision.core.data import (
+    DatasetConfig,
+    StatsTransformerConfig,
+    LabelStoreConfig,
+    SceneConfig,
+)
 from rastervision.core.analyzer import StatsAnalyzerConfig
 from rastervision.core.backend import BackendConfig
 from rastervision.core.evaluation import EvaluatorConfig
 from rastervision.core.analyzer import AnalyzerConfig
 from rastervision.core.rv_pipeline.chip_options import ChipOptions
-from rastervision.pipeline.config import (Config, Field, register_config,
-                                          model_validator)
+from rastervision.pipeline.config import (
+    Config,
+    Field,
+    register_config,
+    model_validator,
+)
 
 if TYPE_CHECKING:
     from typing import Self
@@ -20,13 +28,16 @@ if TYPE_CHECKING:
 @register_config('predict_options')
 class PredictOptions(Config):
     chip_sz: int = Field(
-        300, description='Size of predictions chips in pixels.')
+        300, description='Size of predictions chips in pixels.'
+    )
     stride: int | None = Field(
         None,
         description='Stride of the sliding window for generating chips.'
-        'Defaults to ``chip_sz``.')
+        'Defaults to ``chip_sz``.',
+    )
     batch_sz: int = Field(
-        8, description='Batch size to use during prediction.')
+        8, description='Batch size to use during prediction.'
+    )
 
     @model_validator(mode='after')
     def validate_stride(self) -> 'Self':
@@ -38,7 +49,7 @@ class PredictOptions(Config):
 def rv_pipeline_config_upgrader(cfg_dict: dict, version: int) -> dict:
     if version == 10:
         train_chip_sz = cfg_dict.pop('train_chip_sz', 300)
-        nodata_threshold = cfg_dict.pop('chip_nodata_threshold', 1.)
+        nodata_threshold = cfg_dict.pop('chip_nodata_threshold', 1.0)
         chip_options: dict = cfg_dict.get('chip_options', {})
         method = chip_options.pop('method', 'sliding')
         if method != 'sliding':
@@ -62,52 +73,62 @@ class RVPipelineConfig(PipelineConfig):
 
     dataset: DatasetConfig = Field(
         ...,
-        description=
-        'Dataset containing train, validation, and optional test scenes.')
+        description='Dataset containing train, validation, and optional test scenes.',
+    )
     backend: BackendConfig = Field(
-        ..., description='Backend to use for interfacing with ML library.')
+        ..., description='Backend to use for interfacing with ML library.'
+    )
     evaluators: list[EvaluatorConfig] = Field(
         [],
         description=(
             'Evaluators to run during analyzer command. If list is empty '
-            'the default evaluator is added.'))
+            'the default evaluator is added.'
+        ),
+    )
     analyzers: list[AnalyzerConfig] = Field(
         [],
-        description=
-        ('Analyzers to run during analyzer command. A StatsAnalyzer will be added '
-         'automatically if any scenes have a RasterTransformer.'))
+        description=(
+            'Analyzers to run during analyzer command. A StatsAnalyzer will be added '
+            'automatically if any scenes have a RasterTransformer.'
+        ),
+    )
 
     analyze_uri: str | None = Field(
         None,
-        description=
-        'URI for output of analyze. If None, will be auto-generated.')
+        description='URI for output of analyze. If None, will be auto-generated.',
+    )
     chip_uri: str | None = Field(
         None,
-        description='URI for output of chip. If None, will be auto-generated.')
+        description='URI for output of chip. If None, will be auto-generated.',
+    )
     train_uri: str | None = Field(
         None,
-        description='URI for output of train. If None, will be auto-generated.'
+        description='URI for output of train. If None, will be auto-generated.',
     )
     predict_uri: str | None = Field(
         None,
-        description=
-        'URI for output of predict. If None, will be auto-generated.')
+        description='URI for output of predict. If None, will be auto-generated.',
+    )
     eval_uri: str | None = Field(
         None,
-        description='URI for output of eval. If None, will be auto-generated.')
+        description='URI for output of eval. If None, will be auto-generated.',
+    )
     bundle_uri: str | None = Field(
         None,
-        description='URI for output of bundle. If None, will be auto-generated.'
+        description='URI for output of bundle. If None, will be auto-generated.',
     )
     source_bundle_uri: str | None = Field(
         None,
         description='If provided, the model will be loaded from this bundle '
-        'for the train stage. Useful for fine-tuning.')
+        'for the train stage. Useful for fine-tuning.',
+    )
 
     chip_options: ChipOptions | None = Field(
-        None, description='Config for chip stage.')
+        None, description='Config for chip stage.'
+    )
     predict_options: PredictOptions | None = Field(
-        None, description='Config for predict stage.')
+        None, description='Config for predict stage.'
+    )
 
     def update(self):
         super().update()

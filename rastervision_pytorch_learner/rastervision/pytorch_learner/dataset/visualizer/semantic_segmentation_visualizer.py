@@ -7,8 +7,10 @@ import matplotlib.patches as mpatches
 
 from rastervision.core.data.utils import color_to_triple
 from rastervision.pytorch_learner.dataset.visualizer import Visualizer
-from rastervision.pytorch_learner.utils import (plot_channel_groups,
-                                                channel_groups_to_imgs)
+from rastervision.pytorch_learner.utils import (
+    plot_channel_groups,
+    channel_groups_to_imgs,
+)
 
 if TYPE_CHECKING:
     from matplotlib.pyplot import Axes
@@ -18,20 +20,23 @@ if TYPE_CHECKING:
 class SemanticSegmentationVisualizer(Visualizer):
     """Plots samples from semantic segmentation Datasets."""
 
-    def plot_xyz(self,
-                 axs: Sequence,
-                 x: torch.Tensor,
-                 y: torch.Tensor | np.ndarray | None = None,
-                 z: torch.Tensor | None = None,
-                 plot_title: bool = True) -> None:
+    def plot_xyz(
+        self,
+        axs: Sequence,
+        x: torch.Tensor,
+        y: torch.Tensor | np.ndarray | None = None,
+        z: torch.Tensor | None = None,
+        plot_title: bool = True,
+    ) -> None:
         channel_groups = self.get_channel_display_groups(x.shape[1])
 
-        img_axes = axs[:len(channel_groups)]
+        img_axes = axs[: len(channel_groups)]
 
         # plot image
         imgs = channel_groups_to_imgs(x, channel_groups)
         plot_channel_groups(
-            img_axes, imgs, channel_groups, plot_title=plot_title)
+            img_axes, imgs, channel_groups, plot_title=plot_title
+        )
 
         if y is None and z is None:
             return
@@ -42,7 +47,7 @@ class SemanticSegmentationVisualizer(Visualizer):
             color_to_triple(c) if isinstance(c, str) else c
             for c in class_colors
         ]
-        colors = np.array(colors) / 255.
+        colors = np.array(colors) / 255.0
         cmap = mcolors.ListedColormap(colors)
 
         if y is not None:
@@ -67,22 +72,36 @@ class SemanticSegmentationVisualizer(Visualizer):
             axs[-1].legend(
                 handles=legend_items,
                 loc='center left',
-                bbox_to_anchor=(1., 0.5))
+                bbox_to_anchor=(1.0, 0.5),
+            )
 
-    def plot_gt(self, ax: 'Axes', y: torch.Tensor | np.ndarray,
-                num_classes: int, cmap: 'Colormap', **kwargs):
+    def plot_gt(
+        self,
+        ax: 'Axes',
+        y: torch.Tensor | np.ndarray,
+        num_classes: int,
+        cmap: 'Colormap',
+        **kwargs,
+    ):
         ax.imshow(
             y,
             vmin=0,
             vmax=num_classes,
             cmap=cmap,
             interpolation='none',
-            **kwargs)
+            **kwargs,
+        )
         ax.set_xticks([])
         ax.set_yticks([])
 
-    def plot_pred(self, ax: 'Axes', z: torch.Tensor | np.ndarray,
-                  num_classes: int, cmap: 'Colormap', **kwargs):
+    def plot_pred(
+        self,
+        ax: 'Axes',
+        z: torch.Tensor | np.ndarray,
+        num_classes: int,
+        cmap: 'Colormap',
+        **kwargs,
+    ):
         if z.ndim == 3:
             z = z.argmax(dim=0)
         self.plot_gt(ax, y=z, num_classes=num_classes, cmap=cmap, **kwargs)

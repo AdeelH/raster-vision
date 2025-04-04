@@ -19,45 +19,33 @@ ALL_TESTS = {
     'chip_classification.basic': {
         'task': 'chip_classification',
         'module': 'integration_tests.chip_classification',
-        'kwargs': {
-            'nochip': False
-        }
+        'kwargs': {'nochip': False},
     },
     'chip_classification.nochip': {
         'task': 'chip_classification',
         'module': 'integration_tests.chip_classification',
-        'kwargs': {
-            'nochip': True
-        }
+        'kwargs': {'nochip': True},
     },
     'object_detection.basic': {
         'task': 'object_detection',
         'module': 'integration_tests.object_detection',
-        'kwargs': {
-            'nochip': False
-        }
+        'kwargs': {'nochip': False},
     },
     'object_detection.nochip': {
         'task': 'object_detection',
         'module': 'integration_tests.object_detection',
-        'kwargs': {
-            'nochip': True
-        }
+        'kwargs': {'nochip': True},
     },
     'semantic_segmentation.basic': {
         'task': 'semantic_segmentation',
         'module': 'integration_tests.semantic_segmentation',
-        'kwargs': {
-            'nochip': False
-        }
+        'kwargs': {'nochip': False},
     },
     'semantic_segmentation.nochip': {
         'task': 'semantic_segmentation',
         'module': 'integration_tests.semantic_segmentation',
-        'kwargs': {
-            'nochip': True
-        }
-    }
+        'kwargs': {'nochip': True},
+    },
 }
 TEST_ROOT_DIR = dirname(abspath(__file__))
 
@@ -80,18 +68,22 @@ def console_success(msg: str, **kwargs) -> None:
     click.secho(msg, fg='cyan', **kwargs)
 
 
-class TestError():
+class TestError:
     def __init__(self, test, message, details=None):
         self.test = test
         self.message = message
         self.details = details
 
     def __str__(self):
-        return ('Error\n'
-                '------\n'
-                f'Test: {self.test}\n'
-                f'Message: {self.message}\n'
-                f'Details: {str(self.details)}' if self.details else '\n')
+        return (
+            'Error\n'
+            '------\n'
+            f'Test: {self.test}\n'
+            f'Message: {self.message}\n'
+            f'Details: {str(self.details)}'
+            if self.details
+            else '\n'
+        )
 
 
 def get_test_dir(test_id: str) -> str:
@@ -106,8 +98,9 @@ def get_actual_eval_path(test_id: str, tmp_dir: str) -> str:
     return join(tmp_dir, test_id, 'eval/validation_scenes/eval.json')
 
 
-def check_eval_item(test_id: str, test_cfg: dict, expected_item: dict,
-                    actual_item: dict) -> list[TestError]:
+def check_eval_item(
+    test_id: str, test_cfg: dict, expected_item: dict, actual_item: dict
+) -> list[TestError]:
     errors = []
     f1_threshold = 0.05
     class_name = expected_item['class_name']
@@ -117,9 +110,12 @@ def check_eval_item(test_id: str, test_cfg: dict, expected_item: dict,
     if math.fabs(expected_f1 - actual_f1) > f1_threshold:
         errors.append(
             TestError(
-                test_id, 'F1 scores are not close enough',
+                test_id,
+                'F1 scores are not close enough',
                 f'for class "{class_name}": '
-                f'expected f1: {expected_f1}, actual f1: {actual_f1}'))
+                f'expected f1: {expected_f1}, actual f1: {actual_f1}',
+            )
+        )
 
     return errors
 
@@ -136,31 +132,38 @@ def check_eval(test_id: str, test_cfg: dict, tmp_dir: str) -> list[TestError]:
 
         for expected_item in expected_eval:
             class_name = expected_item['class_name']
-            actual_item = \
-                next(filter(
-                    lambda x: x['class_name'] == class_name, actual_eval))
+            actual_item = next(
+                filter(lambda x: x['class_name'] == class_name, actual_eval)
+            )
             errors.extend(
-                check_eval_item(test_id, test_cfg, expected_item, actual_item))
+                check_eval_item(test_id, test_cfg, expected_item, actual_item)
+            )
     else:
         errors.append(
-            TestError(test_id, 'actual eval file does not exist',
-                      actual_eval_path))
+            TestError(
+                test_id, 'actual eval file does not exist', actual_eval_path
+            )
+        )
 
     return errors
 
 
-def test_model_bundle_validation(pipeline, test_id: str, test_cfg: dict,
-                                 tmp_dir: str,
-                                 image_uri: str) -> list[TestError]:
+def test_model_bundle_validation(
+    pipeline, test_id: str, test_cfg: dict, tmp_dir: str, image_uri: str
+) -> list[TestError]:
     console_info('Checking predict command validation...')
     errors = []
     model_bundle_uri = pipeline.get_model_bundle_uri()
     predictor = Predictor(model_bundle_uri, tmp_dir, channel_order=[0, 1, 7])
     try:
         predictor.predict([image_uri], 'x.txt')
-        e = TestError(test_id,
-                      ('Predictor should have raised exception due to invalid '
-                       'channel_order, but did not.'))
+        e = TestError(
+            test_id,
+            (
+                'Predictor should have raised exception due to invalid '
+                'channel_order, but did not.'
+            ),
+        )
         errors.append(e)
     except ValueError:
         pass
@@ -168,9 +171,14 @@ def test_model_bundle_validation(pipeline, test_id: str, test_cfg: dict,
     return errors
 
 
-def test_model_bundle_results(pipeline, test_id: str, test_cfg: dict,
-                              tmp_dir: str, scenes: list,
-                              scenes_to_uris: dict) -> list[TestError]:
+def test_model_bundle_results(
+    pipeline,
+    test_id: str,
+    test_cfg: dict,
+    tmp_dir: str,
+    scenes: list,
+    scenes_to_uris: dict,
+) -> list[TestError]:
     console_info('Checking model bundle produces same results...')
     errors = []
     model_bundle_uri = pipeline.get_model_bundle_uri()
@@ -184,8 +192,9 @@ def test_model_bundle_results(pipeline, test_id: str, test_cfg: dict,
         # via pyproj logic (in the case of rasterio crs transformer.
         scene = scene_cfg.build(pipeline.dataset.class_config, tmp_dir)
 
-        predictor_label_store_uri = join(tmp_dir, test_id.lower(),
-                                         'predictor/{}'.format(scene_cfg.id))
+        predictor_label_store_uri = join(
+            tmp_dir, test_id.lower(), 'predictor/{}'.format(scene_cfg.id)
+        )
         image_uri = scenes_to_uris[scene_cfg.id]
         predictor.predict([image_uri], predictor_label_store_uri)
 
@@ -194,25 +203,32 @@ def test_model_bundle_results(pipeline, test_id: str, test_cfg: dict,
         predictor_label_store = scene_cfg.label_store.copy()
         predictor_label_store.uri = predictor_label_store_uri
         predictor_label_store = predictor_label_store.build(
-            pipeline.dataset.class_config, crs_transformer, extent, tmp_dir)
+            pipeline.dataset.class_config, crs_transformer, extent, tmp_dir
+        )
 
         bundle_labels = predictor_label_store.get_labels()
         predict_stage_labels = scene.label_store.get_labels()
         if bundle_labels != predict_stage_labels:
-            e = TestError(test_id,
-                          ('Predictor did not produce the same labels '
-                           'as the Predict command'),
-                          f'for scene {scene_cfg.id}')
+            e = TestError(
+                test_id,
+                (
+                    'Predictor did not produce the same labels '
+                    'as the Predict command'
+                ),
+                f'for scene {scene_cfg.id}',
+            )
             errors.append(e)
 
     return errors
 
 
-def test_model_bundle(pipeline,
-                      test_id: str,
-                      test_cfg: dict,
-                      tmp_dir: str,
-                      check_channel_order: bool = False) -> list[TestError]:
+def test_model_bundle(
+    pipeline,
+    test_id: str,
+    test_cfg: dict,
+    tmp_dir: str,
+    check_channel_order: bool = False,
+) -> list[TestError]:
     # Check the model bundle.
     # This will only work with raster_sources that
     # have a single URI.
@@ -239,12 +255,21 @@ def test_model_bundle(pipeline,
     else:
         if check_channel_order:
             errors.extend(
-                test_model_bundle_validation(pipeline, test_id, test_cfg,
-                                             tmp_dir, uris[0]))
+                test_model_bundle_validation(
+                    pipeline, test_id, test_cfg, tmp_dir, uris[0]
+                )
+            )
         else:
             errors.extend(
-                test_model_bundle_results(pipeline, test_id, test_cfg, tmp_dir,
-                                          scenes, scenes_to_uris))
+                test_model_bundle_results(
+                    pipeline,
+                    test_id,
+                    test_cfg,
+                    tmp_dir,
+                    scenes,
+                    scenes_to_uris,
+                )
+            )
 
     return errors
 
@@ -259,8 +284,9 @@ def run_test(test_id: str, test_cfg: dict, tmp_dir: str) -> list[TestError]:
     root_uri = join(tmp_dir, test_id)
     runner = 'inprocess'
     config_mod = importlib.import_module(f'{test_cfg["module"]}.config')
-    pipeline_cfg = config_mod.get_config(runner, root_uri,
-                                         **test_cfg['kwargs'])
+    pipeline_cfg = config_mod.get_config(
+        runner, root_uri, **test_cfg['kwargs']
+    )
     pipeline_cfg.update()
     runner = InProcessRunner()
 
@@ -269,8 +295,12 @@ def run_test(test_id: str, test_cfg: dict, tmp_dir: str) -> list[TestError]:
         _run_pipeline(pipeline_cfg, runner, tmp_dir)
     except Exception:
         errors.append(
-            TestError(test_id, 'raised an exception while running',
-                      traceback.format_exc()))
+            TestError(
+                test_id,
+                'raised an exception while running',
+                traceback.format_exc(),
+            )
+        )
         return errors
 
     # Check that the eval is similar to expected eval.
@@ -278,14 +308,17 @@ def run_test(test_id: str, test_cfg: dict, tmp_dir: str) -> list[TestError]:
 
     if not errors:
         errors.extend(
-            test_model_bundle(pipeline_cfg, test_id, test_cfg, tmp_dir))
+            test_model_bundle(pipeline_cfg, test_id, test_cfg, tmp_dir)
+        )
         errors.extend(
             test_model_bundle(
                 pipeline_cfg,
                 test_id,
                 test_cfg,
                 tmp_dir,
-                check_channel_order=True))
+                check_channel_order=True,
+            )
+        )
     return errors
 
 
@@ -294,10 +327,14 @@ def run_test(test_id: str, test_cfg: dict, tmp_dir: str) -> list[TestError]:
 @click.option(
     '--root-uri',
     '-t',
-    help=('Sets the rv_root directory used. '
-          'If set, test will not clean this directory up.'))
+    help=(
+        'Sets the rv_root directory used. '
+        'If set, test will not clean this directory up.'
+    ),
+)
 @click.option(
-    '--verbose', '-v', is_flag=True, help=('Sets the logging level to DEBUG.'))
+    '--verbose', '-v', is_flag=True, help=('Sets the logging level to DEBUG.')
+)
 def main(tests, root_uri, verbose):
     """Runs RV end-to-end and checks that evaluation metrics are correct."""
     if verbose:
@@ -316,7 +353,8 @@ def main(tests, root_uri, verbose):
             _tests.extend(matching_tests)
             if len(matching_tests) == 0:
                 console_error(
-                    f'{t} does not match any valid tests. Valid tests are: ')
+                    f'{t} does not match any valid tests. Valid tests are: '
+                )
                 console_error(pformat(list(ALL_TESTS.keys())))
                 continue
         tests = _tests
@@ -349,7 +387,8 @@ def main(tests, root_uri, verbose):
 
         if num_failed > 0:
             console_error(
-                f'Tests passed: {len(tests) - num_failed} of {len(tests)}')
+                f'Tests passed: {len(tests) - num_failed} of {len(tests)}'
+            )
             console_error('Error counts:')
             console_error(pformat({k: len(es) for k, es in errors.items()}))
             exit(1)

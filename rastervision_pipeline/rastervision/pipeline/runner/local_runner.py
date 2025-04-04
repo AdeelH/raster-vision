@@ -13,21 +13,25 @@ if TYPE_CHECKING:
 LOCAL = 'local'
 
 
-def make_run_cmd_invocation(cfg_json_uri: str,
-                            command: str,
-                            opts: dict | None = None) -> str:
+def make_run_cmd_invocation(
+    cfg_json_uri: str, command: str, opts: dict | None = None
+) -> str:
     opts_str = ''
     if opts is not None:
         opts_str = ' ' + ' '.join(f'{k} {v}' for k, v in opts.items())
-    return ('python -m rastervision.pipeline.cli run_command '
-            f'{cfg_json_uri} {command}{opts_str}')
+    return (
+        'python -m rastervision.pipeline.cli run_command '
+        f'{cfg_json_uri} {command}{opts_str}'
+    )
 
 
-def make_makefile_entry_for_cmd(curr_command_ind: int,
-                                prev_command_inds: list[int],
-                                cfg_json_uri: str,
-                                command: str,
-                                opts: dict | None = None) -> str:
+def make_makefile_entry_for_cmd(
+    curr_command_ind: int,
+    prev_command_inds: list[int],
+    cfg_json_uri: str,
+    command: str,
+    opts: dict | None = None,
+) -> str:
     out = f'{curr_command_ind}: '
     out += ' '.join([str(ci) for ci in prev_command_inds])
     out += '\n'
@@ -44,14 +48,17 @@ class LocalRunner(Runner):
     make.
     """
 
-    def run(self,
-            cfg_json_uri: str,
-            pipeline: 'Pipeline',
-            commands: list[str],
-            num_splits: int = 1,
-            pipeline_run_name: str = 'raster-vision'):
-        makefile = self.build_makefile_string(cfg_json_uri, pipeline, commands,
-                                              num_splits)
+    def run(
+        self,
+        cfg_json_uri: str,
+        pipeline: 'Pipeline',
+        commands: list[str],
+        num_splits: int = 1,
+        pipeline_run_name: str = 'raster-vision',
+    ):
+        makefile = self.build_makefile_string(
+            cfg_json_uri, pipeline, commands, num_splits
+        )
         makefile_path = join(dirname(cfg_json_uri), 'Makefile')
         str_to_file(makefile, makefile_path)
         makefile_path_local = download_if_needed(makefile_path)
@@ -66,11 +73,13 @@ class LocalRunner(Runner):
         else:
             return 0
 
-    def build_makefile_string(self,
-                              cfg_json_uri: str,
-                              pipeline: 'Pipeline',
-                              commands: list[str],
-                              num_splits: int = 1) -> str:
+    def build_makefile_string(
+        self,
+        cfg_json_uri: str,
+        pipeline: 'Pipeline',
+        commands: list[str],
+        num_splits: int = 1,
+    ) -> str:
         num_commands = 0
         for command in commands:
             if command in pipeline.split_commands and num_splits > 1:
@@ -95,13 +104,15 @@ class LocalRunner(Runner):
                         prev_command_inds,
                         cfg_json_uri,
                         command,
-                        opts=opts)
+                        opts=opts,
+                    )
                     makefile += makefile_entry
                     curr_command_inds.append(curr_command_ind)
                     curr_command_ind += 1
             else:
                 makefile_entry = make_makefile_entry_for_cmd(
-                    curr_command_ind, prev_command_inds, cfg_json_uri, command)
+                    curr_command_ind, prev_command_inds, cfg_json_uri, command
+                )
                 makefile += makefile_entry
                 curr_command_inds.append(curr_command_ind)
                 curr_command_ind += 1

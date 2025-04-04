@@ -2,32 +2,52 @@ import os
 from os.path import join
 
 from rastervision.core.rv_pipeline import (
-    ChipClassificationConfig, ChipOptions, PredictOptions,
-    WindowSamplingConfig, WindowSamplingMethod)
+    ChipClassificationConfig,
+    ChipOptions,
+    PredictOptions,
+    WindowSamplingConfig,
+    WindowSamplingMethod,
+)
 from rastervision.core.data import (
-    ChipClassificationLabelSourceConfig, ClassConfig,
-    ClassInferenceTransformerConfig, DatasetConfig, GeoJSONVectorSourceConfig,
-    RasterioSourceConfig, SceneConfig)
+    ChipClassificationLabelSourceConfig,
+    ClassConfig,
+    ClassInferenceTransformerConfig,
+    DatasetConfig,
+    GeoJSONVectorSourceConfig,
+    RasterioSourceConfig,
+    SceneConfig,
+)
 from rastervision.pytorch_backend import PyTorchChipClassificationConfig
 from rastervision.pytorch_learner import (
-    Backbone, ClassificationGeoDataConfig, ClassificationImageDataConfig,
-    ClassificationModelConfig, ExternalModuleConfig, SolverConfig)
-from rastervision.pytorch_backend.examples.utils import (get_scene_info,
-                                                         save_image_crop)
+    Backbone,
+    ClassificationGeoDataConfig,
+    ClassificationImageDataConfig,
+    ClassificationModelConfig,
+    ExternalModuleConfig,
+    SolverConfig,
+)
+from rastervision.pytorch_backend.examples.utils import (
+    get_scene_info,
+    save_image_crop,
+)
 
-aoi_path = 'AOIs/AOI_1_Rio/srcData/buildingLabels/Rio_OUTLINE_Public_AOI.geojson'
+aoi_path = (
+    'AOIs/AOI_1_Rio/srcData/buildingLabels/Rio_OUTLINE_Public_AOI.geojson'
+)
 
 CLASS_NAMES = ['no_building', 'building']
 
 
-def get_config(runner,
-               raw_uri: str,
-               processed_uri: str,
-               root_uri: str,
-               external_model: bool = False,
-               external_loss: bool = False,
-               nochip: bool = True,
-               test: bool = False) -> ChipClassificationConfig:
+def get_config(
+    runner,
+    raw_uri: str,
+    processed_uri: str,
+    root_uri: str,
+    external_model: bool = False,
+    external_loss: bool = False,
+    nochip: bool = True,
+    test: bool = False,
+) -> ChipClassificationConfig:
     """Generate the pipeline config for this task. This function will be called
     by RV, with arguments from the command line, when this example is run.
 
@@ -76,10 +96,12 @@ def get_config(runner,
         aoi_uri = join(raw_uri, aoi_path)
 
         if test:
-            crop_uri = join(processed_uri, 'crops',
-                            os.path.basename(raster_uri))
-            label_crop_uri = join(processed_uri, 'crops',
-                                  os.path.basename(label_uri))
+            crop_uri = join(
+                processed_uri, 'crops', os.path.basename(raster_uri)
+            )
+            label_crop_uri = join(
+                processed_uri, 'crops', os.path.basename(label_uri)
+            )
 
             save_image_crop(
                 raster_uri,
@@ -90,49 +112,57 @@ def get_config(runner,
                 size=600,
                 min_features=20,
                 class_config=class_config,
-                default_class_id=1)
+                default_class_id=1,
+            )
             raster_uri = crop_uri
             label_uri = label_crop_uri
 
         id = os.path.splitext(os.path.basename(raster_uri))[0]
         raster_source = RasterioSourceConfig(
-            channel_order=[0, 1, 2], uris=[raster_uri])
+            channel_order=[0, 1, 2], uris=[raster_uri]
+        )
         label_source = ChipClassificationLabelSourceConfig(
             vector_source=GeoJSONVectorSourceConfig(
                 uris=label_uri,
                 transformers=[
                     ClassInferenceTransformerConfig(default_class_id=1)
-                ]),
+                ],
+            ),
             ioa_thresh=0.5,
             use_intersection_over_cell=False,
             pick_min_class_id=False,
             background_class_id=0,
-            infer_cells=True)
+            infer_cells=True,
+        )
 
         return SceneConfig(
             id=id,
             raster_source=raster_source,
             label_source=label_source,
-            aoi_uris=[aoi_uri])
+            aoi_uris=[aoi_uri],
+        )
 
     train_scenes = [make_scene(info) for info in train_scene_info]
     val_scenes = [make_scene(info) for info in val_scene_info]
     scene_dataset = DatasetConfig(
         class_config=class_config,
         train_scenes=train_scenes,
-        validation_scenes=val_scenes)
+        validation_scenes=val_scenes,
+    )
 
     window_sampling_opts = {}
     for s in train_scenes:
         window_sampling_opts[s.id] = WindowSamplingConfig(
             method=WindowSamplingMethod.sliding,
             size=chip_sz,
-            stride=chip_sz // 2)
+            stride=chip_sz // 2,
+        )
     for s in val_scenes:
         window_sampling_opts[s.id] = WindowSamplingConfig(
             method=WindowSamplingMethod.sliding,
             size=chip_sz,
-            stride=chip_sz // 2)
+            stride=chip_sz // 2,
+        )
 
     chip_options = ChipOptions(sampling=window_sampling_opts)
 
@@ -141,7 +171,8 @@ def get_config(runner,
             scene_dataset=scene_dataset,
             sampling=window_sampling_opts,
             img_sz=img_sz,
-            num_workers=4)
+            num_workers=4,
+        )
     else:
         data = ClassificationImageDataConfig(img_sz=img_sz, num_workers=4)
 
@@ -154,8 +185,10 @@ def get_config(runner,
                 force_reload=False,
                 entrypoint_kwargs={
                     'num_classes': len(class_config.names),
-                    'pretrained': 'imagenet'
-                }))
+                    'pretrained': 'imagenet',
+                },
+            )
+        )
     else:
         model = ClassificationModelConfig(backbone=Backbone.resnet50)
 
@@ -165,10 +198,8 @@ def get_config(runner,
             name='focal_loss',
             entrypoint='focal_loss',
             force_reload=False,
-            entrypoint_kwargs={
-                'alpha': [.75, .25],
-                'gamma': 2
-            })
+            entrypoint_kwargs={'alpha': [0.75, 0.25], 'gamma': 2},
+        )
     else:
         external_loss_def = None
 
@@ -177,20 +208,23 @@ def get_config(runner,
         num_epochs=20 if not test else 4,
         batch_sz=32,
         one_cycle=True,
-        external_loss_def=external_loss_def)
+        external_loss_def=external_loss_def,
+    )
 
     backend = PyTorchChipClassificationConfig(
         data=data,
         model=model,
         solver=solver,
         log_tensorboard=True,
-        run_tensorboard=False)
+        run_tensorboard=False,
+    )
 
     pipeline = ChipClassificationConfig(
         root_uri=root_uri,
         dataset=scene_dataset,
         backend=backend,
         chip_options=chip_options,
-        predict_options=PredictOptions(chip_sz=chip_sz))
+        predict_options=PredictOptions(chip_sz=chip_sz),
+    )
 
     return pipeline

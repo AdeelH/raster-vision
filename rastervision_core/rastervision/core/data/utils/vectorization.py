@@ -16,8 +16,9 @@ if TYPE_CHECKING:
 RotatedRectange = tuple[tuple[float, float], tuple[float, float], float]
 
 
-def mask_to_polygons(mask: np.ndarray, transform: rio.Affine | None = None
-                     ) -> Iterator['BaseGeometry']:
+def mask_to_polygons(
+    mask: np.ndarray, transform: rio.Affine | None = None
+) -> Iterator['BaseGeometry']:
     """Polygonize a raster mask. Wrapper around rasterio.features.shapes.
 
     Args:
@@ -36,11 +37,12 @@ def mask_to_polygons(mask: np.ndarray, transform: rio.Affine | None = None
 
 
 def mask_to_building_polygons(
-        mask: np.ndarray,
-        transform: rio.Affine | None = None,
-        min_area: float = 100,
-        width_factor: float = 0.5,
-        thickness: float = 0.001) -> Iterator['BaseGeometry']:
+    mask: np.ndarray,
+    transform: rio.Affine | None = None,
+    min_area: float = 100,
+    width_factor: float = 0.5,
+    thickness: float = 0.001,
+) -> Iterator['BaseGeometry']:
     """Try to break up building clusters and then convert to polygons.
 
     Perofrms the following steps:
@@ -88,7 +90,8 @@ def mask_to_building_polygons(
             iterators.append(mask_to_polygons(component, transform))
             continue
         eroded = cv2.morphologyEx(
-            component, cv2.MORPH_ERODE, kernel, iterations=1)
+            component, cv2.MORPH_ERODE, kernel, iterations=1
+        )
         m, sub_components = cv2.connectedComponents(eroded)
 
         for j in range(1, m):
@@ -96,16 +99,19 @@ def mask_to_building_polygons(
             if sub_component.sum() < min_area:
                 continue
             sub_component_dilated = cv2.morphologyEx(
-                sub_component, cv2.MORPH_DILATE, kernel, iterations=1)
+                sub_component, cv2.MORPH_DILATE, kernel, iterations=1
+            )
             iterators.append(
-                mask_to_polygons(sub_component_dilated, transform))
+                mask_to_polygons(sub_component_dilated, transform)
+            )
 
     return chain.from_iterable(iterators)
 
 
 def get_rectangle(buildings: np.ndarray) -> RotatedRectange | None:
-    contours, _ = cv2.findContours(buildings, cv2.RETR_EXTERNAL,
-                                   cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(
+        buildings, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+    )
     if len(contours) > 0:
         rectangle = cv2.minAreaRect(contours[0])
         return rectangle
@@ -113,9 +119,11 @@ def get_rectangle(buildings: np.ndarray) -> RotatedRectange | None:
         return None
 
 
-def get_kernel(rectangle: RotatedRectange,
-               width_factor: float = 0.5,
-               thickness: float = 0.001) -> np.ndarray | None:
+def get_kernel(
+    rectangle: RotatedRectange,
+    width_factor: float = 0.5,
+    thickness: float = 0.001,
+) -> np.ndarray | None:
     ((cx, cy), (xwidth, ywidth), angle) = rectangle
 
     width = int(width_factor * min(xwidth, ywidth))
@@ -142,7 +150,8 @@ def get_kernel(rectangle: RotatedRectange,
         contourIdx=0,
         color=(1, 0, 0),
         # -1 means fill interior
-        thickness=-1)
+        thickness=-1,
+    )
     kernel = kernel[:, :, 0]
 
     return kernel
@@ -161,6 +170,7 @@ def denoise(mask: np.ndarray, diameter: int) -> np.ndarray:
         np.ndarray: The mask after applying denoising.
     """
     kernel = cv2.getStructuringElement(
-        shape=cv2.MORPH_ELLIPSE, ksize=(diameter, diameter))
+        shape=cv2.MORPH_ELLIPSE, ksize=(diameter, diameter)
+    )
     out = cv2.morphologyEx(src=mask, op=cv2.MORPH_OPEN, kernel=kernel)
     return out

@@ -4,13 +4,24 @@ import inspect
 import logging
 
 from pydantic import (  # noqa
-    ConfigDict, BaseModel, create_model, Field, model_validator,
-    ValidationError, field_validator)
+    ConfigDict,
+    BaseModel,
+    create_model,
+    Field,
+    model_validator,
+    ValidationError,
+    field_validator,
+)
 
-from rastervision.pipeline import (registry_ as registry, rv_config_ as
-                                   rv_config)
-from rastervision.pipeline.file_system import (file_to_json, json_to_file,
-                                               str_to_file)
+from rastervision.pipeline import (
+    registry_ as registry,
+    rv_config_ as rv_config,
+)
+from rastervision.pipeline.file_system import (
+    file_to_json,
+    json_to_file,
+    str_to_file,
+)
 
 if TYPE_CHECKING:
     from typing import Self
@@ -36,6 +47,7 @@ class Config(BaseModel):
     Validation, serialization, deserialization, and IDE support is
     provided automatically based on this schema.
     """
+
     model_config = ConfigDict(extra='forbid', validate_assignment=True)
 
     def update(self, *args, **kwargs):
@@ -130,6 +142,7 @@ class Config(BaseModel):
         cfg_json = self.json()
         if with_rv_metadata:
             import json
+
             cfg_dict = json.loads(cfg_json)
             cfg_dict['plugin_versions'] = registry.plugin_versions
             json_to_file(cfg_dict, uri)
@@ -199,7 +212,8 @@ def save_pipeline_config(cfg: 'PipelineConfig', output_uri: str) -> None:
 
 
 def build_config(
-        x: dict | list[dict | Config] | Config) -> Config | list[Config]:
+    x: dict | list[dict | Config] | Config,
+) -> Config | list[Config]:
     """Build a Config from various types of input.
 
     This is useful for deserializing from JSON. It implements polymorphic
@@ -225,8 +239,9 @@ def build_config(
         return x
 
 
-def _upgrade_config(x: dict | list[dict],
-                    plugin_versions: dict[str, int]) -> dict | list[dict]:
+def _upgrade_config(
+    x: dict | list[dict], plugin_versions: dict[str, int]
+) -> dict | list[dict]:
     """Upgrade serialized Config(s) to the latest version.
 
     Used to implement backward compatibility of Configs using upgraders stored
@@ -285,8 +300,10 @@ def upgrade_plugin_versions(plugin_versions: dict[str, int]) -> dict[str, int]:
         else:
             missing_plugins.append(alias)
     if len(missing_plugins) > 0:
-        log.warning('There are plugins listed in the pipeline config that are '
-                    f'not currently installed: {missing_plugins}')
+        log.warning(
+            'There are plugins listed in the pipeline config that are '
+            f'not currently installed: {missing_plugins}'
+        )
     return new_plugin_versions
 
 
@@ -321,10 +338,11 @@ def get_plugin(config_cls: type) -> str:
     return 'rastervision.' + cls_module.__name__.split('.')[1]
 
 
-def register_config(type_hint: str,
-                    plugin: str | None = None,
-                    upgrader: Callable[[dict, int], dict] | None = None
-                    ) -> Callable[[], Config]:
+def register_config(
+    type_hint: str,
+    plugin: str | None = None,
+    upgrader: Callable[[dict, int], dict] | None = None,
+) -> Callable[[], Config]:
     """Class decorator used to register Config classes with registry.
 
     All Configs must be registered! Registering a Config does the following:

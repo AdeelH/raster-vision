@@ -4,8 +4,10 @@ from textwrap import wrap
 import torch
 
 from rastervision.pytorch_learner.dataset.visualizer import Visualizer  # NOQA
-from rastervision.pytorch_learner.utils import (plot_channel_groups,
-                                                channel_groups_to_imgs)
+from rastervision.pytorch_learner.utils import (
+    plot_channel_groups,
+    channel_groups_to_imgs,
+)
 
 if TYPE_CHECKING:
     from matplotlib.pyplot import Axes
@@ -14,12 +16,14 @@ if TYPE_CHECKING:
 class ClassificationVisualizer(Visualizer):
     """Plots samples from image classification Datasets."""
 
-    def plot_xyz(self,
-                 axs: Sequence['Axes'],
-                 x: torch.Tensor,
-                 y: int | None = None,
-                 z: int | None = None,
-                 plot_title: bool = True) -> None:
+    def plot_xyz(
+        self,
+        axs: Sequence['Axes'],
+        x: torch.Tensor,
+        y: int | None = None,
+        z: int | None = None,
+        plot_title: bool = True,
+    ) -> None:
         channel_groups = self.get_channel_display_groups(x.shape[1])
 
         img_axes = axs[:-1]
@@ -28,7 +32,8 @@ class ClassificationVisualizer(Visualizer):
         # plot image
         imgs = channel_groups_to_imgs(x, channel_groups)
         plot_channel_groups(
-            img_axes, imgs, channel_groups, plot_title=plot_title)
+            img_axes, imgs, channel_groups, plot_title=plot_title
+        )
 
         # plot label
         class_names = self.class_names
@@ -44,24 +49,24 @@ class ClassificationVisualizer(Visualizer):
         """Display ground truth class names as text."""
         class_name = class_names[y]
         ax.text(
-            x=.5,
-            y=.5,
+            x=0.5,
+            y=0.5,
             s=class_name,
             ha='center',
             va='center',
-            fontdict={
-                'size': 20,
-                'family': 'sans-serif'
-            })
+            fontdict={'size': 20, 'family': 'sans-serif'},
+        )
         ax.set_xlim((0, 1))
         ax.set_ylim((0, 1))
         ax.axis('off')
 
-    def plot_pred(self,
-                  ax: 'Axes',
-                  class_names: Sequence[str],
-                  z: torch.Tensor,
-                  y: torch.Tensor | None = None):
+    def plot_pred(
+        self,
+        ax: 'Axes',
+        class_names: Sequence[str],
+        z: torch.Tensor,
+        y: torch.Tensor | None = None,
+    ):
         """Plot predictions.
 
         Plots predicted class probabilities as a horizontal bar plot. If ground
@@ -84,7 +89,8 @@ class ClassificationVisualizer(Visualizer):
             y=class_names,
             width=class_probabilities,
             color=bar_colors,
-            edgecolor='black')
+            edgecolor='black',
+        )
         ax.set_xlim((0, 1))
         ax.xaxis.grid(linestyle='--', alpha=1)
         ax.set_xlabel('Probability')

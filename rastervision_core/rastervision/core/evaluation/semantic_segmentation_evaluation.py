@@ -9,8 +9,7 @@ from rastervision.core.evaluation import ClassEvaluationItem
 from rastervision.core.evaluation import ClassificationEvaluation
 
 if TYPE_CHECKING:
-    from rastervision.core.data import (ClassConfig,
-                                        SemanticSegmentationLabels)
+    from rastervision.core.data import ClassConfig, SemanticSegmentationLabels
 
 log = logging.getLogger(__name__)
 
@@ -22,8 +21,11 @@ class SemanticSegmentationEvaluation(ClassificationEvaluation):
         super().__init__()
         self.class_config = class_config
 
-    def compute(self, gt_labels: 'SemanticSegmentationLabels',
-                pred_labels: 'SemanticSegmentationLabels') -> None:
+    def compute(
+        self,
+        gt_labels: 'SemanticSegmentationLabels',
+        pred_labels: 'SemanticSegmentationLabels',
+    ) -> None:
         self.reset()
 
         # compute confusion matrix
@@ -37,13 +39,15 @@ class SemanticSegmentationEvaluation(ClassificationEvaluation):
                 gt_arr = gt_labels.get_label_arr(window, null_class_id)
                 pred_arr = pred_labels.get_label_arr(window, null_class_id)
                 self.conf_mat += confusion_matrix(
-                    gt_arr.ravel(), pred_arr.ravel(), labels=labels)
+                    gt_arr.ravel(), pred_arr.ravel(), labels=labels
+                )
 
         for class_id, class_name in enumerate(self.class_config.names):
             eval_item = ClassEvaluationItem.from_multiclass_conf_mat(
                 conf_mat=self.conf_mat,
                 class_id=class_id,
-                class_name=class_name)
+                class_name=class_name,
+            )
             self.class_to_eval_item[class_id] = eval_item
 
         self.compute_avg()

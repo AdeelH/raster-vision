@@ -3,11 +3,16 @@ from typing import TYPE_CHECKING
 from typing_extensions import Annotated
 from pydantic import NonNegativeInt as NonNegInt
 
-from rastervision.pipeline.config import (Field, register_config,
-                                          model_validator)
+from rastervision.pipeline.config import (
+    Field,
+    register_config,
+    model_validator,
+)
 from rastervision.core.box import Box
-from rastervision.core.data.raster_source import (RasterSourceConfig,
-                                                  MultiRasterSource)
+from rastervision.core.data.raster_source import (
+    RasterSourceConfig,
+    MultiRasterSource,
+)
 
 if TYPE_CHECKING:
     from typing import Self
@@ -31,37 +36,41 @@ class MultiRasterSourceConfig(RasterSourceConfig):
     Or :class:`.TemporalMultiRasterSource`, if ``temporal=True``.
     """
 
-    raster_sources: Annotated[list[
-        RasterSourceConfig], Field(min_length=1)] = Field(
-            ..., description='List of RasterSourceConfig to combine.')
+    raster_sources: Annotated[
+        list[RasterSourceConfig], Field(min_length=1)
+    ] = Field(..., description='List of RasterSourceConfig to combine.')
     primary_source_idx: NonNegInt = Field(
         0,
-        description=
-        'Index of the raster source whose CRS, dtype, and other attributes '
-        'will override those of the other raster sources. Defaults to 0.')
+        description='Index of the raster source whose CRS, dtype, and other attributes '
+        'will override those of the other raster sources. Defaults to 0.',
+    )
     temporal: bool = Field(
         False,
         description='Stack images from sub raster sources into a time-series '
-        'of shape (T, H, W, C) instead of concatenating bands.')
+        'of shape (T, H, W, C) instead of concatenating bands.',
+    )
 
     @model_validator(mode='after')
     def validate_primary_source_idx(self) -> 'Self':
         primary_source_idx = self.primary_source_idx
         raster_sources = self.raster_sources
         if not (0 <= primary_source_idx < len(raster_sources)):
-            raise IndexError('primary_source_idx must be in range '
-                             '[0, len(raster_sources)].')
+            raise IndexError(
+                'primary_source_idx must be in range [0, len(raster_sources)].'
+            )
         return self
 
     @model_validator(mode='after')
     def validate_temporal(self) -> 'Self':
         if self.temporal and self.channel_order is not None:
             raise ValueError(
-                'Setting channel_order is not allowed if temporal=True.')
+                'Setting channel_order is not allowed if temporal=True.'
+            )
         return self
 
-    def build(self, tmp_dir: str | None = None,
-              use_transformers: bool = True) -> MultiRasterSource:
+    def build(
+        self, tmp_dir: str | None = None, use_transformers: bool = True
+    ) -> MultiRasterSource:
         if use_transformers:
             raster_transformers = [
                 t.build(channel_order=self.channel_order)
@@ -77,19 +86,23 @@ class MultiRasterSourceConfig(RasterSourceConfig):
 
         if self.temporal:
             from rastervision.core.data.raster_source import (
-                TemporalMultiRasterSource)
+                TemporalMultiRasterSource,
+            )
+
             multi_raster_source = TemporalMultiRasterSource(
                 raster_sources=built_raster_sources,
                 primary_source_idx=self.primary_source_idx,
                 raster_transformers=raster_transformers,
-                bbox=bbox)
+                bbox=bbox,
+            )
         else:
             multi_raster_source = MultiRasterSource(
                 raster_sources=built_raster_sources,
                 primary_source_idx=self.primary_source_idx,
                 channel_order=self.channel_order,
                 raster_transformers=raster_transformers,
-                bbox=bbox)
+                bbox=bbox,
+            )
         return multi_raster_source
 
     def update(self, pipeline=None, scene=None):

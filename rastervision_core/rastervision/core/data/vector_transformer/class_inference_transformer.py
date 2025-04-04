@@ -4,7 +4,8 @@ import logging
 
 from rastervision.core.data.vector_transformer import VectorTransformer
 from rastervision.core.data.vector_transformer.label_maker.filter import (
-    create_filter)
+    create_filter,
+)
 from rastervision.core.data.utils.geojson import features_to_geojson
 
 if TYPE_CHECKING:
@@ -16,21 +17,23 @@ log = logging.getLogger(__name__)
 class ClassInferenceTransformer(VectorTransformer):
     """Infers missing class IDs from GeoJSON features.
 
-        Rules:
-            1) If ``class_id`` is in ``feature['properties']``, use it.
-            2) If ``class_config`` is set and ``"class_name"`` or ``"label"``
-               are in ``feature['properties']`` and in ``class_config``, use
-               corresponding ``class_id``.
-            3) If ``class_id_to_filter`` is set and filter is true when applied
-               to feature, use corresponding ``class_id``.
-            4) Otherwise, return the ``default_class_id``.
+    Rules:
+        1) If ``class_id`` is in ``feature['properties']``, use it.
+        2) If ``class_config`` is set and ``"class_name"`` or ``"label"``
+           are in ``feature['properties']`` and in ``class_config``, use
+           corresponding ``class_id``.
+        3) If ``class_id_to_filter`` is set and filter is true when applied
+           to feature, use corresponding ``class_id``.
+        4) Otherwise, return the ``default_class_id``.
     """
 
-    def __init__(self,
-                 default_class_id: int | None,
-                 class_config: 'ClassConfig | None' = None,
-                 class_id_to_filter: dict[int, list] | None = None,
-                 class_name_mapping: dict[str, str] | None = None):
+    def __init__(
+        self,
+        default_class_id: int | None,
+        class_config: 'ClassConfig | None' = None,
+        class_id_to_filter: dict[int, list] | None = None,
+        class_name_mapping: dict[str, str] | None = None,
+    ):
         """Constructor.
 
         Args:
@@ -58,7 +61,8 @@ class ClassInferenceTransformer(VectorTransformer):
         """
         if class_name_mapping is not None and class_config is None:
             raise ValueError(
-                'class_config must be specified if class_name_mapping is.')
+                'class_config must be specified if class_name_mapping is.'
+            )
 
         self.class_config = class_config
         self.class_id_to_filter = class_id_to_filter
@@ -69,15 +73,17 @@ class ClassInferenceTransformer(VectorTransformer):
             self.class_id_to_filter = {}
             for class_id, filter_exp in class_id_to_filter.items():
                 self.class_id_to_filter[int(class_id)] = create_filter(
-                    filter_exp)
+                    filter_exp
+                )
 
     @staticmethod
     def infer_feature_class_id(
-            feature: dict,
-            default_class_id: int | None,
-            class_config: 'ClassConfig | None' = None,
-            class_id_to_filter: dict[int, list] | None = None,
-            class_name_mapping: dict[str, str] | None = None) -> int | None:
+        feature: dict,
+        default_class_id: int | None,
+        class_config: 'ClassConfig | None' = None,
+        class_id_to_filter: dict[int, list] | None = None,
+        class_name_mapping: dict[str, str] | None = None,
+    ) -> int | None:
         """Infer the class ID for a GeoJSON feature.
 
         Rules:
@@ -118,7 +124,8 @@ class ClassInferenceTransformer(VectorTransformer):
         """
         if class_name_mapping is not None and class_config is None:
             raise ValueError(
-                'class_config must be specified if class_name_mapping is.')
+                'class_config must be specified if class_name_mapping is.'
+            )
 
         properties: dict = feature.get('properties', {})
 
@@ -143,9 +150,9 @@ class ClassInferenceTransformer(VectorTransformer):
 
         return default_class_id
 
-    def transform(self,
-                  geojson: dict,
-                  crs_transformer: 'CRSTransformer | None' = None) -> dict:
+    def transform(
+        self, geojson: dict, crs_transformer: 'CRSTransformer | None' = None
+    ) -> dict:
         """Add class_id to feature properties and drop features with no class.
 
         For each feature in geojson, the class_id is inferred and is set into
@@ -160,7 +167,8 @@ class ClassInferenceTransformer(VectorTransformer):
                 default_class_id=self.default_class_id,
                 class_config=self.class_config,
                 class_id_to_filter=self.class_id_to_filter,
-                class_name_mapping=self.class_name_mapping)
+                class_name_mapping=self.class_name_mapping,
+            )
             if class_id is not None:
                 feature = deepcopy(feature)
                 properties = feature.get('properties', {})
@@ -172,7 +180,8 @@ class ClassInferenceTransformer(VectorTransformer):
                     'ClassInferenceTransformer is dropping vector features because '
                     'class_id cannot be inferred. To avoid this behavior, '
                     'set default_class_id to a non-None value in '
-                    'ClassInferenceTransformer.')
+                    'ClassInferenceTransformer.'
+                )
                 warned = True
 
         new_geojson = features_to_geojson(new_features)

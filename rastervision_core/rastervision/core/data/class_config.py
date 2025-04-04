@@ -1,7 +1,12 @@
 from typing import TYPE_CHECKING
 
-from rastervision.pipeline.config import (Config, register_config, ConfigError,
-                                          Field, model_validator)
+from rastervision.pipeline.config import (
+    Config,
+    register_config,
+    ConfigError,
+    Field,
+    model_validator,
+)
 from rastervision.core.data.utils import color_to_triple, normalize_color
 
 if TYPE_CHECKING:
@@ -18,13 +23,16 @@ class ClassConfig(Config):
     names: list[str] = Field(
         ...,
         description='Names of classes. The i-th class in this list will have '
-        'class ID = i.')
+        'class ID = i.',
+    )
     colors: list[str | tuple] | None = Field(
         None,
-        description=
-        ('Colors used to visualize classes. Can be color strings accepted by '
-         'matplotlib or RGB tuples. If None, a random color will be auto-generated '
-         'for each class.'))
+        description=(
+            'Colors used to visualize classes. Can be color strings accepted by '
+            'matplotlib or RGB tuples. If None, a random color will be auto-generated '
+            'for each class.'
+        ),
+    )
     null_class: str | None = Field(
         None,
         description='Optional name of class in `names` to use as the null '
@@ -33,7 +41,8 @@ class ClassConfig(Config):
         f'If None and the class names include "{DEFAULT_NULL_CLASS_NAME}", '
         'it will automatically be used as the null class. If None, and this '
         'Config is part of a SemanticSegmentationConfig, a null class will be '
-        'added automatically.')
+        'added automatically.',
+    )
 
     @model_validator(mode='after')
     def validate_colors(self) -> 'Self':
@@ -43,10 +52,12 @@ class ClassConfig(Config):
         if colors is None:
             self.colors = [color_to_triple() for _ in names]
         elif len(names) != len(colors):
-            raise ConfigError(f'len(class_names) ({len(names)}) != '
-                              f'len(class_colors) ({len(colors)})\n'
-                              f'class_names: {names}\n'
-                              f'class_colors: {colors}')
+            raise ConfigError(
+                f'len(class_names) ({len(names)}) != '
+                f'len(class_colors) ({len(colors)})\n'
+                f'class_names: {names}\n'
+                f'class_colors: {colors}'
+            )
         return self
 
     @model_validator(mode='after')
@@ -61,16 +72,18 @@ class ClassConfig(Config):
             if null_class not in names:
                 raise ConfigError(
                     f'The null_class, "{null_class}", must be in list of '
-                    'class names.')
+                    'class names.'
+                )
 
             # edge case
-            default_null_class_in_names = (DEFAULT_NULL_CLASS_NAME in names)
-            null_class_neq_default = (null_class != DEFAULT_NULL_CLASS_NAME)
+            default_null_class_in_names = DEFAULT_NULL_CLASS_NAME in names
+            null_class_neq_default = null_class != DEFAULT_NULL_CLASS_NAME
             if default_null_class_in_names and null_class_neq_default:
                 raise ConfigError(
                     f'"{DEFAULT_NULL_CLASS_NAME}" is in names but the '
                     'specified null_class is something else '
-                    f'("{null_class}").')
+                    f'("{null_class}").'
+                )
         return self
 
     def get_class_id(self, name: str) -> int:

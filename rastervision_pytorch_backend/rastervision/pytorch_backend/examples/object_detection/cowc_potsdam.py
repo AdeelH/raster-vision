@@ -2,35 +2,58 @@ import os
 from os.path import join
 
 from rastervision.core.rv_pipeline import (
-    ObjectDetectionConfig, ObjectDetectionChipOptions,
-    ObjectDetectionPredictOptions, WindowSamplingMethod,
-    ObjectDetectionWindowSamplingConfig)
+    ObjectDetectionConfig,
+    ObjectDetectionChipOptions,
+    ObjectDetectionPredictOptions,
+    WindowSamplingMethod,
+    ObjectDetectionWindowSamplingConfig,
+)
 from rastervision.core.data import (
-    ClassConfig, ClassInferenceTransformerConfig, DatasetConfig,
-    GeoJSONVectorSourceConfig, ObjectDetectionLabelSourceConfig,
-    RasterioSourceConfig, SceneConfig)
+    ClassConfig,
+    ClassInferenceTransformerConfig,
+    DatasetConfig,
+    GeoJSONVectorSourceConfig,
+    ObjectDetectionLabelSourceConfig,
+    RasterioSourceConfig,
+    SceneConfig,
+)
 from rastervision.pytorch_backend import PyTorchObjectDetectionConfig
 from rastervision.pytorch_learner import (
-    Backbone, ExternalModuleConfig, ObjectDetectionGeoDataConfig,
-    ObjectDetectionImageDataConfig, ObjectDetectionModelConfig, PlotOptions,
-    SolverConfig)
+    Backbone,
+    ExternalModuleConfig,
+    ObjectDetectionGeoDataConfig,
+    ObjectDetectionImageDataConfig,
+    ObjectDetectionModelConfig,
+    PlotOptions,
+    SolverConfig,
+)
 from rastervision.pytorch_backend.examples.utils import save_image_crop
 
 TRAIN_IDS = [
-    '2_10', '2_11', '2_12', '2_14', '3_11', '3_13', '4_10', '5_10', '6_7',
-    '6_9'
+    '2_10',
+    '2_11',
+    '2_12',
+    '2_14',
+    '3_11',
+    '3_13',
+    '4_10',
+    '5_10',
+    '6_7',
+    '6_9',
 ]
 VAL_IDS = ['2_13', '6_8', '3_10']
 
 
-def get_config(runner,
-               raw_uri: str,
-               processed_uri: str,
-               root_uri: str,
-               nochip: bool = True,
-               multiband: bool = False,
-               external_model: bool = False,
-               test: bool = False) -> ObjectDetectionConfig:
+def get_config(
+    runner,
+    raw_uri: str,
+    processed_uri: str,
+    root_uri: str,
+    nochip: bool = True,
+    multiband: bool = False,
+    external_model: bool = False,
+    test: bool = False,
+) -> ObjectDetectionConfig:
     """Generate the pipeline config for this task. This function will be called
     by RV, with arguments from the command line, when this example is run.
 
@@ -79,12 +102,14 @@ def get_config(runner,
 
     def make_scene(id: str) -> SceneConfig:
         raster_uri = join(raw_uri, f'4_Ortho_RGBIR/top_potsdam_{id}_RGBIR.tif')
-        label_uri = join(processed_uri, 'labels', 'all',
-                         f'top_potsdam_{id}_RGBIR.json')
+        label_uri = join(
+            processed_uri, 'labels', 'all', f'top_potsdam_{id}_RGBIR.json'
+        )
 
         if test:
-            crop_uri = join(processed_uri, 'crops',
-                            os.path.basename(raster_uri))
+            crop_uri = join(
+                processed_uri, 'crops', os.path.basename(raster_uri)
+            )
             save_image_crop(
                 raster_uri,
                 crop_uri,
@@ -92,26 +117,32 @@ def get_config(runner,
                 vector_labels=True,
                 size=2000,
                 min_features=5,
-                default_class_id=0)
+                default_class_id=0,
+            )
             raster_uri = crop_uri
 
         raster_source = RasterioSourceConfig(
-            uris=[raster_uri], channel_order=channel_order)
+            uris=[raster_uri], channel_order=channel_order
+        )
 
         vector_source = GeoJSONVectorSourceConfig(
             uris=label_uri,
-            transformers=[ClassInferenceTransformerConfig(default_class_id=0)])
+            transformers=[ClassInferenceTransformerConfig(default_class_id=0)],
+        )
         label_source = ObjectDetectionLabelSourceConfig(
-            vector_source=vector_source)
+            vector_source=vector_source
+        )
 
         return SceneConfig(
-            id=id, raster_source=raster_source, label_source=label_source)
+            id=id, raster_source=raster_source, label_source=label_source
+        )
 
     class_config = ClassConfig(names=['vehicle'], colors=['red'])
     scene_dataset = DatasetConfig(
         class_config=class_config,
         train_scenes=[make_scene(id) for id in train_ids],
-        validation_scenes=[make_scene(id) for id in val_ids])
+        validation_scenes=[make_scene(id) for id in val_ids],
+    )
 
     window_sampling_opts = ObjectDetectionWindowSamplingConfig(
         method=WindowSamplingMethod.random,
@@ -122,7 +153,8 @@ def get_config(runner,
         clip=True,
         neg_ratio=5.0,
         ioa_thresh=0.9,
-        neg_ioa_thresh=0.2)
+        neg_ioa_thresh=0.2,
+    )
 
     chip_options = ObjectDetectionChipOptions(sampling=window_sampling_opts)
     if nochip:
@@ -132,13 +164,17 @@ def get_config(runner,
             img_sz=img_sz,
             num_workers=4,
             plot_options=PlotOptions(
-                channel_display_groups=channel_display_groups))
+                channel_display_groups=channel_display_groups
+            ),
+        )
     else:
         data = ObjectDetectionImageDataConfig(
             img_sz=img_sz,
             num_workers=4,
             plot_options=PlotOptions(
-                channel_display_groups=channel_display_groups))
+                channel_display_groups=channel_display_groups
+            ),
+        )
 
     if external_model:
         """This demonstrates how to use an external model for object detection,
@@ -176,8 +212,10 @@ def get_config(runner,
                     # so +1 is needed here
                     'num_classes': len(class_config.names) + 1,
                     'pretrained': False,
-                    'pretrained_backbone': True
-                }))
+                    'pretrained_backbone': True,
+                },
+            )
+        )
     else:
         model = ObjectDetectionModelConfig(backbone=Backbone.resnet18)
 
@@ -195,13 +233,15 @@ def get_config(runner,
     )
 
     predict_options = ObjectDetectionPredictOptions(
-        chip_sz=chip_sz, merge_thresh=0.5, score_thresh=0.9)
+        chip_sz=chip_sz, merge_thresh=0.5, score_thresh=0.9
+    )
 
     pipeline = ObjectDetectionConfig(
         root_uri=root_uri,
         dataset=scene_dataset,
         backend=backend,
         chip_options=chip_options,
-        predict_options=predict_options)
+        predict_options=predict_options,
+    )
 
     return pipeline

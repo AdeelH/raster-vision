@@ -6,12 +6,15 @@ from glob import glob
 
 import torch.hub
 
-from rastervision.pipeline.file_system import (download_if_needed, unzip,
-                                               get_tmp_dir)
+from rastervision.pipeline.file_system import (
+    download_if_needed,
+    unzip,
+    get_tmp_dir,
+)
 
 
 def _remove_dir(path):
-    """ Remove a directory if it exists. """
+    """Remove a directory if it exists."""
     if isdir(path):
         shutil.rmtree(path)
 
@@ -28,6 +31,7 @@ def _repo_name_to_dir_name(repo: str) -> str:
         Directory name
     """
     from torch.hub import _parse_repo_info
+
     repo_owner, repo_name, branch = _parse_repo_info(repo)
     normalized_br = branch.replace('/', '_')
     dir_name = '_'.join([repo_owner, repo_name, normalized_br])
@@ -35,7 +39,7 @@ def _repo_name_to_dir_name(repo: str) -> str:
 
 
 def _uri_to_dir_name(uri: str) -> str:
-    """ Determine directory name from a URI. """
+    """Determine directory name from a URI."""
     return Path(uri).stem
 
 
@@ -62,11 +66,9 @@ def get_hubconf_dir_from_cfg(cfg, parent: str | None = '') -> str:
     return path
 
 
-def torch_hub_load_github(repo: str,
-                          entrypoint: str,
-                          *args,
-                          dst_dir: str | None = None,
-                          **kwargs) -> Any:
+def torch_hub_load_github(
+    repo: str, entrypoint: str, *args, dst_dir: str | None = None, **kwargs
+) -> Any:
     """Load an entrypoint from a github repo using :func:`torch.hub.load`.
 
     Args:
@@ -86,7 +88,8 @@ def torch_hub_load_github(repo: str,
         *args,
         source='github',
         skip_validation=True,
-        **kwargs)
+        **kwargs,
+    )
 
     if dst_dir is not None:
         orig_dir = join(torch.hub.get_dir(), _repo_name_to_dir_name(repo))
@@ -96,11 +99,9 @@ def torch_hub_load_github(repo: str,
     return out
 
 
-def torch_hub_load_uri(uri: str,
-                       entrypoint: str,
-                       *args,
-                       dst_dir: str | None = None,
-                       **kwargs) -> Any:
+def torch_hub_load_uri(
+    uri: str, entrypoint: str, *args, dst_dir: str | None = None, **kwargs
+) -> Any:
     """Load an entrypoint from a uri.
 
     Load an entrypoint from:
@@ -155,8 +156,9 @@ def torch_hub_load_uri(uri: str,
     return out
 
 
-def torch_hub_load_local(hubconf_dir: str, entrypoint: str, *args,
-                         **kwargs) -> Any:
+def torch_hub_load_local(
+    hubconf_dir: str, entrypoint: str, *args, **kwargs
+) -> Any:
     """Wrapper around :func:`torch.hub.load` with ``source='local'``.
 
     Historical note: the code that was previously here was moved to
@@ -169,4 +171,5 @@ def torch_hub_load_local(hubconf_dir: str, entrypoint: str, *args,
         *args,
         source='local',
         skip_validation=True,
-        **kwargs)
+        **kwargs,
+    )

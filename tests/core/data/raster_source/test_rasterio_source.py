@@ -8,10 +8,13 @@ import rasterio
 from rasterio.enums import ColorInterp
 
 from rastervision.pipeline.file_system import get_tmp_dir
-from rastervision.core import (Box, RasterStats)
+from rastervision.core import Box, RasterStats
 from rastervision.core.data.utils.misc import save_img
 from rastervision.core.data.raster_source import (
-    ChannelOrderError, RasterioSource, RasterioSourceConfig)
+    ChannelOrderError,
+    RasterioSource,
+    RasterioSourceConfig,
+)
 from rastervision.core.data.raster_transformer import StatsTransformerConfig
 
 from tests import data_file_path
@@ -51,16 +54,18 @@ class TestRasterioSource(unittest.TestCase):
         width = 100
         nb_channels = 3
         with rasterio.open(
-                img_path,
-                'w',
-                driver='GTiff',
-                height=height,
-                width=width,
-                count=nb_channels,
-                dtype=np.uint8,
-                nodata=1) as img_dataset:
+            img_path,
+            'w',
+            driver='GTiff',
+            height=height,
+            width=width,
+            count=nb_channels,
+            dtype=np.uint8,
+            nodata=1,
+        ) as img_dataset:
             im = np.random.randint(0, 2, (height, width, nb_channels)).astype(
-                np.uint8)
+                np.uint8
+            )
             for channel in range(nb_channels):
                 img_dataset.write(im[:, :, channel], channel + 1)
 
@@ -77,15 +82,17 @@ class TestRasterioSource(unittest.TestCase):
         width = 100
         nb_channels = 3
         with rasterio.open(
-                img_path,
-                'w',
-                driver='GTiff',
-                height=height,
-                width=width,
-                count=nb_channels,
-                dtype=np.uint8) as img_dataset:
+            img_path,
+            'w',
+            driver='GTiff',
+            height=height,
+            width=width,
+            count=nb_channels,
+            dtype=np.uint8,
+        ) as img_dataset:
             im = np.random.randint(0, 2, (height, width, nb_channels)).astype(
-                np.uint8)
+                np.uint8
+            )
             for channel in range(nb_channels):
                 img_dataset.write(im[:, :, channel], channel + 1)
             img_dataset.write_mask(np.zeros(im.shape[0:2]).astype(bool))
@@ -107,7 +114,8 @@ class TestRasterioSource(unittest.TestCase):
         channel_order = [0, 1]
 
         config = RasterioSourceConfig(
-            uris=[img_path], channel_order=channel_order)
+            uris=[img_path], channel_order=channel_order
+        )
         source = config.build(tmp_dir=self.tmp_dir)
         out_chip = source.get_raw_chip(source.extent)
         self.assertEqual(out_chip.shape[2], 3)
@@ -128,7 +136,8 @@ class TestRasterioSource(unittest.TestCase):
         config = RasterioSourceConfig(
             uris=[img_path],
             channel_order=channel_order,
-            transformers=[transformer])
+            transformers=[transformer],
+        )
         rs = config.build(tmp_dir=self.tmp_dir)
         out_chip = rs.get_raw_chip(rs.extent)
         self.assertEqual(out_chip.shape[2], 3)
@@ -141,7 +150,8 @@ class TestRasterioSource(unittest.TestCase):
 
         channel_order = [0, 1, 2]
         config = RasterioSourceConfig(
-            uris=[img_path], channel_order=channel_order)
+            uris=[img_path], channel_order=channel_order
+        )
         source = config.build(tmp_dir=self.tmp_dir)
         out_chip = source.get_chip(source.extent)
         expected_out_chip = np.ones((2, 2, 3)).astype(np.uint8)
@@ -157,7 +167,8 @@ class TestRasterioSource(unittest.TestCase):
         channel_order = [3, 1, 0]
         with self.assertRaises(ChannelOrderError):
             config = RasterioSourceConfig(
-                uris=[img_path], channel_order=channel_order)
+                uris=[img_path], channel_order=channel_order
+            )
             config.build(tmp_dir=self.tmp_dir)
 
     def test_detects_alpha(self):
@@ -205,14 +216,15 @@ class TestRasterioSource(unittest.TestCase):
         width = 100
         nb_channels = 3
         with rasterio.open(
-                img_path,
-                'w',
-                driver='GTiff',
-                height=height,
-                width=width,
-                count=nb_channels,
-                dtype=np.uint8,
-                crs=crs) as img_dataset:
+            img_path,
+            'w',
+            driver='GTiff',
+            height=height,
+            width=width,
+            count=nb_channels,
+            dtype=np.uint8,
+            crs=crs,
+        ) as img_dataset:
             im = np.zeros((height, width, nb_channels)).astype(np.uint8)
             for channel in range(nb_channels):
                 img_dataset.write(im[:, :, channel], channel + 1)
@@ -223,7 +235,8 @@ class TestRasterioSource(unittest.TestCase):
         except Exception:
             self.fail(
                 'Creating RasterioSource with CRS with no EPSG attribute '
-                'raised an exception when it should not have.')
+                'raised an exception when it should not have.'
+            )
 
     def test_extent(self):
         img_path = data_file_path('small-rgb-tile.tif')
@@ -251,13 +264,14 @@ class TestRasterioSource(unittest.TestCase):
         with NamedTemporaryFile('wb') as fp:
             uri = fp.name
             with rasterio.open(
-                    uri,
-                    'w',
-                    driver='GTiff',
-                    height=100,
-                    width=100,
-                    count=1,
-                    dtype=np.uint8) as ds:
+                uri,
+                'w',
+                driver='GTiff',
+                height=100,
+                width=100,
+                count=1,
+                dtype=np.uint8,
+            ) as ds:
                 ds.write_band(1, arr)
             rs = RasterioSource(uris=uri, bbox=Box(10, 10, 90, 90))
             out = rs.get_chip(Box(0, 0, 100, 100))[..., 0]

@@ -8,7 +8,11 @@ import pyproj
 from rastervision.pipeline.file_system.utils import get_tmp_dir
 from rastervision.core.box import Box
 from rastervision.core.data.utils.rasterio import (
-    crop_geotiff, get_aws_session, write_geotiff_like_geojson, write_bbox)
+    crop_geotiff,
+    get_aws_session,
+    write_geotiff_like_geojson,
+    write_bbox,
+)
 from rastervision.core.data import RasterioSource, GeoJSONVectorSource
 from tests import data_file_path
 
@@ -26,14 +30,16 @@ class TestRasterioUtils(unittest.TestCase):
             rs = RasterioSource(geotiff_path)
             geotiff_bbox = rs.crs_transformer.pixel_to_map(rs.extent)
             np.testing.assert_array_almost_equal(
-                np.array(list(geotiff_bbox)), np.array(list(bbox)), decimal=3)
+                np.array(list(geotiff_bbox)), np.array(list(bbox)), decimal=3
+            )
             self.assertEqual(rs.shape, (*arr1.shape, 1))
 
             write_bbox(geotiff_path, arr2, bbox=bbox, crs_wkt=crs_wkt)
             rs = RasterioSource(geotiff_path)
             geotiff_bbox = rs.crs_transformer.pixel_to_map(rs.extent)
             np.testing.assert_array_almost_equal(
-                np.array(list(geotiff_bbox)), np.array(list(bbox)), decimal=3)
+                np.array(list(geotiff_bbox)), np.array(list(bbox)), decimal=3
+            )
             self.assertEqual(rs.shape, arr2.shape)
 
     def test_crop_geotiff(self):
@@ -51,7 +57,8 @@ class TestRasterioUtils(unittest.TestCase):
         with get_tmp_dir() as tmp_dir:
             geotiff_path = join(tmp_dir, 'test.tiff')
             write_geotiff_like_geojson(
-                geotiff_path, arr, geojson_path, crs=None)
+                geotiff_path, arr, geojson_path, crs=None
+            )
             rs = RasterioSource(geotiff_path)
             geotiff_bbox = rs.crs_transformer.pixel_to_map(rs.extent)
             vs = GeoJSONVectorSource(geojson_path, rs.crs_transformer)
@@ -59,7 +66,8 @@ class TestRasterioUtils(unittest.TestCase):
             np.testing.assert_array_almost_equal(
                 np.array(list(geotiff_bbox)),
                 np.array(list(geojson_bbox)),
-                decimal=3)
+                decimal=3,
+            )
             self.assertEqual(rs.shape, (10, 10, 1))
 
     @patch.dict('os.environ', AWS_REQUEST_PAYER='requester')

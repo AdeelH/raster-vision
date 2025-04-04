@@ -23,6 +23,6 @@ if [ "${1:-}" = "--help" ]; then
 else
     echo "Running ruff format ..."
     pushd $SRC_DIR >/dev/null
-    ruff format rastervision_*/ tests/ integration_tests/ docs/conf.py ruff.toml
+    ruff --config ruff.toml format rastervision_*/ tests/ integration_tests/ docs/conf.py ruff.toml
     popd >/dev/null
 fi

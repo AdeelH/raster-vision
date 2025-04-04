@@ -3,9 +3,12 @@ from os.path import join
 import unittest
 
 from rastervision.pipeline.file_system.utils import get_tmp_dir, file_exists
-from rastervision.core.data import (ClassConfig, IdentityCRSTransformer,
-                                    ObjectDetectionGeoJSONStore,
-                                    ObjectDetectionGeoJSONStoreConfig)
+from rastervision.core.data import (
+    ClassConfig,
+    IdentityCRSTransformer,
+    ObjectDetectionGeoJSONStore,
+    ObjectDetectionGeoJSONStoreConfig,
+)
 
 from tests import data_file_path
 
@@ -17,7 +20,8 @@ class TestObjectDetectionGeoJSONStoreConfig(unittest.TestCase):
         crs_transformer = IdentityCRSTransformer()
         cfg = ObjectDetectionGeoJSONStoreConfig(uri=uri)
         ls = cfg.build(
-            class_config=class_config, crs_transformer=crs_transformer)
+            class_config=class_config, crs_transformer=crs_transformer
+        )
         self.assertIsInstance(ls, ObjectDetectionGeoJSONStore)
 
 

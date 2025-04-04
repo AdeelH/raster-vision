@@ -1,8 +1,11 @@
 from os.path import join
 import unittest
 
-from rastervision.pipeline.file_system import (get_tmp_dir, str_to_file,
-                                               LocalFileSystem)
+from rastervision.pipeline.file_system import (
+    get_tmp_dir,
+    str_to_file,
+    LocalFileSystem,
+)
 from rastervision.gdal_vsi.vsi_file_system import VsiFileSystem
 
 fs = VsiFileSystem
@@ -22,11 +25,14 @@ class TestVsiFileSystem(unittest.TestCase):
             _ = fs.uri_to_vsi_path('wrongscheme+s3://a/b!c')
 
         self.assertEqual(
-            fs.uri_to_vsi_path('zip+s3://a/b!c'), '/vsizip/vsis3/a/b/c')
+            fs.uri_to_vsi_path('zip+s3://a/b!c'), '/vsizip/vsis3/a/b/c'
+        )
         self.assertEqual(
-            fs.uri_to_vsi_path('gzip+s3://a/b!c'), '/vsigzip/vsis3/a/b/c')
+            fs.uri_to_vsi_path('gzip+s3://a/b!c'), '/vsigzip/vsis3/a/b/c'
+        )
         self.assertEqual(
-            fs.uri_to_vsi_path('tar+s3://a/b!c'), '/vsitar/vsis3/a/b/c')
+            fs.uri_to_vsi_path('tar+s3://a/b!c'), '/vsitar/vsis3/a/b/c'
+        )
 
     def test_matches_uri(self):
         self.assertFalse(fs.matches_uri('/a/b/c', 'r'))
@@ -69,8 +75,8 @@ class TestVsiFileSystem(unittest.TestCase):
             paths = fs.list_paths(dir_vsi, ext='txt')
             self.assertSetEqual(
                 set(paths),
-                set([join(tmp_dir, '1.txt'),
-                     join(tmp_dir, '2.txt')]))
+                set([join(tmp_dir, '1.txt'), join(tmp_dir, '2.txt')]),
+            )
 
     def test_sync_to_from(self):
         with get_tmp_dir() as src, get_tmp_dir() as dst:
@@ -83,20 +89,28 @@ class TestVsiFileSystem(unittest.TestCase):
             paths = fs.list_paths(dst_vsi)
             self.assertSetEqual(
                 set(paths),
-                set([
-                    join(dst, 'subdir'),
-                    join(dst, '1.txt'),
-                    join(dst, '2.txt'),
-                ]))
+                set(
+                    [
+                        join(dst, 'subdir'),
+                        join(dst, '1.txt'),
+                        join(dst, '2.txt'),
+                    ]
+                ),
+            )
             paths = fs.list_paths(dst_vsi, ext='txt')
             self.assertSetEqual(
-                set(paths), set([
-                    join(dst, '1.txt'),
-                    join(dst, '2.txt'),
-                ]))
+                set(paths),
+                set(
+                    [
+                        join(dst, '1.txt'),
+                        join(dst, '2.txt'),
+                    ]
+                ),
+            )
             paths = fs.list_paths(join(dst_vsi, 'subdir'))
             self.assertSetEqual(
-                set(paths), set([join(dst, 'subdir', '3.txt')]))
+                set(paths), set([join(dst, 'subdir', '3.txt')])
+            )
 
             with self.assertRaises(FileExistsError):
                 fs.sync_to_dir(src_vsi, dst_vsi, delete=False)
@@ -108,20 +122,28 @@ class TestVsiFileSystem(unittest.TestCase):
             paths = fs.list_paths(src_vsi)
             self.assertSetEqual(
                 set(paths),
-                set([
-                    join(src, 'subdir'),
-                    join(src, '1.txt'),
-                    join(src, '2.txt'),
-                ]))
+                set(
+                    [
+                        join(src, 'subdir'),
+                        join(src, '1.txt'),
+                        join(src, '2.txt'),
+                    ]
+                ),
+            )
             paths = fs.list_paths(src_vsi, ext='txt')
             self.assertSetEqual(
-                set(paths), set([
-                    join(src, '1.txt'),
-                    join(src, '2.txt'),
-                ]))
+                set(paths),
+                set(
+                    [
+                        join(src, '1.txt'),
+                        join(src, '2.txt'),
+                    ]
+                ),
+            )
             paths = fs.list_paths(join(src, 'subdir'))
             self.assertSetEqual(
-                set(paths), set([join(src, 'subdir', '3.txt')]))
+                set(paths), set([join(src, 'subdir', '3.txt')])
+            )
 
             with self.assertRaises(FileExistsError):
                 fs.sync_from_dir(src_vsi, dst_vsi, delete=False)
@@ -139,7 +161,8 @@ class TestVsiFileSystem(unittest.TestCase):
             path_vsi = fs.uri_to_vsi_path(path)
             self.assertEqual(
                 fs.last_modified(path_vsi).timestamp(),
-                int(LocalFileSystem.last_modified(path).timestamp()))
+                int(LocalFileSystem.last_modified(path).timestamp()),
+            )
 
     def test_file_exists(self):
         with get_tmp_dir() as tmp_dir:

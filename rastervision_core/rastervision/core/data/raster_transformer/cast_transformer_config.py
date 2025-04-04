@@ -1,8 +1,10 @@
 from rastervision.pipeline.config import register_config, Field
 from rastervision.core.data.raster_transformer.raster_transformer_config import (  # noqa
-    RasterTransformerConfig)
+    RasterTransformerConfig,
+)
 from rastervision.core.data.raster_transformer.cast_transformer import (
-    CastTransformer)
+    CastTransformer,
+)
 
 
 @register_config('cast_transformer')
@@ -12,7 +14,8 @@ class CastTransformerConfig(RasterTransformerConfig):
     to_dtype: str = Field(
         ...,
         description='dtype to cast raster to. Must be a valid Numpy dtype '
-        'e.g. "uint8", "float32", etc.')
+        'e.g. "uint8", "float32", etc.',
+    )
 
     def build(self, channel_order: list[int] | None = None):
         return CastTransformer(to_dtype=self.to_dtype)

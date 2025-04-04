@@ -21,20 +21,25 @@ class StatsAnalyzerConfig(AnalyzerConfig):
         description='URI of directory where stats will be saved. '
         'Stats for a scene-group will be save in a JSON file at '
         '<output_uri>/<scene-group-name>/stats.json. If None, and this Config '
-        'is part of an RVPipeline, this field will be auto-generated.')
+        'is part of an RVPipeline, this field will be auto-generated.',
+    )
     sample_prob: float | None = Field(
         0.1,
         description=(
             'The probability of using a random window for computing statistics. '
-            'If None, will use a sliding window.'))
+            'If None, will use a sliding window.'
+        ),
+    )
     chip_sz: int = Field(
         300,
         description='Chip size to use when sampling chips to compute stats '
-        'from.')
+        'from.',
+    )
     nodata_value: float | None = Field(
         0,
         description='NODATA value. If set, these pixels will be ignored when '
-        'computing stats.')
+        'computing stats.',
+    )
 
     def update(self, pipeline: 'RVPipelineConfig | None' = None) -> None:
         if pipeline is not None and self.output_uri is None:
@@ -44,8 +49,9 @@ class StatsAnalyzerConfig(AnalyzerConfig):
         if self.sample_prob > 1 or self.sample_prob <= 0:
             raise ConfigError('sample_prob must be <= 1 and > 0')
 
-    def build(self, scene_group: tuple[str, Iterable[str]] | None = None
-              ) -> StatsAnalyzer:
+    def build(
+        self, scene_group: tuple[str, Iterable[str]] | None = None
+    ) -> StatsAnalyzer:
         if scene_group is None:
             output_uri = join(self.output_uri, f'stats.json')
         else:
@@ -55,7 +61,8 @@ class StatsAnalyzerConfig(AnalyzerConfig):
             output_uri,
             sample_prob=self.sample_prob,
             chip_sz=self.chip_sz,
-            nodata_value=self.nodata_value)
+            nodata_value=self.nodata_value,
+        )
 
     def get_bundle_filenames(self):
         return ['stats.json']

@@ -6,8 +6,7 @@ import numpy as np
 from tqdm.auto import tqdm
 
 from rastervision.pipeline import rv_config_ as rv_config
-from rastervision.pipeline.file_system import (make_dir, upload_or_copy,
-                                               zipdir)
+from rastervision.pipeline.file_system import make_dir, upload_or_copy, zipdir
 from rastervision.core.backend import Backend, SampleWriter
 from rastervision.core.data.utils.misc import save_img
 from rastervision.core.data_sample import DataSample
@@ -41,8 +40,9 @@ def get_image_ext(chip: np.ndarray) -> str:
 
 
 class PyTorchLearnerSampleWriter(SampleWriter):
-    def __init__(self, output_uri: str, class_config: 'ClassConfig',
-                 tmp_dir: str):
+    def __init__(
+        self, output_uri: str, class_config: 'ClassConfig', tmp_dir: str
+    ):
         """Constructor.
 
         Args:
@@ -110,8 +110,12 @@ class PyTorchLearnerSampleWriter(SampleWriter):
 class PyTorchLearnerBackend(Backend):
     """Backend that uses the rastervision.pytorch_learner package to train models."""
 
-    def __init__(self, pipeline_cfg: 'RVPipelineConfig',
-                 learner_cfg: 'LearnerConfig', tmp_dir: str):
+    def __init__(
+        self,
+        pipeline_cfg: 'RVPipelineConfig',
+        learner_cfg: 'LearnerConfig',
+        tmp_dir: str,
+    ):
         self.pipeline_cfg = pipeline_cfg
         self.learner_cfg = learner_cfg
         self.tmp_dir = tmp_dir
@@ -122,31 +126,38 @@ class PyTorchLearnerBackend(Backend):
             learner = self._build_learner_from_bundle(
                 bundle_uri=source_bundle_uri,
                 cfg=self.learner_cfg,
-                training=True)
+                training=True,
+            )
         else:
             learner = self.learner_cfg.build(self.tmp_dir, training=True)
         learner.main()
 
     def load_model(self, uri: str | None = None):
         self.learner = self._build_learner_from_bundle(
-            bundle_uri=uri, training=False)
+            bundle_uri=uri, training=False
+        )
 
-    def _build_learner_from_bundle(self,
-                                   bundle_uri: str | None = None,
-                                   cfg: 'LearnerConfig | None' = None,
-                                   training: bool = False):
+    def _build_learner_from_bundle(
+        self,
+        bundle_uri: str | None = None,
+        cfg: 'LearnerConfig | None' = None,
+        training: bool = False,
+    ):
         if bundle_uri is None:
             bundle_uri = self.learner_cfg.get_model_bundle_uri()
         return Learner.from_model_bundle(
-            bundle_uri, self.tmp_dir, cfg=cfg, training=training)
+            bundle_uri, self.tmp_dir, cfg=cfg, training=training
+        )
 
     def get_sample_writer(self):
         raise NotImplementedError()
 
-    def chip_dataset(self,
-                     dataset: 'DatasetConfig',
-                     chip_options: 'ChipOptions',
-                     dataloader_kw: dict = {}) -> None:
+    def chip_dataset(
+        self,
+        dataset: 'DatasetConfig',
+        chip_options: 'ChipOptions',
+        dataloader_kw: dict = {},
+    ) -> None:
         data_config = self._make_chip_data_config(dataset, chip_options)
         train_ds, valid_ds, test_ds = data_config.build(for_chipping=True)
 
@@ -159,32 +170,36 @@ class PyTorchLearnerBackend(Backend):
                     sample_writer=sample_writer,
                     chip_options=chip_options,
                     split=split,
-                    dataloader_kw=dataloader_kw)
+                    dataloader_kw=dataloader_kw,
+                )
 
     def chip_pytorch_dataset(
-            self,
-            dataset: 'Dataset',
-            sample_writer: 'PyTorchLearnerSampleWriter',
-            chip_options: 'ChipOptions',
-            split: str | None = None,
-            dataloader_kw: dict = {},
+        self,
+        dataset: 'Dataset',
+        sample_writer: 'PyTorchLearnerSampleWriter',
+        chip_options: 'ChipOptions',
+        split: str | None = None,
+        dataloader_kw: dict = {},
     ) -> None:
         from torch.utils.data import DataLoader
 
         num_workers = rv_config.get_namespace_option(
             'rastervision',
             'CHIP_NUM_WORKERS',
-            default=self.learner_cfg.data.num_workers)
+            default=self.learner_cfg.data.num_workers,
+        )
         batch_size = rv_config.get_namespace_option(
             'rastervision',
             'CHIP_BATCH_SIZE',
-            default=self.learner_cfg.solver.batch_sz)
+            default=self.learner_cfg.solver.batch_sz,
+        )
 
         dl_kw = dict(
             batch_size=int(batch_size),
             num_workers=int(num_workers),
             shuffle=False,
-            pin_memory=True)
+            pin_memory=True,
+        )
         dl_kw.update(dataloader_kw)
         dl = DataLoader(dataset, **dl_kw)
 
@@ -201,12 +216,12 @@ class PyTorchLearnerBackend(Backend):
                     sample_writer.write_sample(sample)
                     bar.update(1)
 
-    def predict_scene(self,
-                      scene: 'Scene',
-                      chip_sz: int,
-                      stride: int | None = None):
+    def predict_scene(
+        self, scene: 'Scene', chip_sz: int, stride: int | None = None
+    ):
         raise NotImplementedError()
 
-    def _make_chip_data_config(self, dataset: 'DatasetConfig',
-                               chip_options: 'ChipOptions') -> 'DataConfig':
+    def _make_chip_data_config(
+        self, dataset: 'DatasetConfig', chip_options: 'ChipOptions'
+    ) -> 'DataConfig':
         raise NotImplementedError()

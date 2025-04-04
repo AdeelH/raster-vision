@@ -4,8 +4,12 @@ import numpy as np
 import albumentations as A
 
 from rastervision.pytorch_learner.dataset.transform import (
-    yxyx_to_albu, albu_to_yxyx, xywh_to_albu, apply_transform,
-    semantic_segmentation_transformer)
+    yxyx_to_albu,
+    albu_to_yxyx,
+    xywh_to_albu,
+    apply_transform,
+    semantic_segmentation_transformer,
+)
 
 
 class TestTransforms(unittest.TestCase):
@@ -40,12 +44,16 @@ class TestTransforms(unittest.TestCase):
             [
                 [1, 2, 3, 4],
                 [2, 3, 4, 10],
-            ], dtype=float)
+            ],
+            dtype=float,
+        )
         boxes_albu_gt = np.array(
             [
-                [.2, .1, .4, .3],
-                [.3, .2, 1., .4],
-            ], dtype=float)
+                [0.2, 0.1, 0.4, 0.3],
+                [0.3, 0.2, 1.0, 0.4],
+            ],
+            dtype=float,
+        )
         boxes_albu = yxyx_to_albu(boxes, (10, 10))
         self.assertTrue(np.all(boxes_albu == boxes_albu_gt))
 
@@ -57,12 +65,16 @@ class TestTransforms(unittest.TestCase):
             [
                 [1, 2, 3, 4],
                 [2, 3, 4, 10],
-            ], dtype=float)
+            ],
+            dtype=float,
+        )
         boxes_albu_gt = np.array(
             [
-                [.1, .2, .4, .6],
-                [.2, .3, .6, 1.],
-            ], dtype=float)
+                [0.1, 0.2, 0.4, 0.6],
+                [0.2, 0.3, 0.6, 1.0],
+            ],
+            dtype=float,
+        )
         boxes_albu = xywh_to_albu(boxes, (10, 10))
         np.testing.assert_allclose(boxes_albu, boxes_albu_gt)
 
@@ -73,8 +85,9 @@ class TestTransforms(unittest.TestCase):
         np.issubdtype(y_out.dtype, int)
 
         # w/ y, w/ transform
-        x_out, y_out = semantic_segmentation_transformer((x_in, y_in),
-                                                         A.Resize(20, 20))
+        x_out, y_out = semantic_segmentation_transformer(
+            (x_in, y_in), A.Resize(20, 20)
+        )
         self.assertEqual(x_out.shape, (20, 20, 3))
         self.assertEqual(y_out.shape, (20, 20))
         np.issubdtype(y_out.dtype, int)
@@ -84,8 +97,9 @@ class TestTransforms(unittest.TestCase):
         self.assertIsNone(y_out)
 
         # w/o y, w/ transform
-        x_out, y_out = semantic_segmentation_transformer((x_in, None),
-                                                         A.Resize(20, 20))
+        x_out, y_out = semantic_segmentation_transformer(
+            (x_in, None), A.Resize(20, 20)
+        )
         self.assertEqual(x_out.shape, (20, 20, 3))
         self.assertIsNone(y_out)
 

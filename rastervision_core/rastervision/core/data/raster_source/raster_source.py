@@ -7,18 +7,22 @@ from skimage.transform import resize
 from rastervision.core.box import Box
 from rastervision.core.data.utils import parse_array_slices_Nd
 from rastervision.core.data.raster_transformer.utils import (
-    get_transformed_num_channels, get_transformed_dtype)
+    get_transformed_num_channels,
+    get_transformed_dtype,
+)
 
 if TYPE_CHECKING:
-    from rastervision.core.data import (CRSTransformer, RasterTransformer)
+    from rastervision.core.data import CRSTransformer, RasterTransformer
 
 
 class ChannelOrderError(Exception):
     def __init__(self, channel_order: list[int], num_channels_raw: int):
         self.channel_order = channel_order
         self.num_channels_raw = num_channels_raw
-        msg = (f'The channel_order ({channel_order}) contains an '
-               f'index >= num_channels_raw ({num_channels_raw}).')
+        msg = (
+            f'The channel_order ({channel_order}) contains an '
+            f'index >= num_channels_raw ({num_channels_raw}).'
+        )
         super().__init__(msg)
 
 
@@ -29,13 +33,15 @@ class RasterSource(ABC):
     a set of files, an API, a TMS URI schema, etc.
     """
 
-    def __init__(self,
-                 *,
-                 channel_order: list[int] | None,
-                 num_channels_raw: int,
-                 dtype_raw: np.dtype,
-                 bbox: Box,
-                 raster_transformers: list['RasterTransformer'] = []):
+    def __init__(
+        self,
+        *,
+        channel_order: list[int] | None,
+        num_channels_raw: int,
+        dtype_raw: np.dtype,
+        bbox: Box,
+        raster_transformers: list['RasterTransformer'] = [],
+    ):
         """Constructor.
 
         Args:
@@ -68,7 +74,8 @@ class RasterSource(ABC):
         if self._num_channels is None:
             num_channels = len(self.channel_order)
             self._num_channels = get_transformed_num_channels(
-                self.raster_transformers, num_channels)
+                self.raster_transformers, num_channels
+            )
         return self._num_channels
 
     @property
@@ -82,8 +89,9 @@ class RasterSource(ABC):
         """``numpy.dtype`` of the chips read from this source."""
         if self._dtype is None:
             dtype = self.dtype_raw
-            self._dtype = get_transformed_dtype(self.raster_transformers,
-                                                dtype)
+            self._dtype = get_transformed_dtype(
+                self.raster_transformers, dtype
+            )
         return self._dtype
 
     @property
@@ -112,9 +120,9 @@ class RasterSource(ABC):
         self._bbox = bbox
 
     @abstractmethod
-    def _get_chip(self,
-                  window: 'Box',
-                  out_shape: tuple[int, int] | None = None) -> 'np.ndarray':
+    def _get_chip(
+        self, window: 'Box', out_shape: tuple[int, int] | None = None
+    ) -> 'np.ndarray':
         """Return raw chip without applying channel_order or transforms.
 
         Args:
@@ -131,16 +139,18 @@ class RasterSource(ABC):
             return self.get_chip(key)
 
         window, (h, w, c) = parse_array_slices_Nd(
-            key, extent=self.extent, dims=3)
+            key, extent=self.extent, dims=3
+        )
         chip = self.get_chip(window)
         if h.step is not None or w.step is not None:
-            chip = chip[::h.step, ::w.step]
+            chip = chip[:: h.step, :: w.step]
         chip = chip[..., c]
 
         return chip
 
-    def get_chip(self, window: 'Box',
-                 out_shape: tuple[int, int] | None = None) -> 'np.ndarray':
+    def get_chip(
+        self, window: 'Box', out_shape: tuple[int, int] | None = None
+    ) -> 'np.ndarray':
         """Return the transformed chip in the window.
 
         Get a raw chip, extract subset of channels using channel_order, and then apply
@@ -162,25 +172,29 @@ class RasterSource(ABC):
 
         return chip
 
-    def get_chip_by_map_window(self, window_map_coords: 'Box', *args,
-                               **kwargs) -> 'np.ndarray':
+    def get_chip_by_map_window(
+        self, window_map_coords: 'Box', *args, **kwargs
+    ) -> 'np.ndarray':
         """Same as get_chip(), but input is a window in map coords."""
         window_pixel_coords = self.crs_transformer.map_to_pixel(
-            window_map_coords, bbox=self.bbox)
+            window_map_coords, bbox=self.bbox
+        )
         chip = self.get_chip(window_pixel_coords, *args, **kwargs)
         return chip
 
-    def _get_chip_by_map_window(self, window_map_coords: 'Box', *args,
-                                **kwargs) -> 'np.ndarray':
+    def _get_chip_by_map_window(
+        self, window_map_coords: 'Box', *args, **kwargs
+    ) -> 'np.ndarray':
         """Same as _get_chip(), but input is a window in map coords."""
         window_pixel_coords = self.crs_transformer.map_to_pixel(
-            window_map_coords, bbox=self.bbox)
+            window_map_coords, bbox=self.bbox
+        )
         chip = self._get_chip(window_pixel_coords, *args, **kwargs)
         return chip
 
-    def get_raw_chip(self,
-                     window: 'Box',
-                     out_shape: tuple[int, int] | None = None) -> 'np.ndarray':
+    def get_raw_chip(
+        self, window: 'Box', out_shape: tuple[int, int] | None = None
+    ) -> 'np.ndarray':
         """Return raw chip without applying channel_order or transforms.
 
         Args:
@@ -191,9 +205,9 @@ class RasterSource(ABC):
         """
         return self._get_chip(window, out_shape=out_shape)
 
-    def resize(self,
-               chip: 'np.ndarray',
-               out_shape: tuple[int, int] | None = None) -> 'np.ndarray':
+    def resize(
+        self, chip: 'np.ndarray', out_shape: tuple[int, int] | None = None
+    ) -> 'np.ndarray':
         out_shape = chip.shape[:-3] + out_shape
         out = resize(chip, out_shape, preserve_range=True, anti_aliasing=True)
         out = out.round(6).astype(chip.dtype)

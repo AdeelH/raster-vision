@@ -1,5 +1,6 @@
 class Verbosity:
     """Verbosity level for the sake of logging."""
+
     QUIET = 0
     NORMAL = 1
     VERBOSE = 2
@@ -10,4 +11,5 @@ class Verbosity:
     def get() -> 'Verbosity':
         """Get the verbosity from RVConfig."""
         from rastervision.pipeline import rv_config_ as rv_config
+
         return rv_config.get_verbosity()

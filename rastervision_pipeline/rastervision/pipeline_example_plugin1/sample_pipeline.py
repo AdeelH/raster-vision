@@ -49,7 +49,8 @@ class SamplePipeline(Pipeline):
         # split_ind tracks the index of the parallel job. In this case
         # we are splitting on the names/message_uris.
         split_groups = split_into_groups(
-            list(zip(self.config.names, self.config.message_uris)), num_splits)
+            list(zip(self.config.names, self.config.message_uris)), num_splits
+        )
         split_group = split_groups[split_ind]
 
         for name, message_uri in split_group:

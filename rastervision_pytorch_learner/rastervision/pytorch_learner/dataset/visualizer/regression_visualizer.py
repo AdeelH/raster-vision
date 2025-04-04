@@ -6,8 +6,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from rastervision.pytorch_learner.dataset.visualizer import Visualizer  # NOQA
-from rastervision.pytorch_learner.utils import (plot_channel_groups,
-                                                channel_groups_to_imgs)
+from rastervision.pytorch_learner.utils import (
+    plot_channel_groups,
+    channel_groups_to_imgs,
+)
 
 if TYPE_CHECKING:
     from matplotlib.pyplot import Axes
@@ -16,12 +18,14 @@ if TYPE_CHECKING:
 class RegressionVisualizer(Visualizer):
     """Plots samples from image regression Datasets."""
 
-    def plot_xyz(self,
-                 axs: Sequence,
-                 x: torch.Tensor,
-                 y: int,
-                 z: int | None = None,
-                 plot_title: bool = True) -> None:
+    def plot_xyz(
+        self,
+        axs: Sequence,
+        x: torch.Tensor,
+        y: int,
+        z: int | None = None,
+        plot_title: bool = True,
+    ) -> None:
         channel_groups = self.get_channel_display_groups(x.shape[1])
 
         img_axes = axs[:-1]
@@ -30,7 +34,8 @@ class RegressionVisualizer(Visualizer):
         # plot image
         imgs = channel_groups_to_imgs(x, channel_groups)
         plot_channel_groups(
-            img_axes, imgs, channel_groups, plot_title=plot_title)
+            img_axes, imgs, channel_groups, plot_title=plot_title
+        )
 
         # plot label
         class_names = self.class_names
@@ -46,7 +51,8 @@ class RegressionVisualizer(Visualizer):
     def plot_gt(self, ax: 'Axes', class_names: Sequence[str], y: torch.Tensor):
         """Plot targets as a horizontal bar plot with values at the tips."""
         bars_gt = ax.barh(
-            y=class_names, width=y, color='lightgray', edgecolor='black')
+            y=class_names, width=y, color='lightgray', edgecolor='black'
+        )
         # show values on the end of bars
         ax.bar_label(bars_gt, fmt='%.3f', padding=3)
 
@@ -55,11 +61,13 @@ class RegressionVisualizer(Visualizer):
         ax.spines['right'].set_visible(False)
         ax.get_yaxis().tick_left()
 
-    def plot_pred(self,
-                  ax: 'Axes',
-                  class_names: Sequence[str],
-                  z: torch.Tensor,
-                  y: torch.Tensor | None = None):
+    def plot_pred(
+        self,
+        ax: 'Axes',
+        class_names: Sequence[str],
+        z: torch.Tensor,
+        y: torch.Tensor | None = None,
+    ):
         """Plot targets and predictions as a grouped horizontal bar plot."""
         # display targets and predictions as a grouped horizontal bar plot
         bar_thickness = 0.35 if y is not None else 0.70
@@ -71,7 +79,8 @@ class RegressionVisualizer(Visualizer):
                 height=bar_thickness,
                 color='lightgray',
                 edgecolor='black',
-                label='true')
+                label='true',
+            )
             # show values on the end of bars
             ax.bar_label(bars_gt, fmt='%.3f', padding=3)
 
@@ -81,7 +90,8 @@ class RegressionVisualizer(Visualizer):
             height=bar_thickness,
             color=plt.get_cmap('tab10')(0),
             edgecolor='black',
-            label='pred')
+            label='pred',
+        )
         # show values on the end of bars
         ax.bar_label(bars_pred, fmt='%.3f', padding=3)
 

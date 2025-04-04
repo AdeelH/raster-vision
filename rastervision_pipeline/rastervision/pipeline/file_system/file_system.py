@@ -1,4 +1,4 @@
-from abc import (ABC, abstractmethod)
+from abc import ABC, abstractmethod
 from datetime import datetime
 
 from rastervision.pipeline import registry_ as registry

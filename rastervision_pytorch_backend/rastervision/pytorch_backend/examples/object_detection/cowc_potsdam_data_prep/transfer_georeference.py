@@ -7,8 +7,11 @@ import sys
 from subprocess import check_output, call
 
 if not len(sys.argv) >= 4:
-    print('Usage: {} <input_rgb.tif> <input_label.tif> <output_label.tif>'.
-          format(sys.argv[0]))
+    print(
+        'Usage: {} <input_rgb.tif> <input_label.tif> <output_label.tif>'.format(
+            sys.argv[0]
+        )
+    )
     exit()
 
 input_rgb = sys.argv[1]
@@ -21,19 +24,25 @@ proj4 = proj4[1:-2]
 
 # Get upper left, lower right info
 with open(os.devnull, 'w') as devnull:
-    ullr = check_output(
-        ['gdalinfo', input_rgb], stderr=devnull).decode('utf-8')
+    ullr = check_output(['gdalinfo', input_rgb], stderr=devnull).decode(
+        'utf-8'
+    )
 ul_re = re.compile(r'^Upper Left.*?([0-9\.]+).*?([0-9\.]+)', re.MULTILINE)
 lr_re = re.compile(r'^Lower Right.*?([0-9\.]+).*?([0-9\.]+)', re.MULTILINE)
 ul = re.search(ul_re, ullr)
 lr = re.search(lr_re, ullr)
 
 args = [
-    'gdal_translate', '-a_srs', proj4, '-a_ullr',
+    'gdal_translate',
+    '-a_srs',
+    proj4,
+    '-a_ullr',
     ul.group(1),
     ul.group(2),
     lr.group(1),
-    lr.group(2), input_label, output_label
+    lr.group(2),
+    input_label,
+    output_label,
 ]
 
 call(args)

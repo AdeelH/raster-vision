@@ -5,7 +5,7 @@ from pathlib import Path
 from itertools import chain
 
 import numpy as np
-from torchvision.datasets.folder import (IMG_EXTENSIONS, DatasetFolder)
+from torchvision.datasets.folder import IMG_EXTENSIONS, DatasetFolder
 from PIL import Image
 import rasterio as rio
 
@@ -24,12 +24,14 @@ class GeoDatasetError(DatasetError):
     pass
 
 
-def discover_images(dir: PathLike,
-                    extensions: Iterable[str] = IMG_EXTENSIONS) -> list[Path]:
+def discover_images(
+    dir: PathLike, extensions: Iterable[str] = IMG_EXTENSIONS
+) -> list[Path]:
     """Find all images with the given ``extensions`` in ``dir``."""
     dir = Path(dir)
     img_paths = chain.from_iterable(
-        (dir.glob(f'*{ext}') for ext in extensions))
+        (dir.glob(f'*{ext}') for ext in extensions)
+    )
     return list(img_paths)
 
 
@@ -53,7 +55,8 @@ def load_image(path: PathLike) -> np.ndarray:
 
 
 def make_image_folder_dataset(
-        data_dir: str, classes: Iterable[str] | None = None) -> DatasetFolder:
+    data_dir: str, classes: Iterable[str] | None = None
+) -> DatasetFolder:
     """Initializes and returns an ImageFolder.
 
     If classes is specified, ImageFolder's default class-to-index mapping
@@ -61,21 +64,23 @@ def make_image_folder_dataset(
     """
     if classes is None:
         return DatasetFolder(
-            data_dir, loader=load_image, extensions=IMG_EXTENSIONS)
+            data_dir, loader=load_image, extensions=IMG_EXTENSIONS
+        )
 
-    from rastervision.pipeline.file_system.utils import (file_exists,
-                                                         list_paths)
+    from rastervision.pipeline.file_system.utils import file_exists, list_paths
 
     class_dirs = [join(data_dir, c) for c in classes]
     classes_present = [
-        c for c, dir in zip(classes, class_dirs)
+        c
+        for c, dir in zip(classes, class_dirs)
         if file_exists(dir, include_dir=True) and len(list_paths(dir)) > 0
     ]
     class_to_id = {c: classes.index(c) for c in classes_present}
 
     class ImageFolder(DatasetFolder):
-        def find_classes(self,
-                         directory: str) -> tuple[list[str], dict[str, int]]:
+        def find_classes(
+            self, directory: str
+        ) -> tuple[list[str], dict[str, int]]:
             """Override to force mapping from class name to class index."""
             return classes_present, class_to_id
 

@@ -1,4 +1,4 @@
-from typing import (TYPE_CHECKING, Any, Iterable, Sequence)
+from typing import TYPE_CHECKING, Any, Iterable, Sequence
 from abc import abstractmethod
 
 import numpy as np
@@ -12,8 +12,11 @@ from rastervision.core.data.label.utils import discard_prediction_edges
 if TYPE_CHECKING:
     from typing import Self
     from shapely.geometry import Polygon
-    from rastervision.core.data import (ClassConfig, CRSTransformer,
-                                        VectorOutputConfig)
+    from rastervision.core.data import (
+        ClassConfig,
+        CRSTransformer,
+        VectorOutputConfig,
+    )
 
 
 class SemanticSegmentationLabels(Labels):
@@ -53,8 +56,9 @@ class SemanticSegmentationLabels(Labels):
         """Set labels for the given window."""
 
     @abstractmethod
-    def get_label_arr(self, window: Box,
-                      null_class_id: int = -1) -> np.ndarray:
+    def get_label_arr(
+        self, window: Box, null_class_id: int = -1
+    ) -> np.ndarray:
         """Get labels as a 2D array of class IDs.
 
         Note: The returned array is not guaranteed to be the same size as the
@@ -62,18 +66,18 @@ class SemanticSegmentationLabels(Labels):
         """
 
     @abstractmethod
-    def get_score_arr(self, window: Box,
-                      null_class_id: int = -1) -> np.ndarray:
+    def get_score_arr(
+        self, window: Box, null_class_id: int = -1
+    ) -> np.ndarray:
         """Get (C, H, W) array of pixel scores."""
 
-    def get_class_mask(self,
-                       window: Box,
-                       class_id: int,
-                       threshold: float | None = None) -> np.ndarray:
+    def get_class_mask(
+        self, window: Box, class_id: int, threshold: float | None = None
+    ) -> np.ndarray:
         """Get a binary mask representing all pixels of a class."""
         scores = self.get_score_arr(window)
         if threshold is None:
-            threshold = (1 / self.num_classes)
+            threshold = 1 / self.num_classes
         mask = scores[class_id] >= threshold
         return mask
 
@@ -94,8 +98,9 @@ class SemanticSegmentationLabels(Labels):
             return [self.extent]
         return self.extent.get_windows(size, size, **kwargs)
 
-    def filter_by_aoi(self, aoi_polygons: list['Polygon'], null_class_id: int,
-                      **kwargs) -> 'Self':
+    def filter_by_aoi(
+        self, aoi_polygons: list['Polygon'], null_class_id: int, **kwargs
+    ) -> 'Self':
         """Keep only the values that lie inside the AOI.
 
         This is an inplace operation.
@@ -115,14 +120,16 @@ class SemanticSegmentationLabels(Labels):
         return self
 
     @abstractmethod
-    def mask_fill(self, window: Box, mask: np.ndarray,
-                  fill_value: Any) -> None:
+    def mask_fill(
+        self, window: Box, mask: np.ndarray, fill_value: Any
+    ) -> None:
         """Given a window and a binary mask, set all the pixels in the window
         for which the mask is ON to the fill_value.
         """
 
-    def _filter_window_by_aoi(self, window: Box, aoi_polygons: list['Polygon'],
-                              null_class_id: int) -> None:
+    def _filter_window_by_aoi(
+        self, window: Box, aoi_polygons: list['Polygon'], null_class_id: int
+    ) -> None:
         window_geom = window.to_shapely()
         label_arr = self[window]
 
@@ -148,15 +155,17 @@ class SemanticSegmentationLabels(Labels):
                 [(p, 0) for p in window_aois],
                 out_shape=label_arr.shape[-2:],
                 fill=1,
-                dtype=np.uint8)
+                dtype=np.uint8,
+            )
             mask = mask.astype(bool)
             self.mask_fill(window, mask, null_class_id)
         else:
             del self[window]
 
     @classmethod
-    def make_empty(cls, extent: Box, num_classes: int,
-                   smooth: bool = False) -> 'Self':
+    def make_empty(
+        cls, extent: Box, num_classes: int, smooth: bool = False
+    ) -> 'Self':
         """Instantiate an empty instance.
 
         Args:
@@ -177,19 +186,23 @@ class SemanticSegmentationLabels(Labels):
         """
         if not smooth:
             return SemanticSegmentationDiscreteLabels.make_empty(
-                extent=extent, num_classes=num_classes)
+                extent=extent, num_classes=num_classes
+            )
         else:
             return SemanticSegmentationSmoothLabels.make_empty(
-                extent=extent, num_classes=num_classes)
+                extent=extent, num_classes=num_classes
+            )
 
     @classmethod
-    def from_predictions(cls,
-                         windows: Iterable['Box'],
-                         predictions: Iterable[Any],
-                         extent: Box,
-                         num_classes: int,
-                         smooth: bool = False,
-                         crop_sz: int | None = None) -> 'Self':
+    def from_predictions(
+        cls,
+        windows: Iterable['Box'],
+        predictions: Iterable[Any],
+        extent: Box,
+        num_classes: int,
+        smooth: bool = False,
+        crop_sz: int | None = None,
+    ) -> 'Self':
         """Instantiate from windows and their corresponding predictions.
 
         Args:
@@ -219,10 +232,12 @@ class SemanticSegmentationLabels(Labels):
         labels.add_predictions(windows, predictions, crop_sz=crop_sz)
         return labels
 
-    def add_predictions(self,
-                        windows: Iterable['Box'],
-                        predictions: Iterable[Any],
-                        crop_sz: int | None = None) -> None:
+    def add_predictions(
+        self,
+        windows: Iterable['Box'],
+        predictions: Iterable[Any],
+        crop_sz: int | None = None,
+    ) -> None:
         """Populate predictions.
 
         Args:
@@ -239,7 +254,8 @@ class SemanticSegmentationLabels(Labels):
         """
         if crop_sz is not None:
             windows, predictions = discard_prediction_edges(
-                windows, predictions, crop_sz)
+                windows, predictions, crop_sz
+            )
         # If predictions is tqdm-wrapped, it needs to be the first arg to zip()
         # or the progress bar won't terminate with the correct count.
         for prediction, window in zip(predictions, windows):
@@ -267,7 +283,8 @@ class SemanticSegmentationDiscreteLabels(SemanticSegmentationLabels):
         super().__init__(extent, num_classes, dtype)
 
         self.pixel_counts = np.zeros(
-            (self.num_classes, self.height, self.width), dtype=self.dtype)
+            (self.num_classes, self.height, self.width), dtype=self.dtype
+        )
         # track which pixels have been hit at all
         self.hit_mask = np.zeros((self.height, self.width), dtype=bool)
 
@@ -304,8 +321,9 @@ class SemanticSegmentationDiscreteLabels(SemanticSegmentationLabels):
         window_dst = window.intersection(self.extent)
 
         # sub-window in pixel_class_ids coords to read from
-        window_src = window_dst.to_global_coords(
-            self.extent).to_local_coords(window)
+        window_src = window_dst.to_global_coords(self.extent).to_local_coords(
+            window
+        )
 
         # read sub-window from source array
         src_yslice, src_xslice = window_src.to_slices()
@@ -319,8 +337,9 @@ class SemanticSegmentationDiscreteLabels(SemanticSegmentationLabels):
             ch[pixel_class_ids == ch_class_id] += 1
         self.hit_mask[dst_yslice, dst_xslice] = True
 
-    def get_label_arr(self, window: Box,
-                      null_class_id: int = -1) -> np.ndarray:
+    def get_label_arr(
+        self, window: Box, null_class_id: int = -1
+    ) -> np.ndarray:
         """Get labels as array of class IDs.
 
         Returns null_class_id for pixels for which there is no data.
@@ -337,8 +356,9 @@ class SemanticSegmentationDiscreteLabels(SemanticSegmentationLabels):
         scores = class_counts / class_counts.sum(axis=0)
         return scores
 
-    def mask_fill(self, window: Box, mask: np.ndarray,
-                  fill_value: Any) -> None:
+    def mask_fill(
+        self, window: Box, mask: np.ndarray, fill_value: Any
+    ) -> None:
         """Set fill_value'th class ID's count to 1 and all others to zero."""
         class_id = fill_value
         y0, x0, y1, x1 = window.intersection(self.extent)
@@ -353,27 +373,31 @@ class SemanticSegmentationDiscreteLabels(SemanticSegmentationLabels):
         return cls(extent=extent, num_classes=num_classes)
 
     @classmethod
-    def from_predictions(cls,
-                         windows: Iterable['Box'],
-                         predictions: Iterable[Any],
-                         extent: Box,
-                         num_classes: int,
-                         crop_sz: int | None = None) -> 'Self':
+    def from_predictions(
+        cls,
+        windows: Iterable['Box'],
+        predictions: Iterable[Any],
+        extent: Box,
+        num_classes: int,
+        crop_sz: int | None = None,
+    ) -> 'Self':
         labels = cls.make_empty(extent, num_classes)
         labels.add_predictions(windows, predictions, crop_sz=crop_sz)
         return labels
 
-    def save(self,
-             uri: str,
-             crs_transformer: 'CRSTransformer',
-             class_config: 'ClassConfig',
-             bbox: Box | None = None,
-             tmp_dir: str | None = None,
-             save_as_rgb: bool = False,
-             raster_output: bool = True,
-             rasterio_block_size: int = 512,
-             vector_outputs: 'Sequence[VectorOutputConfig] | None' = None,
-             profile_overrides: dict | None = None) -> None:
+    def save(
+        self,
+        uri: str,
+        crs_transformer: 'CRSTransformer',
+        class_config: 'ClassConfig',
+        bbox: Box | None = None,
+        tmp_dir: str | None = None,
+        save_as_rgb: bool = False,
+        raster_output: bool = True,
+        rasterio_block_size: int = 512,
+        vector_outputs: 'Sequence[VectorOutputConfig] | None' = None,
+        profile_overrides: dict | None = None,
+    ) -> None:
         """Save labels as a raster and/or vectors.
 
         If URI is remote, all files will be first written locally and then
@@ -415,7 +439,8 @@ class SemanticSegmentationDiscreteLabels(SemanticSegmentationLabels):
             discrete_output=raster_output,
             smooth_output=False,
             rasterio_block_size=rasterio_block_size,
-            vector_outputs=vector_outputs)
+            vector_outputs=vector_outputs,
+        )
         label_store.save(self, profile=profile_overrides)
 
 
@@ -428,11 +453,13 @@ class SemanticSegmentationSmoothLabels(SemanticSegmentationLabels):
     class dimension.
     """
 
-    def __init__(self,
-                 extent: Box,
-                 num_classes: int,
-                 dtype: Any = np.float16,
-                 dtype_hits: Any = np.uint8):
+    def __init__(
+        self,
+        extent: Box,
+        num_classes: int,
+        dtype: Any = np.float16,
+        dtype_hits: Any = np.uint8,
+    ):
         """Constructor.
 
         Args:
@@ -445,7 +472,8 @@ class SemanticSegmentationSmoothLabels(SemanticSegmentationLabels):
         super().__init__(extent, num_classes, dtype)
 
         self.pixel_scores = np.zeros(
-            (self.num_classes, self.height, self.width), dtype=self.dtype)
+            (self.num_classes, self.height, self.width), dtype=self.dtype
+        )
         self.pixel_hits = np.zeros((self.height, self.width), dtype=dtype_hits)
 
     def __add__(self, other: 'Self') -> 'Self':
@@ -464,7 +492,7 @@ class SemanticSegmentationSmoothLabels(SemanticSegmentationLabels):
             return False
         scores_equal = np.allclose(self.pixel_scores, other.pixel_scores)
         hits_equal = np.array_equal(self.pixel_hits, other.pixel_hits)
-        return (scores_equal and hits_equal)
+        return scores_equal and hits_equal
 
     def __delitem__(self, window: Box) -> None:
         """Reset scores and hits to zero for pixels in the window."""
@@ -480,8 +508,9 @@ class SemanticSegmentationSmoothLabels(SemanticSegmentationLabels):
         window_dst = window.intersection(self.extent)
 
         # sub-window in pixel_class_scores coords to read from
-        window_src = window_dst.to_global_coords(
-            self.extent).to_local_coords(window)
+        window_src = window_dst.to_global_coords(self.extent).to_local_coords(
+            window
+        )
 
         # read sub-window from source array
         src_yslice, src_xslice = window_src.to_slices()
@@ -501,8 +530,9 @@ class SemanticSegmentationSmoothLabels(SemanticSegmentationLabels):
         avg_scores = scores / hits
         return avg_scores
 
-    def get_label_arr(self, window: Box,
-                      null_class_id: int = -1) -> np.ndarray:
+    def get_label_arr(
+        self, window: Box, null_class_id: int = -1
+    ) -> np.ndarray:
         """Get labels as array of class IDs.
 
         Returns null_class_id for pixels for which there is no data.
@@ -512,8 +542,9 @@ class SemanticSegmentationSmoothLabels(SemanticSegmentationLabels):
         mask = np.isnan(avg_scores[0])
         return np.where(mask, null_class_id, label_arr)
 
-    def mask_fill(self, window: Box, mask: np.ndarray,
-                  fill_value: Any) -> None:
+    def mask_fill(
+        self, window: Box, mask: np.ndarray, fill_value: Any
+    ) -> None:
         """Set fill_value'th class ID's score to 1 and all others to zero."""
         class_id = fill_value
         y0, x0, y1, x1 = window.intersection(self.extent)
@@ -529,29 +560,33 @@ class SemanticSegmentationSmoothLabels(SemanticSegmentationLabels):
         return cls(extent=extent, num_classes=num_classes)
 
     @classmethod
-    def from_predictions(cls,
-                         windows: Iterable['Box'],
-                         predictions: Iterable[Any],
-                         extent: Box,
-                         num_classes: int,
-                         crop_sz: int | None = None) -> 'Self':
+    def from_predictions(
+        cls,
+        windows: Iterable['Box'],
+        predictions: Iterable[Any],
+        extent: Box,
+        num_classes: int,
+        crop_sz: int | None = None,
+    ) -> 'Self':
         labels = cls.make_empty(extent, num_classes)
         labels.add_predictions(windows, predictions, crop_sz=crop_sz)
         return labels
 
-    def save(self,
-             uri: str,
-             crs_transformer: 'CRSTransformer',
-             class_config: 'ClassConfig',
-             bbox: Box | None = None,
-             tmp_dir: str | None = None,
-             save_as_rgb: bool = False,
-             discrete_output: bool = True,
-             smooth_output: bool = True,
-             smooth_as_uint8: bool = False,
-             rasterio_block_size: int = 512,
-             vector_outputs: 'Sequence[VectorOutputConfig] | None' = None,
-             profile_overrides: dict | None = None) -> None:
+    def save(
+        self,
+        uri: str,
+        crs_transformer: 'CRSTransformer',
+        class_config: 'ClassConfig',
+        bbox: Box | None = None,
+        tmp_dir: str | None = None,
+        save_as_rgb: bool = False,
+        discrete_output: bool = True,
+        smooth_output: bool = True,
+        smooth_as_uint8: bool = False,
+        rasterio_block_size: int = 512,
+        vector_outputs: 'Sequence[VectorOutputConfig] | None' = None,
+        profile_overrides: dict | None = None,
+    ) -> None:
         """Save labels as rasters and/or vectors.
 
         If URI is remote, all files will be first written locally and then
@@ -601,5 +636,6 @@ class SemanticSegmentationSmoothLabels(SemanticSegmentationLabels):
             smooth_output=smooth_output,
             smooth_as_uint8=smooth_as_uint8,
             rasterio_block_size=rasterio_block_size,
-            vector_outputs=vector_outputs)
+            vector_outputs=vector_outputs,
+        )
         label_store.save(self, profile=profile_overrides)

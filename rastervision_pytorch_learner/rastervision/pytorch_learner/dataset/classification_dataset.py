@@ -2,12 +2,19 @@ from typing import TYPE_CHECKING, Iterable
 import logging
 
 from rastervision.pytorch_learner.dataset import (
-    ImageDataset, TransformType, SlidingWindowGeoDataset,
-    RandomWindowGeoDataset, make_image_folder_dataset)
+    ImageDataset,
+    TransformType,
+    SlidingWindowGeoDataset,
+    RandomWindowGeoDataset,
+    make_image_folder_dataset,
+)
 from rastervision.core.data.utils import make_cc_scene
 
 if TYPE_CHECKING:
-    from rastervision.core.data import ClassConfig, ChipClassificationLabelSource
+    from rastervision.core.data import (
+        ClassConfig,
+        ChipClassificationLabelSource,
+    )
 
 log = logging.getLogger(__name__)
 
@@ -20,8 +27,9 @@ class ClassificationImageDataset(ImageDataset):
     directories are located in the same parent directory.
     """
 
-    def __init__(self, data_dir: str, class_names: Iterable[str] | None, *args,
-                 **kwargs):
+    def __init__(
+        self, data_dir: str, class_names: Iterable[str] | None, *args, **kwargs
+    ):
         """Constructor.
 
         Args:
@@ -32,19 +40,22 @@ class ClassificationImageDataset(ImageDataset):
         """
         ds = make_image_folder_dataset(data_dir, classes=class_names)
         super().__init__(
-            ds, *args, **kwargs, transform_type=TransformType.classification)
+            ds, *args, **kwargs, transform_type=TransformType.classification
+        )
 
 
-def make_cc_geodataset(cls,
-                       image_uri: str | list[str],
-                       label_vector_uri: str | None = None,
-                       class_config: 'ClassConfig | None' = None,
-                       aoi_uri: str | list[str] = [],
-                       label_vector_default_class_id: int | None = None,
-                       image_raster_source_kw: dict = {},
-                       label_vector_source_kw: dict = {},
-                       label_source_kw: dict = {},
-                       **kwargs):
+def make_cc_geodataset(
+    cls,
+    image_uri: str | list[str],
+    label_vector_uri: str | None = None,
+    class_config: 'ClassConfig | None' = None,
+    aoi_uri: str | list[str] = [],
+    label_vector_default_class_id: int | None = None,
+    image_raster_source_kw: dict = {},
+    label_vector_source_kw: dict = {},
+    label_source_kw: dict = {},
+    **kwargs,
+):
     """Create an instance of this class from image and label URIs.
 
     This is a convenience method. For more fine-grained control, it is
@@ -94,7 +105,8 @@ def make_cc_geodataset(cls,
         label_vector_default_class_id=label_vector_default_class_id,
         image_raster_source_kw=image_raster_source_kw,
         label_vector_source_kw=label_vector_source_kw,
-        label_source_kw=label_source_kw)
+        label_source_kw=label_source_kw,
+    )
     ds = cls(scene, **kwargs)
     return ds
 
@@ -104,7 +116,8 @@ class ClassificationSlidingWindowGeoDataset(SlidingWindowGeoDataset):
 
     def __init__(self, *args, **kwargs):
         super().__init__(
-            *args, **kwargs, transform_type=TransformType.classification)
+            *args, **kwargs, transform_type=TransformType.classification
+        )
 
     def init_windows(self):
         super().init_windows()
@@ -118,4 +131,5 @@ class ClassificationRandomWindowGeoDataset(RandomWindowGeoDataset):
 
     def __init__(self, *args, **kwargs):
         super().__init__(
-            *args, **kwargs, transform_type=TransformType.classification)
+            *args, **kwargs, transform_type=TransformType.classification
+        )

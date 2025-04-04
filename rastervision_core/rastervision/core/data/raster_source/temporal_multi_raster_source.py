@@ -4,8 +4,10 @@ from pydantic import NonNegativeInt as NonNegInt
 import numpy as np
 
 from rastervision.core.box import Box
-from rastervision.core.data.raster_source import (RasterSource,
-                                                  MultiRasterSource)
+from rastervision.core.data.raster_source import (
+    RasterSource,
+    MultiRasterSource,
+)
 from rastervision.core.data.utils import all_equal, parse_array_slices_Nd
 
 if TYPE_CHECKING:
@@ -15,11 +17,13 @@ if TYPE_CHECKING:
 class TemporalMultiRasterSource(MultiRasterSource):
     """Merge multiple ``RasterSources`` by stacking them along a new dim."""
 
-    def __init__(self,
-                 raster_sources: Sequence[RasterSource],
-                 primary_source_idx: NonNegInt = 0,
-                 raster_transformers: Sequence['RasterTransformer'] = [],
-                 bbox: Box | None = None):
+    def __init__(
+        self,
+        raster_sources: Sequence[RasterSource],
+        primary_source_idx: NonNegInt = 0,
+        raster_transformers: Sequence['RasterTransformer'] = [],
+        bbox: Box | None = None,
+    ):
         """Constructor.
 
         Args:
@@ -35,12 +39,14 @@ class TemporalMultiRasterSource(MultiRasterSource):
         """
         if not all_equal([rs.num_channels for rs in raster_sources]):
             raise ValueError(
-                'All sub raster sources must have the same num_channels.')
+                'All sub raster sources must have the same num_channels.'
+            )
 
         # validate primary_source_idx
         if not (0 <= primary_source_idx < len(raster_sources)):
-            raise IndexError('primary_source_idx must be in range '
-                             '[0, len(raster_sources)].')
+            raise IndexError(
+                'primary_source_idx must be in range [0, len(raster_sources)].'
+            )
 
         primary_rs = raster_sources[primary_source_idx]
         dtype_raw = primary_rs.dtype
@@ -58,7 +64,8 @@ class TemporalMultiRasterSource(MultiRasterSource):
             num_channels_raw=num_channels_raw,
             dtype_raw=dtype_raw,
             bbox=bbox,
-            raster_transformers=raster_transformers)
+            raster_transformers=raster_transformers,
+        )
 
         self.raster_sources = raster_sources
         self.primary_source_idx = primary_source_idx
@@ -74,10 +81,12 @@ class TemporalMultiRasterSource(MultiRasterSource):
         """Not implemented for ``TemporalMultiRasterSource``."""
         raise NotImplementedError(
             'Create raster sources by calling MultiRasterSource.from_stac() '
-            'on each Item and then pass them to TemporalMultiRasterSource.')
+            'on each Item and then pass them to TemporalMultiRasterSource.'
+        )
 
-    def _get_chip(self, window: Box,
-                  out_shape: tuple[int, int] | None = None) -> np.ndarray:
+    def _get_chip(
+        self, window: Box, out_shape: tuple[int, int] | None = None
+    ) -> np.ndarray:
         """Get chip w/o applying channel_order and transformers.
 
         Args:
@@ -93,8 +102,9 @@ class TemporalMultiRasterSource(MultiRasterSource):
         chip = np.stack(sub_chips)
         return chip
 
-    def get_chip(self, window: Box,
-                 out_shape: tuple[int, int] | None = None) -> np.ndarray:
+    def get_chip(
+        self, window: Box, out_shape: tuple[int, int] | None = None
+    ) -> np.ndarray:
         """Return the transformed chip in the window.
 
         Get processed chips from sub raster sources (with their respective
@@ -123,10 +133,11 @@ class TemporalMultiRasterSource(MultiRasterSource):
             return self.get_chip(key)
 
         window, (t, h, w, c) = parse_array_slices_Nd(
-            key, extent=self.extent, dims=4)
+            key, extent=self.extent, dims=4
+        )
         chip = self.get_chip(window)
         if h.step is not None or w.step is not None:
-            chip = chip[:, ::h.step, ::w.step, :]
+            chip = chip[:, :: h.step, :: w.step, :]
         chip = chip[t, ...]
         chip = chip[..., c]
 

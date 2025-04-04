@@ -17,11 +17,13 @@ log = logging.getLogger(__name__)
 class ObjectDetectionGeoJSONStore(LabelStore):
     """Storage for object detection predictions."""
 
-    def __init__(self,
-                 uri: str,
-                 class_config: 'ClassConfig',
-                 crs_transformer: 'CRSTransformer',
-                 bbox: 'Box | None' = None):
+    def __init__(
+        self,
+        uri: str,
+        class_config: 'ClassConfig',
+        crs_transformer: 'CRSTransformer',
+        bbox: 'Box | None' = None,
+    ):
         """Constructor.
 
         Args:
@@ -51,15 +53,18 @@ class ObjectDetectionGeoJSONStore(LabelStore):
             class_ids,
             self.crs_transformer,
             self.class_config,
-            scores=scores)
+            scores=scores,
+        )
         json_to_file(geojson, self.uri)
 
     def get_labels(self) -> ObjectDetectionLabels:
         vector_source = GeoJSONVectorSourceConfig(uris=self.uri).build(
             class_config=self.class_config,
-            crs_transformer=self.crs_transformer)
+            crs_transformer=self.crs_transformer,
+        )
         labels = ObjectDetectionLabels.from_geojson(
-            vector_source.get_geojson())
+            vector_source.get_geojson()
+        )
         if self.bbox is not None:
             labels = ObjectDetectionLabels.get_overlapping(labels, self.bbox)
         return labels

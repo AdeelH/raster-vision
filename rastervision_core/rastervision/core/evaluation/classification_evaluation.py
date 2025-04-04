@@ -1,7 +1,7 @@
 """Defines abstract base evaluation class for all tasks."""
 
 from typing import TYPE_CHECKING, Any
-from abc import (ABC, abstractmethod)
+from abc import ABC, abstractmethod
 import copy
 import json
 
@@ -69,12 +69,13 @@ class ClassificationEvaluation(ABC):
             output_uri: string URI for the file to write.
         """
         json_str = json.dumps(
-            ensure_json_serializable(self.to_json()), indent=4)
+            ensure_json_serializable(self.to_json()), indent=4
+        )
         str_to_file(json_str, output_uri)
 
-    def merge(self,
-              other: 'ClassificationEvaluation',
-              scene_id: str | None = None) -> None:
+    def merge(
+        self, other: 'ClassificationEvaluation', scene_id: str | None = None
+    ) -> None:
         """Merge Evaluation for another Scene into this one.
 
         This is useful for computing the average metrics of a set of scenes.
@@ -133,7 +134,7 @@ class ClassificationEvaluation(ABC):
             'metrics': avg_metrics,
             'gt_count': gt_count,
             'pred_count': pred_count,
-            'count_error': count_error
+            'count_error': count_error,
         }
         if self.conf_mat is not None:
             cm = self.conf_mat

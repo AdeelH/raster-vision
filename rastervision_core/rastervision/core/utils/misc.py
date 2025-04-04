@@ -16,11 +16,12 @@ def ensure_tuple(x: T, n: int = 2) -> tuple[T, ...]:
 
 
 def calculate_required_padding(
-        extent_sz: PosInt | tuple[PosInt, PosInt],
-        chip_sz: PosInt | tuple[PosInt, PosInt],
-        stride: PosInt | tuple[PosInt, PosInt],
-        pad_direction: Literal['start', 'end', 'both'],
-        crop_sz: NonNegInt | None = None) -> tuple[NonNegInt, NonNegInt]:
+    extent_sz: PosInt | tuple[PosInt, PosInt],
+    chip_sz: PosInt | tuple[PosInt, PosInt],
+    stride: PosInt | tuple[PosInt, PosInt],
+    pad_direction: Literal['start', 'end', 'both'],
+    crop_sz: NonNegInt | None = None,
+) -> tuple[NonNegInt, NonNegInt]:
     """Calculate min padding to ensure sliding windows cover all pixels.
 
     Args:
@@ -47,18 +48,21 @@ def calculate_required_padding(
 
     if chip_h < stride_h or chip_w < stride_w:
         raise ValueError(
-            f'chip_sz ({chip_sz}) cannot be less than stride ({stride}).')
+            f'chip_sz ({chip_sz}) cannot be less than stride ({stride}).'
+        )
 
     if crop_sz is not None and crop_sz > 0:
         if pad_direction != 'both':
             raise ValueError(
-                'crop_sz is only supported with pad_direction="both"')
+                'crop_sz is only supported with pad_direction="both"'
+            )
         cropped_chip_h = chip_h - 2 * crop_sz
         cropped_chip_w = chip_w - 2 * crop_sz
         if cropped_chip_h < stride_h or cropped_chip_w < stride_w:
             raise ValueError(
                 f'Cropped chip size ({(cropped_chip_h, cropped_chip_w)}) '
-                f'cannot be less than stride ({stride}).')
+                f'cannot be less than stride ({stride}).'
+            )
         h_padding, w_padding = calculate_required_padding(
             extent_sz,
             (cropped_chip_h, cropped_chip_w),

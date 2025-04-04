@@ -8,8 +8,11 @@ import boto3
 from rastervision.pipeline import rv_config_ as rv_config
 from rastervision.pipeline.runner import Runner
 from rastervision.pipeline.file_system import FileSystem
-from rastervision.pipeline.file_system.utils import (str_to_file, get_tmp_dir,
-                                                     upload_or_copy)
+from rastervision.pipeline.file_system.utils import (
+    str_to_file,
+    get_tmp_dir,
+    upload_or_copy,
+)
 
 if TYPE_CHECKING:
     from rastervision.pipeline.pipeline import Pipeline
@@ -64,15 +67,15 @@ class AWSSageMakerRunner(Runner):
         max_run_time=
     """
 
-    def run(self,
-            cfg_json_uri: str,
-            pipeline: 'Pipeline',
-            commands: list[str],
-            num_splits: int = 1,
-            cmd_prefix: list[str] = [
-                'python', '-m', 'rastervision.pipeline.cli'
-            ],
-            pipeline_run_name: str = 'rv'):
+    def run(
+        self,
+        cfg_json_uri: str,
+        pipeline: 'Pipeline',
+        commands: list[str],
+        num_splits: int = 1,
+        cmd_prefix: list[str] = ['python', '-m', 'rastervision.pipeline.cli'],
+        pipeline_run_name: str = 'rv',
+    ):
         config = rv_config.get_namespace_config(AWS_SAGEMAKER)
         role = config('role')
 
@@ -82,7 +85,8 @@ class AWSSageMakerRunner(Runner):
             commands,
             num_splits,
             cmd_prefix=cmd_prefix,
-            pipeline_run_name=pipeline_run_name)
+            pipeline_run_name=pipeline_run_name,
+        )
 
         # Submit the pipeline to SageMaker
         iam_client = boto3.client('iam')
@@ -92,20 +96,21 @@ class AWSSageMakerRunner(Runner):
 
         pprint(execution.describe())
 
-    def build_pipeline(self,
-                       cfg_json_uri: str,
-                       pipeline: 'Pipeline',
-                       commands: list[str],
-                       num_splits: int = 1,
-                       cmd_prefix: list[str] = [
-                           'python', '-m', 'rastervision.pipeline.cli'
-                       ],
-                       pipeline_run_name: str = 'rv') -> 'SageMakerPipeline':
+    def build_pipeline(
+        self,
+        cfg_json_uri: str,
+        pipeline: 'Pipeline',
+        commands: list[str],
+        num_splits: int = 1,
+        cmd_prefix: list[str] = ['python', '-m', 'rastervision.pipeline.cli'],
+        pipeline_run_name: str = 'rv',
+    ) -> 'SageMakerPipeline':
         """Build a SageMaker Pipeline with each command as a step within it."""
         from sagemaker.workflow.pipeline_context import PipelineSession
         from sagemaker.workflow.pipeline import Pipeline as SageMakerPipeline
         from sagemaker.workflow.pipeline_definition_config import (
-            PipelineDefinitionConfig)
+            PipelineDefinitionConfig,
+        )
 
         verbosity = rv_config.get_verbosity_cli_opt()
         config = rv_config.get_namespace_config(AWS_SAGEMAKER)
@@ -118,16 +123,20 @@ class AWSSageMakerRunner(Runner):
 
         train_image = config('train_image', default=gpu_image)
         train_instance_type = config(
-            'train_instance_type', default=gpu_instance_type)
+            'train_instance_type', default=gpu_instance_type
+        )
         train_instance_count = int(config('train_instance_count', default='1'))
 
         use_spot_instances = config('use_spot_instances').lower() == 'yes'
         spot_instance_max_wait_time = int(
             config(
                 'spot_instance_max_wait_time',
-                default=str(DEFAULT_MAX_RUN_TIME)))
+                default=str(DEFAULT_MAX_RUN_TIME),
+            )
+        )
         max_run_time = int(
-            config('max_run_time', default=str(DEFAULT_MAX_RUN_TIME)))
+            config('max_run_time', default=str(DEFAULT_MAX_RUN_TIME))
+        )
         sagemaker_session = PipelineSession()
 
         steps = []
@@ -147,8 +156,9 @@ class AWSSageMakerRunner(Runner):
             else:
                 use_gpu = command in pipeline.gpu_commands
                 image_uri = gpu_image if use_gpu else cpu_image
-                instance_type = (gpu_instance_type
-                                 if use_gpu else cpu_instance_type)
+                instance_type = (
+                    gpu_instance_type if use_gpu else cpu_instance_type
+                )
                 instance_count = 1
                 use_spot_instances = False
 
@@ -160,10 +170,11 @@ class AWSSageMakerRunner(Runner):
                 for i in range(num_splits):
                     split_cmd = cmd + [
                         '--split-ind',
-                        str(i), '--num-splits',
-                        str(num_splits)
+                        str(i),
+                        '--num-splits',
+                        str(num_splits),
                     ]
-                    split_job_name = f'{job_name}_{i+1}of{num_splits}'
+                    split_job_name = f'{job_name}_{i + 1}of{num_splits}'
                     step_split = self.build_step(
                         pipeline,
                         step_name=command,
@@ -201,28 +212,32 @@ class AWSSageMakerRunner(Runner):
                 steps.append(step)
 
         pipeline_definition_config = PipelineDefinitionConfig(
-            use_custom_job_prefix=True)
+            use_custom_job_prefix=True
+        )
         sagemaker_pipeline = SageMakerPipeline(
             name=pipeline_run_name,
             steps=steps,
             sagemaker_session=sagemaker_session,
-            pipeline_definition_config=pipeline_definition_config)
+            pipeline_definition_config=pipeline_definition_config,
+        )
         return sagemaker_pipeline
 
-    def build_step(self,
-                   pipeline: 'RVPipeline',
-                   step_name: str,
-                   job_name: str,
-                   cmd: list[str],
-                   role: str,
-                   image_uri: str,
-                   instance_type: str,
-                   use_spot_instances: bool,
-                   sagemaker_session: 'PipelineSession',
-                   instance_count: int = 1,
-                   max_wait: int = DEFAULT_MAX_RUN_TIME,
-                   max_run: int = DEFAULT_MAX_RUN_TIME,
-                   **kwargs) -> 'TrainingStep | ProcessingStep':
+    def build_step(
+        self,
+        pipeline: 'RVPipeline',
+        step_name: str,
+        job_name: str,
+        cmd: list[str],
+        role: str,
+        image_uri: str,
+        instance_type: str,
+        use_spot_instances: bool,
+        sagemaker_session: 'PipelineSession',
+        instance_count: int = 1,
+        max_wait: int = DEFAULT_MAX_RUN_TIME,
+        max_run: int = DEFAULT_MAX_RUN_TIME,
+        **kwargs,
+    ) -> 'TrainingStep | ProcessingStep':
         """Build appropriate SageMaker pipeline step.
 
         If ``step_name=='train'``, builds a :class:`.TrainingStep`. Otherwise,
@@ -263,19 +278,22 @@ class AWSSageMakerRunner(Runner):
                 **kwargs,
             )
             step_args: '_JobStepArguments | None' = step_processor.run(
-                wait=False)
+                wait=False
+            )
             step = ProcessingStep(job_name, step_args=step_args)
 
         return step
 
-    def run_command(self,
-                    cmd: list[str],
-                    use_gpu: bool = False,
-                    image_uri: str | None = None,
-                    instance_type: str | None = None,
-                    role: str | None = None,
-                    job_name: str | None = None,
-                    sagemaker_session: 'Session | None' = None) -> None:
+    def run_command(
+        self,
+        cmd: list[str],
+        use_gpu: bool = False,
+        image_uri: str | None = None,
+        instance_type: str | None = None,
+        role: str | None = None,
+        job_name: str | None = None,
+        sagemaker_session: 'Session | None' = None,
+    ) -> None:
         """Run a single command as a SageMaker processing job.
 
         Args:
@@ -309,6 +327,7 @@ class AWSSageMakerRunner(Runner):
             instance_type = config(f'{device}_instance_type')
         if sagemaker_session is None:
             from sagemaker import Session
+
             sagemaker_session = Session()
 
         processor = Processor(
@@ -322,17 +341,19 @@ class AWSSageMakerRunner(Runner):
         )
         processor.run()
 
-    def _build_pytorch_estimator(self,
-                                 pipeline_cfg: 'RVPipelineConfig',
-                                 role: str,
-                                 image_uri: str,
-                                 instance_type: str,
-                                 sagemaker_session: 'PipelineSession',
-                                 use_spot_instances: bool = False,
-                                 instance_count: int = 1,
-                                 distribution: dict | None = None,
-                                 job_name: str | None = None,
-                                 **kwargs):
+    def _build_pytorch_estimator(
+        self,
+        pipeline_cfg: 'RVPipelineConfig',
+        role: str,
+        image_uri: str,
+        instance_type: str,
+        sagemaker_session: 'PipelineSession',
+        use_spot_instances: bool = False,
+        instance_count: int = 1,
+        distribution: dict | None = None,
+        job_name: str | None = None,
+        **kwargs,
+    ):
         from sagemaker.pytorch import PyTorch
         from rastervision.aws_s3.s3_file_system import S3FileSystem
 
@@ -341,13 +362,14 @@ class AWSSageMakerRunner(Runner):
 
         train_uri = pipeline_cfg.train_uri
         if FileSystem.get_file_system(train_uri) != S3FileSystem:
-            raise ValueError('Pipeline\'s train_uri must be an S3 URI.')
+            raise ValueError("Pipeline's train_uri must be an S3 URI.")
 
         with get_tmp_dir() as source_dir:
             # create script from template
             script_path = join(source_dir, PYTORCH_ESTIMATOR_SCRIPT_FILENAME)
             _write_train_script(
-                script_path, cfg_json_uri=pipeline_cfg.get_config_uri())
+                script_path, cfg_json_uri=pipeline_cfg.get_config_uri()
+            )
             # tar and upload to S3
             tar_path = _tar_script(script_path, source_dir)
             tar_path_s3 = join(train_uri, PYTORCH_ESTIMATOR_TAR_FILENAME)
@@ -371,7 +393,8 @@ class AWSSageMakerRunner(Runner):
 
 def _write_train_script(script_path: str, cfg_json_uri: str):
     script_str = PYTORCH_ESTIMATOR_SCRIPT_TEMPLATE.format(
-        cfg_json_uri=cfg_json_uri, rv_cmd='train')
+        cfg_json_uri=cfg_json_uri, rv_cmd='train'
+    )
     log.debug(script_path)
     log.debug(script_str)
     str_to_file(script_str, script_path)

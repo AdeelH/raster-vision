@@ -8,33 +8,43 @@ from pystac import Item
 from rastervision.pipeline.file_system import get_tmp_dir
 from rastervision.core.box import Box
 from rastervision.core.data import (
-    RasterioSourceConfig, MultiRasterSource, MultiRasterSourceConfig,
-    ReclassTransformerConfig, CastTransformerConfig, XarraySource,
-    IdentityCRSTransformer, TemporalMultiRasterSource)
+    RasterioSourceConfig,
+    MultiRasterSource,
+    MultiRasterSourceConfig,
+    ReclassTransformerConfig,
+    CastTransformerConfig,
+    XarraySource,
+    IdentityCRSTransformer,
+    TemporalMultiRasterSource,
+)
 from rastervision.core.data.raster_source.multi_raster_source_config import (
-    multi_rs_config_upgrader)
+    multi_rs_config_upgrader,
+)
 
 from tests import data_file_path
 
 
-def make_cfg(img_path: str = 'small-rgb-tile.tif',
-             **kwargs) -> MultiRasterSourceConfig:
+def make_cfg(
+    img_path: str = 'small-rgb-tile.tif', **kwargs
+) -> MultiRasterSourceConfig:
     img_path = data_file_path(img_path)
     r_source = RasterioSourceConfig(uris=[img_path])
     g_source = RasterioSourceConfig(uris=[img_path])
     b_source = RasterioSourceConfig(uris=[img_path])
 
     cfg = MultiRasterSourceConfig(
-        raster_sources=[r_source, g_source, b_source], **kwargs)
+        raster_sources=[r_source, g_source, b_source], **kwargs
+    )
     return cfg
 
 
-def make_cfg_diverse(diff_dtypes: bool = False,
-                     **kwargs) -> MultiRasterSourceConfig:
+def make_cfg_diverse(
+    diff_dtypes: bool = False, **kwargs
+) -> MultiRasterSourceConfig:
     img_paths = [
         data_file_path('multi_raster_source/const_100_600x600.tiff'),
         data_file_path('multi_raster_source/const_175_60x60.tiff'),
-        data_file_path('multi_raster_source/const_250_6x6.tiff')
+        data_file_path('multi_raster_source/const_250_6x6.tiff'),
     ]
     transformers = [[]] * 3
     if diff_dtypes:
@@ -129,8 +139,9 @@ class TestMultiRasterSource(unittest.TestCase):
 
         self.assertEqual(rs.extent, primary_rs.extent)
         self.assertEqual(rs.dtype, primary_rs.dtype)
-        self.assertEqual(rs.crs_transformer.transform,
-                         primary_rs.crs_transformer.transform)
+        self.assertEqual(
+            rs.crs_transformer.transform, primary_rs.crs_transformer.transform
+        )
 
     def test_dtype_validation(self):
         cfg = make_cfg_diverse(diff_dtypes=True)
@@ -160,22 +171,21 @@ class TestMultiRasterSource(unittest.TestCase):
         source_2 = RasterioSourceConfig(
             uris=[path],
             channel_order=[0],
-            transformers=[ReclassTransformerConfig(mapping={100: 175})])
+            transformers=[ReclassTransformerConfig(mapping={100: 175})],
+        )
         source_3 = RasterioSourceConfig(
             uris=[path],
             channel_order=[0],
-            transformers=[ReclassTransformerConfig(mapping={100: 250})])
+            transformers=[ReclassTransformerConfig(mapping={100: 250})],
+        )
 
         cfg = MultiRasterSourceConfig(
             raster_sources=[source_1, source_2, source_3],
             channel_order=[2, 1, 0],
             transformers=[
-                ReclassTransformerConfig(mapping={
-                    100: 10,
-                    175: 17,
-                    250: 25
-                })
-            ])
+                ReclassTransformerConfig(mapping={100: 10, 175: 17, 250: 25})
+            ],
+        )
         rs = cfg.build(tmp_dir=self.tmp_dir)
 
         window = Box(0, 0, 100, 100)
@@ -183,7 +193,8 @@ class TestMultiRasterSource(unittest.TestCase):
         # sub transformers and channel_order applied
         chip = rs._get_chip(window)
         self.assertEqual(
-            tuple(chip.reshape(-1, 3).mean(axis=0)), (100, 175, 250))
+            tuple(chip.reshape(-1, 3).mean(axis=0)), (100, 175, 250)
+        )
 
         # sub transformers, channel_order, and transformer applied
         chip = rs.get_chip(window)
@@ -195,13 +206,16 @@ class TestMultiRasterSource(unittest.TestCase):
         for get_chip_fn in [rs._get_chip, rs.get_chip]:
             ch_1_only = get_chip_fn(Box(0, 0, 10, 10))
             self.assertEqual(
-                tuple(ch_1_only.reshape(-1, 3).mean(axis=0)), (100, 0, 0))
+                tuple(ch_1_only.reshape(-1, 3).mean(axis=0)), (100, 0, 0)
+            )
             ch_2_only = get_chip_fn(Box(0, 600, 10, 600 + 10))
             self.assertEqual(
-                tuple(ch_2_only.reshape(-1, 3).mean(axis=0)), (0, 175, 0))
+                tuple(ch_2_only.reshape(-1, 3).mean(axis=0)), (0, 175, 0)
+            )
             ch_3_only = get_chip_fn(Box(600, 0, 600 + 10, 10))
             self.assertEqual(
-                tuple(ch_3_only.reshape(-1, 3).mean(axis=0)), (0, 0, 250))
+                tuple(ch_3_only.reshape(-1, 3).mean(axis=0)), (0, 0, 250)
+            )
             full_img = get_chip_fn(Box(0, 0, 600, 600))
             self.assertEqual(set(np.unique(full_img[..., 0])), {100})
             self.assertEqual(set(np.unique(full_img[..., 1])), {0, 175})
@@ -239,7 +253,8 @@ class TestMultiRasterSource(unittest.TestCase):
         # test bbox
         bbox = Box(ymin=0, xmin=0, ymax=100, xmax=100)
         rs = MultiRasterSource.from_stac(
-            item, assets=['red', 'green'], bbox=bbox)
+            item, assets=['red', 'green'], bbox=bbox
+        )
         self.assertEqual(rs.bbox, bbox)
 
         # test bbox_map_coords
@@ -250,7 +265,8 @@ class TestMultiRasterSource(unittest.TestCase):
             xmax=31.136567,
         )
         rs = MultiRasterSource.from_stac(
-            item, assets=['red', 'green'], bbox_map_coords=bbox_map_coords)
+            item, assets=['red', 'green'], bbox_map_coords=bbox_map_coords
+        )
         self.assertEqual(rs.bbox, Box(ymin=51, xmin=50, ymax=207, xmax=206))
 
         # test error if both bbox and bbox_map_coords specified
@@ -258,9 +274,11 @@ class TestMultiRasterSource(unittest.TestCase):
             item=item,
             assets=['red', 'green'],
             bbox=bbox,
-            bbox_map_coords=bbox_map_coords)
-        self.assertRaises(ValueError,
-                          lambda: MultiRasterSource.from_stac(**args))
+            bbox_map_coords=bbox_map_coords,
+        )
+        self.assertRaises(
+            ValueError, lambda: MultiRasterSource.from_stac(**args)
+        )
 
 
 if __name__ == '__main__':

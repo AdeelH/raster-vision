@@ -19,12 +19,14 @@ class MultiRasterSource(RasterSource):
     Merge multiple ``RasterSources`` by concatenating along the channel dim.
     """
 
-    def __init__(self,
-                 raster_sources: Sequence[RasterSource],
-                 primary_source_idx: NonNegInt = 0,
-                 channel_order: Sequence[NonNegInt] | None = None,
-                 raster_transformers: Sequence['RasterTransformer'] = [],
-                 bbox: Box | None = None):
+    def __init__(
+        self,
+        raster_sources: Sequence[RasterSource],
+        primary_source_idx: NonNegInt = 0,
+        channel_order: Sequence[NonNegInt] | None = None,
+        raster_transformers: Sequence['RasterTransformer'] = [],
+        bbox: Box | None = None,
+    ):
         """Constructor.
 
         Args:
@@ -49,8 +51,9 @@ class MultiRasterSource(RasterSource):
 
         # validate primary_source_idx
         if not (0 <= primary_source_idx < len(raster_sources)):
-            raise IndexError('primary_source_idx must be in range '
-                             '[0, len(raster_sources)].')
+            raise IndexError(
+                'primary_source_idx must be in range [0, len(raster_sources)].'
+            )
 
         if bbox is None:
             bbox = raster_sources[primary_source_idx].bbox
@@ -62,27 +65,30 @@ class MultiRasterSource(RasterSource):
             num_channels_raw=num_channels_raw,
             dtype_raw=dtype_raw,
             bbox=bbox,
-            raster_transformers=raster_transformers)
+            raster_transformers=raster_transformers,
+        )
 
         self.raster_sources = raster_sources
         self.primary_source_idx = primary_source_idx
         self.non_primary_sources = [
-            rs for i, rs in enumerate(raster_sources)
+            rs
+            for i, rs in enumerate(raster_sources)
             if i != primary_source_idx
         ]
         self.validate_raster_sources()
 
     @classmethod
     def from_stac(
-            cls,
-            item: Item,
-            assets: list[str] | None,
-            primary_source_idx: NonNegInt = 0,
-            raster_transformers: list['RasterTransformer'] = [],
-            channel_order: Sequence[int] | None = None,
-            bbox: Box | tuple[int, int, int, int] | None = None,
-            bbox_map_coords: Box | tuple[int, int, int, int] | None = None,
-            allow_streaming: bool = False) -> 'Self':
+        cls,
+        item: Item,
+        assets: list[str] | None,
+        primary_source_idx: NonNegInt = 0,
+        raster_transformers: list['RasterTransformer'] = [],
+        channel_order: Sequence[int] | None = None,
+        bbox: Box | tuple[int, int, int, int] | None = None,
+        bbox_map_coords: Box | tuple[int, int, int, int] | None = None,
+        allow_streaming: bool = False,
+    ) -> 'Self':
         """Construct a ``MultiRasterSource`` from a STAC Item.
 
         This creates a :class:`.RasterioSource` for each asset and puts all
@@ -117,8 +123,9 @@ class MultiRasterSource(RasterSource):
                 assets will be downloaded. Defaults to ``True``.
         """
         if bbox is not None and bbox_map_coords is not None:
-            raise ValueError('Specify either bbox or bbox_map_coords, '
-                             'but not both.')
+            raise ValueError(
+                'Specify either bbox or bbox_map_coords, but not both.'
+            )
 
         if assets is not None:
             item = subset_assets(item, assets)
@@ -141,7 +148,8 @@ class MultiRasterSource(RasterSource):
             primary_source_idx=primary_source_idx,
             raster_transformers=raster_transformers,
             channel_order=channel_order,
-            bbox=bbox)
+            bbox=bbox,
+        )
         return raster_source
 
     def validate_raster_sources(self) -> None:
@@ -153,7 +161,8 @@ class MultiRasterSource(RasterSource):
         if not all_equal(dtypes):
             raise ValueError(
                 'dtypes of all sub raster sources must be the same. '
-                f'Got: {dtypes}.')
+                f'Got: {dtypes}.'
+            )
 
     @property
     def primary_source(self) -> RasterSource:
@@ -170,10 +179,9 @@ class MultiRasterSource(RasterSource):
     def crs_transformer(self) -> 'CRSTransformer':
         return self.primary_source.crs_transformer
 
-    def _get_sub_chips(self,
-                       window: Box,
-                       out_shape: tuple[int, int] | None = None
-                       ) -> list[np.ndarray]:
+    def _get_sub_chips(
+        self, window: Box, out_shape: tuple[int, int] | None = None
+    ) -> list[np.ndarray]:
         """Return chips from sub raster sources as a list.
 
         If all extents are identical, simply retrieves chips from each sub
@@ -197,10 +205,12 @@ class MultiRasterSource(RasterSource):
             List of chips from each sub raster source.
         """
 
-        def get_chip(rs: RasterSource,
-                     window: Box,
-                     map: bool = False,
-                     out_shape: tuple[int, int] | None = None) -> np.ndarray:
+        def get_chip(
+            rs: RasterSource,
+            window: Box,
+            map: bool = False,
+            out_shape: tuple[int, int] | None = None,
+        ) -> np.ndarray:
             if map:
                 func = rs.get_chip_by_map_window
             else:
@@ -214,7 +224,8 @@ class MultiRasterSource(RasterSource):
         if out_shape is None:
             out_shape = primary_sub_chip.shape[:2]
         window_map_coords = primary_rs.crs_transformer.pixel_to_map(
-            window, bbox=primary_rs.bbox)
+            window, bbox=primary_rs.bbox
+        )
         sub_chips = [
             get_chip(rs, window_map_coords, map=True, out_shape=out_shape)
             for rs in other_rses
@@ -223,8 +234,9 @@ class MultiRasterSource(RasterSource):
 
         return sub_chips
 
-    def _get_chip(self, window: Box,
-                  out_shape: tuple[int, int] | None = None) -> np.ndarray:
+    def _get_chip(
+        self, window: Box, out_shape: tuple[int, int] | None = None
+    ) -> np.ndarray:
         """Get chip w/o applying channel_order and transformers.
 
         Args:
@@ -240,8 +252,9 @@ class MultiRasterSource(RasterSource):
         chip = np.concatenate(sub_chips, axis=-1)
         return chip
 
-    def get_chip(self, window: Box,
-                 out_shape: tuple[int, int] | None = None) -> np.ndarray:
+    def get_chip(
+        self, window: Box, out_shape: tuple[int, int] | None = None
+    ) -> np.ndarray:
         """Return the transformed chip in the window.
 
         Get processed chips from sub raster sources (with their respective

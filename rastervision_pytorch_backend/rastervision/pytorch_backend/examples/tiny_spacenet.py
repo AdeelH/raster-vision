@@ -11,23 +11,29 @@ from rastervision.pytorch_learner import *
 def get_config(runner) -> SemanticSegmentationConfig:
     output_root_uri = '/opt/data/output/tiny_spacenet'
     class_config = ClassConfig(
-        names=['building', 'background'], colors=['red', 'black'])
+        names=['building', 'background'], colors=['red', 'black']
+    )
 
-    base_uri = ('https://s3.amazonaws.com/azavea-research-public-data/'
-                'raster-vision/examples/spacenet')
+    base_uri = (
+        'https://s3.amazonaws.com/azavea-research-public-data/'
+        'raster-vision/examples/spacenet'
+    )
     train_image_uri = join(base_uri, 'RGB-PanSharpen_AOI_2_Vegas_img205.tif')
     train_label_uri = join(base_uri, 'buildings_AOI_2_Vegas_img205.geojson')
     val_image_uri = join(base_uri, 'RGB-PanSharpen_AOI_2_Vegas_img25.tif')
     val_label_uri = join(base_uri, 'buildings_AOI_2_Vegas_img25.geojson')
 
-    train_scene = make_scene('scene_205', train_image_uri, train_label_uri,
-                             class_config)
-    val_scene = make_scene('scene_25', val_image_uri, val_label_uri,
-                           class_config)
+    train_scene = make_scene(
+        'scene_205', train_image_uri, train_label_uri, class_config
+    )
+    val_scene = make_scene(
+        'scene_25', val_image_uri, val_label_uri, class_config
+    )
     scene_dataset = DatasetConfig(
         class_config=class_config,
         train_scenes=[train_scene],
-        validation_scenes=[val_scene])
+        validation_scenes=[val_scene],
+    )
 
     # Use the PyTorch backend for the SemanticSegmentation pipeline.
     chip_sz = 300
@@ -41,19 +47,24 @@ def get_config(runner) -> SemanticSegmentationConfig:
                 # ... of size chip_sz x chip_sz
                 size=chip_sz,
                 # ... and at most 10 chips per scene
-                max_windows=10)),
+                max_windows=10,
+            ),
+        ),
         model=SemanticSegmentationModelConfig(backbone=Backbone.resnet50),
-        solver=SolverConfig(lr=1e-4, num_epochs=1, batch_sz=2))
+        solver=SolverConfig(lr=1e-4, num_epochs=1, batch_sz=2),
+    )
 
     return SemanticSegmentationConfig(
         root_uri=output_root_uri,
         dataset=scene_dataset,
         backend=backend,
-        predict_options=SemanticSegmentationPredictOptions(chip_sz=chip_sz))
+        predict_options=SemanticSegmentationPredictOptions(chip_sz=chip_sz),
+    )
 
 
-def make_scene(scene_id: str, image_uri: str, label_uri: str,
-               class_config: ClassConfig) -> SceneConfig:
+def make_scene(
+    scene_id: str, image_uri: str, label_uri: str, class_config: ClassConfig
+) -> SceneConfig:
     """Define a Scene with image and labels from the given URIs."""
 
     raster_source = RasterioSourceConfig(
@@ -71,8 +82,10 @@ def make_scene(scene_id: str, image_uri: str, label_uri: str,
         # them.
         transformers=[
             ClassInferenceTransformerConfig(
-                default_class_id=class_config.get_class_id('building'))
-        ])
+                default_class_id=class_config.get_class_id('building')
+            )
+        ],
+    )
     # configure transformation of vector data into semantic segmentation labels
     label_source = SemanticSegmentationLabelSourceConfig(
         # semantic segmentation labels must be rasters, so rasterize the geoms
@@ -81,7 +94,10 @@ def make_scene(scene_id: str, image_uri: str, label_uri: str,
             rasterizer_config=RasterizerConfig(
                 # What about pixels outside of any geoms? Mark them as
                 # background.
-                background_class_id=class_config.get_class_id('background'))))
+                background_class_id=class_config.get_class_id('background')
+            ),
+        )
+    )
 
     return SceneConfig(
         id=scene_id,

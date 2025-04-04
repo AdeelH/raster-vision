@@ -3,9 +3,12 @@ import logging
 
 from rastervision.pipeline.config import Field, register_config
 from rastervision.core.data.raster_source.raster_source_config import (
-    RasterSourceConfig)
+    RasterSourceConfig,
+)
 from rastervision.core.data.raster_source.stac_config import (
-    STACItemConfig, STACItemCollectionConfig)
+    STACItemConfig,
+    STACItemCollectionConfig,
+)
 from rastervision.core.data.raster_source.xarray_source import XarraySource
 
 log = logging.getLogger(__name__)
@@ -17,24 +20,30 @@ class XarraySourceConfig(RasterSourceConfig):
 
     stac: STACItemConfig | STACItemCollectionConfig = Field(
         ...,
-        description='STAC Item or ItemCollection to build the DataArray from.')
+        description='STAC Item or ItemCollection to build the DataArray from.',
+    )
     allow_streaming: bool = Field(
         True,
         description='If False, load the entire DataArray into memory. '
-        'Defaults to True.')
+        'Defaults to True.',
+    )
     bbox_map_coords: tuple[float, float, float, float] | None = Field(
         None,
         description='Optional user-specified bbox in EPSG:4326 coords of the '
         'form (ymin, xmin, ymax, xmax). Useful for cropping the raster source '
         'so that only part of the raster is read from. This is ignored if '
-        'bbox is also specified. Defaults to None.')
+        'bbox is also specified. Defaults to None.',
+    )
     temporal: bool = Field(
-        False, description='Whether the data is a time-series.')
+        False, description='Whether the data is a time-series.'
+    )
     stackstac_args: dict[str, Any] = Field(
-        {}, description='Optional arguments to pass to stackstac.stack().')
+        {}, description='Optional arguments to pass to stackstac.stack().'
+    )
 
-    def build(self, tmp_dir: str | None = None,
-              use_transformers: bool = True) -> XarraySource:
+    def build(
+        self, tmp_dir: str | None = None, use_transformers: bool = True
+    ) -> XarraySource:
         item_or_item_collection = self.stac.build()
         if use_transformers:
             raster_transformers = [

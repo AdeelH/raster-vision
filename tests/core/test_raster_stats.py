@@ -8,8 +8,14 @@ from rastervision.pipeline.file_system import get_tmp_dir
 from rastervision.core.box import Box
 from rastervision.core.data import IdentityCRSTransformer, XarraySource
 from rastervision.core.raster_stats import (
-    RasterStats, get_num_chips_to_sample, random_chip_stream,
-    sliding_chip_stream, get_chip, parallel_mean, parallel_variance)
+    RasterStats,
+    get_num_chips_to_sample,
+    random_chip_stream,
+    sliding_chip_stream,
+    get_chip,
+    parallel_mean,
+    parallel_variance,
+)
 
 
 class TestRasterStats(unittest.TestCase):
@@ -36,10 +42,11 @@ class TestRasterStats(unittest.TestCase):
     def test_compute_from_pixels_validation(self):
         stats = RasterStats()
         pixels = np.zeros((5, 3), dtype=np.uint8)
-        running_mean = np.zeros((3, ), dtype=np.uint8)
+        running_mean = np.zeros((3,), dtype=np.uint8)
         args = dict(pixels=pixels, running_mean=running_mean)
-        self.assertRaises(ValueError,
-                          lambda: stats.compute_from_pixels(**args))
+        self.assertRaises(
+            ValueError, lambda: stats.compute_from_pixels(**args)
+        )
 
 
 class TestUtils(unittest.TestCase):
@@ -54,19 +61,23 @@ class TestUtils(unittest.TestCase):
         a = np.random.randint(0, 10, size=5)
         b = np.random.randint(0, 10, size=10)
         var = parallel_variance(
-            a.mean(), len(a), a.var(ddof=1), b.mean(), len(b), b.var(ddof=1))
+            a.mean(), len(a), a.var(ddof=1), b.mean(), len(b), b.var(ddof=1)
+        )
         expected_var = np.concatenate((a, b)).var(ddof=1)
         self.assertAlmostEqual(var, expected_var)
 
     def test_get_num_chips_to_sample(self):
         n = get_num_chips_to_sample(
-            extent=Box(0, 0, 1, 1), chip_sz=10, sample_prob=0.1)
+            extent=Box(0, 0, 1, 1), chip_sz=10, sample_prob=0.1
+        )
         self.assertEqual(n, 0)
         n = get_num_chips_to_sample(
-            extent=Box(0, 0, 100, 100), chip_sz=10, sample_prob=0.)
+            extent=Box(0, 0, 100, 100), chip_sz=10, sample_prob=0.0
+        )
         self.assertEqual(n, 1)
         n = get_num_chips_to_sample(
-            extent=Box(0, 0, 100, 100), chip_sz=10, sample_prob=0.1)
+            extent=Box(0, 0, 100, 100), chip_sz=10, sample_prob=0.1
+        )
         self.assertEqual(n, 10)
 
     def test_get_chip(self):
@@ -103,7 +114,7 @@ class TestUtils(unittest.TestCase):
         rs = XarraySource(da, IdentityCRSTransformer())
         chips = list(random_chip_stream([rs], chip_sz=10, sample_prob=0.5))
         self.assertEqual(len(chips), 2)
-        chips = list(random_chip_stream([rs], chip_sz=10, sample_prob=0.))
+        chips = list(random_chip_stream([rs], chip_sz=10, sample_prob=0.0))
         self.assertEqual(len(chips), 1)
 
     def test_random_chip_stream_all_nodata(self):

@@ -7,8 +7,12 @@ import rasterio as rio
 from rastervision.pipeline.file_system import get_tmp_dir
 from rastervision.core.box import Box
 from rastervision.core.data import (
-    ClassConfig, IdentityCRSTransformer, SemanticSegmentationLabels,
-    SemanticSegmentationDiscreteLabels, SemanticSegmentationSmoothLabels)
+    ClassConfig,
+    IdentityCRSTransformer,
+    SemanticSegmentationLabels,
+    SemanticSegmentationDiscreteLabels,
+    SemanticSegmentationSmoothLabels,
+)
 
 
 class TestSemanticSegmentationLabels(unittest.TestCase):
@@ -17,20 +21,28 @@ class TestSemanticSegmentationLabels(unittest.TestCase):
         num_classes = 2
 
         # smooth=False
-        msg = ('smooth=False should return a '
-               'SemanticSegmentationDiscreteLabels instance')
+        msg = (
+            'smooth=False should return a '
+            'SemanticSegmentationDiscreteLabels instance'
+        )
         labels = SemanticSegmentationLabels.make_empty(
-            extent=extent, num_classes=num_classes, smooth=False)
+            extent=extent, num_classes=num_classes, smooth=False
+        )
         self.assertIsInstance(
-            labels, SemanticSegmentationDiscreteLabels, msg=msg)
+            labels, SemanticSegmentationDiscreteLabels, msg=msg
+        )
 
         # smooth=True
-        msg = ('smooth=True should return a '
-               'SemanticSegmentationSmoothLabels instance')
+        msg = (
+            'smooth=True should return a '
+            'SemanticSegmentationSmoothLabels instance'
+        )
         labels = SemanticSegmentationLabels.make_empty(
-            extent=extent, num_classes=num_classes, smooth=True)
+            extent=extent, num_classes=num_classes, smooth=True
+        )
         self.assertIsInstance(
-            labels, SemanticSegmentationSmoothLabels, msg=msg)
+            labels, SemanticSegmentationSmoothLabels, msg=msg
+        )
 
 
 class TestSemanticSegmentationDiscreteLabels(unittest.TestCase):
@@ -42,13 +54,15 @@ class TestSemanticSegmentationDiscreteLabels(unittest.TestCase):
         self.label_arr0 = np.random.randint(0, num_classes, size=(10, 10))
         self.label_arr1 = np.random.randint(0, num_classes, size=(10, 10))
         self.labels = SemanticSegmentationDiscreteLabels(
-            extent=extent, num_classes=num_classes)
+            extent=extent, num_classes=num_classes
+        )
         self.labels[self.windows[0]] = self.label_arr0
         self.labels[self.windows[1]] = self.label_arr1
 
     def test_get_label_arr(self):
         np.testing.assert_array_equal(
-            self.labels.get_label_arr(self.windows[0]), self.label_arr0)
+            self.labels.get_label_arr(self.windows[0]), self.label_arr0
+        )
 
     def test_get_label_arr_empty(self):
         extent = Box(0, 0, 3, 3)
@@ -59,11 +73,13 @@ class TestSemanticSegmentationDiscreteLabels(unittest.TestCase):
         window = Box(0, 0, 2, 2)
         labels[window] = np.ones((2, 2))
         label_arr = labels.get_label_arr(extent)
-        exp_label_arr = np.array([
-            [1, 1, -1],
-            [1, 1, -1],
-            [-1, -1, -1],
-        ])
+        exp_label_arr = np.array(
+            [
+                [1, 1, -1],
+                [1, 1, -1],
+                [-1, -1, -1],
+            ]
+        )
         np.testing.assert_array_equal(label_arr, exp_label_arr)
 
     def test_get_with_aoi(self):
@@ -81,12 +97,14 @@ class TestSemanticSegmentationDiscreteLabels(unittest.TestCase):
         extent = Box(0, 0, 10, 10)
         num_classes = 3
         labels = SemanticSegmentationDiscreteLabels.make_empty(
-            extent=extent, num_classes=num_classes)
+            extent=extent, num_classes=num_classes
+        )
         self.assertEqual(labels.extent, extent)
         self.assertEqual(labels.num_classes, num_classes)
         self.assertEqual(labels.dtype, np.uint8)
-        self.assertEqual(labels.pixel_counts.shape,
-                         (num_classes, *extent.size))
+        self.assertEqual(
+            labels.pixel_counts.shape, (num_classes, *extent.size)
+        )
 
     def test_setitem(self):
         extent = Box(0, 0, 3, 3)
@@ -148,7 +166,8 @@ class TestSemanticSegmentationDiscreteLabels(unittest.TestCase):
 
         predictions = [make_pred_chip_labels() for _ in windows]
         labels = SemanticSegmentationDiscreteLabels.from_predictions(
-            windows, predictions, extent=extent, num_classes=2, crop_sz=10)
+            windows, predictions, extent=extent, num_classes=2, crop_sz=10
+        )
         label_arr = labels.get_label_arr(extent)
 
         exp_label_arr = np.full(extent.size, -1)
@@ -167,7 +186,8 @@ class TestSemanticSegmentationDiscreteLabels(unittest.TestCase):
             labels.save(
                 uri=uri,
                 crs_transformer=IdentityCRSTransformer(),
-                class_config=class_config)
+                class_config=class_config,
+            )
             with rio.open(join(uri, 'labels.tif'), 'r') as ds:
                 arr = ds.read(1)
                 np.testing.assert_array_equal(arr, exp_arr)
@@ -188,14 +208,15 @@ class TestSemanticSegmentationSmoothLabels(unittest.TestCase):
         self.windows = [
             Box(0, 0, 10, 10),
             Box(0, 5, 10, 15),
-            Box(0, 10, 10, 20)
+            Box(0, 10, 10, 20),
         ]
         self.scores_left = make_random_scores(self.num_classes, 10, 10)
         self.scores_mid = make_random_scores(self.num_classes, 10, 10)
         self.scores_right = make_random_scores(self.num_classes, 10, 10)
 
         self.labels = SemanticSegmentationSmoothLabels(
-            extent=self.extent, num_classes=self.num_classes)
+            extent=self.extent, num_classes=self.num_classes
+        )
         self.labels[self.windows[0]] = self.scores_left
         self.labels[self.windows[1]] = self.scores_mid
         self.labels[self.windows[2]] = self.scores_right
@@ -213,13 +234,15 @@ class TestSemanticSegmentationSmoothLabels(unittest.TestCase):
         self.expected_hits = hits
 
     def test_pixel_scores(self):
-        np.testing.assert_array_almost_equal(self.expected_scores,
-                                             self.labels.pixel_scores)
+        np.testing.assert_array_almost_equal(
+            self.expected_scores, self.labels.pixel_scores
+        )
 
     def test_get_scores_arr(self):
         avg_scores = self.expected_scores / self.expected_hits
         np.testing.assert_array_almost_equal(
-            avg_scores, self.labels.get_score_arr(self.extent))
+            avg_scores, self.labels.get_score_arr(self.extent)
+        )
 
     def test_get_label_arr(self):
         avg_scores = self.expected_scores / self.expected_hits
@@ -240,12 +263,14 @@ class TestSemanticSegmentationSmoothLabels(unittest.TestCase):
         np.testing.assert_array_equal(label_arr[2, :], np.array([-1, -1, -1]))
 
     def test_pixel_hits(self):
-        np.testing.assert_array_equal(self.expected_hits,
-                                      self.labels.pixel_hits)
+        np.testing.assert_array_equal(
+            self.expected_hits, self.labels.pixel_hits
+        )
 
     def test_eq(self):
         labels = SemanticSegmentationSmoothLabels(
-            extent=self.extent, num_classes=self.num_classes)
+            extent=self.extent, num_classes=self.num_classes
+        )
         labels.pixel_hits = self.expected_hits
         labels.pixel_scores = self.expected_scores
         self.assertTrue(labels == self.labels)
@@ -267,10 +292,12 @@ class TestSemanticSegmentationSmoothLabels(unittest.TestCase):
 
     def test_from_predictions(self):
         def make_pred_chip() -> np.ndarray:
-            chip = np.concatenate([
-                np.random.uniform(0.001, 0.5, size=(1, 40, 40)),
-                np.random.uniform(0.5, 1, size=(1, 40, 40))
-            ])
+            chip = np.concatenate(
+                [
+                    np.random.uniform(0.001, 0.5, size=(1, 40, 40)),
+                    np.random.uniform(0.5, 1, size=(1, 40, 40)),
+                ]
+            )
             chip[1, 10:-10, 10:-10] = 0
             chip /= chip.sum(axis=0)
             return chip
@@ -280,7 +307,8 @@ class TestSemanticSegmentationSmoothLabels(unittest.TestCase):
 
         predictions = [make_pred_chip() for _ in windows]
         labels = SemanticSegmentationSmoothLabels.from_predictions(
-            windows, predictions, extent=extent, num_classes=2, crop_sz=10)
+            windows, predictions, extent=extent, num_classes=2, crop_sz=10
+        )
         label_arr = labels.get_label_arr(extent)
 
         exp_label_arr = np.full(extent.size, -1)
@@ -301,7 +329,8 @@ class TestSemanticSegmentationSmoothLabels(unittest.TestCase):
             labels.save(
                 uri=uri,
                 crs_transformer=IdentityCRSTransformer(),
-                class_config=class_config)
+                class_config=class_config,
+            )
 
             with rio.open(join(uri, 'labels.tif'), 'r') as ds:
                 arr = ds.read(1)

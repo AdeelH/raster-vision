@@ -5,7 +5,9 @@ import uuid
 from rastervision.pipeline.file_system import make_dir
 from rastervision.core.data_sample import DataSample
 from rastervision.pytorch_backend.pytorch_learner_backend import (
-    PyTorchLearnerSampleWriter, PyTorchLearnerBackend)
+    PyTorchLearnerSampleWriter,
+    PyTorchLearnerBackend,
+)
 from rastervision.pytorch_backend.utils import chip_collate_fn_cc
 from rastervision.core.data import ChipClassificationLabels
 from rastervision.pytorch_learner.utils import predict_scene_cc
@@ -47,26 +49,32 @@ class PyTorchChipClassification(PyTorchLearnerBackend):
     def get_sample_writer(self):
         output_uri = join(self.pipeline_cfg.chip_uri, f'{uuid.uuid4()}.zip')
         return PyTorchChipClassificationSampleWriter(
-            output_uri, self.pipeline_cfg.dataset.class_config, self.tmp_dir)
+            output_uri, self.pipeline_cfg.dataset.class_config, self.tmp_dir
+        )
 
-    def chip_dataset(self,
-                     dataset: 'DatasetConfig',
-                     chip_options: 'ChipOptions',
-                     dataloader_kw: dict = {}) -> None:
+    def chip_dataset(
+        self,
+        dataset: 'DatasetConfig',
+        chip_options: 'ChipOptions',
+        dataloader_kw: dict = {},
+    ) -> None:
         dataloader_kw = dict(**dataloader_kw, collate_fn=chip_collate_fn_cc)
         return super().chip_dataset(dataset, chip_options, dataloader_kw)
 
-    def predict_scene(self, scene: 'Scene', predict_options: 'PredictOptions'
-                      ) -> 'ChipClassificationLabels':
+    def predict_scene(
+        self, scene: 'Scene', predict_options: 'PredictOptions'
+    ) -> 'ChipClassificationLabels':
         if self.learner is None:
             self.load_model()
         labels = predict_scene_cc(self.learner, scene, predict_options)
         return labels
 
     def _make_chip_data_config(
-            self, dataset: 'DatasetConfig',
-            chip_options: 'ChipOptions') -> 'ClassificationGeoDataConfig':
-        from rastervision.pytorch_learner import (ClassificationGeoDataConfig)
+        self, dataset: 'DatasetConfig', chip_options: 'ChipOptions'
+    ) -> 'ClassificationGeoDataConfig':
+        from rastervision.pytorch_learner import ClassificationGeoDataConfig
+
         data_config = ClassificationGeoDataConfig(
-            scene_dataset=dataset, sampling=chip_options.sampling)
+            scene_dataset=dataset, sampling=chip_options.sampling
+        )
         return data_config

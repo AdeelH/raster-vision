@@ -10,14 +10,25 @@ from torchvision import models
 
 from rastervision.core.data import Scene
 from rastervision.core.rv_pipeline import WindowSamplingMethod
-from rastervision.pipeline.config import (Config, register_config, Field,
-                                          field_validator, ConfigError)
+from rastervision.pipeline.config import (
+    Config,
+    register_config,
+    Field,
+    field_validator,
+    ConfigError,
+)
 from rastervision.pytorch_learner.learner_config import (
-    Backbone, LearnerConfig, ModelConfig, ImageDataConfig, GeoDataConfig)
+    Backbone,
+    LearnerConfig,
+    ModelConfig,
+    ImageDataConfig,
+    GeoDataConfig,
+)
 from rastervision.pytorch_learner.dataset import (
     SemanticSegmentationImageDataset,
     SemanticSegmentationSlidingWindowGeoDataset,
-    SemanticSegmentationRandomWindowGeoDataset)
+    SemanticSegmentationRandomWindowGeoDataset,
+)
 from rastervision.pytorch_learner.utils import adjust_conv_channels
 
 log = logging.getLogger(__name__)
@@ -52,15 +63,18 @@ def ss_image_data_config_upgrader(cfg_dict: dict, version: int) -> dict:
 
 
 @register_config(
-    'semantic_segmentation_data', upgrader=ss_data_config_upgrader)
+    'semantic_segmentation_data', upgrader=ss_data_config_upgrader
+)
 class SemanticSegmentationDataConfig(Config):
     pass
 
 
 @register_config(
-    'semantic_segmentation_image_data', upgrader=ss_image_data_config_upgrader)
-class SemanticSegmentationImageDataConfig(SemanticSegmentationDataConfig,
-                                          ImageDataConfig):
+    'semantic_segmentation_image_data', upgrader=ss_image_data_config_upgrader
+)
+class SemanticSegmentationImageDataConfig(
+    SemanticSegmentationDataConfig, ImageDataConfig
+):
     """Configure :class:`SemanticSegmentationImageDatasets <.SemanticSegmentationImageDataset>`.
 
     This assumes the following file structure:
@@ -79,28 +93,33 @@ class SemanticSegmentationImageDataConfig(SemanticSegmentationDataConfig,
                 ...
                 <img N>.<extension>
 
-    """ # noqa
+    """  # noqa
+
     data_format: SemanticSegmentationDataFormat = (
-        SemanticSegmentationDataFormat.default)
+        SemanticSegmentationDataFormat.default
+    )
 
     def update(self, *args, **kwargs):
         SemanticSegmentationDataConfig.update(self)
         ImageDataConfig.update(self, *args, **kwargs)
 
-    def dir_to_dataset(self, data_dir: str,
-                       transform: A.BasicTransform) -> Dataset:
+    def dir_to_dataset(
+        self, data_dir: str, transform: A.BasicTransform
+    ) -> Dataset:
         if self.data_format != SemanticSegmentationDataFormat.default:
             raise NotImplementedError()
         img_dir = join(data_dir, 'img')
         label_dir = join(data_dir, 'labels')
         ds = SemanticSegmentationImageDataset(
-            img_dir=img_dir, label_dir=label_dir, transform=transform)
+            img_dir=img_dir, label_dir=label_dir, transform=transform
+        )
         return ds
 
 
 @register_config('semantic_segmentation_geo_data')
-class SemanticSegmentationGeoDataConfig(SemanticSegmentationDataConfig,
-                                        GeoDataConfig):
+class SemanticSegmentationGeoDataConfig(
+    SemanticSegmentationDataConfig, GeoDataConfig
+):
     """Configure semantic segmentation :class:`GeoDatasets <.GeoDataset>`.
 
     See
@@ -111,10 +130,12 @@ class SemanticSegmentationGeoDataConfig(SemanticSegmentationDataConfig,
         SemanticSegmentationDataConfig.update(self)
         GeoDataConfig.update(self, *args, **kwargs)
 
-    def scene_to_dataset(self,
-                         scene: Scene,
-                         transform: A.BasicTransform | None = None,
-                         for_chipping: bool = False) -> Dataset:
+    def scene_to_dataset(
+        self,
+        scene: Scene,
+        transform: A.BasicTransform | None = None,
+        for_chipping: bool = False,
+    ) -> Dataset:
         if isinstance(self.sampling, dict):
             opts = self.sampling[scene.id]
         else:
@@ -123,7 +144,8 @@ class SemanticSegmentationGeoDataConfig(SemanticSegmentationDataConfig,
         extra_args = {}
         if for_chipping:
             extra_args = dict(
-                normalize=False, to_pytorch=False, return_window=True)
+                normalize=False, to_pytorch=False, return_window=True
+            )
 
         if opts.method == WindowSamplingMethod.sliding:
             ds = SemanticSegmentationSlidingWindowGeoDataset(
@@ -163,7 +185,8 @@ class SemanticSegmentationModelConfig(ModelConfig):
     backbone: Backbone = Field(
         Backbone.resnet50,
         description='The torchvision.models backbone to use. Currently, only '
-        'resnet50 and resnet101 are supported.')
+        'resnet50 and resnet101 are supported.',
+    )
 
     @field_validator('backbone')
     @classmethod
@@ -171,21 +194,25 @@ class SemanticSegmentationModelConfig(ModelConfig):
         if v not in [Backbone.resnet50, Backbone.resnet101]:
             raise ValueError(
                 'The only valid backbones for DeepLabv3 are resnet50 '
-                'and resnet101.')
+                'and resnet101.'
+            )
         return v
 
-    def build_default_model(self, num_classes: int,
-                            in_channels: int) -> nn.Module:
+    def build_default_model(
+        self, num_classes: int, in_channels: int
+    ) -> nn.Module:
         backbone_name = self.get_backbone_str()
         pretrained = self.pretrained
         weights = 'DEFAULT' if pretrained else None
         model_factory_func: Callable[..., nn.Module] = getattr(
-            models.segmentation, f'deeplabv3_{backbone_name}')
+            models.segmentation, f'deeplabv3_{backbone_name}'
+        )
         model = model_factory_func(
             num_classes=num_classes,
             weights_backbone=weights,
             aux_loss=False,
-            **self.extra_args)
+            **self.extra_args,
+        )
 
         if in_channels != 3:
             if not backbone_name.startswith('resnet'):
@@ -200,11 +227,13 @@ class SemanticSegmentationModelConfig(ModelConfig):
                     'then use the external model functionality to import it '
                     'into Raster Vision. See isprs_potsdam.py for an example '
                     'of how to import external models. Alternatively, you can '
-                    'override this function.')
+                    'override this function.'
+                )
             model.backbone.conv1 = adjust_conv_channels(
                 old_conv=model.backbone.conv1,
                 in_channels=in_channels,
-                pretrained=pretrained)
+                pretrained=pretrained,
+            )
         return model
 
 
@@ -214,18 +243,23 @@ class SemanticSegmentationLearnerConfig(LearnerConfig):
 
     model: SemanticSegmentationModelConfig | None = None
 
-    def build(self,
-              tmp_dir=None,
-              model_weights_path=None,
-              model_def_path=None,
-              loss_def_path=None,
-              training=True):
+    def build(
+        self,
+        tmp_dir=None,
+        model_weights_path=None,
+        model_def_path=None,
+        loss_def_path=None,
+        training=True,
+    ):
         from rastervision.pytorch_learner.semantic_segmentation_learner import (
-            SemanticSegmentationLearner)
+            SemanticSegmentationLearner,
+        )
+
         return SemanticSegmentationLearner(
             self,
             tmp_dir=tmp_dir,
             model_weights_path=model_weights_path,
             model_def_path=model_def_path,
             loss_def_path=loss_def_path,
-            training=training)
+            training=training,
+        )

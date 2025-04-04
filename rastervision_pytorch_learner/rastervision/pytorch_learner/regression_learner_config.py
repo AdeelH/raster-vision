@@ -9,13 +9,24 @@ from torchvision import models
 
 from rastervision.core.data import Scene
 from rastervision.core.rv_pipeline import WindowSamplingMethod
-from rastervision.pipeline.config import (Config, register_config, Field,
-                                          ConfigError)
+from rastervision.pipeline.config import (
+    Config,
+    register_config,
+    Field,
+    ConfigError,
+)
 from rastervision.pytorch_learner.learner_config import (
-    LearnerConfig, ModelConfig, PlotOptions, ImageDataConfig, GeoDataConfig)
+    LearnerConfig,
+    ModelConfig,
+    PlotOptions,
+    ImageDataConfig,
+    GeoDataConfig,
+)
 from rastervision.pytorch_learner.dataset import (
-    RegressionImageDataset, RegressionSlidingWindowGeoDataset,
-    RegressionRandomWindowGeoDataset)
+    RegressionImageDataset,
+    RegressionSlidingWindowGeoDataset,
+    RegressionRandomWindowGeoDataset,
+)
 from rastervision.pytorch_learner.utils import adjust_conv_channels
 
 if TYPE_CHECKING:
@@ -32,10 +43,14 @@ class RegressionDataFormat(Enum):
 class RegressionPlotOptions(PlotOptions):
     max_scatter_points: int = Field(
         5000,
-        description=('Maximum number of datapoints to use in scatter plot. '
-                     'Useful to avoid running out of memory and cluttering.'))
+        description=(
+            'Maximum number of datapoints to use in scatter plot. '
+            'Useful to avoid running out of memory and cluttering.'
+        ),
+    )
     hist_bins: int = Field(
-        30, description='Number of bins to use for histogram.')
+        30, description='Number of bins to use for histogram.'
+    )
 
 
 def reg_data_config_upgrader(cfg_dict, version):
@@ -56,12 +71,15 @@ class RegressionImageDataConfig(RegressionDataConfig, ImageDataConfig):
 
     data_format: RegressionDataFormat = RegressionDataFormat.csv
     plot_options: RegressionPlotOptions | None = Field(
-        RegressionPlotOptions(), description='Options to control plotting.')
+        RegressionPlotOptions(), description='Options to control plotting.'
+    )
 
-    def dir_to_dataset(self, data_dir: str,
-                       transform: A.BasicTransform) -> RegressionImageDataset:
+    def dir_to_dataset(
+        self, data_dir: str, transform: A.BasicTransform
+    ) -> RegressionImageDataset:
         ds = RegressionImageDataset(
-            data_dir, self.class_names, transform=transform)
+            data_dir, self.class_names, transform=transform
+        )
         return ds
 
 
@@ -73,13 +91,14 @@ class RegressionGeoDataConfig(RegressionDataConfig, GeoDataConfig):
     """
 
     plot_options: RegressionPlotOptions | None = Field(
-        RegressionPlotOptions(), description='Options to control plotting.')
+        RegressionPlotOptions(), description='Options to control plotting.'
+    )
 
     def scene_to_dataset(
-            self,
-            scene: Scene,
-            transform: A.BasicTransform | None = None,
-            for_chipping: bool = False
+        self,
+        scene: Scene,
+        transform: A.BasicTransform | None = None,
+        for_chipping: bool = False,
     ) -> RegressionSlidingWindowGeoDataset | RegressionRandomWindowGeoDataset:
         if isinstance(self.sampling, dict):
             opts = self.sampling[scene.id]
@@ -89,7 +108,8 @@ class RegressionGeoDataConfig(RegressionDataConfig, GeoDataConfig):
         extra_args = {}
         if for_chipping:
             extra_args = dict(
-                normalize=False, to_pytorch=False, return_window=True)
+                normalize=False, to_pytorch=False, return_window=True
+            )
 
         if opts.method == WindowSamplingMethod.sliding:
             ds = RegressionSlidingWindowGeoDataset(
@@ -123,12 +143,14 @@ class RegressionGeoDataConfig(RegressionDataConfig, GeoDataConfig):
 
 
 class RegressionModel(nn.Module):
-    def __init__(self,
-                 backbone: nn.Module,
-                 out_features: int,
-                 pos_out_inds: Sequence[int] | None = None,
-                 prob_out_inds: Sequence[int] | None = None,
-                 **kwargs):
+    def __init__(
+        self,
+        backbone: nn.Module,
+        out_features: int,
+        pos_out_inds: Sequence[int] | None = None,
+        prob_out_inds: Sequence[int] | None = None,
+        **kwargs,
+    ):
         super().__init__()
         self.backbone = backbone
         in_features = self.backbone.fc.in_features
@@ -158,12 +180,13 @@ class RegressionModelConfig(ModelConfig):
             self.output_multiplier = [1.0] * len(learner.data.class_names)
 
     def build_default_model(
-            self,
-            num_classes: int,
-            in_channels: int,
-            class_names: Sequence[str] | None = None,
-            pos_class_names: Iterable[str] | None = None,
-            prob_class_names: Iterable[str] | None = None) -> nn.Module:
+        self,
+        num_classes: int,
+        in_channels: int,
+        class_names: Sequence[str] | None = None,
+        pos_class_names: Iterable[str] | None = None,
+        prob_class_names: Iterable[str] | None = None,
+    ) -> nn.Module:
         backbone_name = self.get_backbone_str()
         pretrained = self.pretrained
         out_features = num_classes
@@ -182,14 +205,16 @@ class RegressionModelConfig(ModelConfig):
 
         weights = 'DEFAULT' if pretrained else None
         model_factory_func: Callable[..., nn.Module] = getattr(
-            models, backbone_name)
+            models, backbone_name
+        )
         backbone = model_factory_func(weights=weights, **self.extra_args)
         model = RegressionModel(
             backbone,
             out_features,
             pos_out_inds=pos_out_inds,
             prob_out_inds=prob_out_inds,
-            **self.extra_args)
+            **self.extra_args,
+        )
 
         if in_channels != 3:
             if not backbone_name.startswith('resnet'):
@@ -204,11 +229,13 @@ class RegressionModelConfig(ModelConfig):
                     'then use the external model functionality to import it '
                     'into Raster Vision. See spacenet_rio.py for an example '
                     'of how to import external models. Alternatively, you can '
-                    'override this function.')
+                    'override this function.'
+                )
             model.backbone.conv1 = adjust_conv_channels(
                 old_conv=model.backbone.conv1,
                 in_channels=in_channels,
-                pretrained=pretrained)
+                pretrained=pretrained,
+            )
 
         return model
 
@@ -219,18 +246,23 @@ class RegressionLearnerConfig(LearnerConfig):
 
     model: RegressionModelConfig | None = None
 
-    def build(self,
-              tmp_dir,
-              model_weights_path=None,
-              model_def_path=None,
-              loss_def_path=None,
-              training=True):
+    def build(
+        self,
+        tmp_dir,
+        model_weights_path=None,
+        model_def_path=None,
+        loss_def_path=None,
+        training=True,
+    ):
         from rastervision.pytorch_learner.regression_learner import (
-            RegressionLearner)
+            RegressionLearner,
+        )
+
         return RegressionLearner(
             self,
             tmp_dir,
             model_weights_path=model_weights_path,
             model_def_path=model_def_path,
             loss_def_path=loss_def_path,
-            training=training)
+            training=training,
+        )

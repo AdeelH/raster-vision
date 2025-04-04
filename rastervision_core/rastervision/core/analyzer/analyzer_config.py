@@ -10,8 +10,9 @@ if TYPE_CHECKING:
 class AnalyzerConfig(Config):
     """Configure an :class:`.Analyzer`."""
 
-    def build(self, scene_group: tuple[str, Iterable[str]] | None = None
-              ) -> 'Analyzer':
+    def build(
+        self, scene_group: tuple[str, Iterable[str]] | None = None
+    ) -> 'Analyzer':
         pass
 
     def get_bundle_filenames(self) -> list[str]:

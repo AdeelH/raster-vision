@@ -6,10 +6,22 @@ import boto3
 from moto import mock_aws
 
 from rastervision.pipeline.file_system import (
-    file_to_str, str_to_file, download_if_needed, upload_or_copy, make_dir,
-    get_local_path, file_exists, sync_from_dir, sync_to_dir, list_paths,
-    get_tmp_dir, uri_to_vsi_path, NotReadableError, NotWritableError,
-    FileSystem)
+    file_to_str,
+    str_to_file,
+    download_if_needed,
+    upload_or_copy,
+    make_dir,
+    get_local_path,
+    file_exists,
+    sync_from_dir,
+    sync_to_dir,
+    list_paths,
+    get_tmp_dir,
+    uri_to_vsi_path,
+    NotReadableError,
+    NotWritableError,
+    FileSystem,
+)
 
 LOREM = """ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
         eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
@@ -290,7 +302,8 @@ class TestS3Misc(unittest.TestCase):
         self.assertFalse(file_exists(s3_path_prefix, include_dir=True))
         self.assertFalse(file_exists(s3_directory, include_dir=False))
         self.assertFalse(
-            file_exists(s3_directory + 'NOTPOSSIBLE', include_dir=False))
+            file_exists(s3_directory + 'NOTPOSSIBLE', include_dir=False)
+        )
 
 
 class TestLocalMisc(unittest.TestCase):
@@ -394,7 +407,8 @@ class TestLocalMisc(unittest.TestCase):
         self.assertTrue(fs.file_exists(path1, include_dir=False))
         self.assertFalse(fs.file_exists(dir1, include_dir=False))
         self.assertFalse(
-            fs.file_exists(dir1 + 'NOTPOSSIBLE', include_dir=False))
+            fs.file_exists(dir1 + 'NOTPOSSIBLE', include_dir=False)
+        )
 
 
 class TestHttpMisc(unittest.TestCase):
@@ -406,21 +420,28 @@ class TestHttpMisc(unittest.TestCase):
         self.tmp_dir.cleanup()
 
     def test_file_exists_http_true(self):
-        http_path = ('https://raw.githubusercontent.com/tensorflow/models/'
-                     '17fa52864bfc7a7444a8b921d8a8eb1669e14ebd/README.md')
+        http_path = (
+            'https://raw.githubusercontent.com/tensorflow/models/'
+            '17fa52864bfc7a7444a8b921d8a8eb1669e14ebd/README.md'
+        )
         self.assertTrue(file_exists(http_path))
-        http_path = ('https://github.com/azavea/raster-vision/archive/refs/'
-                     'heads/0.13.zip')
+        http_path = (
+            'https://github.com/azavea/raster-vision/archive/refs/'
+            'heads/0.13.zip'
+        )
         self.assertTrue(file_exists(http_path))
 
     def test_file_exists_http_false(self):
-        http_path = ('https://raw.githubusercontent.com/tensorflow/models/'
-                     '17fa52864bfc7a7444a8b921d8a8eb1669e14ebd/XXX')
+        http_path = (
+            'https://raw.githubusercontent.com/tensorflow/models/'
+            '17fa52864bfc7a7444a8b921d8a8eb1669e14ebd/XXX'
+        )
         self.assertFalse(file_exists(http_path))
 
     def test_write_str_http(self):
-        self.assertRaises(NotWritableError,
-                          lambda: str_to_file('xxx', 'http://localhost/'))
+        self.assertRaises(
+            NotWritableError, lambda: str_to_file('xxx', 'http://localhost/')
+        )
 
     def test_sync_to_http(self):
         src = self.tmp_dir.name
@@ -444,12 +465,17 @@ class TestHttpMisc(unittest.TestCase):
         os.remove(path)
 
     def test_copy_from_http(self):
-        http_path = ('https://raw.githubusercontent.com/tensorflow/models/'
-                     '17fa52864bfc7a7444a8b921d8a8eb1669e14ebd/README.md')
+        http_path = (
+            'https://raw.githubusercontent.com/tensorflow/models/'
+            '17fa52864bfc7a7444a8b921d8a8eb1669e14ebd/README.md'
+        )
         expected = os.path.join(
-            self.tmp_dir.name, 'http', 'raw.githubusercontent.com',
+            self.tmp_dir.name,
+            'http',
+            'raw.githubusercontent.com',
             'tensorflow/models',
-            '17fa52864bfc7a7444a8b921d8a8eb1669e14ebd/README.md')
+            '17fa52864bfc7a7444a8b921d8a8eb1669e14ebd/README.md',
+        )
         download_if_needed(http_path, self.tmp_dir.name)
 
         self.assertTrue(file_exists(expected))
@@ -463,8 +489,9 @@ class TestHttpMisc(unittest.TestCase):
     def test_write_bytes_http(self):
         uri = 'http://localhost/'
         fs = FileSystem.get_file_system(uri, 'r')
-        self.assertRaises(NotWritableError,
-                          lambda: fs.write_bytes(uri, bytes([0x00, 0x01])))
+        self.assertRaises(
+            NotWritableError, lambda: fs.write_bytes(uri, bytes([0x00, 0x01]))
+        )
 
 
 class TestUtils(unittest.TestCase):

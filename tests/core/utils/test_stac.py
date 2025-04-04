@@ -28,7 +28,7 @@ class TestStac(unittest.TestCase):
             'label_bbox': Polygon,
             'image_bbox': (type(None), Polygon),
             'bboxes_intersect': bool,
-            'aoi_geometry': (type(None), dict)
+            'aoi_geometry': (type(None), dict),
         }
 
         with get_tmp_dir() as tmp_dir:

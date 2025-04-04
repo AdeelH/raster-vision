@@ -83,13 +83,16 @@ def parse_stac(stac_uri: str, item_limit: int | None = None) -> list[dict]:
     version: str = cat.to_dict()['stac_version']
 
     if not version.startswith('1.0'):
-        log.warning(f'Parsing is not guaranteed to work correctly for '
-                    f'STAC version != 1.0.*. Found version: {version}.')
+        log.warning(
+            f'Parsing is not guaranteed to work correctly for '
+            f'STAC version != 1.0.*. Found version: {version}.'
+        )
 
     cat.make_all_asset_hrefs_absolute()
 
     label_items = list(
-        islice(filter(is_label_item, cat.get_all_items()), item_limit))
+        islice(filter(is_label_item, cat.get_all_items()), item_limit)
+    )
     image_items = [get_linked_image_item(item) for item in label_items]
 
     if len(label_items) == 0:
@@ -103,7 +106,8 @@ def parse_stac(stac_uri: str, item_limit: int | None = None) -> list[dict]:
 
         if image_item is not None:
             image_assets = [
-                asset for asset in image_item.get_assets().values()
+                asset
+                for asset in image_item.get_assets().values()
                 if 'image' in asset.media_type
             ]
             image_uris = [asset.href for asset in image_assets]
@@ -114,19 +118,22 @@ def parse_stac(stac_uri: str, item_limit: int | None = None) -> list[dict]:
             image_bbox = None
             bboxes_intersect = False
 
-        out.append({
-            'label_uri': label_uri,
-            'image_uris': image_uris,
-            'label_bbox': label_bbox,
-            'image_bbox': image_bbox,
-            'bboxes_intersect': bboxes_intersect,
-            'aoi_geometry': aoi_geometry
-        })
+        out.append(
+            {
+                'label_uri': label_uri,
+                'image_uris': image_uris,
+                'label_bbox': label_bbox,
+                'image_bbox': image_bbox,
+                'bboxes_intersect': bboxes_intersect,
+                'aoi_geometry': aoi_geometry,
+            }
+        )
     return out
 
 
-def read_stac(uri: str, extract_dir: str | None = None,
-              **kwargs) -> list[dict]:
+def read_stac(
+    uri: str, extract_dir: str | None = None, **kwargs
+) -> list[dict]:
     """Parse the contents of a STAC catalog.
 
     The file is downloaded if needed. If it is a zip file, it is unzipped and
@@ -150,22 +157,27 @@ def read_stac(uri: str, extract_dir: str | None = None,
         assets in the STAC catalog.
     """
     from pathlib import Path
-    from rastervision.pipeline.file_system.utils import (download_if_needed,
-                                                         is_archive, extract)
+    from rastervision.pipeline.file_system.utils import (
+        download_if_needed,
+        is_archive,
+        extract,
+    )
 
     catalog_path = download_if_needed(uri)
     if catalog_path.lower().endswith('.json'):
         return parse_stac(catalog_path, **kwargs)
 
     if not is_archive(catalog_path):
-        raise ValueError(f'Unsupported file format: ("{uri}"). '
-                         'URIS must be a JSON file or compressed archive.')
+        raise ValueError(
+            f'Unsupported file format: ("{uri}"). '
+            'URIS must be a JSON file or compressed archive.'
+        )
 
     extract_dir = extract(catalog_path, extract_dir)
     catalog_paths = list(Path(extract_dir).glob('**/catalog.json'))
     if len(catalog_paths) == 0:
         raise FileNotFoundError(f'Unable to find "catalog.json" in {uri}.')
     elif len(catalog_paths) > 1:
-        raise Exception(f'More than one "catalog.json" found in ' f'{uri}.')
+        raise Exception(f'More than one "catalog.json" found in {uri}.')
     catalog_path = str(catalog_paths[0])
     return parse_stac(catalog_path, **kwargs)

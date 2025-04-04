@@ -1,4 +1,4 @@
-from typing import (TYPE_CHECKING, Any, Iterable, Literal, Sequence)
+from typing import TYPE_CHECKING, Any, Iterable, Literal, Sequence
 from collections.abc import Callable
 import os
 from os.path import join, isdir
@@ -8,29 +8,51 @@ import uuid
 import logging
 
 from typing_extensions import Annotated
-from pydantic import (NonNegativeInt as NonNegInt, PositiveFloat, PositiveInt
-                      as PosInt, StringConstraints)
+from pydantic import (
+    NonNegativeInt as NonNegInt,
+    PositiveFloat,
+    PositiveInt as PosInt,
+    StringConstraints,
+)
 from pydantic.v1.utils import sequence_like
 import albumentations as A
 import torch
-from torch import (nn, optim)
+from torch import nn, optim
 from torch.optim.lr_scheduler import CyclicLR, MultiStepLR, _LRScheduler
 from torch.utils.data import Dataset, ConcatDataset, Subset
 
-from rastervision.pipeline.config import (Config, register_config, ConfigError,
-                                          Field, field_validator,
-                                          model_validator)
-from rastervision.pipeline.file_system import (list_paths, download_if_needed,
-                                               unzip, file_exists,
-                                               get_local_path, sync_from_dir)
-from rastervision.core.data import (ClassConfig, Scene, DatasetConfig as
-                                    SceneDatasetConfig)
-from rastervision.core.rv_pipeline import (WindowSamplingConfig)
+from rastervision.pipeline.config import (
+    Config,
+    register_config,
+    ConfigError,
+    Field,
+    field_validator,
+    model_validator,
+)
+from rastervision.pipeline.file_system import (
+    list_paths,
+    download_if_needed,
+    unzip,
+    file_exists,
+    get_local_path,
+    sync_from_dir,
+)
+from rastervision.core.data import (
+    ClassConfig,
+    Scene,
+    DatasetConfig as SceneDatasetConfig,
+)
+from rastervision.core.rv_pipeline import WindowSamplingConfig
 from rastervision.core.utils import NonEmptyStr, Proportion
 from rastervision.pytorch_learner.utils import (
-    validate_albumentation_transform, MinMaxNormalize,
-    deserialize_albumentation_transform, get_hubconf_dir_from_cfg,
-    torch_hub_load_local, torch_hub_load_github, torch_hub_load_uri)
+    validate_albumentation_transform,
+    MinMaxNormalize,
+    deserialize_albumentation_transform,
+    get_hubconf_dir_from_cfg,
+    torch_hub_load_local,
+    torch_hub_load_github,
+    torch_hub_load_uri,
+)
 
 if TYPE_CHECKING:
     from typing import Self
@@ -41,8 +63,14 @@ log = logging.getLogger(__name__)
 
 default_augmentors = ['RandomRotate90', 'HorizontalFlip', 'VerticalFlip']
 augmentors = [
-    'Blur', 'RandomRotate90', 'HorizontalFlip', 'VerticalFlip', 'GaussianBlur',
-    'GaussNoise', 'RGBShift', 'ToGray'
+    'Blur',
+    'RandomRotate90',
+    'HorizontalFlip',
+    'VerticalFlip',
+    'GaussianBlur',
+    'GaussNoise',
+    'RGBShift',
+    'ToGray',
 ]
 
 # types
@@ -124,7 +152,7 @@ class Backbone(str, Enum):
             32: 'vgg16',
             33: 'vgg16_bn',
             34: 'vgg19_bn',
-            35: 'vgg19'
+            35: 'vgg19',
         }
         return mapping[x]
 
@@ -132,32 +160,41 @@ class Backbone(str, Enum):
 @register_config('external-module')
 class ExternalModuleConfig(Config):
     """Config describing an object to be loaded via Torch Hub."""
+
     uri: NonEmptyStr | None = Field(
         None,
-        description=('Local uri of a zip file, or local uri of a directory,'
-                     'or remote uri of zip file.'))
+        description=(
+            'Local uri of a zip file, or local uri of a directory,'
+            'or remote uri of zip file.'
+        ),
+    )
     github_repo: (
-        Annotated[str,
-                  StringConstraints(strip_whitespace=True, pattern=r'.+/.+')]
-        | None) = Field(
-            None, description='<repo-owner>/<repo-name>[:tag]')
+        Annotated[
+            str, StringConstraints(strip_whitespace=True, pattern=r'.+/.+')
+        ]
+        | None
+    ) = Field(None, description='<repo-owner>/<repo-name>[:tag]')
     name: NonEmptyStr | None = Field(
         None,
-        description=
-        'Name of the folder in which to extract/copy the definition files.')
+        description='Name of the folder in which to extract/copy the definition files.',
+    )
     entrypoint: NonEmptyStr = Field(
         ...,
-        description=('Name of a Callable present in ``hubconf.py``. '
-                     'See docs for ``torch.hub`` for details.'))
+        description=(
+            'Name of a Callable present in ``hubconf.py``. '
+            'See docs for ``torch.hub`` for details.'
+        ),
+    )
     entrypoint_args: list = Field(
-        [],
-        description='Args to pass to the entrypoint. Must be serializable.')
+        [], description='Args to pass to the entrypoint. Must be serializable.'
+    )
     entrypoint_kwargs: dict = Field(
         {},
-        description=
-        'Keyword args to pass to the entrypoint. Must be serializable.')
+        description='Keyword args to pass to the entrypoint. Must be serializable.',
+    )
     force_reload: bool = Field(
-        False, description='Force reload of module definition.')
+        False, description='Force reload of module definition.'
+    )
 
     @model_validator(mode='after')
     def check_either_uri_or_repo(self) -> 'Self':
@@ -165,13 +202,16 @@ class ExternalModuleConfig(Config):
         has_repo = self.github_repo is not None
         if has_uri == has_repo:
             raise ConfigError(
-                'Must specify one (and only one) of github_repo and uri.')
+                'Must specify one (and only one) of github_repo and uri.'
+            )
         return self
 
-    def build(self,
-              save_dir: str,
-              hubconf_dir: str | None = None,
-              ddp_rank: int | None = None) -> Any:
+    def build(
+        self,
+        save_dir: str,
+        hubconf_dir: str | None = None,
+        ddp_rank: int | None = None,
+    ) -> Any:
         """Load an external module via torch.hub.
 
         Note: Loading a PyTorch module is the typical use case, but there are
@@ -192,7 +232,8 @@ class ExternalModuleConfig(Config):
                 hubconf_dir=hubconf_dir,
                 entrypoint=self.entrypoint,
                 *self.entrypoint_args,
-                **self.entrypoint_kwargs)
+                **self.entrypoint_kwargs,
+            )
             return module
 
         dst_dir = get_hubconf_dir_from_cfg(self, parent=save_dir)
@@ -209,7 +250,8 @@ class ExternalModuleConfig(Config):
                 entrypoint=self.entrypoint,
                 *self.entrypoint_args,
                 dst_dir=dst_dir,
-                **self.entrypoint_kwargs)
+                **self.entrypoint_kwargs,
+            )
         else:
             log.info(f'Fetching module definition from: {self.uri}')
             module = torch_hub_load_uri(
@@ -217,7 +259,8 @@ class ExternalModuleConfig(Config):
                 entrypoint=self.entrypoint,
                 *self.entrypoint_args,
                 dst_dir=dst_dir,
-                **self.entrypoint_kwargs)
+                **self.entrypoint_kwargs,
+            )
         return module
 
 
@@ -230,44 +273,56 @@ def model_config_upgrader(cfg_dict, version):
 @register_config('model', upgrader=model_config_upgrader)
 class ModelConfig(Config):
     """Config related to models."""
+
     backbone: Backbone = Field(
         Backbone.resnet18,
-        description='The torchvision.models backbone to use.')
+        description='The torchvision.models backbone to use.',
+    )
     pretrained: bool = Field(
         True,
         description=(
             'If True, use ImageNet weights. If False, use random initialization.'
-        ))
+        ),
+    )
     init_weights: str | None = Field(
         None,
-        description=('URI of PyTorch model weights used to initialize model. '
-                     'If set, this supersedes the pretrained option.'))
+        description=(
+            'URI of PyTorch model weights used to initialize model. '
+            'If set, this supersedes the pretrained option.'
+        ),
+    )
     load_strict: bool = Field(
         True,
         description=(
             'If True, the keys in the state dict referenced by init_weights '
             'must match exactly. Setting this to False can be useful if you '
-            'just want to load the backbone of a model.'))
+            'just want to load the backbone of a model.'
+        ),
+    )
     external_def: ExternalModuleConfig | None = Field(
         None,
         description='If specified, the model will be built from the '
-        'definition from this external source, using Torch Hub.')
+        'definition from this external source, using Torch Hub.',
+    )
     extra_args: dict = Field(
         {},
         description='Other implementation-specific args that might be useful '
         'for constructing the default model. This is ignored if using an '
-        'external model.')
+        'external model.',
+    )
 
     def get_backbone_str(self):
         return self.backbone.name
 
-    def build(self,
-              num_classes: int,
-              in_channels: int,
-              save_dir: str | None = None,
-              hubconf_dir: str | None = None,
-              ddp_rank: int | None = None,
-              **kwargs) -> nn.Module:
+    def build(
+        self,
+        num_classes: int,
+        in_channels: int,
+        save_dir: str | None = None,
+        hubconf_dir: str | None = None,
+        ddp_rank: int | None = None,
+        **kwargs,
+    ) -> nn.Module:
         """Build and return a model based on the config.
 
         Args:
@@ -285,11 +340,13 @@ class ModelConfig(Config):
         """
         if self.external_def is not None:
             return self.build_external_model(
-                save_dir=save_dir, hubconf_dir=hubconf_dir, ddp_rank=ddp_rank)
+                save_dir=save_dir, hubconf_dir=hubconf_dir, ddp_rank=ddp_rank
+            )
         return self.build_default_model(num_classes, in_channels, **kwargs)
 
-    def build_default_model(self, num_classes: int, in_channels: int,
-                            **kwargs) -> nn.Module:
+    def build_default_model(
+        self, num_classes: int, in_channels: int, **kwargs
+    ) -> nn.Module:
         """Build and return the default model.
 
         Args:
@@ -302,10 +359,12 @@ class ModelConfig(Config):
         """
         raise NotImplementedError()
 
-    def build_external_model(self,
-                             save_dir: str,
-                             hubconf_dir: str | None = None,
-                             ddp_rank: int | None = None) -> nn.Module:
+    def build_external_model(
+        self,
+        save_dir: str,
+        hubconf_dir: str | None = None,
+        ddp_rank: int | None = None,
+    ) -> nn.Module:
         """Build and return an external model.
 
         Args:
@@ -317,7 +376,8 @@ class ModelConfig(Config):
             A PyTorch nn.Module.
         """
         return self.external_def.build(
-            save_dir, hubconf_dir=hubconf_dir, ddp_rank=ddp_rank)
+            save_dir, hubconf_dir=hubconf_dir, ddp_rank=ddp_rank
+        )
 
 
 def solver_config_upgrader(cfg_dict: dict, version: int) -> dict:
@@ -339,34 +399,42 @@ def solver_config_upgrader(cfg_dict: dict, version: int) -> dict:
 @register_config('solver', upgrader=solver_config_upgrader)
 class SolverConfig(Config):
     """Config related to solver aka optimizer."""
+
     lr: PositiveFloat = Field(1e-4, description='Learning rate.')
     num_epochs: PosInt = Field(
         10,
-        description=
-        'Number of epochs (ie. sweeps through the whole training set).')
+        description='Number of epochs (ie. sweeps through the whole training set).',
+    )
     sync_interval: PosInt = Field(
-        1, description='The interval in epochs for each sync to the cloud.')
+        1, description='The interval in epochs for each sync to the cloud.'
+    )
     batch_sz: PosInt = Field(32, description='Batch size.')
     one_cycle: bool = Field(
         True,
-        description=
-        ('If True, use triangular LR scheduler with a single cycle across all '
-         'epochs with start and end LR being lr/10 and the peak being lr.'))
+        description=(
+            'If True, use triangular LR scheduler with a single cycle across all '
+            'epochs with start and end LR being lr/10 and the peak being lr.'
+        ),
+    )
     multi_stage: list[int] = Field(
-        [], description=('List of epoch indices at which to divide LR by 10.'))
+        [], description=('List of epoch indices at which to divide LR by 10.')
+    )
     class_loss_weights: Sequence[float] | None = Field(
-        None, description=('Class weights for weighted loss.'))
+        None, description=('Class weights for weighted loss.')
+    )
     ignore_class_index: int | None = Field(
         None,
         description='If specified, this index is ignored when computing the '
         'loss. See pytorch documentation for nn.CrossEntropyLoss for more '
         'details. This can also be negative, in which case it is treated as a '
         'negative slice index i.e. -1 = last index, -2 = second-last index, '
-        'and so on.')
+        'and so on.',
+    )
     external_loss_def: ExternalModuleConfig | None = Field(
         None,
         description='If specified, the loss will be built from the definition '
-        'from this external source, using Torch Hub.')
+        'from this external source, using Torch Hub.',
+    )
 
     @model_validator(mode='after')
     def check_no_loss_opts_if_external(self) -> 'Self':
@@ -376,18 +444,23 @@ class SolverConfig(Config):
 
         if has_external_loss_def:
             if has_ignore_class_index:
-                raise ConfigError('ignore_class_index is not supported '
-                                  'with external_loss_def.')
+                raise ConfigError(
+                    'ignore_class_index is not supported '
+                    'with external_loss_def.'
+                )
             if has_class_loss_weights:
-                raise ConfigError('class_loss_weights is not supported '
-                                  'with external_loss_def.')
+                raise ConfigError(
+                    'class_loss_weights is not supported '
+                    'with external_loss_def.'
+                )
         return self
 
     def build_loss(
-            self,
-            num_classes: int,
-            save_dir: str | None = None,
-            hubconf_dir: str | None = None) -> Callable[..., torch.Tensor]:
+        self,
+        num_classes: int,
+        save_dir: str | None = None,
+        hubconf_dir: str | None = None,
+    ) -> Callable[..., torch.Tensor]:
         """Build and return a loss function based on the config.
 
         Args:
@@ -402,7 +475,8 @@ class SolverConfig(Config):
         """
         if self.external_loss_def is not None:
             return self.external_loss_def.build(
-                save_dir=save_dir, hubconf_dir=hubconf_dir)
+                save_dir=save_dir, hubconf_dir=hubconf_dir
+            )
 
         args = {}
 
@@ -434,11 +508,13 @@ class SolverConfig(Config):
         """
         return optim.Adam(model.parameters(), lr=self.lr, **kwargs)
 
-    def build_step_scheduler(self,
-                             optimizer: optim.Optimizer,
-                             train_ds_sz: int,
-                             last_epoch: int = -1,
-                             **kwargs) -> _LRScheduler | None:
+    def build_step_scheduler(
+        self,
+        optimizer: optim.Optimizer,
+        train_ds_sz: int,
+        last_epoch: int = -1,
+        **kwargs,
+    ) -> _LRScheduler | None:
         """Returns an LR scheduler that changes the LR each step.
 
         This is used to implement the "one cycle" schedule popularized by
@@ -467,7 +543,8 @@ class SolverConfig(Config):
                 step_size_up=step_size_up,
                 step_size_down=step_size_down,
                 cycle_momentum=kwargs.pop('cycle_momentum', False),
-                **kwargs)
+                **kwargs,
+            )
             # Note: We need this loop because trying to resume the scheduler by
             # just passing last_epoch does not work. See:
             # https://discuss.pytorch.org/t/a-problem-occured-when-resuming-an-optimizer/28822/2 # noqa
@@ -476,10 +553,9 @@ class SolverConfig(Config):
                 scheduler.step()
         return scheduler
 
-    def build_epoch_scheduler(self,
-                              optimizer: optim.Optimizer,
-                              last_epoch: int = -1,
-                              **kwargs) -> _LRScheduler | None:
+    def build_epoch_scheduler(
+        self, optimizer: optim.Optimizer, last_epoch: int = -1, **kwargs
+    ) -> _LRScheduler | None:
         """Returns an LR scheduler that changes the LR each epoch.
 
         This is used to divide the learning rate by 10 at certain epochs.
@@ -499,7 +575,8 @@ class SolverConfig(Config):
                 optimizer,
                 milestones=self.multi_stage,
                 gamma=kwargs.pop('gamma', 0.1),
-                **kwargs)
+                **kwargs,
+            )
             # Note: We need this loop because trying to resume the scheduler by
             # just passing last_epoch does not work. See:
             # https://discuss.pytorch.org/t/a-problem-occured-when-resuming-an-optimizer/28822/2 # noqa
@@ -510,7 +587,8 @@ class SolverConfig(Config):
 
 
 def get_default_channel_display_groups(
-        nb_img_channels: int) -> dict[str, ChannelInds]:
+    nb_img_channels: int,
+) -> dict[str, ChannelInds]:
     """Returns the default channel_display_groups object.
 
     See PlotOptions.channel_display_groups.
@@ -524,7 +602,8 @@ def get_default_channel_display_groups(
 
 
 def validate_channel_display_groups(
-        groups: dict[str, ChannelInds] | Sequence[ChannelInds] | None):
+    groups: dict[str, ChannelInds] | Sequence[ChannelInds] | None,
+):
     """Validate channel display groups object.
 
     See PlotOptions.channel_display_groups.
@@ -533,7 +612,8 @@ def validate_channel_display_groups(
         return None
     elif len(groups) == 0:
         raise ConfigError(
-            'channel_display_groups cannot be empty. Set to None instead.')
+            'channel_display_groups cannot be empty. Set to None instead.'
+        )
     elif not isinstance(groups, dict):
         # if in list/tuple form, convert to dict s.t.
         # [(0, 1, 2), (4, 3, 5)] --> {
@@ -547,14 +627,17 @@ def validate_channel_display_groups(
     if isinstance(groups, dict):
         for k, _v in groups.items():
             if not (0 < len(_v) <= 3):
-                raise ConfigError(f'channel_display_groups[{k}]: '
-                                  'len(group) must be 1, 2, or 3')
+                raise ConfigError(
+                    f'channel_display_groups[{k}]: '
+                    'len(group) must be 1, 2, or 3'
+                )
     return groups
 
 
 @register_config('plot_options')
 class PlotOptions(Config):
     """Config related to plotting."""
+
     transform: dict | None = Field(
         A.to_dict(MinMaxNormalize()),
         description='An Albumentations transform serialized as a dict that '
@@ -563,7 +646,7 @@ class PlotOptions(Config):
         'the plot, such as normalization. The default value will shift and scale the '
         'image so the values range from 0.0 to 1.0 which is the expected range for '
         'the plotting function. This default is useful for cases where the values after '
-        'normalization are close to zero which makes the plot difficult to see.'
+        'normalization are close to zero which makes the plot difficult to see.',
     )
     channel_display_groups: (
         dict[str, ChannelInds] | Sequence[ChannelInds] | None
@@ -577,7 +660,9 @@ class PlotOptions(Config):
             '(e.g. {"RGB": [0, 1, 2], "IR": [3]}), '
             'where each group is a list or tuple of channel indices and '
             'title is a string that will be used as the title of the subplot '
-            'for that group.'))
+            'for that group.'
+        ),
+    )
 
     # validators
     _tf = field_validator('transform')(validate_albumentation_transform)
@@ -587,12 +672,13 @@ class PlotOptions(Config):
         img_channels: int | None = kwargs.get('img_channels')
         if self.channel_display_groups is None and img_channels is not None:
             self.channel_display_groups = get_default_channel_display_groups(
-                img_channels)
+                img_channels
+            )
 
     @field_validator('channel_display_groups')
     @classmethod
     def validate_channel_display_groups(
-            cls, v: dict[str, ChannelInds] | Sequence[ChannelInds] | None
+        cls, v: dict[str, ChannelInds] | Sequence[ChannelInds] | None
     ) -> dict[str, ChannelInds] | None:
         return validate_channel_display_groups(v)
 
@@ -606,56 +692,71 @@ def data_config_upgrader(cfg_dict: dict, version: int) -> dict:
         class_names = cfg_dict.pop('class_names', [])
         class_colors = cfg_dict.pop('class_colors', [])
         cfg_dict['class_config'] = ClassConfig(
-            names=class_names, colors=class_colors)
+            names=class_names, colors=class_colors
+        )
     return cfg_dict
 
 
 @register_config('data', upgrader=data_config_upgrader)
 class DataConfig(Config):
     """Config related to dataset for training and testing."""
+
     class_config: ClassConfig | None = Field(None, description='Class config.')
     img_channels: PosInt | None = Field(
-        None, description='The number of channels of the training images.')
+        None, description='The number of channels of the training images.'
+    )
     img_sz: PosInt = Field(
         256,
-        description=
-        ('Length of a side of each image in pixels. This is the size to transform '
-         'it to during training, not the size in the raw dataset.'))
+        description=(
+            'Length of a side of each image in pixels. This is the size to transform '
+            'it to during training, not the size in the raw dataset.'
+        ),
+    )
     train_sz: int | None = Field(
         None,
-        description=
-        ('If set, the number of training images to use. If fewer images exist, '
-         'then an exception will be raised.'))
+        description=(
+            'If set, the number of training images to use. If fewer images exist, '
+            'then an exception will be raised.'
+        ),
+    )
     train_sz_rel: float | None = Field(
-        None, description='If set, the proportion of training images to use.')
+        None, description='If set, the proportion of training images to use.'
+    )
     num_workers: int = Field(
         4,
-        description='Number of workers to use when DataLoader makes batches.')
+        description='Number of workers to use when DataLoader makes batches.',
+    )
     augmentors: list[str] = Field(
         default_augmentors,
         description='Names of albumentations augmentors to use for training '
         f'batches. Choices include: {augmentors}. Alternatively, a custom '
-        'transform can be provided via the aug_transform option.')
+        'transform can be provided via the aug_transform option.',
+    )
     base_transform: dict | None = Field(
         None,
         description='An Albumentations transform serialized as a dict that '
         'will be applied to all datasets: training, validation, and test. '
         'This transformation is in addition to the resizing due to img_sz. '
         'This is useful for, for example, applying the same normalization to '
-        'all datasets.')
+        'all datasets.',
+    )
     aug_transform: dict | None = Field(
         None,
         description='An Albumentations transform serialized as a dict that '
         'will be applied as data augmentation to the training dataset. This '
         'transform is applied before base_transform. If provided, the '
-        'augmentors option is ignored.')
+        'augmentors option is ignored.',
+    )
     plot_options: PlotOptions | None = Field(
-        PlotOptions(), description='Options to control plotting.')
+        PlotOptions(), description='Options to control plotting.'
+    )
     preview_batch_limit: int | None = Field(
         None,
-        description=
-        ('Optional limit on the number of items in the preview plots produced '
-         'during training.'))
+        description=(
+            'Optional limit on the number of items in the preview plots produced '
+            'during training.'
+        ),
+    )
 
     @property
     def class_names(self):
@@ -675,9 +776,11 @@ class DataConfig(Config):
 
     # validators
     _base_tf = field_validator('base_transform')(
-        validate_albumentation_transform)
+        validate_albumentation_transform
+    )
     _aug_tf = field_validator('aug_transform')(
-        validate_albumentation_transform)
+        validate_albumentation_transform
+    )
 
     @field_validator('augmentors')
     @classmethod
@@ -704,12 +807,15 @@ class DataConfig(Config):
         saving to or loading from a bundle.
         """
         transforms_all = [
-            self.base_transform, self.aug_transform,
-            self.plot_options.transform
+            self.base_transform,
+            self.aug_transform,
+            self.plot_options.transform,
         ]
         transforms_with_lambdas = [
-            tf for tf in transforms_all if (tf is not None) and (
-                tf.get('lambda_transforms_path') is not None)
+            tf
+            for tf in transforms_all
+            if (tf is not None)
+            and (tf.get('lambda_transforms_path') is not None)
         ]
         return transforms_with_lambdas
 
@@ -738,14 +844,17 @@ class DataConfig(Config):
         base_tfs = [A.Resize(self.img_sz, self.img_sz)]
         if self.base_transform is not None:
             base_tfs.append(
-                deserialize_albumentation_transform(self.base_transform))
+                deserialize_albumentation_transform(self.base_transform)
+            )
         base_transform = A.Compose(base_tfs, bbox_params=bbox_params)
 
         if self.aug_transform is not None:
             aug_transform = deserialize_albumentation_transform(
-                self.aug_transform)
+                self.aug_transform
+            )
             aug_transform = A.Compose(
-                [base_transform, aug_transform], bbox_params=bbox_params)
+                [base_transform, aug_transform], bbox_params=bbox_params
+            )
             return base_transform, aug_transform
 
         augmentors_dict = {
@@ -756,7 +865,7 @@ class DataConfig(Config):
             'GaussianBlur': A.GaussianBlur(),
             'GaussNoise': A.GaussNoise(),
             'RGBShift': A.RGBShift(),
-            'ToGray': A.ToGray()
+            'ToGray': A.ToGray(),
         }
         aug_transforms = [base_transform]
         for augmentor in self.augmentors:
@@ -765,26 +874,32 @@ class DataConfig(Config):
             except KeyError as k:
                 log.warning(
                     f'{k} is an unknown augmentor. Continuing without {k}. '
-                    f'Known augmentors are: {list(augmentors_dict.keys())}')
+                    f'Known augmentors are: {list(augmentors_dict.keys())}'
+                )
         aug_transform = A.Compose(aug_transforms, bbox_params=bbox_params)
 
         return base_transform, aug_transform
 
-    def build(self,
-              tmp_dir: str | None = None) -> tuple[Dataset, Dataset, Dataset]:
+    def build(
+        self, tmp_dir: str | None = None
+    ) -> tuple[Dataset, Dataset, Dataset]:
         """Build and return train, val, and test datasets."""
         raise NotImplementedError()
 
-    def build_dataset(self,
-                      split: Literal['train', 'valid', 'test'],
-                      tmp_dir: str | None = None) -> Dataset:
+    def build_dataset(
+        self,
+        split: Literal['train', 'valid', 'test'],
+        tmp_dir: str | None = None,
+    ) -> Dataset:
         """Build and return dataset for a single split."""
         raise NotImplementedError()
 
-    def random_subset_dataset(self,
-                              ds: Dataset,
-                              size: int | None = None,
-                              fraction: Proportion | None = None) -> Subset:
+    def random_subset_dataset(
+        self,
+        ds: Dataset,
+        size: int | None = None,
+        fraction: Proportion | None = None,
+    ) -> Subset:
         if size is None and fraction is None:
             return ds
         if size is not None and fraction is not None:
@@ -802,8 +917,10 @@ class DataConfig(Config):
 @register_config('image_data')
 class ImageDataConfig(DataConfig):
     """Config related to dataset for training and testing."""
+
     data_format: str | None = Field(
-        None, description='Name of dataset format.')
+        None, description='Name of dataset format.'
+    )
     uri: str | list[str] | None = Field(
         None,
         description='One of the following:\n'
@@ -811,20 +928,22 @@ class ImageDataConfig(DataConfig):
         '(optionally) "test" subdirectories;\n'
         '(2) a URI of a zip file containing (1);\n'
         '(3) a list of (2);\n'
-        '(4) a URI of a directory containing zip files containing (1).')
+        '(4) a URI of a directory containing zip files containing (1).',
+    )
     group_uris: list[str | list[str]] | None = Field(
         None,
-        description=
-        'This can be set instead of uri in order to specify groups of chips. '
+        description='This can be set instead of uri in order to specify groups of chips. '
         'Each element in the list is expected to be an object of the same '
         'form accepted by the uri field. The purpose of separating chips into '
-        'groups is to be able to use the group_train_sz field.')
+        'groups is to be able to use the group_train_sz field.',
+    )
     group_train_sz: int | list[int] | None = Field(
         None,
         description='If group_uris is set, this can be used to specify the '
         'number of chips to use per group. Only applies to training chips. '
         'This can either be a single value that will be used for all groups '
-        'or a list of values (one for each group).')
+        'or a list of values (one for each group).',
+    )
     group_train_sz_rel: Proportion | list[Proportion] | None = Field(
         None,
         description='Relative version of group_train_sz. Must be a float '
@@ -832,7 +951,8 @@ class ImageDataConfig(DataConfig):
         'proportion of the total chips in each group to use per group. '
         'Only applies to training chips. This can either be a single value '
         'that will be used for all groups or a list of values '
-        '(one for each group).')
+        '(one for each group).',
+    )
 
     @model_validator(mode='after')
     def validate_group_uris(self) -> 'Self':
@@ -845,25 +965,29 @@ class ImageDataConfig(DataConfig):
         has_group_uris = group_uris is not None
 
         if has_group_train_sz and has_group_train_sz_rel:
-            raise ConfigError('Only one of group_train_sz and '
-                              'group_train_sz_rel should be specified.')
+            raise ConfigError(
+                'Only one of group_train_sz and '
+                'group_train_sz_rel should be specified.'
+            )
         if has_group_train_sz and not has_group_uris:
             raise ConfigError('group_train_sz specified without group_uris.')
         if has_group_train_sz_rel and not has_group_uris:
             raise ConfigError(
-                'group_train_sz_rel specified without group_uris.')
+                'group_train_sz_rel specified without group_uris.'
+            )
         if has_group_train_sz and sequence_like(group_train_sz):
             if len(group_train_sz) != len(group_uris):
                 raise ConfigError('len(group_train_sz) != len(group_uris).')
         if has_group_train_sz_rel and sequence_like(group_train_sz_rel):
             if len(group_train_sz_rel) != len(group_uris):
                 raise ConfigError(
-                    'len(group_train_sz_rel) != len(group_uris).')
+                    'len(group_train_sz_rel) != len(group_uris).'
+                )
         return self
 
-    def _build_dataset(self,
-                       dirs: Iterable[str],
-                       tf: A.BasicTransform | None = None) -> Dataset:
+    def _build_dataset(
+        self, dirs: Iterable[str], tf: A.BasicTransform | None = None
+    ) -> Dataset:
         """Make datasets for a single split.
 
         Args:
@@ -879,14 +1003,15 @@ class ImageDataConfig(DataConfig):
         combined_dataset = ConcatDataset(per_dir_datasets)
         return combined_dataset
 
-    def _build_datasets(self,
-                        train_dirs: Iterable[str],
-                        val_dirs: Iterable[str],
-                        test_dirs: Iterable[str],
-                        train_tf: A.BasicTransform | None = None,
-                        val_tf: A.BasicTransform | None = None,
-                        test_tf: A.BasicTransform | None = None
-                        ) -> tuple[Dataset, Dataset, Dataset]:
+    def _build_datasets(
+        self,
+        train_dirs: Iterable[str],
+        val_dirs: Iterable[str],
+        test_dirs: Iterable[str],
+        train_tf: A.BasicTransform | None = None,
+        val_tf: A.BasicTransform | None = None,
+        test_tf: A.BasicTransform | None = None,
+    ) -> tuple[Dataset, Dataset, Dataset]:
         """Make training, validation, and test datasets.
 
         Args:
@@ -908,53 +1033,64 @@ class ImageDataConfig(DataConfig):
         test_ds = self._build_dataset(test_dirs, test_tf)
         return train_ds, val_ds, test_ds
 
-    def dir_to_dataset(self, data_dir: str,
-                       transform: A.BasicTransform) -> Dataset:
+    def dir_to_dataset(
+        self, data_dir: str, transform: A.BasicTransform
+    ) -> Dataset:
         raise NotImplementedError()
 
     def build(self, tmp_dir: str) -> tuple[Dataset, Dataset, Dataset]:
-
         if self.group_uris is None:
             return self._get_datasets_from_uri(self.uri, tmp_dir=tmp_dir)
 
         if self.uri is not None:
-            log.warning('Both DataConfig.uri and DataConfig.group_uris '
-                        'specified. Only DataConfig.group_uris will be used.')
+            log.warning(
+                'Both DataConfig.uri and DataConfig.group_uris '
+                'specified. Only DataConfig.group_uris will be used.'
+            )
 
         train_ds, valid_ds, test_ds = self._get_datasets_from_group_uris(
-            self.group_uris, tmp_dir=tmp_dir)
+            self.group_uris, tmp_dir=tmp_dir
+        )
 
         if self.train_sz is not None or self.train_sz_rel is not None:
             train_ds = self.random_subset_dataset(
-                train_ds, size=self.train_sz, fraction=self.train_sz_rel)
+                train_ds, size=self.train_sz, fraction=self.train_sz_rel
+            )
 
         return train_ds, valid_ds, test_ds
 
-    def build_dataset(self,
-                      split: Literal['train', 'valid', 'test'],
-                      tmp_dir: str | None = None) -> Dataset:
-
+    def build_dataset(
+        self,
+        split: Literal['train', 'valid', 'test'],
+        tmp_dir: str | None = None,
+    ) -> Dataset:
         if self.group_uris is None:
             ds = self._get_dataset_from_uri(
-                self.uri, split=split, tmp_dir=tmp_dir)
+                self.uri, split=split, tmp_dir=tmp_dir
+            )
             return ds
 
         if self.uri is not None:
-            log.warning('Both DataConfig.uri and DataConfig.group_uris '
-                        'specified. Only DataConfig.group_uris will be used.')
+            log.warning(
+                'Both DataConfig.uri and DataConfig.group_uris '
+                'specified. Only DataConfig.group_uris will be used.'
+            )
 
         ds = self._get_dataset_from_group_uris(
-            self.group_uris, split=split, tmp_dir=tmp_dir)
+            self.group_uris, split=split, tmp_dir=tmp_dir
+        )
 
         if split == 'train':
             if self.train_sz is not None or self.train_sz_rel is not None:
                 ds = self.random_subset_dataset(
-                    ds, size=self.train_sz, fraction=self.train_sz_rel)
+                    ds, size=self.train_sz, fraction=self.train_sz_rel
+                )
 
         return ds
 
-    def _get_datasets_from_uri(self, uri: str | list[str], tmp_dir: str
-                               ) -> tuple[Dataset, Dataset, Dataset]:
+    def _get_datasets_from_uri(
+        self, uri: str | list[str], tmp_dir: str
+    ) -> tuple[Dataset, Dataset, Dataset]:
         """Get image train, validation, & test datasets from a single zip file.
 
         Args:
@@ -984,12 +1120,16 @@ class ImageDataConfig(DataConfig):
             test_dirs=test_dirs,
             train_tf=train_tf,
             val_tf=val_tf,
-            test_tf=test_tf)
+            test_tf=test_tf,
+        )
         return train_ds, val_ds, test_ds
 
-    def _get_dataset_from_uri(self, uri: str | list[str],
-                              split: Literal['train', 'valid', 'test'],
-                              tmp_dir: str) -> Dataset:
+    def _get_dataset_from_uri(
+        self,
+        uri: str | list[str],
+        split: Literal['train', 'valid', 'test'],
+        tmp_dir: str,
+    ) -> Dataset:
         """Get image dataset from a single zip file.
 
         Args:
@@ -1012,12 +1152,13 @@ class ImageDataConfig(DataConfig):
         ds = self._build_dataset(dirs, tf)
         return ds
 
-    def _get_datasets_from_group_uris(self,
-                                      uris: str | list[str],
-                                      tmp_dir: str,
-                                      group_train_sz: int | None = None,
-                                      group_train_sz_rel: float | None = None
-                                      ) -> tuple[Dataset, Dataset, Dataset]:
+    def _get_datasets_from_group_uris(
+        self,
+        uris: str | list[str],
+        tmp_dir: str,
+        group_train_sz: int | None = None,
+        group_train_sz_rel: float | None = None,
+    ) -> tuple[Dataset, Dataset, Dataset]:
         train_ds_lst, valid_ds_lst, test_ds_lst = [], [], []
 
         group_sizes = None
@@ -1030,11 +1171,13 @@ class ImageDataConfig(DataConfig):
 
         for uri, size in zip(uris, group_sizes):
             train_ds, valid_ds, test_ds = self._get_datasets_from_uri(
-                uri, tmp_dir=tmp_dir)
+                uri, tmp_dir=tmp_dir
+            )
             if size is not None:
                 if isinstance(size, float):
                     train_ds = self.random_subset_dataset(
-                        train_ds, fraction=size)
+                        train_ds, fraction=size
+                    )
                 else:
                     train_ds = self.random_subset_dataset(train_ds, size=size)
 
@@ -1042,19 +1185,21 @@ class ImageDataConfig(DataConfig):
             valid_ds_lst.append(valid_ds)
             test_ds_lst.append(test_ds)
 
-        train_ds, valid_ds, test_ds = (ConcatDataset(train_ds_lst),
-                                       ConcatDataset(valid_ds_lst),
-                                       ConcatDataset(test_ds_lst))
+        train_ds, valid_ds, test_ds = (
+            ConcatDataset(train_ds_lst),
+            ConcatDataset(valid_ds_lst),
+            ConcatDataset(test_ds_lst),
+        )
         return train_ds, valid_ds, test_ds
 
     def _get_dataset_from_group_uris(
-            self,
-            split: Literal['train', 'valid', 'test'],
-            uris: str | list[str],
-            tmp_dir: str,
-            group_sz: int | None = None,
-            group_sz_rel: float | None = None) -> Dataset:
-
+        self,
+        split: Literal['train', 'valid', 'test'],
+        uris: str | list[str],
+        tmp_dir: str,
+        group_sz: int | None = None,
+        group_sz_rel: float | None = None,
+    ) -> Dataset:
         group_sizes = None
         if group_sz is not None:
             group_sizes = group_sz
@@ -1104,19 +1249,21 @@ class ImageDataConfig(DataConfig):
             paths = list_paths(uri)
             has_train = join(uri, 'train') in paths
             has_val = join(uri, 'valid') in paths
-            return (has_train and has_val)
+            return has_train and has_val
 
         if isinstance(uri, list):
             zip_uris = uri
             if not all(uri.endswith('.zip') for uri in zip_uris):
-                raise ValueError('If uri is a list, all items must be URIs of '
-                                 'zip files.')
+                raise ValueError(
+                    'If uri is a list, all items must be URIs of zip files.'
+                )
         else:
             # if file
             if file_exists(uri, include_dir=False):
                 if not uri.endswith('.zip'):
                     raise ValueError(
-                        'URI is neither a directory nor a zip file.')
+                        'URI is neither a directory nor a zip file.'
+                    )
                 zip_uris = [uri]
             # if dir
             elif file_exists(uri, include_dir=True):
@@ -1172,7 +1319,8 @@ class GeoDataConfig(DataConfig):
 
     scene_dataset: 'SceneDatasetConfig | None' = Field(None, description='')
     sampling: WindowSamplingConfig | dict[str, WindowSamplingConfig] = Field(
-        {}, description='Window sampling config.')
+        {}, description='Window sampling config.'
+    )
 
     def __repr_args__(self):
         ds_str = repr(self.scene_dataset)
@@ -1193,13 +1341,15 @@ class GeoDataConfig(DataConfig):
             return self
 
         if self.scene_dataset is None:
-            raise ConfigError('sampling is a non-empty dict but '
-                              'scene_dataset is None.')
+            raise ConfigError(
+                'sampling is a non-empty dict but scene_dataset is None.'
+            )
 
         for s in self.scene_dataset.all_scenes:
             if s.id not in self.sampling:
                 raise ConfigError(
-                    f'Window sampling config not found for scene: {s.id}')
+                    f'Window sampling config not found for scene: {s.id}'
+                )
 
         return self
 
@@ -1209,9 +1359,11 @@ class GeoDataConfig(DataConfig):
             self.class_config = self.scene_dataset.class_config
         return self
 
-    def build_scenes(self,
-                     scene_configs: Iterable['SceneConfig'],
-                     tmp_dir: str | None = None) -> list[Scene]:
+    def build_scenes(
+        self,
+        scene_configs: Iterable['SceneConfig'],
+        tmp_dir: str | None = None,
+    ) -> list[Scene]:
         """Build training, validation, and test scenes."""
         class_config = self.scene_dataset.class_config
         scenes = [
@@ -1220,11 +1372,13 @@ class GeoDataConfig(DataConfig):
         ]
         return scenes
 
-    def _build_dataset(self,
-                       split: Literal['train', 'valid', 'test'],
-                       tf: A.BasicTransform | None = None,
-                       tmp_dir: str | None = None,
-                       **kwargs) -> Dataset:
+    def _build_dataset(
+        self,
+        split: Literal['train', 'valid', 'test'],
+        tf: A.BasicTransform | None = None,
+        tmp_dir: str | None = None,
+        **kwargs,
+    ) -> Dataset:
         """Make training, validation, and test datasets.
 
         Args:
@@ -1259,12 +1413,14 @@ class GeoDataConfig(DataConfig):
 
         return combined_dataset
 
-    def _build_datasets(self,
-                        tmp_dir: str | None = None,
-                        train_tf: A.BasicTransform | None = None,
-                        val_tf: A.BasicTransform | None = None,
-                        test_tf: A.BasicTransform | None = None,
-                        **kwargs) -> tuple[Dataset, Dataset, Dataset]:
+    def _build_datasets(
+        self,
+        tmp_dir: str | None = None,
+        train_tf: A.BasicTransform | None = None,
+        val_tf: A.BasicTransform | None = None,
+        test_tf: A.BasicTransform | None = None,
+        **kwargs,
+    ) -> tuple[Dataset, Dataset, Dataset]:
         """Make training, validation, and test datasets.
 
         Args:
@@ -1286,18 +1442,20 @@ class GeoDataConfig(DataConfig):
         test_ds = self._build_dataset('test', test_tf, tmp_dir, **kwargs)
         return train_ds, val_ds, test_ds
 
-    def scene_to_dataset(self,
-                         scene: Scene,
-                         transform: A.BasicTransform | None = None,
-                         for_chipping: bool = False) -> Dataset:
-        """Make a dataset from a single scene.
-        """
+    def scene_to_dataset(
+        self,
+        scene: Scene,
+        transform: A.BasicTransform | None = None,
+        for_chipping: bool = False,
+    ) -> Dataset:
+        """Make a dataset from a single scene."""
         raise NotImplementedError()
 
-    def build_dataset(self,
-                      split: Literal['train', 'valid', 'test'],
-                      tmp_dir: str | None = None) -> Dataset:
-
+    def build_dataset(
+        self,
+        split: Literal['train', 'valid', 'test'],
+        tmp_dir: str | None = None,
+    ) -> Dataset:
         base_transform, aug_transform = self.get_data_transforms()
         if split == 'train':
             tf = aug_transform
@@ -1309,12 +1467,14 @@ class GeoDataConfig(DataConfig):
         if split == 'train':
             if self.train_sz is not None or self.train_sz_rel is not None:
                 ds = self.random_subset_dataset(
-                    ds, size=self.train_sz, fraction=self.train_sz_rel)
+                    ds, size=self.train_sz, fraction=self.train_sz_rel
+                )
 
         return ds
 
-    def build(self, tmp_dir: str | None = None,
-              for_chipping: bool = False) -> tuple[Dataset, Dataset, Dataset]:
+    def build(
+        self, tmp_dir: str | None = None, for_chipping: bool = False
+    ) -> tuple[Dataset, Dataset, Dataset]:
         base_transform, aug_transform = self.get_data_transforms()
         if for_chipping:
             train_tf, val_tf, test_tf = None, None, None
@@ -1327,11 +1487,13 @@ class GeoDataConfig(DataConfig):
             train_tf=train_tf,
             val_tf=val_tf,
             test_tf=test_tf,
-            for_chipping=for_chipping)
+            for_chipping=for_chipping,
+        )
 
         if self.train_sz is not None or self.train_sz_rel is not None:
             train_ds = self.random_subset_dataset(
-                train_ds, size=self.train_sz, fraction=self.train_sz_rel)
+                train_ds, size=self.train_sz, fraction=self.train_sz_rel
+            )
 
         return train_ds, val_ds, test_ds
 
@@ -1348,6 +1510,7 @@ def learner_config_upgrader(cfg_dict: dict, version: int) -> dict:
 @register_config('learner', upgrader=learner_config_upgrader)
 class LearnerConfig(Config):
     """Config for Learner."""
+
     model: ModelConfig | None = None
     solver: SolverConfig | None = None
     data: DataConfig
@@ -1355,33 +1518,42 @@ class LearnerConfig(Config):
     eval_train: bool = Field(
         False,
         description='If True, runs final evaluation on training set '
-        '(in addition to validation set). Useful for debugging.')
+        '(in addition to validation set). Useful for debugging.',
+    )
     save_model_bundle: bool = Field(
         True,
-        description=
-        ('If True, saves a model bundle at the end of training which '
-         'is zip file with model and this LearnerConfig which can be used to make '
-         'predictions on new images at a later time.'))
+        description=(
+            'If True, saves a model bundle at the end of training which '
+            'is zip file with model and this LearnerConfig which can be used to make '
+            'predictions on new images at a later time.'
+        ),
+    )
     log_tensorboard: bool = Field(
         True,
-        description='Save Tensorboard log files at the end of each epoch.')
+        description='Save Tensorboard log files at the end of each epoch.',
+    )
     run_tensorboard: bool = Field(
-        False, description='run Tensorboard server during training')
+        False, description='run Tensorboard server during training'
+    )
     output_uri: str | None = Field(
-        None, description='URI of where to save output')
+        None, description='URI of where to save output'
+    )
     save_all_checkpoints: bool = Field(
         False,
         description=(
             'If True, all checkpoints would be saved. The latest checkpoint '
             'would be saved as `last-model.pth`. The checkpoints prior to '
             'last epoch are stored as `model-ckpt-epoch-{N}.pth` where `N` '
-            'is the epoch number.'))
+            'is the epoch number.'
+        ),
+    )
 
     @model_validator(mode='after')
     def validate_run_tensorboard(self) -> 'Self':
         if self.run_tensorboard and not self.log_tensorboard:
             raise ConfigError(
-                'Cannot run tensorboard if log_tensorboard is False')
+                'Cannot run tensorboard if log_tensorboard is False'
+            )
         return self
 
     @model_validator(mode='after')
@@ -1395,15 +1567,18 @@ class LearnerConfig(Config):
             if num_weights != num_classes:
                 raise ConfigError(
                     f'class_loss_weights ({num_weights}) must be same length as '
-                    f'the number of classes ({num_classes})')
+                    f'the number of classes ({num_classes})'
+                )
         return self
 
-    def build(self,
-              tmp_dir: str | None = None,
-              model_weights_path: str | None = None,
-              model_def_path: str | None = None,
-              loss_def_path: str | None = None,
-              training: bool = True) -> 'Learner':
+    def build(
+        self,
+        tmp_dir: str | None = None,
+        model_weights_path: str | None = None,
+        model_def_path: str | None = None,
+        loss_def_path: str | None = None,
+        training: bool = True,
+    ) -> 'Learner':
         """Returns a Learner instantiated using this Config.
 
         Args:

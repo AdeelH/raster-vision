@@ -13,7 +13,8 @@ class TestClassEvaluationItem(unittest.TestCase):
         conf_mat = np.random.randint(100, size=(2, 2))
         [[tn, fp], [fn, tp]] = conf_mat
         item = ClassEvaluationItem(
-            class_id=0, class_name='abc', tp=tp, fp=fp, fn=fn, tn=tn)
+            class_id=0, class_name='abc', tp=tp, fp=fp, fn=fn, tn=tn
+        )
         self.assertEqual(item.true_pos, tp)
         self.assertEqual(item.true_neg, tn)
         self.assertEqual(item.false_pos, fp)
@@ -27,12 +28,14 @@ class TestClassEvaluationItem(unittest.TestCase):
         self.assertEqual(item.sensitivity, recall)
         self.assertEqual(item.precision, precision)
         self.assertEqual(item.specificity, tn / (tn + fp))
-        self.assertEqual(item.f1,
-                         2 * (precision * recall) / (precision + recall))
+        self.assertEqual(
+            item.f1, 2 * (precision * recall) / (precision + recall)
+        )
 
         json = item.to_json()
-        self.assertEqual(json['relative_frequency'],
-                         (fn + tp) / (fn + tp + fp + tn))
+        self.assertEqual(
+            json['relative_frequency'], (fn + tp) / (fn + tp + fp + tn)
+        )
         self.assertEqual(json['count_error'], abs((fn + tp) - (fp + tp)))
         np.testing.assert_array_equal(np.array(json['conf_mat']), conf_mat)
 
@@ -41,7 +44,8 @@ class TestClassEvaluationItem(unittest.TestCase):
         [[_, fp], [fn, tp]] = conf_mat
         tn = None
         item = ClassEvaluationItem(
-            class_id=0, class_name='abc', tp=tp, fp=fp, fn=fn, tn=tn)
+            class_id=0, class_name='abc', tp=tp, fp=fp, fn=fn, tn=tn
+        )
         self.assertEqual(item.true_pos, tp)
         self.assertEqual(item.true_neg, None)
         self.assertEqual(item.false_pos, fp)
@@ -55,8 +59,9 @@ class TestClassEvaluationItem(unittest.TestCase):
         self.assertEqual(item.sensitivity, recall)
         self.assertEqual(item.precision, precision)
         self.assertEqual(item.specificity, None)
-        self.assertEqual(item.f1,
-                         2 * (precision * recall) / (precision + recall))
+        self.assertEqual(
+            item.f1, 2 * (precision * recall) / (precision + recall)
+        )
 
         json = item.to_json()
         self.assertNotIn('relative_frequency', json)
@@ -69,18 +74,21 @@ class TestClassEvaluationItem(unittest.TestCase):
         conf_mat1 = np.random.randint(100, size=(2, 2))
         [[tn, fp], [fn, tp]] = conf_mat1
         item1 = ClassEvaluationItem(
-            class_id=0, class_name='abc', tp=tp, fp=fp, fn=fn, tn=tn)
+            class_id=0, class_name='abc', tp=tp, fp=fp, fn=fn, tn=tn
+        )
 
         conf_mat2 = np.random.randint(100, size=(2, 2))
         [[tn, fp], [fn, tp]] = conf_mat2
         item2 = ClassEvaluationItem(
-            class_id=0, class_name='abc', tp=tp, fp=fp, fn=fn, tn=tn)
+            class_id=0, class_name='abc', tp=tp, fp=fp, fn=fn, tn=tn
+        )
 
         item1.merge(item2)
         np.testing.assert_array_equal(item1.conf_mat, conf_mat1 + conf_mat2)
 
         item3 = ClassEvaluationItem(
-            class_id=1, class_name='def', tp=tp, fp=fp, fn=fn, tn=tn)
+            class_id=1, class_name='def', tp=tp, fp=fp, fn=fn, tn=tn
+        )
         self.assertRaises(ValueError, lambda: item1.merge(item3))
 
     def test_extra_info(self):
@@ -94,7 +102,8 @@ class TestClassEvaluationItem(unittest.TestCase):
             fn=fn,
             tn=tn,
             extra1='extra1',
-            extra2='extra2')
+            extra2='extra2',
+        )
         json = item.to_json()
         self.assertEqual(json['extra1'], 'extra1')
         self.assertEqual(json['extra2'], 'extra2')
@@ -106,7 +115,8 @@ class TestClassEvaluationItem(unittest.TestCase):
             class_name='abc',
             conf_mat=conf_mat,
             extra1='extra1',
-            extra2='extra2')
+            extra2='extra2',
+        )
 
         tp = conf_mat[3, 3]
         fp = conf_mat[:, 3].sum() - tp

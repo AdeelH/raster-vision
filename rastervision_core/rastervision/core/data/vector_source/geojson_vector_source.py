@@ -17,11 +17,13 @@ log = logging.getLogger(__name__)
 class GeoJSONVectorSource(VectorSource):
     """A :class:`.VectorSource` for reading GeoJSON files."""
 
-    def __init__(self,
-                 uris: str | list[str],
-                 crs_transformer: 'CRSTransformer',
-                 vector_transformers: list['VectorTransformer'] = [],
-                 bbox: Box | None = None):
+    def __init__(
+        self,
+        uris: str | list[str],
+        crs_transformer: 'CRSTransformer',
+        vector_transformers: list['VectorTransformer'] = [],
+        bbox: Box | None = None,
+    ):
         """Constructor.
 
         Args:
@@ -36,9 +38,8 @@ class GeoJSONVectorSource(VectorSource):
         """
         self.uris = listify_uris(uris)
         super().__init__(
-            crs_transformer,
-            vector_transformers=vector_transformers,
-            bbox=bbox)
+            crs_transformer, vector_transformers=vector_transformers, bbox=bbox
+        )
 
     def _get_geojson(self) -> dict:
         geojsons = [self._get_geojson_single(uri) for uri in self.uris]

@@ -1,17 +1,23 @@
 from rastervision.core.box import Box
-from rastervision.core.data.raster_source import RasterSourceConfig, RasterioSource
+from rastervision.core.data.raster_source import (
+    RasterSourceConfig,
+    RasterioSource,
+)
 from rastervision.pipeline.config import ConfigError, Field, register_config
 
 
-def rasterio_source_config_upgrader(cfg_dict: dict,
-                                    version: int) -> dict:  # pragma: no cover
+def rasterio_source_config_upgrader(
+    cfg_dict: dict, version: int
+) -> dict:  # pragma: no cover
     if version == 5:
         # removed in version 6
         x_shift = cfg_dict.get('x_shift', 0)
         y_shift = cfg_dict.get('y_shift', 0)
         if x_shift != 0 or y_shift != 0:
-            raise ConfigError('x_shift and y_shift are deprecated. '
-                              'Use the ShiftTransformer instead.')
+            raise ConfigError(
+                'x_shift and y_shift are deprecated. '
+                'Use the ShiftTransformer instead.'
+            )
         try:
             del cfg_dict['x_shift']
             del cfg_dict['y_shift']
@@ -29,13 +35,16 @@ class RasterioSourceConfig(RasterSourceConfig):
         description='One or more image URIs that comprise the imagery for a '
         'scene. The format of each file can be any that can be read by '
         'Rasterio/GDAL. If > 1 URI is provided, a VRT will be created to '
-        'mosaic together the individual images.')
+        'mosaic together the individual images.',
+    )
     allow_streaming: bool = Field(
         False,
-        description='Stream assets as needed rather than downloading them.')
+        description='Stream assets as needed rather than downloading them.',
+    )
 
-    def build(self, tmp_dir: str | None,
-              use_transformers: bool = True) -> RasterioSource:
+    def build(
+        self, tmp_dir: str | None, use_transformers: bool = True
+    ) -> RasterioSource:
         if use_transformers:
             raster_transformers = [
                 t.build(channel_order=self.channel_order)
@@ -50,4 +59,5 @@ class RasterioSourceConfig(RasterSourceConfig):
             tmp_dir=tmp_dir,
             allow_streaming=self.allow_streaming,
             channel_order=self.channel_order,
-            bbox=bbox)
+            bbox=bbox,
+        )

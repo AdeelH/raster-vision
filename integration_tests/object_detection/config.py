@@ -1,20 +1,33 @@
 from os.path import join, dirname
 
 from rastervision.core.rv_pipeline import (
-    ObjectDetectionConfig, ObjectDetectionChipOptions,
-    ObjectDetectionPredictOptions, ObjectDetectionWindowSamplingConfig,
-    WindowSamplingMethod)
+    ObjectDetectionConfig,
+    ObjectDetectionChipOptions,
+    ObjectDetectionPredictOptions,
+    ObjectDetectionWindowSamplingConfig,
+    WindowSamplingMethod,
+)
 from rastervision.core.data import (
-    ClassConfig, ObjectDetectionLabelSourceConfig, GeoJSONVectorSourceConfig,
-    RasterioSourceConfig, SceneConfig, DatasetConfig)
+    ClassConfig,
+    ObjectDetectionLabelSourceConfig,
+    GeoJSONVectorSourceConfig,
+    RasterioSourceConfig,
+    SceneConfig,
+    DatasetConfig,
+)
 from rastervision.pytorch_backend import PyTorchObjectDetectionConfig
 from rastervision.pytorch_learner import (
-    Backbone, SolverConfig, ObjectDetectionModelConfig,
-    ObjectDetectionImageDataConfig, ObjectDetectionGeoDataConfig)
+    Backbone,
+    SolverConfig,
+    ObjectDetectionModelConfig,
+    ObjectDetectionImageDataConfig,
+    ObjectDetectionGeoDataConfig,
+)
 
 
-def get_config(runner, root_uri, data_uri=None, full_train=False,
-               nochip=False):
+def get_config(
+    runner, root_uri, data_uri=None, full_train=False, nochip=False
+):
     def get_path(part):
         if full_train:
             return join(data_uri, part)
@@ -22,31 +35,40 @@ def get_config(runner, root_uri, data_uri=None, full_train=False,
             return join(dirname(__file__), part)
 
     class_config = ClassConfig(
-        names=['car', 'building'], colors=['blue', 'red'])
+        names=['car', 'building'], colors=['blue', 'red']
+    )
 
     def make_scene(scene_id, img_path, label_path):
         raster_source = RasterioSourceConfig(
-            channel_order=[0, 1, 2], uris=[img_path])
+            channel_order=[0, 1, 2], uris=[img_path]
+        )
         label_source = ObjectDetectionLabelSourceConfig(
-            vector_source=GeoJSONVectorSourceConfig(uris=label_path))
+            vector_source=GeoJSONVectorSourceConfig(uris=label_path)
+        )
         return SceneConfig(
-            id=scene_id,
-            raster_source=raster_source,
-            label_source=label_source)
+            id=scene_id, raster_source=raster_source, label_source=label_source
+        )
 
     chip_sz = 300
     img_sz = chip_sz
 
     scenes = [
-        make_scene('od_test', get_path('scene/image.tif'),
-                   get_path('scene/labels.json')),
-        make_scene('od_test-2', get_path('scene/image2.tif'),
-                   get_path('scene/labels2.json'))
+        make_scene(
+            'od_test',
+            get_path('scene/image.tif'),
+            get_path('scene/labels.json'),
+        ),
+        make_scene(
+            'od_test-2',
+            get_path('scene/image2.tif'),
+            get_path('scene/labels2.json'),
+        ),
     ]
     scene_dataset = DatasetConfig(
         class_config=class_config,
         train_scenes=scenes,
-        validation_scenes=scenes)
+        validation_scenes=scenes,
+    )
 
     chip_options = ObjectDetectionChipOptions(
         sampling=ObjectDetectionWindowSamplingConfig(
@@ -54,14 +76,17 @@ def get_config(runner, root_uri, data_uri=None, full_train=False,
             stride=chip_sz,
             size=chip_sz,
             neg_ratio=1.0,
-            ioa_thresh=1.0))
+            ioa_thresh=1.0,
+        )
+    )
 
     if nochip:
         data = ObjectDetectionGeoDataConfig(
             scene_dataset=scene_dataset,
             sampling=chip_options.sampling,
             img_sz=img_sz,
-            augmentors=[])
+            augmentors=[],
+        )
     else:
         data = ObjectDetectionImageDataConfig(img_sz=img_sz, augmentors=[])
 
@@ -72,32 +97,39 @@ def get_config(runner, root_uri, data_uri=None, full_train=False,
             num_epochs=300,
             batch_sz=8,
             one_cycle=True,
-            sync_interval=300)
+            sync_interval=300,
+        )
     else:
         pretrained_uri = (
             'https://github.com/azavea/raster-vision-data/releases/download/v0.12/'
-            'object-detection.pth')
+            'object-detection.pth'
+        )
         model = ObjectDetectionModelConfig(
-            backbone=Backbone.resnet18, init_weights=pretrained_uri)
+            backbone=Backbone.resnet18, init_weights=pretrained_uri
+        )
         solver = SolverConfig(
             lr=1e-9,
             num_epochs=1,
             batch_sz=2,
             one_cycle=True,
-            sync_interval=200)
+            sync_interval=200,
+        )
     backend = PyTorchObjectDetectionConfig(
         data=data,
         model=model,
         solver=solver,
         log_tensorboard=False,
-        run_tensorboard=False)
+        run_tensorboard=False,
+    )
 
     predict_options = ObjectDetectionPredictOptions(
-        chip_sz=chip_sz, merge_thresh=0.1, score_thresh=0.5)
+        chip_sz=chip_sz, merge_thresh=0.1, score_thresh=0.5
+    )
 
     return ObjectDetectionConfig(
         root_uri=root_uri,
         dataset=scene_dataset,
         backend=backend,
         chip_options=chip_options,
-        predict_options=predict_options)
+        predict_options=predict_options,
+    )

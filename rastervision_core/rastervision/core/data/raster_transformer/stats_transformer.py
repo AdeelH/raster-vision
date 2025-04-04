@@ -26,10 +26,12 @@ class StatsTransformer(RasterTransformer):
     with all values equal to zero).
     """
 
-    def __init__(self,
-                 means: Sequence[float],
-                 stds: Sequence[float],
-                 max_stds: float = 3.):
+    def __init__(
+        self,
+        means: Sequence[float],
+        stds: Sequence[float],
+        max_stds: float = 3.0,
+    ):
         """Construct a new StatsTransformer.
 
         Args:
@@ -73,7 +75,7 @@ class StatsTransformer(RasterTransformer):
         # range: [0, 2 * max_stds]
         chip += max_stds
         # range: [0, 1]
-        chip /= (2 * max_stds)
+        chip /= 2 * max_stds
         # range: [0, 255]
         chip *= 255
         chip = chip.astype(np.uint8)
@@ -83,11 +85,13 @@ class StatsTransformer(RasterTransformer):
         return chip
 
     @classmethod
-    def from_raster_sources(cls,
-                            raster_sources: list['RasterSource'],
-                            sample_prob: float | None = 0.1,
-                            max_stds: float = 3.,
-                            chip_sz: int = 300) -> 'Self':
+    def from_raster_sources(
+        cls,
+        raster_sources: list['RasterSource'],
+        sample_prob: float | None = 0.1,
+        max_stds: float = 3.0,
+        chip_sz: int = 300,
+    ) -> 'Self':
         """Build with stats from the given raster sources.
 
         Args:
@@ -106,16 +110,17 @@ class StatsTransformer(RasterTransformer):
         stats.compute(
             raster_sources=raster_sources,
             sample_prob=sample_prob,
-            chip_sz=chip_sz)
+            chip_sz=chip_sz,
+        )
         stats_transformer = StatsTransformer.from_raster_stats(
-            stats, max_stds=max_stds)
+            stats, max_stds=max_stds
+        )
         return stats_transformer
 
     @classmethod
-    def from_stats_json(cls,
-                        uri: str,
-                        channel_order: list[int] | None = None,
-                        **kwargs) -> 'Self':
+    def from_stats_json(
+        cls, uri: str, channel_order: list[int] | None = None, **kwargs
+    ) -> 'Self':
         """Build with stats from a JSON file.
 
         The file is expected to be in the same format as written by
@@ -132,14 +137,17 @@ class StatsTransformer(RasterTransformer):
         """
         stats = RasterStats.load(uri)
         stats_transformer = StatsTransformer.from_raster_stats(
-            stats, channel_order=channel_order, **kwargs)
+            stats, channel_order=channel_order, **kwargs
+        )
         return stats_transformer
 
     @classmethod
-    def from_raster_stats(cls,
-                          stats: RasterStats,
-                          channel_order: list[int] | None = None,
-                          **kwargs) -> 'Self':
+    def from_raster_stats(
+        cls,
+        stats: RasterStats,
+        channel_order: list[int] | None = None,
+        **kwargs,
+    ) -> 'Self':
         """Build with stats from a :class:`.RasterStats` instance.
 
         The file is expected to be in the same format as written by
@@ -168,7 +176,8 @@ class StatsTransformer(RasterTransformer):
 
     def __repr__(self) -> str:
         return repr_with_args(
-            self, means=self.means, stds=self.stds, max_stds=self.max_stds)
+            self, means=self.means, stds=self.stds, max_stds=self.max_stds
+        )
 
     def get_out_dtype(self, in_dtype: np.dtype) -> np.dtype:
         return np.dtype(np.uint8)

@@ -7,16 +7,18 @@ if TYPE_CHECKING:
     from rastervision.core.data import ClassConfig, Scene
 
 
-def make_ss_scene(image_uri: str | list[str],
-                  label_raster_uri: str | list[str] | None = None,
-                  class_config: 'ClassConfig | None' = None,
-                  label_vector_uri: str | None = None,
-                  aoi_uri: str | list[str] = [],
-                  label_vector_default_class_id: int | None = None,
-                  image_raster_source_kw: dict = {},
-                  label_raster_source_kw: dict = {},
-                  label_vector_source_kw: dict = {},
-                  scene_id: str | None = None) -> 'Scene':
+def make_ss_scene(
+    image_uri: str | list[str],
+    label_raster_uri: str | list[str] | None = None,
+    class_config: 'ClassConfig | None' = None,
+    label_vector_uri: str | None = None,
+    aoi_uri: str | list[str] = [],
+    label_vector_default_class_id: int | None = None,
+    image_raster_source_kw: dict = {},
+    label_raster_source_kw: dict = {},
+    label_vector_source_kw: dict = {},
+    scene_id: str | None = None,
+) -> 'Scene':
     """Create a semantic segmentation scene from image and label URIs.
 
     This is a convenience method. For more fine-grained control, it is
@@ -65,12 +67,19 @@ def make_ss_scene(image_uri: str | list[str],
     """
     # use local imports to avoid circular import problems
     from rastervision.core.data import (
-        GeoJSONVectorSource, RasterioSource, RasterizedSource, Scene,
-        SemanticSegmentationLabelSource, ClassInferenceTransformer)
+        GeoJSONVectorSource,
+        RasterioSource,
+        RasterizedSource,
+        Scene,
+        SemanticSegmentationLabelSource,
+        ClassInferenceTransformer,
+    )
 
     if label_raster_uri is not None and label_vector_uri is not None:
-        raise ValueError('Specify either label_raster_uri or '
-                         'label_vector_uri or neither, but not both.')
+        raise ValueError(
+            'Specify either label_raster_uri or '
+            'label_vector_uri or neither, but not both.'
+        )
 
     if label_raster_uri is not None or label_vector_uri is not None:
         if class_config is None:
@@ -87,50 +96,60 @@ def make_ss_scene(image_uri: str | list[str],
     if label_raster_uri is not None:
         label_raster_uri = listify_uris(label_raster_uri)
         label_raster_source = RasterioSource(
-            uris=label_raster_uri, **label_raster_source_kw)
+            uris=label_raster_uri, **label_raster_source_kw
+        )
     elif label_vector_uri is not None:
         if label_vector_default_class_id is not None:
             # add a ClassInferenceTransformer to the VectorSource
             class_inf_tf = ClassInferenceTransformer(
-                default_class_id=label_vector_default_class_id)
+                default_class_id=label_vector_default_class_id
+            )
             vector_tfs = label_vector_source_kw.get('vector_transformers', [])
-            label_vector_source_kw['vector_transformers'] = (
-                [class_inf_tf] + vector_tfs)
+            label_vector_source_kw['vector_transformers'] = [
+                class_inf_tf
+            ] + vector_tfs
         vector_source = GeoJSONVectorSource(
             uris=label_vector_uri,
             crs_transformer=crs_transformer,
-            **label_vector_source_kw)
+            **label_vector_source_kw,
+        )
         label_raster_source = RasterizedSource(
             vector_source=vector_source,
             background_class_id=label_raster_source_kw.pop(
-                'background_class_id', class_config.null_class_id),
+                'background_class_id', class_config.null_class_id
+            ),
             bbox=bbox,
-            **label_raster_source_kw)
+            **label_raster_source_kw,
+        )
 
     label_source = None
     if label_raster_source is not None:
         label_source = SemanticSegmentationLabelSource(
-            raster_source=label_raster_source, class_config=class_config)
+            raster_source=label_raster_source, class_config=class_config
+        )
 
     aoi_polygons = get_polygons_from_uris(aoi_uri, crs_transformer)
     scene = Scene(
         id=uuid4() if scene_id is None else scene_id,
         raster_source=raster_source,
         label_source=label_source,
-        aoi_polygons=aoi_polygons)
+        aoi_polygons=aoi_polygons,
+    )
 
     return scene
 
 
-def make_cc_scene(image_uri: str | list[str],
-                  label_vector_uri: str | None = None,
-                  class_config: 'ClassConfig | None' = None,
-                  aoi_uri: str | list[str] = [],
-                  label_vector_default_class_id: int | None = None,
-                  image_raster_source_kw: dict = {},
-                  label_vector_source_kw: dict = {},
-                  label_source_kw: dict = {},
-                  scene_id: str | None = None) -> 'Scene':
+def make_cc_scene(
+    image_uri: str | list[str],
+    label_vector_uri: str | None = None,
+    class_config: 'ClassConfig | None' = None,
+    aoi_uri: str | list[str] = [],
+    label_vector_default_class_id: int | None = None,
+    image_raster_source_kw: dict = {},
+    label_vector_source_kw: dict = {},
+    label_source_kw: dict = {},
+    scene_id: str | None = None,
+) -> 'Scene':
     """Create a chip classification scene from image and label URIs.
 
     This is a convenience method. For more fine-grained control, it is
@@ -172,8 +191,12 @@ def make_cc_scene(image_uri: str | list[str],
     """
     # use local imports to avoid circular import problems
     from rastervision.core.data import (
-        RasterioSource, Scene, ClassInferenceTransformerConfig,
-        ChipClassificationLabelSourceConfig, GeoJSONVectorSourceConfig)
+        RasterioSource,
+        Scene,
+        ClassInferenceTransformerConfig,
+        ChipClassificationLabelSourceConfig,
+        GeoJSONVectorSourceConfig,
+    )
 
     image_uri = listify_uris(image_uri)
     raster_source = RasterioSource(image_uri, **image_raster_source_kw)
@@ -188,37 +211,45 @@ def make_cc_scene(image_uri: str | list[str],
         if label_vector_default_class_id is not None:
             # add a ClassInferenceTransformer to the VectorSource
             class_inf_tf = ClassInferenceTransformerConfig(
-                default_class_id=label_vector_default_class_id)
+                default_class_id=label_vector_default_class_id
+            )
             vector_tfs = label_vector_source_kw.get('transformers', [])
-            label_vector_source_kw['transformers'] = (
-                [class_inf_tf] + vector_tfs)
+            label_vector_source_kw['transformers'] = [
+                class_inf_tf
+            ] + vector_tfs
         geojson_cfg = GeoJSONVectorSourceConfig(
-            uris=label_vector_uri, **label_vector_source_kw)
+            uris=label_vector_uri, **label_vector_source_kw
+        )
         # use config to ensure required transformers are auto added
         label_source_cfg = ChipClassificationLabelSourceConfig(
-            vector_source=geojson_cfg, **label_source_kw)
+            vector_source=geojson_cfg, **label_source_kw
+        )
         label_source = label_source_cfg.build(
-            class_config, crs_transformer, bbox=bbox)
+            class_config, crs_transformer, bbox=bbox
+        )
 
     aoi_polygons = get_polygons_from_uris(aoi_uri, crs_transformer)
     scene = Scene(
         id=uuid4() if scene_id is None else scene_id,
         raster_source=raster_source,
         label_source=label_source,
-        aoi_polygons=aoi_polygons)
+        aoi_polygons=aoi_polygons,
+    )
 
     return scene
 
 
-def make_od_scene(image_uri: str | list[str],
-                  label_vector_uri: str | None = None,
-                  class_config: 'ClassConfig | None' = None,
-                  aoi_uri: str | list[str] = [],
-                  label_vector_default_class_id: int | None = None,
-                  image_raster_source_kw: dict = {},
-                  label_vector_source_kw: dict = {},
-                  label_source_kw: dict = {},
-                  scene_id: str | None = None) -> 'Scene':
+def make_od_scene(
+    image_uri: str | list[str],
+    label_vector_uri: str | None = None,
+    class_config: 'ClassConfig | None' = None,
+    aoi_uri: str | list[str] = [],
+    label_vector_default_class_id: int | None = None,
+    image_raster_source_kw: dict = {},
+    label_vector_source_kw: dict = {},
+    label_source_kw: dict = {},
+    scene_id: str | None = None,
+) -> 'Scene':
     """Create an object detection scene from image and label URIs.
 
     This is a convenience method. For more fine-grained control, it is
@@ -261,8 +292,12 @@ def make_od_scene(image_uri: str | list[str],
     """
     # use local imports to avoid circular import problems
     from rastervision.core.data import (
-        RasterioSource, Scene, ClassInferenceTransformerConfig,
-        GeoJSONVectorSourceConfig, ObjectDetectionLabelSourceConfig)
+        RasterioSource,
+        Scene,
+        ClassInferenceTransformerConfig,
+        GeoJSONVectorSourceConfig,
+        ObjectDetectionLabelSourceConfig,
+    )
 
     image_uri = listify_uris(image_uri)
     raster_source = RasterioSource(image_uri, **image_raster_source_kw)
@@ -277,23 +312,29 @@ def make_od_scene(image_uri: str | list[str],
         if label_vector_default_class_id is not None:
             # add a ClassInferenceTransformer to the VectorSource
             class_inf_tf = ClassInferenceTransformerConfig(
-                default_class_id=label_vector_default_class_id)
+                default_class_id=label_vector_default_class_id
+            )
             vector_tfs = label_vector_source_kw.get('transformers', [])
-            label_vector_source_kw['transformers'] = (
-                [class_inf_tf] + vector_tfs)
+            label_vector_source_kw['transformers'] = [
+                class_inf_tf
+            ] + vector_tfs
         geojson_cfg = GeoJSONVectorSourceConfig(
-            uris=label_vector_uri, **label_vector_source_kw)
+            uris=label_vector_uri, **label_vector_source_kw
+        )
         # use config to ensure required transformers are auto added
         label_source_cfg = ObjectDetectionLabelSourceConfig(
-            vector_source=geojson_cfg, **label_source_kw)
+            vector_source=geojson_cfg, **label_source_kw
+        )
         label_source = label_source_cfg.build(
-            class_config, crs_transformer, bbox=bbox)
+            class_config, crs_transformer, bbox=bbox
+        )
 
     aoi_polygons = get_polygons_from_uris(aoi_uri, crs_transformer)
     scene = Scene(
         id=uuid4() if scene_id is None else scene_id,
         raster_source=raster_source,
         label_source=label_source,
-        aoi_polygons=aoi_polygons)
+        aoi_polygons=aoi_polygons,
+    )
 
     return scene

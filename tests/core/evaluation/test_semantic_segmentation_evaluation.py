@@ -2,8 +2,7 @@ import unittest
 
 import numpy as np
 
-from rastervision.core.data import (ClassConfig,
-                                    SemanticSegmentationLabelSource)
+from rastervision.core.data import ClassConfig, SemanticSegmentationLabelSource
 from rastervision.core.evaluation import SemanticSegmentationEvaluation
 from tests.core.data.mock_raster_source import MockRasterSource
 
@@ -20,14 +19,16 @@ class TestSemanticSegmentationEvaluation(unittest.TestCase):
         gt_raster = MockRasterSource([0], 1)
         gt_raster.set_raster(gt_array)
         gt_label_source = SemanticSegmentationLabelSource(
-            gt_raster, class_config)
+            gt_raster, class_config
+        )
 
         p_array = np.zeros((4, 4, 1), dtype=np.uint8)
         p_array[1, 1, 0] = 1
         p_raster = MockRasterSource([0], 1)
         p_raster.set_raster(p_array)
         p_label_source = SemanticSegmentationLabelSource(
-            p_raster, class_config)
+            p_raster, class_config
+        )
 
         eval = SemanticSegmentationEvaluation(class_config)
         eval.compute(gt_label_source.get_labels(), p_label_source.get_labels())
@@ -60,11 +61,13 @@ class TestSemanticSegmentationEvaluation(unittest.TestCase):
         self.assertTrue(np.isnan(eval_item2.precision))
         self.assertTrue(np.isnan(eval_item2.f1))
 
-        avg_conf_mat = np.array([[13., 1, 0], [1, 0, 0], [1, 0, 0]])
+        avg_conf_mat = np.array([[13.0, 1, 0], [1, 0, 0], [1, 0, 0]])
         avg_recall = (
-            (14 / 16) * recall0 + (1 / 16) * recall1 + (1 / 16) * recall2)
-        np.testing.assert_array_equal(avg_conf_mat,
-                                      np.array(eval.avg_item['conf_mat']))
+            (14 / 16) * recall0 + (1 / 16) * recall1 + (1 / 16) * recall2
+        )
+        np.testing.assert_array_equal(
+            avg_conf_mat, np.array(eval.avg_item['conf_mat'])
+        )
         self.assertEqual(avg_recall, eval.avg_item['metrics']['recall'])
 
 

@@ -1,20 +1,34 @@
 from os.path import join, dirname, basename
 
 from rastervision.core.rv_pipeline import (
-    ChipClassificationConfig, ChipOptions, PredictOptions,
-    WindowSamplingConfig, WindowSamplingMethod)
+    ChipClassificationConfig,
+    ChipOptions,
+    PredictOptions,
+    WindowSamplingConfig,
+    WindowSamplingMethod,
+)
 from rastervision.core.data import (
-    ClassConfig, ChipClassificationLabelSourceConfig,
-    GeoJSONVectorSourceConfig, RasterioSourceConfig, StatsTransformerConfig,
-    SceneConfig, DatasetConfig)
+    ClassConfig,
+    ChipClassificationLabelSourceConfig,
+    GeoJSONVectorSourceConfig,
+    RasterioSourceConfig,
+    StatsTransformerConfig,
+    SceneConfig,
+    DatasetConfig,
+)
 from rastervision.pytorch_backend import PyTorchChipClassificationConfig
 from rastervision.pytorch_learner import (
-    Backbone, SolverConfig, ClassificationModelConfig,
-    ClassificationImageDataConfig, ClassificationGeoDataConfig)
+    Backbone,
+    SolverConfig,
+    ClassificationModelConfig,
+    ClassificationImageDataConfig,
+    ClassificationGeoDataConfig,
+)
 
 
-def get_config(runner, root_uri, data_uri=None, full_train=False,
-               nochip=False):
+def get_config(
+    runner, root_uri, data_uri=None, full_train=False, nochip=False
+):
     def get_path(part):
         if full_train:
             return join(data_uri, part)
@@ -23,7 +37,8 @@ def get_config(runner, root_uri, data_uri=None, full_train=False,
 
     class_config = ClassConfig(
         names=['car', 'building', 'background'],
-        colors=['red', 'blue', 'black'])
+        colors=['red', 'blue', 'black'],
+    )
 
     def make_scene(img_path, label_path):
         id = basename(img_path)
@@ -33,39 +48,47 @@ def get_config(runner, root_uri, data_uri=None, full_train=False,
             use_intersection_over_cell=False,
             pick_min_class_id=True,
             background_class_id=2,
-            infer_cells=True)
+            infer_cells=True,
+        )
 
         raster_source = RasterioSourceConfig(
             channel_order=[0, 1, 2],
             uris=[img_path],
-            transformers=[StatsTransformerConfig()])
+            transformers=[StatsTransformerConfig()],
+        )
 
         return SceneConfig(
-            id=id, raster_source=raster_source, label_source=label_source)
+            id=id, raster_source=raster_source, label_source=label_source
+        )
 
     scenes = [
         make_scene(get_path('scene/image.tif'), get_path('scene/labels.json')),
         make_scene(
-            get_path('scene/image2.tif'), get_path('scene/labels2.json'))
+            get_path('scene/image2.tif'), get_path('scene/labels2.json')
+        ),
     ]
     scene_dataset = DatasetConfig(
         class_config=class_config,
         train_scenes=scenes,
-        validation_scenes=scenes)
+        validation_scenes=scenes,
+    )
 
     chip_sz = 200
     img_sz = chip_sz
 
     chip_options = ChipOptions(
         sampling=WindowSamplingConfig(
-            method=WindowSamplingMethod.sliding, stride=chip_sz, size=chip_sz))
+            method=WindowSamplingMethod.sliding, stride=chip_sz, size=chip_sz
+        )
+    )
 
     if nochip:
         data = ClassificationGeoDataConfig(
             scene_dataset=scene_dataset,
             sampling=chip_options.sampling,
             img_sz=img_sz,
-            augmentors=[])
+            augmentors=[],
+        )
     else:
         data = ClassificationImageDataConfig(img_sz=img_sz, augmentors=[])
 
@@ -76,31 +99,37 @@ def get_config(runner, root_uri, data_uri=None, full_train=False,
             num_epochs=300,
             batch_sz=8,
             one_cycle=True,
-            sync_interval=300)
+            sync_interval=300,
+        )
     else:
         pretrained_uri = (
             'https://github.com/azavea/raster-vision-data/releases/download/v0.12/'
-            'chip-classification.pth')
+            'chip-classification.pth'
+        )
         model = ClassificationModelConfig(
-            backbone=Backbone.resnet18, init_weights=pretrained_uri)
+            backbone=Backbone.resnet18, init_weights=pretrained_uri
+        )
         solver = SolverConfig(
             lr=1e-9,
             num_epochs=1,
             batch_sz=2,
             one_cycle=True,
-            sync_interval=200)
+            sync_interval=200,
+        )
     backend = PyTorchChipClassificationConfig(
         data=data,
         model=model,
         solver=solver,
         log_tensorboard=False,
-        run_tensorboard=False)
+        run_tensorboard=False,
+    )
 
     config = ChipClassificationConfig(
         root_uri=root_uri,
         dataset=scene_dataset,
         backend=backend,
         chip_options=chip_options,
-        predict_options=PredictOptions(chip_sz=chip_sz))
+        predict_options=PredictOptions(chip_sz=chip_sz),
+    )
 
     return config

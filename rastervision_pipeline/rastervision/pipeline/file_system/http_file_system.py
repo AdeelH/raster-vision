@@ -11,12 +11,16 @@ from functools import partial
 
 from tqdm.auto import tqdm
 
-from rastervision.pipeline.file_system import (FileSystem, NotReadableError,
-                                               NotWritableError)
+from rastervision.pipeline.file_system import (
+    FileSystem,
+    NotReadableError,
+    NotWritableError,
+)
 
 
-def get_file_obj(uri: str, with_progress: bool = True,
-                 **kwargs) -> ContextManager:
+def get_file_obj(
+    uri: str, with_progress: bool = True, **kwargs
+) -> ContextManager:
     """Returns a context manager for a file-like object that supports buffered
     reads. If with_progress is True, wraps the read() method of the object in
     a function that updates a tqdm progress bar.
@@ -34,7 +38,8 @@ def get_file_obj(uri: str, with_progress: bool = True,
     if r.status_code != 200:
         r.raise_for_status()  # Will only raise for 4xx codes, so...
         raise RuntimeError(
-            f'Request to {uri} returned status code {r.status_code}')
+            f'Request to {uri} returned status code {r.status_code}'
+        )
     file_obj = r.raw
     # Decompress if needed
     file_obj.read = partial(file_obj.read, decode_content=True)
@@ -51,7 +56,8 @@ def get_file_obj(uri: str, with_progress: bool = True,
         desc=desc,
         bytes=True,
         mininterval=0.5,
-        delay=5)
+        delay=5,
+    )
     return file_obj_wrapped
 
 
@@ -90,15 +96,18 @@ class HttpFileSystem(FileSystem):
         raise NotWritableError('Could not write {}'.format(uri))
 
     @staticmethod
-    def sync_to_dir(src_dir: str, dst_dir_uri: str,
-                    delete: bool = False) -> None:
+    def sync_to_dir(
+        src_dir: str, dst_dir_uri: str, delete: bool = False
+    ) -> None:
         raise NotWritableError('Could not write {}'.format(dst_dir_uri))
 
     @staticmethod
-    def sync_from_dir(src_dir_uri: str, dst_dir: str,
-                      delete: bool = False) -> None:
+    def sync_from_dir(
+        src_dir_uri: str, dst_dir: str, delete: bool = False
+    ) -> None:
         raise NotReadableError(
-            'Cannot read directory from HTTP {}'.format(src_dir_uri))
+            'Cannot read directory from HTTP {}'.format(src_dir_uri)
+        )
 
     @staticmethod
     def copy_to(src_path: str, dst_uri: str) -> None:
@@ -113,8 +122,9 @@ class HttpFileSystem(FileSystem):
     @staticmethod
     def local_path(uri: str, download_dir: str) -> None:
         parsed_uri = urlparse(uri)
-        path = os.path.join(download_dir, 'http', parsed_uri.netloc,
-                            parsed_uri.path[1:])
+        path = os.path.join(
+            download_dir, 'http', parsed_uri.netloc, parsed_uri.path[1:]
+        )
         # This function is expected to return something that is file path-like
         # (as opposed to directory-like),
         # so if the path ends with / we strip it off. This was motivated by

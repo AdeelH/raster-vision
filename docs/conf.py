@@ -38,8 +38,9 @@ def rstjinja(app: 'Sphinx', docname: str, source: list[str]) -> None:
         return
 
     src = source[0]
-    rendered = app.builder.templates.render_string(src,
-                                                   app.config.html_context)
+    rendered = app.builder.templates.render_string(
+        src, app.config.html_context
+    )
     source[0] = rendered
 
 
@@ -63,18 +64,18 @@ def setup(app: 'Sphinx') -> None:
 
 # -- Project information ------------------------------------------------------
 
-project = u'Raster Vision'
-copyright = u'2018, Azavea'
-author = u'Azavea'
+project = 'Raster Vision'
+copyright = '2018, Azavea'
+author = 'Azavea'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
 # The short X.Y version.
-version = u'0.31'
+version = '0.31'
 # The full version, including alpha/beta/rc tags
-release = u'0.31.2-dev'
+release = '0.31.2-dev'
 
 # -- Extension configuration --------------------------------------------------
 
@@ -164,7 +165,7 @@ nbsphinx_prolog = r"""
 
             os.environ['GDAL_DATA'] = check_output('pip show rasterio | grep Location | awk \'{print $NF"/rasterio/gdal_data/"}\'', shell=True).decode().strip()
 
-""" # noqa
+"""  # noqa
 #########################
 
 #########################
@@ -218,7 +219,9 @@ intersphinx_mapping = {
 # https://sphinx-copybutton.readthedocs.io/en/latest/index.html
 #########################
 
-copybutton_prompt_text = r'>>> |\.\.\. |\$ |In \[\d*\]: | {2,5}\.\.\.: | {5,8}: |> '
+copybutton_prompt_text = (
+    r'>>> |\.\.\. |\$ |In \[\d*\]: | {2,5}\.\.\.: | {5,8}: |> '
+)
 copybutton_prompt_is_regexp = True
 copybutton_only_copy_prompt_lines = True
 copybutton_line_continuation_character = '\\'
@@ -455,15 +458,12 @@ latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
     #
     # 'papersize': 'letterpaper',
-
     # The font size ('10pt', '11pt' or '12pt').
     #
     # 'pointsize': '10pt',
-
     # Additional stuff for the LaTeX preamble.
     #
     # 'preamble': '',
-
     # Latex figure (float) alignment
     #
     # 'figure_align': 'htbp',
@@ -473,8 +473,13 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (root_doc, 'RasterVision.tex', 'Raster Vision Documentation', 'Azavea',
-     'manual'),
+    (
+        root_doc,
+        'RasterVision.tex',
+        'Raster Vision Documentation',
+        'Azavea',
+        'manual',
+    ),
 ]
 
 # -- Options for manual page output -------------------------------------------
@@ -489,6 +494,13 @@ man_pages = [(root_doc, 'RasterVisoin-{}.tex', html_title, [author], 'manual')]
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (root_doc, 'RasterVision', 'Raster Vision Documentation', author,
-     'RasterVision', 'One line description of project.', 'Miscellaneous'),
+    (
+        root_doc,
+        'RasterVision',
+        'Raster Vision Documentation',
+        author,
+        'RasterVision',
+        'One line description of project.',
+        'Miscellaneous',
+    ),
 ]

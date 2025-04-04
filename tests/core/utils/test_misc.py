@@ -4,8 +4,10 @@ import unittest
 from shapely.ops import unary_union
 
 from rastervision.core.box import Box
-from rastervision.core.utils.misc import (calculate_required_padding,
-                                          ensure_tuple)
+from rastervision.core.utils.misc import (
+    calculate_required_padding,
+    ensure_tuple,
+)
 
 
 def windows_cover_extent(extent: Box, windows: list[Box]) -> bool:
@@ -15,10 +17,13 @@ def windows_cover_extent(extent: Box, windows: list[Box]) -> bool:
 
 class TestCalculateRequiredPadding(unittest.TestCase):
     def _test_box_get_windows_with_padding(
-            self, extent_sz: tuple[int, int], chip_sz: tuple[int, int],
-            stride: tuple[int, int],
-            pad_direction: Literal['start', 'end', 'both'],
-            crop_sz: int | None):
+        self,
+        extent_sz: tuple[int, int],
+        chip_sz: tuple[int, int],
+        stride: tuple[int, int],
+        pad_direction: Literal['start', 'end', 'both'],
+        crop_sz: int | None,
+    ):
         extent = Box(0, 0, *extent_sz)
         padding = calculate_required_padding(
             extent_sz=extent.size,
@@ -28,7 +33,8 @@ class TestCalculateRequiredPadding(unittest.TestCase):
             crop_sz=crop_sz,
         )
         windows = extent.get_windows(
-            chip_sz, stride, padding=padding, pad_direction=pad_direction)
+            chip_sz, stride, padding=padding, pad_direction=pad_direction
+        )
         self.assertTrue(windows_cover_extent(extent, windows))
 
     def test_without_crop_sz(self):
@@ -85,8 +91,9 @@ class TestCalculateRequiredPadding(unittest.TestCase):
             stride=(20, 20),
             pad_direction='both',
         )
-        self.assertRaises(ValueError,
-                          lambda: calculate_required_padding(**args))
+        self.assertRaises(
+            ValueError, lambda: calculate_required_padding(**args)
+        )
 
     def test_error_if_cropped_chip_sz_lt_stride(self):
         args = dict(
@@ -96,8 +103,9 @@ class TestCalculateRequiredPadding(unittest.TestCase):
             pad_direction='both',
             crop_sz=5,
         )
-        self.assertRaises(ValueError,
-                          lambda: calculate_required_padding(**args))
+        self.assertRaises(
+            ValueError, lambda: calculate_required_padding(**args)
+        )
 
     def test_error_if_crop_sz_with_wrong_pad_dir(self):
         args = dict(
@@ -107,8 +115,9 @@ class TestCalculateRequiredPadding(unittest.TestCase):
             pad_direction='end',
             crop_sz=5,
         )
-        self.assertRaises(ValueError,
-                          lambda: calculate_required_padding(**args))
+        self.assertRaises(
+            ValueError, lambda: calculate_required_padding(**args)
+        )
 
 
 class TestEnsureTuple(unittest.TestCase):

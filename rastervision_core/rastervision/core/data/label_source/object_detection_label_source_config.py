@@ -1,8 +1,12 @@
-from rastervision.core.data.label_source import (LabelSourceConfig,
-                                                 ObjectDetectionLabelSource)
+from rastervision.core.data.label_source import (
+    LabelSourceConfig,
+    ObjectDetectionLabelSource,
+)
 from rastervision.core.data.vector_source import VectorSourceConfig
 from rastervision.core.data.vector_transformer import (
-    ClassInferenceTransformerConfig, BufferTransformerConfig)
+    ClassInferenceTransformerConfig,
+    BufferTransformerConfig,
+)
 from rastervision.pipeline.config import register_config, field_validator
 
 
@@ -15,13 +19,15 @@ class ObjectDetectionLabelSourceConfig(LabelSourceConfig):
     @field_validator('vector_source')
     @classmethod
     def ensure_required_transformers(
-            cls, v: VectorSourceConfig) -> VectorSourceConfig:
+        cls, v: VectorSourceConfig
+    ) -> VectorSourceConfig:
         """Add class-inference and buffer transformers if absent."""
         tfs = v.transformers
 
         # add class inference transformer
         has_inf_tf = any(
-            isinstance(tf, ClassInferenceTransformerConfig) for tf in tfs)
+            isinstance(tf, ClassInferenceTransformerConfig) for tf in tfs
+        )
         if not has_inf_tf:
             tfs += [ClassInferenceTransformerConfig(default_class_id=None)]
 
@@ -30,7 +36,7 @@ class ObjectDetectionLabelSourceConfig(LabelSourceConfig):
         if not has_buf_tf:
             tfs += [
                 BufferTransformerConfig(geom_type='Point', default_buf=1),
-                BufferTransformerConfig(geom_type='LineString', default_buf=1)
+                BufferTransformerConfig(geom_type='LineString', default_buf=1),
             ]
 
         return v
@@ -39,7 +45,8 @@ class ObjectDetectionLabelSourceConfig(LabelSourceConfig):
         super().update(pipeline, scene)
         self.vector_source.update(pipeline, scene)
 
-    def build(self, class_config, crs_transformer, bbox,
-              tmp_dir=None) -> ObjectDetectionLabelSource:
+    def build(
+        self, class_config, crs_transformer, bbox, tmp_dir=None
+    ) -> ObjectDetectionLabelSource:
         vs = self.vector_source.build(class_config, crs_transformer)
         return ObjectDetectionLabelSource(vs, bbox)

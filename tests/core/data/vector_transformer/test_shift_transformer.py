@@ -3,8 +3,10 @@ import unittest
 from shapely.geometry import Point, shape
 
 from rastervision.core.data.crs_transformer import RasterioCRSTransformer
-from rastervision.core.data.vector_transformer import (ShiftTransformer,
-                                                       ShiftTransformerConfig)
+from rastervision.core.data.vector_transformer import (
+    ShiftTransformer,
+    ShiftTransformerConfig,
+)
 from rastervision.core.data.utils import geoms_to_geojson
 
 from tests import data_file_path
@@ -20,7 +22,8 @@ class TestShiftTransformerConfig(unittest.TestCase):
 class TestShiftTransformer(unittest.TestCase):
     def setUp(self) -> None:
         self.crs_transformer = RasterioCRSTransformer.from_uri(
-            data_file_path('3857.tif'))
+            data_file_path('3857.tif')
+        )
 
     def test_transform(self):
         """This only tests the directionality of the change."""

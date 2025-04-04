@@ -16,15 +16,19 @@ class TestNanTransformerConfig(unittest.TestCase):
 class TestNanTransformer(unittest.TestCase):
     def test_transform(self):
         tf = NanTransformer(1)
-        chip_in = np.array([
-            [[np.nan], [0]],
-            [[0], [np.nan]],
-        ])
+        chip_in = np.array(
+            [
+                [[np.nan], [0]],
+                [[0], [np.nan]],
+            ]
+        )
         chip_expexted = np.array(
             [
                 [[1], [0]],
                 [[0], [1]],
-            ], dtype=np.uint8)
+            ],
+            dtype=np.uint8,
+        )
         chip_out = tf.transform(chip_in)
         np.testing.assert_array_equal(chip_out, chip_expexted)
 

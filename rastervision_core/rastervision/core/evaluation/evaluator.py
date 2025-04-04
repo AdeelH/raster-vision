@@ -1,5 +1,5 @@
 from typing import TYPE_CHECKING, Any, Iterable
-from abc import (ABC, abstractmethod)
+from abc import ABC, abstractmethod
 
 if TYPE_CHECKING:
     from rastervision.core.data import Scene, Labels
@@ -31,8 +31,9 @@ class Evaluator(ABC):
         """
 
     @abstractmethod
-    def evaluate_predictions(self, ground_truth: 'Labels',
-                             predictions: 'Labels') -> Any:
+    def evaluate_predictions(
+        self, ground_truth: 'Labels', predictions: 'Labels'
+    ) -> Any:
         """Evaluate predictions against ground truth.
 
         Args:

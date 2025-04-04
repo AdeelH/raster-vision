@@ -68,7 +68,8 @@ class TestAoiSampler(unittest.TestCase):
         points = MultiPoint(aoi_sampler.sample(n=nsamples))
         # number of points in each block
         counts = np.array(
-            [len(block.intersection(points).geoms) for block in blocks.geoms])
+            [len(block.intersection(points).geoms) for block in blocks.geoms]
+        )
 
         p_value = chisquare(counts).pvalue
 

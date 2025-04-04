@@ -3,10 +3,15 @@ from pydantic.types import PositiveInt as PosInt
 
 import numpy as np
 
-from rastervision.core.data.raster_transformer import (RasterTransformer,
-                                                       ReclassTransformer)
-from rastervision.core.data.utils import (color_to_triple, color_to_integer,
-                                          rgb_to_int_array)
+from rastervision.core.data.raster_transformer import (
+    RasterTransformer,
+    ReclassTransformer,
+)
+from rastervision.core.data.utils import (
+    color_to_triple,
+    color_to_integer,
+    rgb_to_int_array,
+)
 
 if TYPE_CHECKING:
     from rastervision.core.data.class_config import ClassConfig
@@ -36,7 +41,8 @@ class RGBClassTransformer(RasterTransformer):
                 class_to_color_triple[c]
                 for c in sorted(class_to_color_triple.keys())
             ],
-            dtype=np.uint8)
+            dtype=np.uint8,
+        )
 
     def transform(self, chip: np.ndarray) -> np.ndarray:
         """Transform RGB array to array of class IDs or vice versa.
@@ -60,7 +66,8 @@ class RGBClassTransformer(RasterTransformer):
     def get_out_channels(self, in_channels: PosInt) -> Literal[1]:
         if in_channels != 3:
             raise ValueError(
-                'RGBClassTransformer only accepts 3-channel inputs.')
+                'RGBClassTransformer only accepts 3-channel inputs.'
+            )
         return 1
 
     def get_out_dtype(self, in_dtype: np.dtype) -> np.dtype:

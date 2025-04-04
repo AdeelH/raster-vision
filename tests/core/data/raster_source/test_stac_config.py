@@ -2,8 +2,10 @@ import unittest
 
 from pystac import Item, ItemCollection
 
-from rastervision.core.data.raster_source import (STACItemConfig,
-                                                  STACItemCollectionConfig)
+from rastervision.core.data.raster_source import (
+    STACItemConfig,
+    STACItemCollectionConfig,
+)
 
 from tests import data_file_path
 

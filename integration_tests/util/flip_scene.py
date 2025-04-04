@@ -6,8 +6,7 @@ import json
 
 
 def flip_geom(m, b, geom):
-    """Flips a geom along a straight line y = mx + b.
-    """
+    """Flips a geom along a straight line y = mx + b."""
 
     def traverse_coords(coords, dst_coords):
         for p in coords:
@@ -25,7 +24,7 @@ def flip_geom(m, b, geom):
 
     return {
         'type': geom['type'],
-        'coordinates': traverse_coords(geom['coordinates'], [])
+        'coordinates': traverse_coords(geom['coordinates'], []),
     }
 
 
@@ -51,7 +50,6 @@ def flip_scene(src_tiff_path, src_labels_path, dst_tiff_path, dst_labels_path):
             dst.write(fbands)
 
         if not labels_are_tif:
-
             img_crs = pyproj.Proj(init=src.crs['init'])
             map_crs = pyproj.Proj(init='epsg:4326')
 
@@ -65,11 +63,13 @@ def flip_scene(src_tiff_path, src_labels_path, dst_tiff_path, dst_labels_path):
             ur = (src.bounds.right, src.bounds.top)
             lr = (src.bounds.right, src.bounds.bottom)
 
-            left = t(ul[0] - ((ul[0] - ll[0]) / 2),
-                     ul[1] - ((ul[1] - ll[1]) / 2))
+            left = t(
+                ul[0] - ((ul[0] - ll[0]) / 2), ul[1] - ((ul[1] - ll[1]) / 2)
+            )
 
-            right = t(ur[0] - ((ur[0] - lr[0]) / 2),
-                      ur[1] - ((ur[1] - lr[1]) / 2))
+            right = t(
+                ur[0] - ((ur[0] - lr[0]) / 2), ur[1] - ((ur[1] - lr[1]) / 2)
+            )
 
             m = abs(left[1] - right[1]) / abs(left[0] - right[0])
             b = left[1] - (m * left[0])

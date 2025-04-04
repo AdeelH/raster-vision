@@ -9,15 +9,24 @@ import numpy as np
 from rastervision.pipeline.file_system.utils import get_tmp_dir, json_to_file
 from rastervision.core.box import Box
 from rastervision.core.data import (
-    ClassConfig, GeoJSONVectorSource, RasterioSource,
-    ChipClassificationLabelSource, ChipClassificationLabelSourceConfig,
-    ChipClassificationGeoJSONStore, ObjectDetectionLabelSource,
-    ObjectDetectionGeoJSONStore, SemanticSegmentationLabelSource,
-    SemanticSegmentationLabelStore)
+    ClassConfig,
+    GeoJSONVectorSource,
+    RasterioSource,
+    ChipClassificationLabelSource,
+    ChipClassificationLabelSourceConfig,
+    ChipClassificationGeoJSONStore,
+    ObjectDetectionLabelSource,
+    ObjectDetectionGeoJSONStore,
+    SemanticSegmentationLabelSource,
+    SemanticSegmentationLabelStore,
+)
 from rastervision.core.data.utils.misc import ensure_json_serializable
 from rastervision.core.data.utils.geojson import geoms_to_geojson
 from rastervision.core.data.utils.misc import (
-    match_bboxes, parse_array_slices_2d, parse_array_slices_Nd)
+    match_bboxes,
+    parse_array_slices_2d,
+    parse_array_slices_Nd,
+)
 
 from tests import data_file_path
 
@@ -26,7 +35,8 @@ class TestMatchBboxes(unittest.TestCase):
     def setUp(self) -> None:
         self.class_config = ClassConfig(names=['class_1'])
         self.rs_path = data_file_path(
-            'multi_raster_source/const_100_600x600.tiff')
+            'multi_raster_source/const_100_600x600.tiff'
+        )
         self.bbox_rs = Box(4, 4, 8, 8)
         self.raster_source = RasterioSource(self.rs_path, bbox=self.bbox_rs)
         self.crs_tf = self.raster_source.crs_transformer
@@ -41,7 +51,8 @@ class TestMatchBboxes(unittest.TestCase):
         uri = join(self.tmp_dir, 'labels.json')
         json_to_file(geojson, uri)
         self.vector_source = GeoJSONVectorSource(
-            uri, self.raster_source.crs_transformer)
+            uri, self.raster_source.crs_transformer
+        )
 
     def tearDown(self) -> None:
         self._tmp_dir.cleanup()
@@ -49,37 +60,42 @@ class TestMatchBboxes(unittest.TestCase):
     def test_cc_label_source(self):
         label_source = ChipClassificationLabelSource(
             ChipClassificationLabelSourceConfig(),
-            vector_source=self.vector_source)
+            vector_source=self.vector_source,
+        )
         self.assertEqual(label_source.bbox, self.bbox_ls)
         match_bboxes(self.raster_source, label_source)
         self.assertEqual(label_source.bbox, self.raster_source.bbox)
 
     def test_cc_label_store(self):
         uri = join(self.tmp_dir, 'cc_labels.json')
-        label_store = ChipClassificationGeoJSONStore(uri, self.class_config,
-                                                     self.crs_tf)
+        label_store = ChipClassificationGeoJSONStore(
+            uri, self.class_config, self.crs_tf
+        )
         self.assertIsNone(label_store.bbox)
         match_bboxes(self.raster_source, label_store)
         self.assertEqual(label_store.bbox, self.raster_source.bbox)
 
     def test_od_label_source(self):
         label_source = ObjectDetectionLabelSource(
-            vector_source=self.vector_source)
+            vector_source=self.vector_source
+        )
         self.assertEqual(label_source.bbox, self.bbox_ls)
         match_bboxes(self.raster_source, label_source)
         self.assertEqual(label_source.bbox, self.raster_source.bbox)
 
     def test_od_label_store(self):
         uri = join(self.tmp_dir, 'od_labels.json')
-        label_store = ObjectDetectionGeoJSONStore(uri, self.class_config,
-                                                  self.crs_tf)
+        label_store = ObjectDetectionGeoJSONStore(
+            uri, self.class_config, self.crs_tf
+        )
         self.assertIsNone(label_store.bbox)
         match_bboxes(self.raster_source, label_store)
         self.assertEqual(label_store.bbox, self.raster_source.bbox)
 
     def test_ss_label_source(self):
         label_source = SemanticSegmentationLabelSource(
-            self.raster_source, class_config=self.class_config)
+            self.raster_source, class_config=self.class_config
+        )
         self.assertEqual(label_source.bbox, self.bbox_rs)
         match_bboxes(self.raster_source, label_source)
         self.assertEqual(label_source.bbox, self.raster_source.bbox)
@@ -90,7 +106,8 @@ class TestMatchBboxes(unittest.TestCase):
             uri,
             bbox=self.bbox_ls,
             crs_transformer=self.crs_tf,
-            class_config=self.class_config)
+            class_config=self.class_config,
+        )
         self.assertEqual(label_store.bbox, self.bbox_ls)
         match_bboxes(self.raster_source, label_store)
         self.assertEqual(label_store.bbox, self.raster_source.bbox)
@@ -138,18 +155,16 @@ class TestParseArraySlices(unittest.TestCase):
 
         _, dim_slices = source[5:10, 15:20]
         self.assertListEqual(
-            dim_slices,
-            [slice(5, 10), slice(15, 20),
-             slice(None)])
+            dim_slices, [slice(5, 10), slice(15, 20), slice(None)]
+        )
 
         _, dim_slices = source[5:10, 15:20, 0]
         self.assertListEqual(dim_slices, [slice(5, 10), slice(15, 20), 0])
 
         _, dim_slices = source[5:10, 15:20, 1:4]
         self.assertListEqual(
-            dim_slices,
-            [slice(5, 10), slice(15, 20),
-             slice(1, 4)])
+            dim_slices, [slice(5, 10), slice(15, 20), slice(1, 4)]
+        )
 
         _, dim_slices = source[5:10, 15:20, [3, 1]]
         self.assertListEqual(dim_slices, [slice(5, 10), slice(15, 20), [3, 1]])
@@ -162,10 +177,8 @@ class TestParseArraySlices(unittest.TestCase):
         _, dim_slices = source[5:10, 15:20]
         self.assertListEqual(
             dim_slices,
-            [slice(5, 10),
-             slice(15, 20),
-             slice(0, 100),
-             slice(None)])
+            [slice(5, 10), slice(15, 20), slice(0, 100), slice(None)],
+        )
 
     def test_ellipsis(self):
         source = self.MockSource(dims=3, bbox=Box(0, 0, 100, 100))
@@ -173,16 +186,14 @@ class TestParseArraySlices(unittest.TestCase):
         window, dim_slices = source[5:10, 15:20, ...]
         self.assertEqual(window, Box(5, 15, 10, 20))
         self.assertListEqual(
-            dim_slices,
-            [slice(5, 10), slice(15, 20),
-             slice(None)])
+            dim_slices, [slice(5, 10), slice(15, 20), slice(None)]
+        )
 
         window, dim_slices = source[5:10, ...]
         self.assertEqual(window, Box(5, 0, 10, 100))
         self.assertListEqual(
-            dim_slices,
-            [slice(5, 10), slice(0, 100),
-             slice(None)])
+            dim_slices, [slice(5, 10), slice(0, 100), slice(None)]
+        )
 
         window, dim_slices = source[5:10, ..., 0]
         self.assertEqual(window, Box(5, 0, 10, 100))

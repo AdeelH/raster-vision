@@ -1,9 +1,9 @@
 import numpy as np
 
 
-def nodata_below_threshold(chip: np.ndarray,
-                           threshold: float,
-                           nodata_val: int = 0) -> bool:
+def nodata_below_threshold(
+    chip: np.ndarray, threshold: float, nodata_val: int = 0
+) -> bool:
     """Check if fraction of nodata pixels is below the threshold.
 
     Args:

@@ -15,11 +15,13 @@ if TYPE_CHECKING:
 class ObjectDetectionLabelSource(LabelSource):
     """A read-only label source for object detection."""
 
-    def __init__(self,
-                 vector_source: VectorSource,
-                 bbox: Box | None = None,
-                 ioa_thresh: float | None = None,
-                 clip: bool = False):
+    def __init__(
+        self,
+        vector_source: VectorSource,
+        bbox: Box | None = None,
+        ioa_thresh: float | None = None,
+        clip: bool = False,
+    ):
         """Constructor.
 
         Args:
@@ -41,10 +43,12 @@ class ObjectDetectionLabelSource(LabelSource):
         self.ioa_thresh = ioa_thresh if ioa_thresh is not None else 1e-6
         self.clip = clip
 
-    def get_labels(self,
-                   window: Box | None = None,
-                   ioa_thresh: float = 1e-6,
-                   clip: bool = False) -> ObjectDetectionLabels:
+    def get_labels(
+        self,
+        window: Box | None = None,
+        ioa_thresh: float = 1e-6,
+        clip: bool = False,
+    ) -> ObjectDetectionLabels:
         """Get labels (in global coords) for a window.
 
         Args:
@@ -59,7 +63,8 @@ class ObjectDetectionLabelSource(LabelSource):
             return self.labels
         window = window.to_global_coords(self.bbox)
         return ObjectDetectionLabels.get_overlapping(
-            self.labels, window, ioa_thresh=ioa_thresh, clip=clip)
+            self.labels, window, ioa_thresh=ioa_thresh, clip=clip
+        )
 
     def __getitem__(self, key: Any) -> tuple[np.ndarray, np.ndarray, str]:
         """Get labels (in window coords) for a window.
@@ -83,12 +88,14 @@ class ObjectDetectionLabelSource(LabelSource):
         if isinstance(key, Box):
             window = key
             labels = self.get_labels(
-                window, ioa_thresh=self.ioa_thresh, clip=self.clip)
+                window, ioa_thresh=self.ioa_thresh, clip=self.clip
+            )
             class_ids = labels.get_class_ids()
             npboxes = labels.get_npboxes()
             window_global = window.to_global_coords(self.bbox)
             npboxes = ObjectDetectionLabels.global_to_local(
-                npboxes, window_global)
+                npboxes, window_global
+            )
             return npboxes, class_ids, 'yxyx'
 
         window, (h, w) = parse_array_slices_2d(key, extent=self.extent)
@@ -111,11 +118,14 @@ class ObjectDetectionLabelSource(LabelSource):
                 raise ValueError(
                     'LineStrings and Points are not supported '
                     'in ChipClassificationLabelSource. Use BufferTransformer '
-                    'to buffer them into Polygons.')
+                    'to buffer them into Polygons.'
+                )
         for f in geojson['features']:
             if f.get('properties', {}).get('class_id') is None:
-                raise ValueError('All GeoJSON features must have a class_id '
-                                 'field in their properties.')
+                raise ValueError(
+                    'All GeoJSON features must have a class_id '
+                    'field in their properties.'
+                )
 
     @property
     def bbox(self) -> Box:

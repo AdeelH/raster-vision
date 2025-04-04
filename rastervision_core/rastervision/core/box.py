@@ -1,4 +1,4 @@
-from typing import (TYPE_CHECKING, Literal, Sequence, overload)
+from typing import TYPE_CHECKING, Literal, Sequence, overload
 from collections.abc import Callable
 from pydantic import NonNegativeInt as NonNegInt, PositiveInt as PosInt
 import math
@@ -10,8 +10,10 @@ from shapely.ops import unary_union
 from rasterio.windows import Window as RioWindow
 
 from rastervision.pipeline.utils import repr_with_args
-from rastervision.core.utils.misc import (calculate_required_padding,
-                                          ensure_tuple)
+from rastervision.core.utils.misc import (
+    calculate_required_padding,
+    ensure_tuple,
+)
 
 if TYPE_CHECKING:
     from typing import Self
@@ -42,7 +44,8 @@ class Box:
         """
         if not all(math.isfinite(v) for v in (ymin, xmin, ymax, xmax)):
             raise ValueError(
-                f'Invalid Box coordinates: {(ymin, xmin, ymax, xmax)}.')
+                f'Invalid Box coordinates: {(ymin, xmin, ymax, xmax)}.'
+            )
 
         self.ymin = ymin
         self.xmin = xmin
@@ -273,11 +276,13 @@ class Box:
         """Convert to a Rasterio Window."""
         return RioWindow.from_slices(*self.to_slices())
 
-    def to_slices(self, h_step: int | None = None,
-                  w_step: int | None = None) -> tuple[slice, slice]:
+    def to_slices(
+        self, h_step: int | None = None, w_step: int | None = None
+    ) -> tuple[slice, slice]:
         """Convert to slices: ymin:ymax[:h_step], xmin:xmax[:w_step]"""
         return slice(self.ymin, self.ymax, h_step), slice(
-            self.xmin, self.xmax, w_step)
+            self.xmin, self.xmax, w_step
+        )
 
     def translate(self, dy: int, dx: int) -> 'Self':
         """Translate window along y and x axes by the given distances."""
@@ -327,8 +332,12 @@ class Box:
 
         Box(0, 0, 10, 10).center_crop(2, 4) ==  Box(2, 4, 8, 6)
         """
-        return Box(self.ymin + edge_offset_y, self.xmin + edge_offset_x,
-                   self.ymax - edge_offset_y, self.xmax - edge_offset_x)
+        return Box(
+            self.ymin + edge_offset_y,
+            self.xmin + edge_offset_x,
+            self.ymax - edge_offset_y,
+            self.xmax - edge_offset_x,
+        )
 
     def erode(self, erosion_sz) -> 'Self':
         """Return new Box whose sides are eroded by erosion_sz."""
@@ -341,8 +350,8 @@ class Box:
         always greater than zero and less than the height and width of
         max_extent.
         """
-        buffer_sz = max(0., buffer_sz)
-        if buffer_sz < 1.:
+        buffer_sz = max(0.0, buffer_sz)
+        if buffer_sz < 1.0:
             delta_width = int(round(buffer_sz * self.width))
             delta_height = int(round(buffer_sz * self.height))
         else:
@@ -351,10 +360,9 @@ class Box:
         return Box(
             max(0, math.floor(self.ymin - delta_height)),
             max(0, math.floor(self.xmin - delta_width)),
-            min(max_extent.height,
-                int(self.ymax) + delta_height),
-            min(max_extent.width,
-                int(self.xmax) + delta_width))
+            min(max_extent.height, int(self.ymax) + delta_height),
+            min(max_extent.width, int(self.xmax) + delta_width),
+        )
 
     def pad(self, ymin: int, xmin: int, ymax: int, xmax: int) -> 'Self':
         """Pad sides by the given amount."""
@@ -362,12 +370,14 @@ class Box:
             ymin=self.ymin - ymin,
             xmin=self.xmin - xmin,
             ymax=self.ymax + ymax,
-            xmax=self.xmax + xmax)
+            xmax=self.xmax + xmax,
+        )
 
     def pad_directional(
-            self,
-            padding: tuple[NonNegInt, NonNegInt] | NonNegInt,
-            pad_direction: Literal['both', 'start', 'end'] = 'end') -> 'Self':
+        self,
+        padding: tuple[NonNegInt, NonNegInt] | NonNegInt,
+        pad_direction: Literal['both', 'start', 'end'] = 'end',
+    ) -> 'Self':
         """Pad sides based on given padding and direction."""
 
         padding: tuple[NonNegInt, NonNegInt] = ensure_tuple(padding)
@@ -386,18 +396,19 @@ class Box:
         elif pad_direction == 'start':
             return self.pad(ymin=h_pad, xmin=w_pad, ymax=0, xmax=0)
 
-        raise ValueError('pad_directions must be one of: '
-                         '"both", "start", "end".')
+        raise ValueError(
+            'pad_directions must be one of: "both", "start", "end".'
+        )
 
     def copy(self) -> 'Self':
         return Box(*self)
 
     def get_windows(
-            self,
-            size: PosInt | tuple[PosInt, PosInt],
-            stride: PosInt | tuple[PosInt, PosInt],
-            padding: NonNegInt | tuple[NonNegInt, NonNegInt] | None = None,
-            pad_direction: Literal['both', 'start', 'end'] = 'end'
+        self,
+        size: PosInt | tuple[PosInt, PosInt],
+        stride: PosInt | tuple[PosInt, PosInt],
+        padding: NonNegInt | tuple[NonNegInt, NonNegInt] | None = None,
+        pad_direction: Literal['both', 'start', 'end'] = 'end',
     ) -> 'SlidingWindows':
         """Return sliding windows for given size, stride, and padding.
 
@@ -431,7 +442,8 @@ class Box:
             size=size,
             stride=stride,
             padding=padding,
-            pad_direction=pad_direction)
+            pad_direction=pad_direction,
+        )
         return windows
 
     def to_dict(self) -> dict[str, int]:
@@ -448,9 +460,11 @@ class Box:
         return cls(d['ymin'], d['xmin'], d['ymax'], d['xmax'])
 
     @staticmethod
-    def filter_by_aoi(windows: Sequence['Box'],
-                      aoi_polygons: list[Polygon],
-                      within: bool = True) -> tuple[list['Box'], list[int]]:
+    def filter_by_aoi(
+        windows: Sequence['Box'],
+        aoi_polygons: list[Polygon],
+        within: bool = True,
+    ) -> tuple[list['Box'], list[int]]:
         """Filters windows by a list of AOI polygons
 
         Args:
@@ -467,8 +481,9 @@ class Box:
         return filtered_windows, inds
 
     @staticmethod
-    def within_aoi(window: 'Box',
-                   aoi_polygons: Polygon | list[Polygon]) -> bool:
+    def within_aoi(
+        window: 'Box', aoi_polygons: Polygon | list[Polygon]
+    ) -> bool:
         """Check if window is within the union of given AOI polygons."""
         aoi_polygons: Polygon | MultiPolygon = unary_union(aoi_polygons)
         w = window.to_shapely()
@@ -476,8 +491,9 @@ class Box:
         return out
 
     @staticmethod
-    def intersects_aoi(window: 'Box',
-                       aoi_polygons: Polygon | list[Polygon]) -> bool:
+    def intersects_aoi(
+        window: 'Box', aoi_polygons: Polygon | list[Polygon]
+    ) -> bool:
         """Check if window intersects with the union of given AOI polygons."""
         aoi_polygons: Polygon | MultiPolygon = unary_union(aoi_polygons)
         w = window.to_shapely()
@@ -495,8 +511,12 @@ class Box:
         """
         if isinstance(query, Box):
             ymin, xmin, ymax, xmax = query
-            return (ymin >= self.ymin and xmin >= self.xmin
-                    and ymax <= self.ymax and xmax <= self.xmax)
+            return (
+                ymin >= self.ymin
+                and xmin >= self.xmin
+                and ymax <= self.ymax
+                and xmax <= self.xmax
+            )
         elif isinstance(query, (tuple, list)):
             x, y = query
             return self.xmin <= x <= self.xmax and self.ymin <= y <= self.ymax
@@ -513,13 +533,13 @@ class SlidingWindows(Sequence[Box]):
     """
 
     def __init__(
-            self,
-            box: Box,
-            *,
-            size: PosInt | tuple[PosInt, PosInt],
-            stride: PosInt | tuple[PosInt, PosInt],
-            padding: NonNegInt | tuple[NonNegInt, NonNegInt] | None = None,
-            pad_direction: Literal['both', 'start', 'end'] = 'end',
+        self,
+        box: Box,
+        *,
+        size: PosInt | tuple[PosInt, PosInt],
+        stride: PosInt | tuple[PosInt, PosInt],
+        padding: NonNegInt | tuple[NonNegInt, NonNegInt] | None = None,
+        pad_direction: Literal['both', 'start', 'end'] = 'end',
     ):
         """Constructor.
 
@@ -555,8 +575,9 @@ class SlidingWindows(Sequence[Box]):
             if size[0] < stride[0] or size[1] < stride[1]:
                 padding = (0, 0)
             else:
-                padding = calculate_required_padding(box.size, size, stride,
-                                                     pad_direction)
+                padding = calculate_required_padding(
+                    box.size, size, stride, pad_direction
+                )
         self.box = box
         self.size = size
         self.stride = stride
@@ -575,16 +596,13 @@ class SlidingWindows(Sequence[Box]):
         self.total = self.nrows * self.ncols
 
     @overload
-    def __getitem__(self, i: int | np.integer) -> Box:
-        ...
+    def __getitem__(self, i: int | np.integer) -> Box: ...
 
     @overload
-    def __getitem__(self, s: slice) -> list[Box]:
-        ...
+    def __getitem__(self, s: slice) -> list[Box]: ...
 
     @overload
-    def __getitem__(self, inds: Sequence[int]) -> list[Box]:
-        ...
+    def __getitem__(self, inds: Sequence[int]) -> list[Box]: ...
 
     def __getitem__(self, key: int | slice | Sequence[int]) -> Box | list[Box]:
         if isinstance(key, int | np.integer):

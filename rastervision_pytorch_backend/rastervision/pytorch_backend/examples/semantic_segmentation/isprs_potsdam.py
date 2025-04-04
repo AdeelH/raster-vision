@@ -3,51 +3,96 @@ from os.path import join, basename
 import albumentations as A
 
 from rastervision.core.rv_pipeline import (
-    SemanticSegmentationConfig, SemanticSegmentationChipOptions,
-    SemanticSegmentationPredictOptions, WindowSamplingConfig,
-    WindowSamplingMethod)
+    SemanticSegmentationConfig,
+    SemanticSegmentationChipOptions,
+    SemanticSegmentationPredictOptions,
+    WindowSamplingConfig,
+    WindowSamplingMethod,
+)
 from rastervision.core.data import (
-    ClassConfig, DatasetConfig, PolygonVectorOutputConfig,
-    RasterioSourceConfig, RGBClassTransformerConfig, SceneConfig,
+    ClassConfig,
+    DatasetConfig,
+    PolygonVectorOutputConfig,
+    RasterioSourceConfig,
+    RGBClassTransformerConfig,
+    SceneConfig,
     SemanticSegmentationLabelSourceConfig,
-    SemanticSegmentationLabelStoreConfig)
+    SemanticSegmentationLabelStoreConfig,
+)
 from rastervision.pytorch_backend import PyTorchSemanticSegmentationConfig
 from rastervision.pytorch_learner import (
-    Backbone, ExternalModuleConfig, PlotOptions, SolverConfig,
-    SemanticSegmentationGeoDataConfig, SemanticSegmentationImageDataConfig,
-    SemanticSegmentationModelConfig)
+    Backbone,
+    ExternalModuleConfig,
+    PlotOptions,
+    SolverConfig,
+    SemanticSegmentationGeoDataConfig,
+    SemanticSegmentationImageDataConfig,
+    SemanticSegmentationModelConfig,
+)
 from rastervision.pytorch_backend.examples.utils import save_image_crop
 from rastervision.pytorch_backend.examples.semantic_segmentation.utils import (
-    example_multiband_transform, example_rgb_transform, imagenet_stats,
-    Unnormalize)
+    example_multiband_transform,
+    example_rgb_transform,
+    imagenet_stats,
+    Unnormalize,
+)
 
 TRAIN_IDS = [
-    '2_10', '2_11', '3_10', '3_11', '4_10', '4_11', '4_12', '5_10', '5_11',
-    '5_12', '6_10', '6_11', '6_7', '6_9', '7_10', '7_11', '7_12', '7_7', '7_8',
-    '7_9'
+    '2_10',
+    '2_11',
+    '3_10',
+    '3_11',
+    '4_10',
+    '4_11',
+    '4_12',
+    '5_10',
+    '5_11',
+    '5_12',
+    '6_10',
+    '6_11',
+    '6_7',
+    '6_9',
+    '7_10',
+    '7_11',
+    '7_12',
+    '7_7',
+    '7_8',
+    '7_9',
 ]
 VAL_IDS = ['2_12', '3_12', '6_12']
 
 CLASS_NAMES = [
-    'Car', 'Building', 'Low Vegetation', 'Tree', 'Impervious', 'Clutter'
+    'Car',
+    'Building',
+    'Low Vegetation',
+    'Tree',
+    'Impervious',
+    'Clutter',
 ]
 CLASS_COLORS = [
-    '#ffff00', '#0000ff', '#00ffff', '#00ff00', '#ffffff', '#ff0000'
+    '#ffff00',
+    '#0000ff',
+    '#00ffff',
+    '#00ff00',
+    '#ffffff',
+    '#ff0000',
 ]
 
 
-def get_config(runner,
-               raw_uri: str,
-               root_uri: str,
-               processed_uri: str | None = None,
-               multiband: bool = False,
-               external_model: bool = True,
-               augment: bool = False,
-               nochip: bool = True,
-               allow_streaming: bool = False,
-               num_epochs: int = 10,
-               batch_sz: int = 8,
-               test: bool = False) -> SemanticSegmentationConfig:
+def get_config(
+    runner,
+    raw_uri: str,
+    root_uri: str,
+    processed_uri: str | None = None,
+    multiband: bool = False,
+    external_model: bool = True,
+    augment: bool = False,
+    nochip: bool = True,
+    allow_streaming: bool = False,
+    num_epochs: int = 10,
+    batch_sz: int = 8,
+    test: bool = False,
+) -> SemanticSegmentationConfig:
     """Generate the pipeline config for this task. This function will be called
     by RV, with arguments from the command line, when this example is run.
 
@@ -100,7 +145,7 @@ def get_config(runner,
     if multiband:
         # use all 4 channels
         channel_order = [0, 1, 2, 3]
-        channel_display_groups = {'RGB': (0, 1, 2), 'IR': (3, )}
+        channel_display_groups = {'RGB': (0, 1, 2), 'IR': (3,)}
         aug_transform = example_multiband_transform
     else:
         # use infrared, red, & green channels only
@@ -129,7 +174,8 @@ def get_config(runner,
         id = id.replace('-', '_')
         raster_uri = join(raw_uri, f'4_Ortho_RGBIR/top_potsdam_{id}_RGBIR.tif')
         label_uri = join(
-            raw_uri, f'5_Labels_for_participants/top_potsdam_{id}_label.tif')
+            raw_uri, f'5_Labels_for_participants/top_potsdam_{id}_label.tif'
+        )
 
         if test:
             crop_uri = join(processed_uri, 'crops', basename(raster_uri))
@@ -140,14 +186,16 @@ def get_config(runner,
                 label_uri=label_uri,
                 label_crop_uri=label_crop_uri,
                 size=600,
-                vector_labels=False)
+                vector_labels=False,
+            )
             raster_uri = crop_uri
             label_uri = label_crop_uri
 
         raster_source = RasterioSourceConfig(
             uris=[raster_uri],
             channel_order=channel_order,
-            allow_streaming=allow_streaming)
+            allow_streaming=allow_streaming,
+        )
 
         # Using with_rgb_class_map because label TIFFs have classes encoded as
         # RGB colors.
@@ -157,40 +205,48 @@ def get_config(runner,
                 transformers=[
                     RGBClassTransformerConfig(class_config=class_config)
                 ],
-                allow_streaming=allow_streaming))
+                allow_streaming=allow_streaming,
+            )
+        )
 
         # URI will be injected by scene config.
         # Using rgb=True because we want prediction TIFFs to be in
         # RGB format.
         label_store = SemanticSegmentationLabelStoreConfig(
-            rgb=True, vector_output=[PolygonVectorOutputConfig(class_id=0)])
+            rgb=True, vector_output=[PolygonVectorOutputConfig(class_id=0)]
+        )
 
         scene = SceneConfig(
             id=id,
             raster_source=raster_source,
             label_source=label_source,
-            label_store=label_store)
+            label_store=label_store,
+        )
 
         return scene
 
     scene_dataset = DatasetConfig(
         class_config=class_config,
         train_scenes=[make_scene(id) for id in train_ids],
-        validation_scenes=[make_scene(id) for id in val_ids])
+        validation_scenes=[make_scene(id) for id in val_ids],
+    )
 
     window_sampling_opts = {}
     # set window configs for training scenes
     for s in scene_dataset.train_scenes:
         window_sampling_opts[s.id] = WindowSamplingConfig(
-            method=WindowSamplingMethod.sliding, size=chip_sz, stride=chip_sz)
+            method=WindowSamplingMethod.sliding, size=chip_sz, stride=chip_sz
+        )
 
     # set window configs for validation scenes
     for s in scene_dataset.validation_scenes:
         window_sampling_opts[s.id] = WindowSamplingConfig(
-            method=WindowSamplingMethod.sliding, size=chip_sz, stride=chip_sz)
+            method=WindowSamplingMethod.sliding, size=chip_sz, stride=chip_sz
+        )
 
     chip_options = SemanticSegmentationChipOptions(
-        sampling=window_sampling_opts)
+        sampling=window_sampling_opts
+    )
 
     if nochip:
         data = SemanticSegmentationGeoDataConfig(
@@ -203,7 +259,9 @@ def get_config(runner,
             aug_transform=aug_transform,
             plot_options=PlotOptions(
                 transform=plot_transform,
-                channel_display_groups=channel_display_groups))
+                channel_display_groups=channel_display_groups,
+            ),
+        )
     else:
         data = SemanticSegmentationImageDataConfig(
             img_sz=img_sz,
@@ -212,7 +270,9 @@ def get_config(runner,
             aug_transform=aug_transform,
             plot_options=PlotOptions(
                 transform=plot_transform,
-                channel_display_groups=channel_display_groups))
+                channel_display_groups=channel_display_groups,
+            ),
+        )
 
     if external_model:
         class_config.ensure_null_class()
@@ -228,13 +288,16 @@ def get_config(runner,
                     'num_classes': num_classes,
                     'fpn_channels': 256,
                     'in_channels': len(channel_order),
-                    'out_size': (img_sz, img_sz)
-                }))
+                    'out_size': (img_sz, img_sz),
+                },
+            )
+        )
     else:
         model = SemanticSegmentationModelConfig(backbone=Backbone.resnet50)
 
     solver = SolverConfig(
-        lr=1e-4, num_epochs=num_epochs, batch_sz=batch_sz, one_cycle=True)
+        lr=1e-4, num_epochs=num_epochs, batch_sz=batch_sz, one_cycle=True
+    )
 
     backend = PyTorchSemanticSegmentationConfig(
         data=data,
@@ -251,6 +314,7 @@ def get_config(runner,
         dataset=scene_dataset,
         backend=backend,
         chip_options=chip_options,
-        predict_options=predict_options)
+        predict_options=predict_options,
+    )
 
     return pipeline

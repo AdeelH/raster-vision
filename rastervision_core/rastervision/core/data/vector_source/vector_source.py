@@ -6,9 +6,17 @@ import geopandas as gpd
 
 from rastervision.core.box import Box
 from rastervision.core.data.utils import (
-    remove_empty_features, split_multi_geometries, map_to_pixel_coords,
-    pixel_to_map_coords, simplify_polygons, all_geoms_valid, geojson_to_geoms,
-    geojson_to_geodataframe, get_geojson_extent, filter_geojson_to_window)
+    remove_empty_features,
+    split_multi_geometries,
+    map_to_pixel_coords,
+    pixel_to_map_coords,
+    simplify_polygons,
+    all_geoms_valid,
+    geojson_to_geoms,
+    geojson_to_geodataframe,
+    get_geojson_extent,
+    filter_geojson_to_window,
+)
 
 if TYPE_CHECKING:
     from shapely.geometry.base import BaseGeometry
@@ -20,10 +28,12 @@ log = logging.getLogger(__name__)
 class VectorSource(ABC):
     """A source of vector data."""
 
-    def __init__(self,
-                 crs_transformer: 'CRSTransformer',
-                 vector_transformers: list['VectorTransformer'] = [],
-                 bbox: Box | None = None):
+    def __init__(
+        self,
+        crs_transformer: 'CRSTransformer',
+        vector_transformers: list['VectorTransformer'] = [],
+        bbox: Box | None = None,
+    ):
         """Constructor.
 
         Args:
@@ -43,9 +53,9 @@ class VectorSource(ABC):
         self._extent = None
         self._bbox = bbox
 
-    def get_geojson(self,
-                    window: Box | None = None,
-                    to_map_coords: bool = False) -> dict:
+    def get_geojson(
+        self, window: Box | None = None, to_map_coords: bool = False
+    ) -> dict:
         """Return transformed GeoJSON.
 
         This makes the following transformations to the raw geojson:
@@ -73,7 +83,8 @@ class VectorSource(ABC):
 
         geojson = self._get_geojson()
         geojson = sanitize_geojson(
-            geojson, self.crs_transformer, to_map_coords=to_map_coords)
+            geojson, self.crs_transformer, to_map_coords=to_map_coords
+        )
 
         if self._bbox is not None:
             geojson = filter_geojson_to_window(geojson, self.bbox)
@@ -87,8 +98,9 @@ class VectorSource(ABC):
             return filter_geojson_to_window(geojson, window)
         return geojson
 
-    def get_geoms(self, window: Box | None = None,
-                  to_map_coords: bool = False) -> list['BaseGeometry']:
+    def get_geoms(
+        self, window: Box | None = None, to_map_coords: bool = False
+    ) -> list['BaseGeometry']:
         """Returns all geometries in the transformed GeoJSON as Shapely geoms.
 
         Args:
@@ -104,9 +116,9 @@ class VectorSource(ABC):
     def _get_geojson(self) -> dict:
         """Return raw GeoJSON."""
 
-    def get_dataframe(self,
-                      window: Box | None = None,
-                      to_map_coords: bool = False) -> gpd.GeoDataFrame:
+    def get_dataframe(
+        self, window: Box | None = None, to_map_coords: bool = False
+    ) -> gpd.GeoDataFrame:
         """Return geometries as a :class:`~geopandas.GeoDataFrame`.
 
         Arguments:
@@ -144,9 +156,11 @@ class VectorSource(ABC):
         return self.get_geojson()
 
 
-def sanitize_geojson(geojson: dict,
-                     crs_transformer: 'CRSTransformer',
-                     to_map_coords: bool = False) -> dict:
+def sanitize_geojson(
+    geojson: dict,
+    crs_transformer: 'CRSTransformer',
+    to_map_coords: bool = False,
+) -> dict:
     """Apply some basic transformations (listed below) to a GeoJSON.
 
     The following transformations are applied:

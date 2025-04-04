@@ -14,8 +14,12 @@ if TYPE_CHECKING:
     from rastervision.core.data import VectorSource, RasterTransformer
 
 
-def geoms_to_raster(df: gpd.GeoDataFrame, window: 'Box',
-                    background_class_id: int, all_touched: bool) -> np.ndarray:
+def geoms_to_raster(
+    df: gpd.GeoDataFrame,
+    window: 'Box',
+    background_class_id: int,
+    all_touched: bool,
+) -> np.ndarray:
     """Rasterize geometries that intersect with the window.
 
     Args:
@@ -50,7 +54,8 @@ def geoms_to_raster(df: gpd.GeoDataFrame, window: 'Box',
             out_shape=window.size,
             fill=background_class_id,
             dtype=np.uint8,
-            all_touched=all_touched)
+            all_touched=all_touched,
+        )
     else:
         raster = np.full(window.size, background_class_id, dtype=np.uint8)
 
@@ -60,12 +65,14 @@ def geoms_to_raster(df: gpd.GeoDataFrame, window: 'Box',
 class RasterizedSource(RasterSource):
     """A :class:`.RasterSource` based on the rasterization of a VectorSource."""
 
-    def __init__(self,
-                 vector_source: 'VectorSource',
-                 background_class_id: int,
-                 bbox: 'Box | None' = None,
-                 all_touched: bool = False,
-                 raster_transformers: list['RasterTransformer'] = []):
+    def __init__(
+        self,
+        vector_source: 'VectorSource',
+        background_class_id: int,
+        bbox: 'Box | None' = None,
+        all_touched: bool = False,
+        raster_transformers: list['RasterTransformer'] = [],
+    ):
         """Constructor.
 
         Args:
@@ -96,7 +103,8 @@ class RasterizedSource(RasterSource):
             num_channels_raw=1,
             dtype_raw=np.uint8,
             bbox=bbox,
-            raster_transformers=raster_transformers)
+            raster_transformers=raster_transformers,
+        )
 
     @property
     def dtype(self) -> np.dtype:
@@ -106,9 +114,9 @@ class RasterizedSource(RasterSource):
     def crs_transformer(self):
         return self.vector_source.crs_transformer
 
-    def _get_chip(self,
-                  window: 'Box',
-                  out_shape: tuple[int, int] | None = None) -> np.ndarray:
+    def _get_chip(
+        self, window: 'Box', out_shape: tuple[int, int] | None = None
+    ) -> np.ndarray:
         """Return the chip located in the window.
 
         Polygons falling within the window are rasterized using their
@@ -126,7 +134,8 @@ class RasterizedSource(RasterSource):
             self.df,
             window,
             background_class_id=self.background_class_id,
-            all_touched=self.all_touched)
+            all_touched=self.all_touched,
+        )
 
         if out_shape is not None:
             chip = self.resize(chip, out_shape)
@@ -146,10 +155,12 @@ class RasterizedSource(RasterSource):
         """
         geom_types = set(df.geom_type)
         if 'Point' in geom_types or 'LineString' in geom_types:
-            raise ValueError('LineStrings and Points are not supported '
-                             'in RasterizedSource. Use BufferTransformer '
-                             'to buffer them into Polygons. '
-                             f'Geom types found in data: {geom_types}')
+            raise ValueError(
+                'LineStrings and Points are not supported '
+                'in RasterizedSource. Use BufferTransformer '
+                'to buffer them into Polygons. '
+                f'Geom types found in data: {geom_types}'
+            )
 
         if len(df) > 0 and 'class_id' not in df.columns:
             raise ValueError('All label polygons must have a class_id.')

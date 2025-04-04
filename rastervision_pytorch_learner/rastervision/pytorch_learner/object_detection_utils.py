@@ -8,8 +8,12 @@ from pprint import pformat
 
 import torch
 import torch.nn as nn
-from torchvision.ops import (box_area, box_convert, batched_nms,
-                             clip_boxes_to_image)
+from torchvision.ops import (
+    box_area,
+    box_convert,
+    batched_nms,
+    clip_boxes_to_image,
+)
 from torchvision.utils import draw_bounding_boxes
 import pycocotools
 from pycocotools.coco import COCO
@@ -23,42 +27,50 @@ if TYPE_CHECKING:
     from typing import Self
 
 
-def get_coco_gt(targets: Iterable['Self'],
-                num_class_ids: int) -> dict[str, list[dict]]:
+def get_coco_gt(
+    targets: Iterable['Self'], num_class_ids: int
+) -> dict[str, list[dict]]:
     images = []
     annotations = []
     ann_id = 1
     for img_id, target in enumerate(targets, 1):
         # Use fake height, width, and filename because they don't matter.
-        images.append({
-            'id': img_id,
-            'height': 1000,
-            'width': 1000,
-            'file_name': '{}.png'.format(img_id)
-        })
+        images.append(
+            {
+                'id': img_id,
+                'height': 1000,
+                'width': 1000,
+                'file_name': '{}.png'.format(img_id),
+            }
+        )
         boxes = target.convert_boxes('xywh').float().tolist()
         class_ids = target.get_field('class_ids').tolist()
         areas = box_area(target.boxes).tolist()
         for box, class_id, area in zip(boxes, class_ids, areas):
-            annotations.append({
-                'id': ann_id,
-                'image_id': img_id,
-                'bbox': box,
-                'category_id': class_id + 1,
-                'area': area,
-                'iscrowd': 0
-            })
+            annotations.append(
+                {
+                    'id': ann_id,
+                    'image_id': img_id,
+                    'bbox': box,
+                    'category_id': class_id + 1,
+                    'area': area,
+                    'iscrowd': 0,
+                }
+            )
             ann_id += 1
 
-    categories = [{
-        'id': class_id + 1,
-        'name': str(class_id + 1),
-        'supercategory': 'super'
-    } for class_id in range(num_class_ids)]
+    categories = [
+        {
+            'id': class_id + 1,
+            'name': str(class_id + 1),
+            'supercategory': 'super',
+        }
+        for class_id in range(num_class_ids)
+    ]
     coco = {
         'images': images,
         'annotations': annotations,
-        'categories': categories
+        'categories': categories,
     }
     return coco
 
@@ -70,12 +82,14 @@ def get_coco_preds(outputs: Iterable['Self']) -> list[dict]:
         class_ids = output.get_field('class_ids').tolist()
         scores = output.get_field('scores').tolist()
         for box, class_id, score in zip(boxes, class_ids, scores):
-            preds.append({
-                'image_id': img_id,
-                'category_id': class_id + 1,
-                'bbox': box,
-                'score': score
-            })
+            preds.append(
+                {
+                    'image_id': img_id,
+                    'category_id': class_id + 1,
+                    'bbox': box,
+                    'score': score,
+                }
+            )
     return preds
 
 
@@ -117,9 +131,10 @@ def compute_coco_eval(outputs, targets, num_class_ids):
         return coco_eval
 
 
-class BoxList():
-    def __init__(self, boxes: torch.Tensor, format: str = 'xyxy',
-                 **extras) -> None:
+class BoxList:
+    def __init__(
+        self, boxes: torch.Tensor, format: str = 'xyxy', **extras
+    ) -> None:
         """Representation of a list of bounding boxes and associated data.
 
         Internally, boxes are always stored in the xyxy format.
@@ -148,9 +163,10 @@ class BoxList():
             return self.extras.get(name)
 
     def _map_extras(
-            self,
-            func: Callable[[str, Any], Any],
-            cond: Callable[[str, Any], bool] = lambda k, v: True) -> dict:
+        self,
+        func: Callable[[str, Any], Any],
+        cond: Callable[[str, Any], bool] = lambda k, v: True,
+    ) -> dict:
         new_extras = {}
         for k, v in self.extras.items():
             if cond(k, v):
@@ -164,7 +180,8 @@ class BoxList():
         return BoxList(
             self.boxes.copy(),
             **self._map_extras(lambda k, v: v.copy()),
-            cond=lambda k, v: torch.is_tensor(v))
+            cond=lambda k, v: torch.is_tensor(v),
+        )
 
     def to(self, *args, **kwargs) -> 'Self':
         """Recursively apply :meth:`torch.Tensor.to` to Tensors.
@@ -179,7 +196,8 @@ class BoxList():
         boxes = self.boxes.to(*args, **kwargs)
         extras = self._map_extras(
             func=lambda k, v: v.to(*args, **kwargs),
-            cond=lambda k, v: torch.is_tensor(v))
+            cond=lambda k, v: torch.is_tensor(v),
+        )
         return BoxList(boxes, **extras)
 
     def convert_boxes(self, out_fmt: str) -> torch.Tensor:
@@ -210,13 +228,17 @@ class BoxList():
             return False
 
         # Ignore order of boxes.
-        extras = [(v.float().unsqueeze(1) if v.ndim == 1 else v.float())
-                  for v in self.extras.values()]
+        extras = [
+            (v.float().unsqueeze(1) if v.ndim == 1 else v.float())
+            for v in self.extras.values()
+        ]
         cat_arr = torch.cat([self.boxes] + extras, 1)
         self_tups = set([tuple([x.item() for x in row]) for row in cat_arr])
 
-        extras = [(v.float().unsqueeze(1) if v.ndim == 1 else v.float())
-                  for v in other.extras.values()]
+        extras = [
+            (v.float().unsqueeze(1) if v.ndim == 1 else v.float())
+            for v in other.extras.values()
+        ]
         cat_arr = torch.cat([other.boxes] + extras, 1)
         other_tups = set([tuple([x.item() for x in row]) for row in cat_arr])
         return self_tups == other_tups
@@ -224,7 +246,8 @@ class BoxList():
     def ind_filter(self, inds: Sequence[int]) -> 'Self':
         boxes = self.boxes[inds]
         extras = self._map_extras(
-            func=lambda k, v: v[inds], cond=lambda k, v: torch.is_tensor(v))
+            func=lambda k, v: v[inds], cond=lambda k, v: torch.is_tensor(v)
+        )
         return BoxList(boxes, **extras)
 
     def score_filter(self, score_thresh: float = 0.25) -> 'Self':
@@ -242,8 +265,12 @@ class BoxList():
         if len(self) == 0:
             return self
 
-        good_inds = batched_nms(self.boxes, self.get_field('scores'),
-                                self.get_field('class_ids'), iou_thresh)
+        good_inds = batched_nms(
+            self.boxes,
+            self.get_field('scores'),
+            self.get_field('class_ids'),
+            iou_thresh,
+        )
         return self.ind_filter(good_inds)
 
     def scale(self, yscale: float, xscale: float) -> 'Self':
@@ -273,8 +300,12 @@ def collate_fn(data: Iterable[Sequence]) -> tuple[torch.Tensor, list[BoxList]]:
     return x, y
 
 
-def draw_boxes(x: torch.Tensor, y: BoxList, class_names: Sequence[str],
-               class_colors: Sequence[str]) -> torch.Tensor:
+def draw_boxes(
+    x: torch.Tensor,
+    y: BoxList,
+    class_names: Sequence[str],
+    class_colors: Sequence[str],
+) -> torch.Tensor:
     """Given an image and a BoxList, draw the boxes in the BoxList on the
     image."""
     boxes = y.boxes
@@ -302,8 +333,9 @@ def draw_boxes(x: torch.Tensor, y: BoxList, class_names: Sequence[str],
             boxes=boxes,
             labels=box_annotations,
             colors=box_colors,
-            width=2)
-        x = x.permute(1, 2, 0) / 255.
+            width=2,
+        )
+        x = x.permute(1, 2, 0) / 255.0
 
     return x
 
@@ -319,9 +351,9 @@ class TorchVisionODAdapter(nn.Module):
     (which is what the TorchVision models expect).
     """
 
-    def __init__(self,
-                 model: nn.Module,
-                 ignored_output_inds: Sequence[int] = [0]) -> None:
+    def __init__(
+        self, model: nn.Module, ignored_output_inds: Sequence[int] = [0]
+    ) -> None:
         """Constructor.
 
         Args:
@@ -333,10 +365,9 @@ class TorchVisionODAdapter(nn.Module):
         self.model = model
         self.ignored_output_inds = ignored_output_inds
 
-    def forward(self,
-                input: torch.Tensor,
-                targets: Iterable[BoxList] | None = None
-                ) -> dict[str, Any] | list[BoxList]:
+    def forward(
+        self, input: torch.Tensor, targets: Iterable[BoxList] | None = None
+    ) -> dict[str, Any] | list[BoxList]:
         """Forward pass.
 
         Args:
@@ -378,7 +409,7 @@ class TorchVisionODAdapter(nn.Module):
         return {
             'boxes': boxlist.boxes,
             # make class IDs 1-indexed
-            'labels': (boxlist.get_field('class_ids') + 1)
+            'labels': (boxlist.get_field('class_ids') + 1),
         }
 
     def model_output_dict_to_boxlist(self, out: dict) -> BoxList:
@@ -400,7 +431,8 @@ class TorchVisionODAdapter(nn.Module):
             boxes=out['boxes'][mask],
             # make class IDs 0-indexed again
             class_ids=(out['labels'][mask] - 1),
-            scores=out['scores'][mask])
+            scores=out['scores'][mask],
+        )
         return boxlist
 
 
@@ -413,7 +445,7 @@ class ONNXRuntimeAdapterForFasterRCNN(ONNXRuntimeAdapter):
         outputs = self.ort_session.run(None, dict(x=x))
         out_dicts = [None] * N
         for i in range(N):
-            boxes, labels, scores = outputs[i * 3:i * 3 + 3]
+            boxes, labels, scores = outputs[i * 3 : i * 3 + 3]
             boxes = torch.from_numpy(boxes)
             labels = torch.from_numpy(labels)
             scores = torch.from_numpy(scores)

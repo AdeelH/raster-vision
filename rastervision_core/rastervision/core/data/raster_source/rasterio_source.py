@@ -8,11 +8,15 @@ from rastervision.pipeline.file_system import download_if_needed, get_tmp_dir
 from rastervision.core.box import Box
 from rastervision.core.data.crs_transformer import RasterioCRSTransformer
 from rastervision.core.data.raster_source import RasterSource
-from rastervision.core.data.utils import (listify_uris, parse_array_slices_Nd)
+from rastervision.core.data.utils import listify_uris, parse_array_slices_Nd
 from rastervision.core.data.utils.raster import fill_overflow
 from rastervision.core.data.utils.rasterio import (
-    download_and_build_vrt, get_aws_session, get_channel_order_from_dataset,
-    is_masked, read_window)
+    download_and_build_vrt,
+    get_aws_session,
+    get_channel_order_from_dataset,
+    is_masked,
+    read_window,
+)
 
 if TYPE_CHECKING:
     from rastervision.core.data import RasterTransformer
@@ -38,13 +42,15 @@ class RasterioSource(RasterSource):
     masked or NODATA pixel values to be zeros.
     """
 
-    def __init__(self,
-                 uris: str | list[str],
-                 raster_transformers: list['RasterTransformer'] = [],
-                 allow_streaming: bool = False,
-                 channel_order: Sequence[int] | None = None,
-                 bbox: Box | None = None,
-                 tmp_dir: str | None = None):
+    def __init__(
+        self,
+        uris: str | list[str],
+        raster_transformers: list['RasterTransformer'] = [],
+        allow_streaming: bool = False,
+        channel_order: Sequence[int] | None = None,
+        bbox: Box | None = None,
+        tmp_dir: str | None = None,
+    ):
         """Constructor.
 
         Args:
@@ -75,7 +81,8 @@ class RasterioSource(RasterSource):
             self.tmp_dir = self._tmp_dir.name
 
         self.imagery_path = self.download_data(
-            self.tmp_dir, stream=self.allow_streaming)
+            self.tmp_dir, stream=self.allow_streaming
+        )
 
         self.session = None
         if 's3://' in self.imagery_path.lower():
@@ -86,12 +93,15 @@ class RasterioSource(RasterSource):
 
         block_shapes = set(self.image_dataset.block_shapes)
         if len(block_shapes) > 1:
-            log.warning('Raster bands have non-identical block shapes: '
-                        f'{block_shapes}. This can slow down reading. '
-                        'Consider re-tiling using GDAL.')
+            log.warning(
+                'Raster bands have non-identical block shapes: '
+                f'{block_shapes}. This can slow down reading. '
+                'Consider re-tiling using GDAL.'
+            )
 
         self._crs_transformer = RasterioCRSTransformer.from_dataset(
-            self.image_dataset)
+            self.image_dataset
+        )
 
         dtype_raw = np.dtype(self.image_dataset.dtypes[0])
         num_channels_raw = self.image_dataset.count
@@ -110,14 +120,16 @@ class RasterioSource(RasterSource):
             num_channels_raw=num_channels_raw,
             dtype_raw=dtype_raw,
             bbox=bbox,
-            raster_transformers=raster_transformers)
+            raster_transformers=raster_transformers,
+        )
 
     @property
     def crs_transformer(self) -> RasterioCRSTransformer:
         return self._crs_transformer
 
-    def download_data(self, vrt_dir: str | None = None,
-                      stream: bool = False) -> str:
+    def download_data(
+        self, vrt_dir: str | None = None, stream: bool = False
+    ) -> str:
         """Download any data needed for this raster source.
 
         Return a single local path representing the image or a VRT of the data.
@@ -132,10 +144,12 @@ class RasterioSource(RasterSource):
                 raise ValueError('vrt_dir is required if using >1 image URIs.')
             return download_and_build_vrt(self.uris, vrt_dir, stream=stream)
 
-    def _get_chip(self,
-                  window: Box,
-                  bands: Sequence[int] | None = None,
-                  out_shape: tuple[int, ...] | None = None) -> np.ndarray:
+    def _get_chip(
+        self,
+        window: Box,
+        bands: Sequence[int] | None = None,
+        out_shape: tuple[int, ...] | None = None,
+    ) -> np.ndarray:
         window = window.to_global_coords(self.bbox)
         chip = read_window(
             self.image_dataset,
@@ -143,14 +157,17 @@ class RasterioSource(RasterSource):
             window=window.rasterio_format(),
             is_masked=self.is_masked,
             out_shape=out_shape,
-            session=self.session)
+            session=self.session,
+        )
         chip = fill_overflow(self.bbox, window, chip)
         return chip
 
-    def get_chip(self,
-                 window: Box,
-                 bands: Sequence[int] | slice | None = None,
-                 out_shape: tuple[int, ...] | None = None) -> np.ndarray:
+    def get_chip(
+        self,
+        window: Box,
+        bands: Sequence[int] | slice | None = None,
+        out_shape: tuple[int, ...] | None = None,
+    ) -> np.ndarray:
         """Read a chip specified by a window from the file.
 
         Args:
@@ -179,7 +196,8 @@ class RasterioSource(RasterSource):
             return self.get_chip(key)
 
         window, (h, w, c) = parse_array_slices_Nd(
-            key, extent=self.extent, dims=3)
+            key, extent=self.extent, dims=3
+        )
 
         out_shape = None
         if h.step is not None or w.step is not None:
@@ -195,8 +213,12 @@ class RasterioSource(RasterSource):
 
     def __repr__(self):
         arg_keys = [
-            'uris', 'channel_order', 'bbox', 'raster_transformers',
-            'allow_streaming', 'tmp_dir'
+            'uris',
+            'channel_order',
+            'bbox',
+            'raster_transformers',
+            'allow_streaming',
+            'tmp_dir',
         ]
         arg_vals = [getattr(self, k) for k in arg_keys]
         arg_strs = [f'{k}={v!r}' for k, v in zip(arg_keys, arg_vals)]

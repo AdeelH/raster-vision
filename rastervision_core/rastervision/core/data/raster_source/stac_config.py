@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from rastervision.pipeline.config import (Config, Field, register_config)
+from rastervision.pipeline.config import Config, Field, register_config
 from rastervision.pipeline.file_system.utils import file_to_json
 
 if TYPE_CHECKING:
@@ -14,8 +14,8 @@ class STACItemConfig(Config):
     uri: str = Field(..., description='URI to a JSON-serialized STAC Item.')
     assets: list[str] | None = Field(
         None,
-        description=
-        'Subset of assets to use. This should be a list of asset keys')
+        description='Subset of assets to use. This should be a list of asset keys',
+    )
 
     def build(self) -> 'Item':
         from pystac import Item
@@ -31,11 +31,12 @@ class STACItemCollectionConfig(Config):
     """Specify a raster via a STAC ItemCollection."""
 
     uri: str = Field(
-        ..., description='URI to a JSON-serialized STAC ItemCollection.')
+        ..., description='URI to a JSON-serialized STAC ItemCollection.'
+    )
     assets: list[str] | None = Field(
         None,
-        description=
-        'Subset of assets to use. This should be a list of asset keys')
+        description='Subset of assets to use. This should be a list of asset keys',
+    )
 
     def build(self) -> 'ItemCollection':
         from pystac import ItemCollection

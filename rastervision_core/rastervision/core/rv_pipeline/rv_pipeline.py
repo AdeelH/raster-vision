@@ -14,8 +14,14 @@ from rastervision.core.data_sample import DataSample
 from rastervision.core.data import Scene, Labels
 from rastervision.core.backend import Backend
 from rastervision.pipeline.file_system.utils import (
-    download_if_needed, zipdir, get_local_path, upload_or_copy, make_dir,
-    sync_from_dir, file_exists)
+    download_if_needed,
+    zipdir,
+    get_local_path,
+    upload_or_copy,
+    make_dir,
+    sync_from_dir,
+    file_exists,
+)
 
 log = logging.getLogger(__name__)
 
@@ -76,21 +82,26 @@ class RVPipeline(Pipeline):
         def build_scene(scene_id: str) -> Scene:
             cfg = scene_id_to_cfg[scene_id]
             scene = cfg.build(
-                class_config, self.tmp_dir, use_transformers=False)
+                class_config, self.tmp_dir, use_transformers=False
+            )
             return scene
 
         # build and run each AnalyzerConfig for each scene group
         for a in self.config.analyzers:
             for group_name, group_ids in dataset.scene_groups.items():
                 if len(group_ids) == 0:
-                    log.info(f'Skipping scene group "{group_name}". '
-                             'Empty scene group.')
+                    log.info(
+                        f'Skipping scene group "{group_name}". '
+                        'Empty scene group.'
+                    )
                     continue
                 group_scenes = (build_scene(id) for id in group_ids)
                 analyzer = a.build(scene_group=(group_name, group_scenes))
 
-                log.info(f'Running {type(analyzer).__name__} on '
-                         f'scene group "{group_name}"...')
+                log.info(
+                    f'Running {type(analyzer).__name__} on '
+                    f'scene group "{group_name}"...'
+                )
                 analyzer.process(group_scenes, self.tmp_dir)
 
     def get_train_windows(self, scene: Scene) -> list[Box]:
@@ -134,8 +145,9 @@ class RVPipeline(Pipeline):
         """
         return sample
 
-    def post_process_batch(self, windows: list[Box], chips: np.ndarray,
-                           labels: Labels) -> Labels:
+    def post_process_batch(
+        self, windows: list[Box], chips: np.ndarray, labels: Labels
+    ) -> Labels:
         """Post-process a batch of predictions."""
         return labels
 
@@ -154,7 +166,7 @@ class RVPipeline(Pipeline):
         class_config = self.config.dataset.class_config
         dataset = self.config.dataset.get_split_config(split_ind, num_splits)
 
-        for scene_config in (dataset.validation_scenes + dataset.test_scenes):
+        for scene_config in dataset.validation_scenes + dataset.test_scenes:
             scene = scene_config.build(class_config, self.tmp_dir)
             labels = self.predict_scene(scene)
             scene.label_store.save(labels)
@@ -163,7 +175,8 @@ class RVPipeline(Pipeline):
         if self.backend is None:
             self.build_backend()
         labels = self.backend.predict_scene(
-            scene, predict_options=self.config.predict_options)
+            scene, predict_options=self.config.predict_options
+        )
         labels = self.post_process_predictions(labels, scene)
         return labels
 
@@ -181,7 +194,8 @@ class RVPipeline(Pipeline):
         def build_scene(scene_id: str) -> Scene:
             cfg = scene_id_to_cfg[scene_id]
             scene = cfg.build(
-                class_config, self.tmp_dir, use_transformers=True)
+                class_config, self.tmp_dir, use_transformers=True
+            )
             return scene
 
         # build and run each EvaluatorConfig for each scene group
@@ -190,21 +204,28 @@ class RVPipeline(Pipeline):
                 if group_name in excluded_groups:
                     continue
                 if len(group_ids) == 0:
-                    log.info(f'Skipping scene group "{group_name}". '
-                             'Empty scene group.')
+                    log.info(
+                        f'Skipping scene group "{group_name}". '
+                        'Empty scene group.'
+                    )
                     continue
                 group_scenes = (build_scene(id) for id in group_ids)
                 evaluator = e.build(
-                    class_config, scene_group=(group_name, group_scenes))
+                    class_config, scene_group=(group_name, group_scenes)
+                )
 
-                log.info(f'Running {type(evaluator).__name__} on '
-                         f'scene group "{group_name}"...')
+                log.info(
+                    f'Running {type(evaluator).__name__} on '
+                    f'scene group "{group_name}"...'
+                )
                 try:
                     evaluator.process(group_scenes, self.tmp_dir)
                 except FileNotFoundError:
-                    log.warning(f'Skipping scene group "{group_name}". '
-                                'Either labels or predictions are missing for '
-                                'some scene.')
+                    log.warning(
+                        f'Skipping scene group "{group_name}". '
+                        'Either labels or predictions are missing for '
+                        'some scene.'
+                    )
 
     def bundle(self):
         """Save a model bundle with whatever is needed to make predictions.
@@ -218,7 +239,8 @@ class RVPipeline(Pipeline):
 
             for fn in self.config.backend.get_bundle_filenames():
                 path = download_if_needed(
-                    join(self.config.train_uri, fn), tmp_dir)
+                    join(self.config.train_uri, fn), tmp_dir
+                )
                 shutil.copy(path, join(bundle_dir, fn))
 
             if file_exists(self.config.analyze_uri, include_dir=True):

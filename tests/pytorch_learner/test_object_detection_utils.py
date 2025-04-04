@@ -6,7 +6,10 @@ from torch import nn
 from torchvision.ops import box_convert
 
 from rastervision.pytorch_learner.object_detection_utils import (
-    BoxList, collate_fn, TorchVisionODAdapter)
+    BoxList,
+    collate_fn,
+    TorchVisionODAdapter,
+)
 
 
 class MockModel(nn.Module):
@@ -21,11 +24,14 @@ class MockModel(nn.Module):
         else:
             N = len(x)
             nboxes = np.random.randint(0, 10)
-            outs = [{
-                'boxes': torch.rand((nboxes, 4)),
-                'labels': torch.randint(0, self.num_classes, (nboxes, )),
-                'scores': torch.rand((nboxes, )),
-            } for _ in range(N)]
+            outs = [
+                {
+                    'boxes': torch.rand((nboxes, 4)),
+                    'labels': torch.randint(0, self.num_classes, (nboxes,)),
+                    'scores': torch.rand((nboxes,)),
+                }
+                for _ in range(N)
+            ]
             return outs
 
 
@@ -34,15 +40,17 @@ class TestTorchVisionODAdapter(unittest.TestCase):
         true_num_classes = 3
         model = TorchVisionODAdapter(
             MockModel(num_classes=true_num_classes + 2),
-            ignored_output_inds=[0, true_num_classes + 1])
+            ignored_output_inds=[0, true_num_classes + 1],
+        )
         model.train()
 
         N = 10
         x = torch.empty(N, 3, 100, 100)
         y = [
             BoxList(
-                boxes=torch.rand((10, 4)),
-                class_ids=torch.randint(0, 5, (N, ))) for _ in range(N)
+                boxes=torch.rand((10, 4)), class_ids=torch.randint(0, 5, (N,))
+            )
+            for _ in range(N)
         ]
         self.assertRaises(Exception, lambda: model(x))
         out = model(x, y)
@@ -52,7 +60,8 @@ class TestTorchVisionODAdapter(unittest.TestCase):
         true_num_classes = 3
         model = TorchVisionODAdapter(
             MockModel(num_classes=true_num_classes + 2),
-            ignored_output_inds=[0, true_num_classes + 1])
+            ignored_output_inds=[0, true_num_classes + 1],
+        )
         model.eval()
 
         N = 10
@@ -63,14 +72,18 @@ class TestTorchVisionODAdapter(unittest.TestCase):
             self.assertIn('class_ids', out)
             self.assertIn('scores', out)
             self.assertTrue(
-                all((0 <= c < true_num_classes)
-                    for c in out.get_field('class_ids')))
+                all(
+                    (0 <= c < true_num_classes)
+                    for c in out.get_field('class_ids')
+                )
+            )
 
     def test_eval_output_without_bogus_class(self):
         true_num_classes = 3
         model = TorchVisionODAdapter(
             MockModel(num_classes=true_num_classes + 1),
-            ignored_output_inds=[0])
+            ignored_output_inds=[0],
+        )
         model.eval()
 
         N = 10
@@ -81,8 +94,11 @@ class TestTorchVisionODAdapter(unittest.TestCase):
             self.assertIn('class_ids', out)
             self.assertIn('scores', out)
             self.assertTrue(
-                all((0 <= c < true_num_classes)
-                    for c in out.get_field('class_ids')))
+                all(
+                    (0 <= c < true_num_classes)
+                    for c in out.get_field('class_ids')
+                )
+            )
 
 
 class TestBoxList(unittest.TestCase):
@@ -100,43 +116,50 @@ class TestBoxList(unittest.TestCase):
         for in_fmt in ['xywh', 'cxcywh']:
             boxlist = BoxList(boxes, format=in_fmt)
             self.assertTrue(
-                torch.equal(boxlist.boxes, box_convert(boxes, in_fmt, 'xyxy')))
+                torch.equal(boxlist.boxes, box_convert(boxes, in_fmt, 'xyxy'))
+            )
 
     def test_get_field(self):
         boxes = torch.rand((10, 4))
-        class_ids = torch.randint(0, 5, (10, ))
+        class_ids = torch.randint(0, 5, (10,))
         boxlist = BoxList(boxes, class_ids=class_ids)
         self.assertTrue(torch.equal(boxlist.get_field('class_ids'), class_ids))
 
     def test_map_extras(self):
         boxes = torch.rand((10, 4))
-        class_ids = torch.randint(0, 3, (10, ))
-        scores = torch.rand((10, ))
+        class_ids = torch.randint(0, 3, (10,))
+        scores = torch.rand((10,))
         class_names = np.array(['a', 'b', 'c'])[class_ids.numpy()]
         boxlist = BoxList(
-            boxes, class_ids=class_ids, scores=scores, class_names=class_names)
+            boxes, class_ids=class_ids, scores=scores, class_names=class_names
+        )
         boxlist = BoxList(
             boxes,
             **boxlist._map_extras(
-                func=lambda k, v: v[:-1],
-                cond=lambda k, v: torch.is_tensor(v)))
+                func=lambda k, v: v[:-1], cond=lambda k, v: torch.is_tensor(v)
+            ),
+        )
         self.assertTrue(
-            torch.equal(boxlist.get_field('class_ids'), class_ids[:-1]))
+            torch.equal(boxlist.get_field('class_ids'), class_ids[:-1])
+        )
         self.assertTrue(torch.equal(boxlist.get_field('scores'), scores[:-1]))
         self.assertTrue(all(class_names == boxlist.get_field('class_names')))
 
     def test_to(self):
         boxes = torch.rand((10, 4))
-        class_ids = torch.randint(0, 3, (10, ))
-        scores = torch.rand((10, ))
+        class_ids = torch.randint(0, 3, (10,))
+        scores = torch.rand((10,))
         class_names = np.array(['a', 'b', 'c'])[class_ids.numpy()]
         boxlist = BoxList(
-            boxes, class_ids=class_ids, scores=scores, class_names=class_names)
+            boxes, class_ids=class_ids, scores=scores, class_names=class_names
+        )
         boxlist = boxlist.to(dtype=torch.float32)
         self.assertTrue(
-            torch.equal(boxlist.get_field('class_ids'), class_ids.float()))
+            torch.equal(boxlist.get_field('class_ids'), class_ids.float())
+        )
         self.assertTrue(
-            torch.equal(boxlist.get_field('scores'), scores.float()))
+            torch.equal(boxlist.get_field('scores'), scores.float())
+        )
         self.assertTrue(all(class_names == boxlist.get_field('class_names')))
 
     def test_collate_fn(self):
@@ -144,7 +167,7 @@ class TestBoxList(unittest.TestCase):
         boxlists = []
         for _ in range(4):
             boxes = torch.rand((10, 4))
-            class_ids = torch.randint(0, 3, (10, ))
+            class_ids = torch.randint(0, 3, (10,))
             boxlist = BoxList(boxes, class_ids=class_ids)
             boxlists.append(boxlist)
         x, y = collate_fn(zip(imgs, boxes))
@@ -153,10 +176,12 @@ class TestBoxList(unittest.TestCase):
         self.assertTrue(all(b1 == b2 for b1, b2 in zip(boxlists, y)))
 
     def test_scale(self):
-        boxes = torch.tensor([
-            [0, 0, 1, 1],
-            [0, 10, 10, 20],
-        ])
+        boxes = torch.tensor(
+            [
+                [0, 0, 1, 1],
+                [0, 10, 10, 20],
+            ]
+        )
         dtype = boxes.dtype
 
         boxlist = BoxList(boxes.clone())

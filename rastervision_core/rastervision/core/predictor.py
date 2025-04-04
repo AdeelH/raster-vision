@@ -3,13 +3,20 @@ from os.path import join
 import logging
 
 from rastervision.pipeline import rv_config_ as rv_config
-from rastervision.pipeline.config import (build_config, upgrade_config)
+from rastervision.pipeline.config import build_config, upgrade_config
 from rastervision.pipeline.file_system.utils import (
-    download_if_needed, file_to_json, get_tmp_dir, unzip)
+    download_if_needed,
+    file_to_json,
+    get_tmp_dir,
+    unzip,
+)
 from rastervision.core.data.raster_source import ChannelOrderError
 from rastervision.core.data import (
-    SceneConfig, SemanticSegmentationLabelStoreConfig,
-    PolygonVectorOutputConfig, StatsTransformerConfig)
+    SceneConfig,
+    SemanticSegmentationLabelStoreConfig,
+    PolygonVectorOutputConfig,
+    StatsTransformerConfig,
+)
 from rastervision.core.rv_pipeline import PredictOptions
 from rastervision.core.analyzer import StatsAnalyzerConfig
 
@@ -20,15 +27,17 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
-class Predictor():
+class Predictor:
     """Class for making predictions based off of a model bundle."""
 
-    def __init__(self,
-                 model_bundle_uri: str,
-                 tmp_dir: str,
-                 update_stats: bool = False,
-                 channel_order: list[int] | None = None,
-                 scene_group: str | None = None):
+    def __init__(
+        self,
+        model_bundle_uri: str,
+        tmp_dir: str,
+        update_stats: bool = False,
+        channel_order: list[int] | None = None,
+        scene_group: str | None = None,
+    ):
         """Creates a new Predictor.
 
         Args:
@@ -53,18 +62,21 @@ class Predictor():
         config_path = join(self.bundle_dir, 'pipeline-config.json')
         config_dict = file_to_json(config_path)
         rv_config.set_everett_config(
-            config_overrides=config_dict.get('rv_config'))
+            config_overrides=config_dict.get('rv_config')
+        )
         config_dict = upgrade_config(config_dict)
         self.config: 'RVPipelineConfig' = build_config(config_dict)
         self.scene: 'SceneConfig' = self.config.dataset.validation_scenes[0]
 
         if not hasattr(self.scene.raster_source, 'uris'):
             raise Exception(
-                'raster_source in model bundle must have uris as field')
+                'raster_source in model bundle must have uris as field'
+            )
 
         if not hasattr(self.scene.label_store, 'uri'):
             raise Exception(
-                'label_store in model bundle must have uri as field')
+                'label_store in model bundle must have uri as field'
+            )
 
         for t in self.scene.raster_source.transformers:
             if isinstance(t, StatsTransformerConfig):
@@ -74,12 +86,14 @@ class Predictor():
                     log.warning(
                         f'Using stats for scene group "{t.scene_group}". '
                         'To use a different scene group, specify '
-                        '--scene-group <scene-group-name>.')
+                        '--scene-group <scene-group-name>.'
+                    )
             t.update_root(self.bundle_dir)
 
         if self.update_stats:
             stats_analyzer = StatsAnalyzerConfig(
-                output_uri=join(self.bundle_dir, 'stats.json'))
+                output_uri=join(self.bundle_dir, 'stats.json')
+            )
             self.config.analyzers = [stats_analyzer]
 
         self.scene.label_source = None
@@ -109,15 +123,18 @@ class Predictor():
             self.pipeline = self.config.build(self.tmp_dir)
             if not hasattr(self.pipeline, 'predict'):
                 raise Exception(
-                    'pipeline in model bundle must have predict method')
+                    'pipeline in model bundle must have predict method'
+                )
             self.pipeline.build_backend(
-                join(self.bundle_dir, 'model-bundle.zip'))
+                join(self.bundle_dir, 'model-bundle.zip')
+            )
 
         self.scene.raster_source.uris = image_uris
         self.scene.label_store.uri = label_uri
 
-        if isinstance(self.scene.label_store,
-                      SemanticSegmentationLabelStoreConfig):
+        if isinstance(
+            self.scene.label_store, SemanticSegmentationLabelStoreConfig
+        ):
             # create vector outputs for each class
             self.scene.label_store.vector_output = [
                 PolygonVectorOutputConfig(class_id=i)
@@ -133,16 +150,19 @@ class Predictor():
                 'The predict package is using a channel_order '
                 'with channels unavailable in the imagery.\nTo set a new '
                 'channel_order that only uses channels available in the '
-                'imagery, use the --channel-order option.')
+                'imagery, use the --channel-order option.'
+            )
 
 
 class ScenePredictor:
     """Class for making predictions on a scen using a model-bundle."""
 
-    def __init__(self,
-                 model_bundle_uri: str,
-                 predict_options: 'str | dict | PredictOptions | None' = None,
-                 tmp_dir: str | None = None):
+    def __init__(
+        self,
+        model_bundle_uri: str,
+        predict_options: 'str | dict | PredictOptions | None' = None,
+        tmp_dir: str | None = None,
+    ):
         """Creates a new Predictor.
 
         Args:
@@ -168,14 +188,17 @@ class ScenePredictor:
         pipeline_config_dict = file_to_json(pipeline_config_path)
 
         rv_config.set_everett_config(
-            config_overrides=pipeline_config_dict.get('rv_config'))
+            config_overrides=pipeline_config_dict.get('rv_config')
+        )
         pipeline_config_dict = upgrade_config(pipeline_config_dict)
         self.pipeline_config: 'RVPipelineConfig' = build_config(
-            pipeline_config_dict)
+            pipeline_config_dict
+        )
 
         if predict_options is not None:
             self.pipeline_config.predict_options = PredictOptions.deserialize(
-                predict_options)
+                predict_options
+            )
 
         self.pipeline: 'RVPipeline' = self.pipeline_config.build(self.tmp_dir)
         self.pipeline.build_backend(join(bundle_dir, 'model-bundle.zip'))

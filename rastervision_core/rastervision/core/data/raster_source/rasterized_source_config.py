@@ -1,11 +1,17 @@
 from typing import TYPE_CHECKING
 
-from rastervision.core.data.raster_source import (RasterizedSource)
-from rastervision.core.data.vector_source import (VectorSourceConfig)
+from rastervision.core.data.raster_source import RasterizedSource
+from rastervision.core.data.vector_source import VectorSourceConfig
 from rastervision.core.data.vector_transformer import (
-    ClassInferenceTransformerConfig, BufferTransformerConfig)
-from rastervision.pipeline.config import (register_config, Config, Field,
-                                          field_validator)
+    ClassInferenceTransformerConfig,
+    BufferTransformerConfig,
+)
+from rastervision.pipeline.config import (
+    register_config,
+    Config,
+    Field,
+    field_validator,
+)
 
 if TYPE_CHECKING:
     from rastervision.core.box import Box
@@ -19,13 +25,15 @@ class RasterizerConfig(Config):
     background_class_id: int = Field(
         ...,
         description='The class_id to use for any background pixels, i.e. '
-        'pixels not covered by a polygon.')
+        'pixels not covered by a polygon.',
+    )
     all_touched: bool = Field(
         False,
         description='If True, all pixels touched by geometries will be burned '
         'in. If false, only pixels whose center is within the polygon or that '
-        'are selected by Bresenham\'s line algorithm will be burned in. '
-        '(See rasterio.features.rasterize for more details).')
+        "are selected by Bresenham's line algorithm will be burned in. "
+        '(See rasterio.features.rasterize for more details).',
+    )
 
 
 @register_config('rasterized_source')
@@ -38,13 +46,15 @@ class RasterizedSourceConfig(Config):
     @field_validator('vector_source')
     @classmethod
     def ensure_required_transformers(
-            cls, v: VectorSourceConfig) -> VectorSourceConfig:
+        cls, v: VectorSourceConfig
+    ) -> VectorSourceConfig:
         """Add class-inference and buffer transformers if absent."""
         tfs = v.transformers
 
         # add class inference transformer
         has_inf_tf = any(
-            isinstance(tf, ClassInferenceTransformerConfig) for tf in tfs)
+            isinstance(tf, ClassInferenceTransformerConfig) for tf in tfs
+        )
         if not has_inf_tf:
             tfs += [ClassInferenceTransformerConfig(default_class_id=None)]
 
@@ -53,7 +63,7 @@ class RasterizedSourceConfig(Config):
         if not has_buf_tf:
             tfs += [
                 BufferTransformerConfig(geom_type='Point', default_buf=1),
-                BufferTransformerConfig(geom_type='LineString', default_buf=1)
+                BufferTransformerConfig(geom_type='LineString', default_buf=1),
             ]
 
         return v
@@ -62,13 +72,16 @@ class RasterizedSourceConfig(Config):
         super().update(pipeline, scene)
         self.vector_source.update(pipeline, scene)
 
-    def build(self,
-              class_config: 'ClassConfig',
-              crs_transformer: 'CRSTransformer',
-              bbox: 'Box | None' = None) -> RasterizedSource:
+    def build(
+        self,
+        class_config: 'ClassConfig',
+        crs_transformer: 'CRSTransformer',
+        bbox: 'Box | None' = None,
+    ) -> RasterizedSource:
         vector_source = self.vector_source.build(class_config, crs_transformer)
         return RasterizedSource(
             vector_source=vector_source,
             background_class_id=self.rasterizer_config.background_class_id,
             bbox=bbox,
-            all_touched=self.rasterizer_config.all_touched)
+            all_touched=self.rasterizer_config.all_touched,
+        )

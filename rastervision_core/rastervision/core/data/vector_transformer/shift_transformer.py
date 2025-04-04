@@ -5,7 +5,10 @@ from shapely.ops import transform
 
 from rastervision.core.data.crs_transformer import RasterioCRSTransformer
 from rastervision.core.data.utils.geojson import (
-    pixel_to_map_coords, map_to_pixel_coords, map_geoms)
+    pixel_to_map_coords,
+    map_to_pixel_coords,
+    map_geoms,
+)
 from rastervision.core.data.vector_transformer import VectorTransformer
 
 if TYPE_CHECKING:
@@ -18,10 +21,12 @@ RADIANS_PER_DEGREE = np.pi / 180
 class ShiftTransformer(VectorTransformer):
     """Shift geometries by some distance specified in meters."""
 
-    def __init__(self,
-                 x_shift: float = 0.,
-                 y_shift: float = 0.,
-                 round_pixels: bool = True):
+    def __init__(
+        self,
+        x_shift: float = 0.0,
+        y_shift: float = 0.0,
+        round_pixels: bool = True,
+    ):
         """Constructor.
 
         Args:
@@ -30,10 +35,9 @@ class ShiftTransformer(VectorTransformer):
         self.y_shift = y_shift
         self.round_pixels = round_pixels
 
-    def transform(self,
-                  geojson: dict,
-                  crs_transformer: 'CRSTransformer | None' = None) -> dict:
-
+    def transform(
+        self, geojson: dict, crs_transformer: 'CRSTransformer | None' = None
+    ) -> dict:
         # https://gis.stackexchange.com/questions/2951/algorithm-for-offsetting-a-latitude-longitude-by-some-amount-of-meters  # noqa
         def shift(x, y, z=None):
             lon, lat = x, y
@@ -46,10 +50,12 @@ class ShiftTransformer(VectorTransformer):
 
         geojson_pixel = geojson
         geojson_wgs84 = pixel_to_map_coords(geojson_pixel, wgs84_transformer)
-        geojson_wgs84_shifted = map_geoms(lambda g, **kw: transform(shift, g),
-                                          geojson_wgs84)
-        geojson_pixel_shifted = map_to_pixel_coords(geojson_wgs84_shifted,
-                                                    wgs84_transformer)
+        geojson_wgs84_shifted = map_geoms(
+            lambda g, **kw: transform(shift, g), geojson_wgs84
+        )
+        geojson_pixel_shifted = map_to_pixel_coords(
+            geojson_wgs84_shifted, wgs84_transformer
+        )
 
         return geojson_pixel_shifted
 
@@ -58,5 +64,6 @@ class ShiftTransformer(VectorTransformer):
             transform=crs_transformer.transform,
             image_crs=crs_transformer.image_crs,
             map_crs='epsg:4326',
-            round_pixels=self.round_pixels)
+            round_pixels=self.round_pixels,
+        )
         return wgs84_transformer

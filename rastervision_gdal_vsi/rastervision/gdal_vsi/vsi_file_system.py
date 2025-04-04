@@ -10,7 +10,8 @@ from rastervision.pipeline.file_system import FileSystem
 from osgeo import gdal
 
 ARCHIVE_URI_FORMAT = (
-    r'^(?P<archive_scheme>[^+]+)\+(?P<archive_uri>[^!]+)!(?P<file_path>.+)$')
+    r'^(?P<archive_scheme>[^+]+)\+(?P<archive_uri>[^!]+)!(?P<file_path>.+)$'
+)
 URI_SCHEME_TO_VSI = {
     'http': 'vsicurl',
     'https': 'vsicurl',
@@ -57,8 +58,10 @@ class VsiFileSystem(FileSystem):
         try:
             vsi_archive_scheme = ARCHIVE_SCHEME_TO_VSI[archive_scheme]
         except KeyError:
-            raise ValueError('Expected archive scheme to be one of "zip", '
-                             f'"tar", or "gzip". Found "{archive_scheme}".')
+            raise ValueError(
+                'Expected archive scheme to be one of "zip", '
+                f'"tar", or "gzip". Found "{archive_scheme}".'
+            )
         vsi_archive_uri = VsiFileSystem.uri_to_vsi_path(archive_uri)
         vsipath = join(f'/{vsi_archive_scheme}{vsi_archive_uri}', file_path)
         return vsipath
@@ -137,7 +140,8 @@ class VsiFileSystem(FileSystem):
         if stats:
             if not delete:
                 raise FileExistsError(
-                    'Target location must not exist if delete=False')
+                    'Target location must not exist if delete=False'
+                )
             if stats.IsDirectory():
                 gdal.RmdirRecursive(dst_dir_uri)
             else:
@@ -155,7 +159,8 @@ class VsiFileSystem(FileSystem):
             if dest.exists():
                 if not dest.is_dir():
                     raise ValueError(
-                        f'Local target ({dest}) must be a directory')
+                        f'Local target ({dest}) must be a directory'
+                    )
             else:
                 dest.mkdir()
 
@@ -167,7 +172,8 @@ class VsiFileSystem(FileSystem):
                 else:
                     if target.exists() and not delete:
                         raise FileExistsError(
-                            'Target location must not exist if delete=False')
+                            'Target location must not exist if delete=False'
+                        )
                     VsiFileSystem.copy_from(item_vsi_src, str(target))
 
         stats = gdal.VSIStatL(src_dir_uri)

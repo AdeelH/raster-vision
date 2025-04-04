@@ -45,7 +45,8 @@ class TestAWSSageMakerRunner(unittest.TestCase):
                 SAGEMAKER_use_spot_instances='yes',
                 SAGEMAKER_spot_instance_max_wait_time='86400',
                 SAGEMAKER_max_run_time='86400',
-            ))
+            )
+        )
         os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
 
     def test_build_pipeline(self):

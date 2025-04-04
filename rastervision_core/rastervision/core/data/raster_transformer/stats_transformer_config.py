@@ -2,8 +2,10 @@ from typing import TYPE_CHECKING
 from os.path import join
 
 from rastervision.pipeline.config import register_config, Field
-from rastervision.core.data.raster_transformer import (RasterTransformerConfig,
-                                                       StatsTransformer)
+from rastervision.core.data.raster_transformer import (
+    RasterTransformerConfig,
+    StatsTransformer,
+)
 
 if TYPE_CHECKING:
     from rastervision.core.rv_pipeline import RVPipelineConfig
@@ -23,7 +25,8 @@ def stats_transformer_config_upgrader(cfg_dict: dict, version: int) -> dict:
 
 
 @register_config(
-    'stats_transformer', upgrader=stats_transformer_config_upgrader)
+    'stats_transformer', upgrader=stats_transformer_config_upgrader
+)
 class StatsTransformerConfig(RasterTransformerConfig):
     """Configure a :class:`.StatsTransformer`."""
 
@@ -31,11 +34,13 @@ class StatsTransformerConfig(RasterTransformerConfig):
         None,
         description='The URI of the output of the StatsAnalyzer. '
         'If None, and this Config is inside an RVPipeline, '
-        'this field will be auto-generated.')
+        'this field will be auto-generated.',
+    )
     scene_group: str = Field(
         'train_scenes',
         description='Name of the group of scenes whose stats to use. Defaults'
-        'to "train_scenes".')
+        'to "train_scenes".',
+    )
     needs_channel_order: bool = Field(
         False,
         description='Whether the means and stds in the stats_uri file need to '
@@ -43,20 +48,26 @@ class StatsTransformerConfig(RasterTransformerConfig):
         'with the chips that will be passed to the :class:`.StatsTransformer` '
         'by the :class:`.RasterSource`. This field exists for backward '
         'compatibility with Raster Vision versions <= 0.30. It will be set '
-        'automatically when loading stats from older model-bundles.')
+        'automatically when loading stats from older model-bundles.',
+    )
 
-    def update(self,
-               pipeline: 'RVPipelineConfig | None' = None,
-               scene: 'SceneConfig | None' = None) -> None:
+    def update(
+        self,
+        pipeline: 'RVPipelineConfig | None' = None,
+        scene: 'SceneConfig | None' = None,
+    ) -> None:
         if pipeline is not None and self.stats_uri is None:
-            self.stats_uri = join(pipeline.analyze_uri, 'stats',
-                                  self.scene_group, 'stats.json')
+            self.stats_uri = join(
+                pipeline.analyze_uri, 'stats', self.scene_group, 'stats.json'
+            )
 
-    def build(self,
-              channel_order: list[int] | None = None) -> StatsTransformer:
+    def build(
+        self, channel_order: list[int] | None = None
+    ) -> StatsTransformer:
         if self.needs_channel_order:
             tf = StatsTransformer.from_stats_json(
-                self.stats_uri, channel_order=channel_order)
+                self.stats_uri, channel_order=channel_order
+            )
         else:
             tf = StatsTransformer.from_stats_json(self.stats_uri)
         return tf
@@ -66,5 +77,6 @@ class StatsTransformerConfig(RasterTransformerConfig):
             # backward compatibility: use old location of stats.json
             self.stats_uri = join(root_dir, 'stats.json')
         else:
-            self.stats_uri = join(root_dir, 'analyze', 'stats',
-                                  self.scene_group, 'stats.json')
+            self.stats_uri = join(
+                root_dir, 'analyze', 'stats', self.scene_group, 'stats.json'
+            )

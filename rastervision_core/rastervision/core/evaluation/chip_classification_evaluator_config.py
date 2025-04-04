@@ -1,9 +1,11 @@
 from typing import TYPE_CHECKING, Iterable
 from rastervision.pipeline.config import register_config
 from rastervision.core.evaluation.classification_evaluator_config import (
-    ClassificationEvaluatorConfig)
+    ClassificationEvaluatorConfig,
+)
 from rastervision.core.evaluation.chip_classification_evaluator import (
-    ChipClassificationEvaluator)
+    ChipClassificationEvaluator,
+)
 
 if TYPE_CHECKING:
     from rastervision.core.data import ClassConfig
@@ -13,10 +15,11 @@ if TYPE_CHECKING:
 class ChipClassificationEvaluatorConfig(ClassificationEvaluatorConfig):
     """Configure a :class:`.ChipClassificationEvaluator`."""
 
-    def build(self,
-              class_config: 'ClassConfig',
-              scene_group: tuple[str, Iterable[str]] | None = None
-              ) -> ChipClassificationEvaluator:
+    def build(
+        self,
+        class_config: 'ClassConfig',
+        scene_group: tuple[str, Iterable[str]] | None = None,
+    ) -> ChipClassificationEvaluator:
         if scene_group is None:
             output_uri = self.get_output_uri()
         else:

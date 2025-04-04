@@ -19,7 +19,8 @@ class TestUtils(unittest.TestCase):
             class_ids=class_ids_in,
             crs_transformer=crs_transformer,
             class_config=class_config,
-            scores=scores_in)
+            scores=scores_in,
+        )
 
         properties_out = [f['properties'] for f in geojson['features']]
         class_ids_out = [p.get('class_id') for p in properties_out]
@@ -46,7 +47,8 @@ class TestUtils(unittest.TestCase):
             class_ids=class_ids_in,
             crs_transformer=crs_transformer,
             class_config=class_config,
-            scores=scores_in)
+            scores=scores_in,
+        )
 
         properties_out = [f['properties'] for f in geojson['features']]
         class_ids_out = [p.get('class_id') for p in properties_out]

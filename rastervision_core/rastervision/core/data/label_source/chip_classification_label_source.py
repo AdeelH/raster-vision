@@ -7,14 +7,21 @@ from rastervision.core.data.label_source.label_source import LabelSource
 from rastervision.core.box import Box
 
 if TYPE_CHECKING:
-    from rastervision.core.data import (ChipClassificationLabelSourceConfig,
-                                        CRSTransformer, VectorSource)
+    from rastervision.core.data import (
+        ChipClassificationLabelSourceConfig,
+        CRSTransformer,
+        VectorSource,
+    )
 
 
-def infer_cells(cells: list[Box], labels_df: gpd.GeoDataFrame,
-                ioa_thresh: float, use_intersection_over_cell: bool,
-                pick_min_class_id: bool,
-                background_class_id: int) -> ChipClassificationLabels:
+def infer_cells(
+    cells: list[Box],
+    labels_df: gpd.GeoDataFrame,
+    ioa_thresh: float,
+    use_intersection_over_cell: bool,
+    pick_min_class_id: bool,
+    background_class_id: int,
+) -> ChipClassificationLabels:
     """Infer ChipClassificationLabels grid from GeoJSON containing polygons.
 
     Given GeoJSON with polygons associated with class_ids, infer a grid of
@@ -42,7 +49,8 @@ def infer_cells(cells: list[Box], labels_df: gpd.GeoDataFrame,
     """
     cells_df = gpd.GeoDataFrame(
         data={'cell_id': range(len(cells))},
-        geometry=[c.to_shapely() for c in cells])
+        geometry=[c.to_shapely() for c in cells],
+    )
 
     # duplicate geometry columns so that they are retained after the join
     cells_df.loc[:, 'geometry_cell'] = cells_df.geometry
@@ -53,15 +61,17 @@ def infer_cells(cells: list[Box], labels_df: gpd.GeoDataFrame,
     # there will be a row for each unique (cell, polygon) combination. Cells
     # that didn't match any labels will have missing values as their class_ids.
     df: gpd.GeoDataFrame = cells_df.sjoin(
-        labels_df, how='left', predicate='intersects')
+        labels_df, how='left', predicate='intersects'
+    )
     df.loc[:, 'geometry_intersection'] = df['geometry_cell'].intersection(
-        df['geometry_label'])
+        df['geometry_label']
+    )
 
     if use_intersection_over_cell:
-        ioa = (df['geometry_intersection'].area / df['geometry_cell'].area)
+        ioa = df['geometry_intersection'].area / df['geometry_cell'].area
     else:
         # intersection over label-polygon
-        ioa = (df['geometry_intersection'].area / df['geometry_label'].area)
+        ioa = df['geometry_intersection'].area / df['geometry_label'].area
     df.loc[:, 'ioa'] = ioa.fillna(-1)
 
     # labels with IOA below threshold cannot contribute their class_id
@@ -74,7 +84,8 @@ def infer_cells(cells: list[Box], labels_df: gpd.GeoDataFrame,
     # break ties (i.e. one cell matched to multiple label polygons)
     if pick_min_class_id:
         df = df.sort_values('class_id').drop_duplicates(
-            ['cell_id'], keep='first')
+            ['cell_id'], keep='first'
+        )
     else:
         # largest IOA
         df = df.sort_values('ioa').drop_duplicates(['cell_id'], keep='last')
@@ -82,15 +93,15 @@ def infer_cells(cells: list[Box], labels_df: gpd.GeoDataFrame,
     boxes = [Box.from_shapely(c).to_int() for c in df['geometry_cell']]
     class_ids = df['class_id'].astype(int)
     cells_to_class_id = {
-        cell: (class_id, None)
-        for cell, class_id in zip(boxes, class_ids)
+        cell: (class_id, None) for cell, class_id in zip(boxes, class_ids)
     }
     labels = ChipClassificationLabels(cells_to_class_id)
     return labels
 
 
-def read_labels(labels_df: gpd.GeoDataFrame,
-                bbox: Box | None = None) -> ChipClassificationLabels:
+def read_labels(
+    labels_df: gpd.GeoDataFrame, bbox: Box | None = None
+) -> ChipClassificationLabels:
     """Convert ``GeoDataFrame`` to ``ChipClassificationLabels``.
 
     If the ``GeoDataFrame`` already contains a grid of cells, then
@@ -130,11 +141,13 @@ class ChipClassificationLabelSource(LabelSource):
     set to True.
     """
 
-    def __init__(self,
-                 label_source_config: 'ChipClassificationLabelSourceConfig',
-                 vector_source: 'VectorSource',
-                 bbox: Box | None = None,
-                 lazy: bool = False):
+    def __init__(
+        self,
+        label_source_config: 'ChipClassificationLabelSourceConfig',
+        vector_source: 'VectorSource',
+        bbox: Box | None = None,
+        lazy: bool = False,
+    ):
         """Constructor.
 
         Args:
@@ -169,8 +182,9 @@ class ChipClassificationLabelSource(LabelSource):
         else:
             self.labels = read_labels(self.labels_df, bbox=self.bbox)
 
-    def infer_cells(self, cells: Iterable[Box] | None = None
-                    ) -> ChipClassificationLabels:
+    def infer_cells(
+        self, cells: Iterable[Box] | None = None
+    ) -> ChipClassificationLabels:
         """Infer labels for a list of cells.
 
         Cells are assumed to be in ``bbox`` coords as opposed to global coords
@@ -218,14 +232,16 @@ class ChipClassificationLabelSource(LabelSource):
             ioa_thresh=cfg.ioa_thresh,
             use_intersection_over_cell=cfg.use_intersection_over_cell,
             pick_min_class_id=cfg.pick_min_class_id,
-            background_class_id=cfg.background_class_id)
+            background_class_id=cfg.background_class_id,
+        )
         for cell in known_cells:
             class_id = self.labels.get_cell_class_id(cell)
             labels.set_cell(cell, class_id)
         return labels
 
-    def get_labels(self,
-                   window: Box | None = None) -> ChipClassificationLabels:
+    def get_labels(
+        self, window: Box | None = None
+    ) -> ChipClassificationLabels:
         """Return label for a window, inferring it if not already known.
 
         If window is ``None``, returns all labels.
@@ -256,7 +272,8 @@ class ChipClassificationLabelSource(LabelSource):
             raise ValueError(
                 'LineStrings and Points are not supported '
                 'in ChipClassificationLabelSource. Use BufferTransformer '
-                'to buffer them into Polygons.')
+                'to buffer them into Polygons.'
+            )
 
         if 'class_id' not in df.columns:
             raise ValueError('All label polygons must have a class_id.')

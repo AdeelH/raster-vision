@@ -5,9 +5,13 @@ import torch.distributed as dist
 
 from rastervision.pytorch_learner.learner import Learner
 from rastervision.pytorch_learner.utils import (
-    compute_conf_mat_metrics, compute_conf_mat, aggregate_metrics)
+    compute_conf_mat_metrics,
+    compute_conf_mat,
+    aggregate_metrics,
+)
 from rastervision.pytorch_learner.dataset.visualizer import (
-    ClassificationVisualizer)
+    ClassificationVisualizer,
+)
 
 warnings.filterwarnings('ignore')
 
@@ -50,7 +54,8 @@ class ClassificationLearner(Learner):
 
         class_names = self.cfg.data.class_names
         conf_mat_metrics = compute_conf_mat_metrics(
-            conf_mat, class_names, ignore_idx=ignored_idx)
+            conf_mat, class_names, ignore_idx=ignored_idx
+        )
 
         metrics.update(conf_mat_metrics)
         return metrics
