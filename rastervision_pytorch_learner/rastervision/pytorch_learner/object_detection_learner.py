@@ -2,12 +2,13 @@ import functools
 import logging
 import operator
 import warnings
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable, Sequence
 from typing import TYPE_CHECKING
 
 import numpy as np
 import torch
 import torch.distributed as dist
+from torch import Tensor
 
 from rastervision.pytorch_learner.dataset.visualizer import (
     ObjectDetectionVisualizer,
@@ -22,7 +23,7 @@ from rastervision.pytorch_learner.object_detection_utils import (
 )
 
 if TYPE_CHECKING:
-    from torch import Tensor, nn
+    from torch import nn
 
 warnings.filterwarnings('ignore')
 
@@ -30,7 +31,9 @@ log = logging.getLogger(__name__)
 
 
 class ObjectDetectionLearner(Learner):
-    def get_visualizer_class(self):
+    """Object detection learner."""
+
+    def get_visualizer_class(self) -> type[ObjectDetectionVisualizer]:
         return ObjectDetectionVisualizer
 
     def build_model(self, model_def_path: str | None = None) -> 'nn.Module':
@@ -79,16 +82,26 @@ class ObjectDetectionLearner(Learner):
             self.model.to(self.device)
             self.load_init_weights(model_weights_path)
 
-    def get_collate_fn(self):
+    def get_collate_fn(
+        self,
+    ) -> Callable[[Iterable[Sequence]], tuple[Tensor, list[BoxList]]]:
         return collate_fn
 
-    def train_step(self, batch, batch_ind):
+    def train_step(
+        self,
+        batch: tuple[Tensor, Tensor],
+        batch_ind: int,  # noqa: ARG002
+    ) -> dict[str, Tensor]:
         x, y = batch
         loss_dict = self.model(x, y)
         loss_dict['train_loss'] = sum(loss_dict.values())
         return loss_dict
 
-    def validate_step(self, batch, batch_ind):
+    def validate_step(
+        self,
+        batch: tuple[Tensor, Tensor],
+        batch_ind: int,  # noqa: ARG002
+    ) -> dict[str, Tensor]:
         x, y = batch
         outs = self.model(x)
         ys = self.to_device(y, 'cpu')
@@ -96,7 +109,9 @@ class ObjectDetectionLearner(Learner):
 
         return {'ys': ys, 'outs': outs}
 
-    def validate_end(self, outputs):
+    def validate_end(
+        self, outputs: list[dict[str, Tensor]]
+    ) -> dict[str, float]:
         outs = []
         ys = []
         for o in outputs:
@@ -133,6 +148,7 @@ class ObjectDetectionLearner(Learner):
     def predict(
         self,
         x: 'Tensor',
+        *,
         raw_out: bool = False,
         out_shape: tuple[int, int] | None = None,
     ) -> BoxList:
@@ -157,6 +173,7 @@ class ObjectDetectionLearner(Learner):
     def predict_onnx(
         self,
         x: 'Tensor',
+        *,
         raw_out: bool = False,
         out_shape: tuple[int, int] | None = None,
     ) -> BoxList:
@@ -165,8 +182,8 @@ class ObjectDetectionLearner(Learner):
         return out
 
     def postprocess_model_output(
-        self, x: 'Tensor', out_batch: torch.Tensor, out_shape: tuple[int, int]
-    ):
+        self, x: 'Tensor', out_batch: Tensor, out_shape: tuple[int, int]
+    ) -> Tensor:
         if out_shape is None:
             return out_batch
         h_in, w_in = x.shape[-2:]
@@ -191,19 +208,21 @@ class ObjectDetectionLearner(Learner):
             return boxlist_to_numpy(out)
         return [boxlist_to_numpy(boxlist) for boxlist in out]
 
-    def prob_to_pred(self, x):
+    def prob_to_pred(self, x: Tensor) -> Tensor:
         return x
 
     def export_to_onnx(
         self,
         path: str,
         model: 'nn.Module | None' = None,
-        sample_input: torch.Tensor | None = None,
+        sample_input: Tensor | None = None,
         **kwargs,
     ) -> None:
         if model is None and isinstance(self.model, TorchVisionODAdapter):
             model = self.model.model
-        return super().export_to_onnx(path, model, sample_input, **kwargs)
+        return super().export_to_onnx(
+            path, model=model, sample_input=sample_input, **kwargs
+        )
 
     def load_onnx_model(
         self, model_path: str

@@ -57,6 +57,22 @@ ignore = [
     "ANN002",
     # missing type annotation for *kwargs
     "ANN003",
+    # found commented-out code (this often generates false positives)
+    "ERA001",
+    # too complex
+    "C901",
+    # too many branches
+    "PLR0912",
+    # too many arguments
+    "PLR0913",
+    # too many statements
+    "PLR0915",
+    # Path related checks
+    "PTH",
+    # missing docstring in public method
+    "D102",
+    # lowercase imported as uppercase (complains about import torch.nn.functional as F)
+    "N812",
 ]
 
 [lint.per-file-ignores]

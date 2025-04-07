@@ -17,7 +17,7 @@ import torch
 import torch.distributed as dist
 import torch.multiprocessing as mp
 from torch import Tensor, nn
-from torch.nn.parallel import DistributedDataParallel as DDP
+from torch.nn.parallel import DistributedDataParallel as DDP  # noqa: N817
 from torch.utils.data import DataLoader, DistributedSampler
 from torch.utils.tensorboard import SummaryWriter
 from tqdm.auto import tqdm
@@ -104,6 +104,7 @@ class Learner(ABC):
     def __init__(
         self,
         cfg: 'LearnerConfig',
+        *,
         output_dir: str | None = None,
         train_ds: 'Dataset | None' = None,
         valid_ds: 'Dataset | None' = None,
@@ -123,6 +124,7 @@ class Learner(ABC):
 
         Args:
             cfg: LearnerConfig.
+            output_dir: Directory to save training artifacts to.
             train_ds: The dataset to use for training. If ``None``, will be
                 generated from ``cfg.data``. Defaults to ``None``.
             valid_ds: The dataset to use for
@@ -286,6 +288,7 @@ class Learner(ABC):
     def from_model_bundle(
         cls: type,
         model_bundle_uri: str,
+        *,
         tmp_dir: str | None = None,
         cfg: 'LearnerConfig | None' = None,
         training: bool = False,
@@ -399,7 +402,7 @@ class Learner(ABC):
                     '.from_model_bundle() on a Learner subclass '
                     '-- not Learner itself.'
                 )
-            learner: cls = cfg.build(
+            learner = cfg.build(
                 tmp_dir=tmp_dir,
                 model_weights_path=model_weights_path,
                 model_def_path=model_def_path,
@@ -483,7 +486,9 @@ class Learner(ABC):
         else:
             self._train(start_epoch, end_epoch)
 
-    def _train(self, start_epoch: int, end_epoch: int) -> None:  # pragma: no cover
+    def _train(
+        self, start_epoch: int, end_epoch: int
+    ) -> None:  # pragma: no cover
         """Training loop."""
         self.on_train_start()
         for epoch in range(start_epoch, end_epoch):
@@ -587,7 +592,7 @@ class Learner(ABC):
         return metrics
 
     @abstractmethod
-    def train_step(self, batch: Any, batch_ind: int) -> MetricDict:
+    def train_step(self, batch: Any, batch_ind: int) -> MetricDict:  # noqa: ANN401
         """Compute loss for a single training batch.
 
         Args:
@@ -616,7 +621,9 @@ class Learner(ABC):
             metrics = self.reduce_distributed_metrics(metrics)
         return metrics
 
-    def validate(self, split: Literal['train', 'valid', 'test'] = 'valid') -> None:
+    def validate(
+        self, split: Literal['train', 'valid', 'test'] = 'valid'
+    ) -> None:
         """Evaluate model on a particular data split."""
         if self.is_ddp_process:  # pragma: no cover
             self._run_validate_distributed(
@@ -694,7 +701,7 @@ class Learner(ABC):
         return metrics
 
     @abstractmethod
-    def validate_step(self, batch: Any, batch_ind: int) -> MetricDict:
+    def validate_step(self, batch: Any, batch_ind: int) -> MetricDict:  # noqa: ANN401
         """Compute metrics on validation batch.
 
         Args:
@@ -744,7 +751,7 @@ class Learner(ABC):
     ########################
     # Prediction/inference
     ########################
-    def predict(self, x: Tensor, raw_out: bool = False) -> Any:
+    def predict(self, x: Tensor, *, raw_out: bool = False) -> Any:  # noqa: ANN401
         """Make prediction for an image or batch of images.
 
         Args:
@@ -765,7 +772,7 @@ class Learner(ABC):
         out = self.to_device(out, 'cpu')
         return out
 
-    def predict_onnx(self, x: Tensor, raw_out: bool = False) -> Tensor:
+    def predict_onnx(self, x: Tensor, *, raw_out: bool = False) -> Tensor:
         """Alternative to predict() for ONNX inference."""
         out = self.model(x)
         if not raw_out:
@@ -775,6 +782,7 @@ class Learner(ABC):
     def predict_dataset(
         self,
         dataset: 'Dataset',
+        *,
         return_format: Literal['xyz', 'yz', 'z'] = 'z',
         raw_out: bool = True,
         numpy_out: bool = False,
@@ -865,6 +873,7 @@ class Learner(ABC):
     def predict_dataloader(
         self,
         dl: DataLoader,
+        *,
         batched_output: bool = True,
         return_format: Literal['xyz', 'yz', 'z'] = 'z',
         raw_out: bool = True,
@@ -919,6 +928,7 @@ class Learner(ABC):
     def _predict_dataloader(
         self,
         dl: DataLoader,
+        *,
         raw_out: bool = True,
         batched_output: bool = True,
         predict_kw: dict | None = None,
@@ -985,7 +995,7 @@ class Learner(ABC):
     def setup_ddp_params(self) -> None:
         """Set up and validate params related to PyTorch DDP."""
         ddp_allowed = rv_config.get_namespace_option(
-            'rastervision', 'USE_DDP', True, as_bool=True
+            'rastervision', 'USE_DDP', default=True, as_bool=True
         )
         self.ddp_start_method = rv_config.get_namespace_option(
             'rastervision', 'DDP_START_METHOD', 'spawn'
@@ -1083,10 +1093,10 @@ class Learner(ABC):
         a distributed scenario.
 
         Args:
-            loss_def_path: A local path to a directory with a ``hubconf.py``. If
-                provided, the loss function definition is imported from here.
-                This is used when loading an external loss function from a
-                model-bundle. Defaults to ``None``.
+            loss_def_path: A local path to a directory with a ``hubconf.py``.
+                If provided, the loss function definition is imported from
+                here. This is used when loading an external loss function from
+                a model-bundle. Defaults to ``None``.
         """
         cfg = self.cfg
 
@@ -1210,7 +1220,7 @@ class Learner(ABC):
         return model
 
     def setup_data(self, distributed: bool | None = None) -> None:
-        """Set datasets and dataLoaders for train, validation, and test sets."""
+        """Set up datasets and dataLoaders for train, val, and test sets."""
         if distributed is None:
             distributed = self.distributed
 
@@ -1341,6 +1351,7 @@ class Learner(ABC):
         self,
         ds: 'Dataset',
         split: Literal['train', 'valid', 'test'],
+        *,
         distributed: bool = False,
     ) -> 'Sampler | None':
         """Build an optional sampler for the split's dataloader."""
@@ -1417,6 +1428,7 @@ class Learner(ABC):
     def plot_predictions(
         self,
         split: Literal['train', 'valid', 'test'],
+        *,
         batch_limit: int | None = None,
         show: bool = False,
     ) -> None:
@@ -1425,8 +1437,9 @@ class Learner(ABC):
         Uses the first batch for the corresponding DataLoader.
 
         Args:
-            split: dataset split. Can be train, valid, or test.
-            batch_limit: optional limit on (rendered) batch size
+            split: Dataset split. Can be train, valid, or test.
+            batch_limit: Optional limit on (rendered) batch size
+            show: Call plt.show().
         """
         log.info(
             f'Making and plotting sample predictions on the {split} set...'
@@ -1446,6 +1459,7 @@ class Learner(ABC):
         self,
         dl: DataLoader,
         output_path: str,
+        *,
         batch_limit: int | None = None,
         show: bool = False,
     ) -> None:
@@ -1456,7 +1470,7 @@ class Learner(ABC):
         )
 
     def plot_dataloaders(
-        self, batch_limit: int | None = None, show: bool = False
+        self, *, batch_limit: int | None = None, show: bool = False
     ) -> None:
         """Plot images and ground truth labels for all DataLoaders."""
         if self.train_dl:
@@ -1493,11 +1507,12 @@ class Learner(ABC):
     #########
     # Bundle
     #########
-    def save_model_bundle(self, export_onnx: bool = True) -> None:
+    def save_model_bundle(self, *, export_onnx: bool = True) -> None:
         """Save a model bundle.
 
-        This is a zip file with the model weights in .pth format and a serialized
-        copy of the LearningConfig, which allows for making predictions in the future.
+        This is a zip file with the model weights in .pth format and a
+        serialized copy of the LearningConfig, which allows for making
+        predictions in the future.
         """
         if self.cfg.model is None:
             log.warning(
@@ -1523,7 +1538,7 @@ class Learner(ABC):
         zipdir(model_bundle_dir, zip_path)
 
     def _bundle_model(
-        self, model_bundle_dir: str, export_onnx: bool = True
+        self, model_bundle_dir: str, *, export_onnx: bool = True
     ) -> None:
         """Save model weights and copy them to bundle dir."""
         model_not_set = self.model is None
@@ -1549,6 +1564,7 @@ class Learner(ABC):
     def export_to_onnx(
         self,
         path: str,
+        *,
         model: nn.Module | None = None,
         sample_input: Tensor | None = None,
         validate_export: bool = True,
@@ -1571,8 +1587,8 @@ class Learner(ABC):
                 definition.
 
         Raises:
-            ValueError: If sample_input is ``None`` and the Learner has no valid
-                DataLoaders.
+            ValueError: If sample_input is ``None`` and the Learner has no
+                valid DataLoaders.
         """
         if model is None:
             model = self.model
@@ -1685,9 +1701,11 @@ class Learner(ABC):
             raise ValueError('self.distributed is False')
         return DDPContextManager(self, rank, world_size)
 
-    def reduce_distributed_metrics(self, metrics: dict):  # pragma: no cover
+    def reduce_distributed_metrics(
+        self, metrics: dict[str, int | float]
+    ) -> dict[str, int | float]:  # pragma: no cover
         """Average numeric metrics across processes."""
-        for k in metrics:
+        for k in metrics:  # noqa: PLC0206
             v = metrics[k]
             if isinstance(v, (float, int)):
                 v = torch.tensor(v, device=self.device)
@@ -1697,7 +1715,7 @@ class Learner(ABC):
                     metrics[k] = (v / self.ddp_world_size).item()
         return metrics
 
-    def post_forward(self, x: Any) -> Any:
+    def post_forward(self, x: Any) -> Any:  # noqa: ANN401
         """Post process output of call to model().
 
         Useful for when predictions are inside a structure returned by model().
@@ -1713,11 +1731,11 @@ class Learner(ABC):
         Returns:
             x with extra batch dimension of length 1 if needed
         """
-        if x.ndim == 3:
+        if x.ndim == 3:  # noqa: PLR2004
             x = x[None, ...]
         return x
 
-    def to_device(self, x: Any, device: str | torch.device) -> Any:
+    def to_device(self, x: Any, device: str | torch.device) -> Any:  # noqa: ANN401
         """Load Tensors onto a device.
 
         Args:
@@ -1832,6 +1850,7 @@ class Learner(ABC):
             self.load_weights(uri=weights_path, **args)
 
     def load_onnx_model(self, model_path: str) -> ONNXRuntimeAdapter:
+        """Load ONNX model."""
         log.info(f'Loading ONNX model from {model_path}')
         path = download_if_needed(model_path)
         onnx_model = ONNXRuntimeAdapter.from_file(path)
@@ -1866,8 +1885,8 @@ class Learner(ABC):
         """Run TB server serving logged stats."""
         if self.cfg.run_tensorboard:  # pragma: no cover
             log.info('Starting tensorboard process')
-            self.tb_process = Popen(
-                ['tensorboard', '--bind_all', f'--logdir={self.tb_log_dir}']
+            self.tb_process = Popen(  # noqa: S603
+                ['tensorboard', '--bind_all', f'--logdir={self.tb_log_dir}']  # noqa: S607
             )
             terminate_at_exit(self.tb_process)
 
@@ -1880,4 +1899,5 @@ class Learner(ABC):
 
     @property
     def onnx_mode(self) -> bool:
+        """Has the model been loaded from an ONNX file?"""
         return self._onnx_mode

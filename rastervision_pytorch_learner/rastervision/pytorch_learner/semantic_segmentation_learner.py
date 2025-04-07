@@ -1,9 +1,10 @@
 import logging
 import warnings
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeVar
 
 import torch
 import torch.distributed as dist
+from torch import Tensor
 from torch.nn import functional as F
 
 from rastervision.pytorch_learner.dataset.visualizer import (
@@ -23,17 +24,29 @@ warnings.filterwarnings('ignore')
 
 log = logging.getLogger(__name__)
 
+T = TypeVar('T', bound=(Tensor | dict[str, Tensor]))
+
 
 class SemanticSegmentationLearner(Learner):
-    def get_visualizer_class(self):
+    """Semantic segmentation learner."""
+
+    def get_visualizer_class(self) -> type[SemanticSegmentationVisualizer]:
         return SemanticSegmentationVisualizer
 
-    def train_step(self, batch, batch_ind):
+    def train_step(
+        self,
+        batch: tuple[Tensor, Tensor],
+        batch_ind: int,  # noqa: ARG002
+    ) -> tuple[Tensor, Tensor]:
         x, y = batch
         out = self.post_forward(self.model(x))
         return {'train_loss': self.loss(out, y)}
 
-    def validate_step(self, batch, batch_ind):
+    def validate_step(
+        self,
+        batch: tuple[Tensor, Tensor],
+        batch_ind: int,  # noqa: ARG002
+    ) -> tuple[Tensor, Tensor]:
         x, y = batch
         out = self.post_forward(self.model(x))
         val_loss = self.loss(out, y)
@@ -45,7 +58,9 @@ class SemanticSegmentationLearner(Learner):
 
         return {'val_loss': val_loss, 'conf_mat': conf_mat}
 
-    def validate_end(self, outputs):
+    def validate_end(
+        self, outputs: list[dict[str, Tensor]]
+    ) -> dict[str, float]:
         metrics = aggregate_metrics(outputs, exclude_keys={'conf_mat'})
         conf_mat = sum([o['conf_mat'] for o in outputs])
 
@@ -67,17 +82,18 @@ class SemanticSegmentationLearner(Learner):
         metrics.update(conf_mat_metrics)
         return metrics
 
-    def post_forward(self, x):
+    def post_forward(self, x: T) -> T:
         if isinstance(x, dict):
             return x['out']
         return x
 
     def predict(
         self,
-        x: torch.Tensor,
+        x: Tensor,
+        *,
         raw_out: bool = False,
         out_shape: tuple[int, int] | None = None,
-    ) -> torch.Tensor:
+    ) -> Tensor:
         if out_shape is None:
             out_shape = x.shape[-2:]
 
@@ -94,10 +110,11 @@ class SemanticSegmentationLearner(Learner):
 
     def predict_onnx(
         self,
-        x: torch.Tensor,
+        x: Tensor,
+        *,
         raw_out: bool = False,
         out_shape: tuple[int, int] | None = None,
-    ) -> torch.Tensor:
+    ) -> Tensor:
         if out_shape is None:
             out_shape = x.shape[-2:]
 
@@ -110,8 +127,8 @@ class SemanticSegmentationLearner(Learner):
         return out
 
     def postprocess_model_output(
-        self, out: torch.Tensor, raw_out: bool, out_shape: tuple[int, int]
-    ):
+        self, out: Tensor, *, raw_out: bool, out_shape: tuple[int, int]
+    ) -> Tensor:
         out = out.softmax(dim=1)
         # ensure correct output shape
         if out.shape[-2:] != out_shape:
@@ -125,14 +142,14 @@ class SemanticSegmentationLearner(Learner):
 
         return out
 
-    def prob_to_pred(self, x):
-        return x.argmax(1)
+    def prob_to_pred(self, x: Tensor) -> Tensor:
+        return x.argmax(dim=1)
 
     def export_to_onnx(
         self,
         path: str,
         model: 'nn.Module | None' = None,
-        sample_input: torch.Tensor | None = None,
+        sample_input: Tensor | None = None,
         **kwargs,
     ) -> None:
         args = {
@@ -152,4 +169,6 @@ class SemanticSegmentationLearner(Learner):
             },
         }
         args.update(kwargs)
-        return super().export_to_onnx(path, model, sample_input, **args)
+        return super().export_to_onnx(
+            path, model=model, sample_input=sample_input, **args
+        )

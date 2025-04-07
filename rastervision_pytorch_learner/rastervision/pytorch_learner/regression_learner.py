@@ -1,12 +1,13 @@
 import logging
 import warnings
 from os.path import join
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 import matplotlib.pyplot as plt
 import torch
 import torch.nn.functional as F
 from matplotlib import gridspec
+from torch import Tensor
 
 from rastervision.pytorch_learner.dataset.visualizer import (
     RegressionVisualizer,
@@ -22,11 +23,13 @@ log = logging.getLogger(__name__)
 
 
 class RegressionLearner(Learner):
-    def get_visualizer_class(self):
+    """Regression learner."""
+
+    def get_visualizer_class(self) -> type[RegressionVisualizer]:
         return RegressionVisualizer
 
     def build_model(self, model_def_path: str | None = None) -> 'nn.Module':
-        """Override to pass class_names, pos_class_names, and prob_class_names."""
+        """Override to pass class_names, pos_class_names, and prob_class_names."""  # noqa: E501
         cfg = self.cfg
         class_names = cfg.data.class_names
         pos_class_names = cfg.data.pos_class_names
@@ -50,12 +53,20 @@ class RegressionLearner(Learner):
         y = torch.cat(ys, dim=0)
         self.target_medians = y.median(dim=0).values.to(self.device)
 
-    def train_step(self, batch, batch_ind):
+    def train_step(
+        self,
+        batch: tuple[Tensor, Tensor],
+        batch_ind: int,  # noqa: ARG002
+    ) -> tuple[Tensor, Tensor]:
         x, y = batch
         out = self.post_forward(self.model(x))
         return {'train_loss': F.l1_loss(out, y, reduction='sum')}
 
-    def validate_step(self, batch, batch_nb):
+    def validate_step(
+        self,
+        batch: tuple[Tensor, Tensor],
+        batch_ind: int,  # noqa: ARG002
+    ) -> tuple[Tensor, Tensor]:
         x, y = batch
         out = self.post_forward(self.model(x))
         val_loss = F.l1_loss(out, y, reduction='sum')
@@ -71,10 +82,10 @@ class RegressionLearner(Learner):
 
         return metrics
 
-    def prob_to_pred(self, x):
+    def prob_to_pred(self, x: Tensor) -> Tensor:
         return x
 
-    def _validate(self, split) -> None:
+    def _validate(self, split: Literal['train', 'valid', 'test']) -> None:
         super()._validate(split)
 
         y, out = self.predict_dataloader(
