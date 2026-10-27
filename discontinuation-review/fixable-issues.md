@@ -33,7 +33,7 @@ It is meant to help the discontinuation decision in two ways: it shows what keep
 | 4 | ✅ ~~[AOI window sampling fails because `triangle` was dropped from the requirements but is still imported](#4-aoi-window-sampling-fails-because-triangle-was-dropped-but-is-still-imported)~~ (fixed) | Correctness / deps | 🔴 (on `master`) | S | No (master only) |
 | 5 | [Dependence on GDAL outside the rasterio wheel blocks a wheel-only `uv` setup](#5-dependence-on-gdal-outside-the-rasterio-wheel) | Packaging | 🟠 | M | Yes |
 | 6 | [CI tests a stale lockfile while users install unpinned latest dependencies](#6-ci-tests-a-stale-lockfile-while-users-get-unpinned-latest-dependencies) | Packaging / CI | 🟠 | S–M | Yes |
-| 7 | [`pyproj<=3.7.0` pin blocks Python 3.14](#7-pyproj370-pin-blocks-python-314) | Packaging | 🟠 | S | Master only |
+| 7 | ✅ ~~[`pyproj<=3.7.0` pin blocks Python 3.14](#7-pyproj370-pin-blocks-python-314)~~ (fixed) | Packaging | 🟠 | S | Master only |
 | 8 | [No-data / `null_class` handling in `SemanticSegmentationLabelSource` (#2326)](#8-no-data--null_class-handling-in-semanticsegmentationlabelsource-2326) | Correctness / API | 🟠 | S | Yes |
 | 9 | [Five community PRs awaiting review](#9-five-community-prs-awaiting-review) | Project health | 🟠 | S–M | — |
 | 10 | [Multi-URI `RasterioSource` (`build_vrt`) has no tests](#10-multi-uri-rasteriosource-build_vrt-has-no-tests) | Tests | 🟡 | S | — |
@@ -217,6 +217,8 @@ The `gdal` Python package on PyPI is still sdist-only, so installing it means co
 3. Add lower and upper bounds where behaviour is known to depend on the version: `rasterio>=1.4` once #2 is fixed, and `pystac` until #3 is fixed.
 
 ### 7. `pyproj<=3.7.0` pin blocks Python 3.14
+
+> **Status: fixed.** The pin was added (in `51c9e608d`, Nov 2024, not #2317, which only carried it over) to guard the `RasterioCRSTransformer` workaround for [pyproj#705](https://github.com/pyproj4/pyproj/issues/705): with PROJ network access enabled and a grid download failing, the first transforms returned `inf` and later ones silently fell back. PROJ fixed this in 9.5.1 ([OSGeo/PROJ#4302](https://github.com/OSGeo/PROJ/pull/4302), bundled with pyproj ≥3.7.1): failures are now consistent, which also made the workaround's retry useless. PROJ network access is also off by default in pip/uv installs (it was likely being enabled by conda-forge's `proj` package, which the Docker image no longer uses). Verified empirically with pyproj 3.6.1–3.8.0. The workaround and pin were removed; transforms still use `errcheck=True` so that failures raise a clear error. The lock now has pyproj 3.7.2 (Python 3.11) / 3.8.0 (3.12). Python 3.14 is still blocked by the other locked versions (numpy, rasterio; see the `environments` setting), not by pyproj.
 
 🟠 Medium · Effort **S** (plus re-testing)
 
