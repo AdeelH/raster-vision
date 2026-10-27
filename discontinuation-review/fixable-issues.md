@@ -30,7 +30,7 @@ It is meant to help the discontinuation decision in two ways: it shows what keep
 | 1 | [`MultiRasterSource` misaligns rasters with different grids or CRSs](#1-multirastersource-misaligns-rasters-with-different-grids-or-crss) | Correctness | 🔴 | M | Yes |
 | 2 | [`MultiRasterSource` returns zeros for coarse secondary rasters with rasterio ≥1.4](#2-multirastersource-returns-zeros-for-coarse-secondary-rasters-with-rasterio-14) | Correctness / deps | 🔴 | S | Yes (with current rasterio) |
 | 3 | [STAC → `XarraySource` is broken with pystac ≥1.12 (stackstac is unmaintained)](#3-stac--xarraysource-is-broken-with-pystac-112) | Correctness / deps | 🔴 | S–M | Yes (with current pystac) |
-| 4 | [AOI window sampling fails because `triangle` was dropped from the requirements but is still imported](#4-aoi-window-sampling-fails-because-triangle-was-dropped-but-is-still-imported) | Correctness / deps | 🔴 (on `master`) | S | No (master only) |
+| 4 | ✅ ~~[AOI window sampling fails because `triangle` was dropped from the requirements but is still imported](#4-aoi-window-sampling-fails-because-triangle-was-dropped-but-is-still-imported)~~ (fixed) | Correctness / deps | 🔴 (on `master`) | S | No (master only) |
 | 5 | [Dependence on GDAL outside the rasterio wheel blocks a wheel-only `uv` setup](#5-dependence-on-gdal-outside-the-rasterio-wheel) | Packaging | 🟠 | M | Yes |
 | 6 | [CI tests a stale lockfile while users install unpinned latest dependencies](#6-ci-tests-a-stale-lockfile-while-users-get-unpinned-latest-dependencies) | Packaging / CI | 🟠 | S–M | Yes |
 | 7 | [`pyproj<=3.7.0` pin blocks Python 3.14](#7-pyproj370-pin-blocks-python-314) | Packaging | 🟠 | S | Master only |
@@ -38,7 +38,7 @@ It is meant to help the discontinuation decision in two ways: it shows what keep
 | 9 | [Five community PRs awaiting review](#9-five-community-prs-awaiting-review) | Project health | 🟠 | S–M | — |
 | 10 | [Multi-URI `RasterioSource` (`build_vrt`) has no tests](#10-multi-uri-rasteriosource-build_vrt-has-no-tests) | Tests | 🟡 | S | — |
 | 11 | [Test suite only runs inside Docker and with `unittest`](#11-test-suite-only-runs-inside-docker-and-with-unittest) | Tests | 🟡 | S | — |
-| 12 | [Brittle geometry-equality test](#12-brittle-geometry-equality-test) | Tests | 🟡 | XS | — |
+| 12 | ✅ ~~[Brittle geometry-equality test](#12-brittle-geometry-equality-test)~~ (fixed) | Tests | 🟡 | XS | — |
 | 13 | [Broken links: model zoo 0.31 and SpaceNet quickstart data (#2320)](#13-broken-links-model-zoo-031-and-spacenet-quickstart-data-2320) | Docs / assets | 🟡 | S | Yes (docs) |
 | 14 | [S3 sync silently depends on the `aws` CLI](#14-s3-sync-silently-depends-on-the-aws-cli) | Packaging / correctness | 🟠 | S | Yes |
 | 15 | [`rastervision_pytorch_backend` lost its real dependencies on `master`](#15-rastervision_pytorch_backend-lost-its-real-dependencies-on-master) | Packaging | 🟠 (next release) | XS | No (master only) |
@@ -56,7 +56,8 @@ The migration to a uv workspace (`uv.lock`, static `pyproject.toml` dependencies
 - **#10 (`build_vrt` tests): resolved.** New tests, plus manual parity checks against `gdalbuildvrt` (identical output in 14 cases).
 - **#15 (backend dependencies): resolved.** `rastervision_aws_sagemaker` now also declares `boto3`.
 - **#6 (stale lockfile): partly resolved.** `uv.lock` replaces `requirements.txt`, and CI now runs `uv lock --check`. However, the lock deliberately keeps the *same versions* as the old `requirements.txt` (so #2, #3 and #12 are still masked), and published packages still have no version bounds. The "latest dependencies" CI job is still to do. The lock covers Python 3.11–3.12 only (`tool.uv.environments`) because the pinned numpy/rasterio have no 3.13+ wheels.
-- **#4 (`triangle`): unchanged, but now explicit.** `triangle` is in the `dev` dependency group (so tests and the Docker image keep working) but is still not a dependency of `rastervision_core`.
+- **#4 (`triangle`): resolved** (follow-up commit). `AoiSampler` now uses `shapely.constrained_delaunay_triangles`; `triangle` is gone from the lock entirely, and `rastervision_core` requires `shapely>=2.1` (locked: 2.2.0). This also fixed a latent bug: for AOIs with a hole whose centroid lies outside the hole (e.g. a C-shaped hole), the old code triangulated the wrong region and **none** of the sampled points fell inside the AOI.
+- **#12 (brittle test): resolved.** The shapely upgrade surfaced it; the test now compares normalized geometries.
 - **#2 (rasterio ≥1.4): now also affects Linux ARM64 dev environments and images.** rasterio has no Linux ARM64 wheels before 1.4.4, so the lock uses 1.4.4 on that platform (1.3.10 elsewhere).
 - New issues found during the migration: #16, #17, #18.
 
@@ -133,6 +134,8 @@ A proper `rasterio.warp` reprojection gives ≤0.09 px in every case. Disabling 
 ### 4. AOI window sampling fails because `triangle` was dropped but is still imported
 
 🔴 High (on `master`) · Effort **S**
+
+> **Status: fixed** (`AoiSampler` now uses shapely). Correction to the description below: `RandomWindowGeoDataset` catches the `ModuleNotFoundError` and silently falls back to slower rejection sampling, so only direct use of `AoiSampler` failed outright.
 
 **Problem.** Commit `fed86fb9` ("remove triangle requirement") removed `triangle` from `rastervision_core/requirements.in`. However, [`AoiSampler.triangulate_polygon`](../rastervision_core/rastervision/core/data/utils/aoi_sampler.py) still does `from triangle import triangulate`. In a fresh environment, random window sampling inside AOIs (`efficient_aoi_sampling`) fails with `ModuleNotFoundError`.
 
@@ -266,6 +269,8 @@ Whatever we decide, these contributors deserve a response: merge, request change
 ### 12. Brittle geometry-equality test
 
 🟡 Low · Effort **XS**
+
+> **Status: fixed.**
 
 **Problem.** `test_geojson_vector_source.py::test_crs_in_geojson` compares polygons with `assertEqual`, which compares exact coordinate order. Newer geopandas/shapely write the ring in the opposite orientation after the CRS round trip. The geometry is identical, but the vertex order differs.
 
