@@ -268,6 +268,30 @@ class TestRasterioSource(unittest.TestCase):
         self.assertTrue(np.all(out[mask] == 1))
         self.assertTrue(np.all(out[~mask] == 0))
 
+    def test_get_chip_resized_overflowing_bbox(self):
+        # a resized window that extends beyond the raster's bbox should only
+        # have the corresponding part of the (resized) chip zeroed
+        path = data_file_path('multi_raster_source/const_100_600x600.tiff')
+        rs = RasterioSource(path)
+        # overflows the top edge by 20 px; resized by a factor of 0.5, so the
+        # top 10 rows should be zero
+        chip = rs.get_chip(Box(-20, 0, 80, 100), out_shape=(50, 50))
+        self.assertEqual(chip.shape, (50, 50, 1))
+        np.testing.assert_array_equal(chip[:10], 0)
+        # row 10 is not zeroed, but bilinear resampling blends in the zeros
+        # beyond the edge
+        self.assertTrue(np.all(chip[10] > 0))
+        np.testing.assert_array_equal(chip[11:], 100)
+
+        # with a user-specified bbox (200 x 200): the window overflows the
+        # bottom by 50 px and the right by 60 px; resized by a factor of 0.25
+        rs = RasterioSource(path, bbox=Box(100, 100, 300, 300))
+        chip = rs.get_chip(Box(150, 160, 250, 260), out_shape=(25, 25))
+        # bottom: 50 * 0.25 = 12.5 -> 12 rows; right: 60 * 0.25 = 15 cols
+        np.testing.assert_array_equal(chip[13:], 0)
+        np.testing.assert_array_equal(chip[:, 10:], 0)
+        np.testing.assert_array_equal(chip[:13, :10], 100)
+
     def test_get_chip_reprojected(self):
         # 2-band uint16 raster with nodata=5 and some valid zeros
         img_path = join(self.tmp_dir, 'tmp.tif')
