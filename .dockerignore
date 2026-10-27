@@ -12,3 +12,8 @@ build/
 
 **/build/
 **/dist/
+
+**/.venv/
+**/*.egg-info/
+htmlcov/
+discontinuation-review/

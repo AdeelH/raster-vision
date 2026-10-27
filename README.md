@@ -61,10 +61,15 @@ You can ask questions and talk to developers (let us know what you're working on
 
 ## Developing
 
+Raster Vision is a [uv workspace](https://docs.astral.sh/uv/concepts/projects/workspaces/): each plugin package (`rastervision_*/`) has its own `pyproject.toml`, and all dependency versions are locked in a single `uv.lock` file.
+
 To set up the development environment:
-- For and clone the repo and navigate to it.
-- Create and activate a new Python virtual environment via your environment manager of choice (`mamba`, `uv`, `pyenv`, etc.).
-- Run `scripts/setup_dev_env.sh` to install all Raster Vision plugins in editable mode along with all the dependencies.
+- Fork and clone the repo and navigate to it.
+- [Install uv](https://docs.astral.sh/uv/getting-started/installation/).
+- Run `scripts/setup_dev_env` (equivalent to `uv sync --all-packages --all-extras --all-groups`). This creates a virtual environment in `.venv/` with all Raster Vision plugins installed in editable mode, along with all the locked dependencies. uv will download a compatible Python version if needed.
+- Run commands in the environment with `uv run <command>` (e.g. `uv run rastervision --help`), or activate it with `source .venv/bin/activate`.
+
+To add or change a dependency, edit the relevant `pyproject.toml` (or use `uv add --package <package> <dependency>`) and run `uv lock` to update `uv.lock`.
 
 ## Contributing
 

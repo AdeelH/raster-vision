@@ -16,6 +16,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: astral-sh/setup-uv@v6
+
+      # Fail if uv.lock is out of date with respect to the pyproject.toml files.
+      - run: uv lock --check
+
       - run: df -hT
 
       - run: rm -rf /opt/hostedtoolcache

@@ -1,5 +1,11 @@
 #!/bin/bash
 
+########################################################################
+# Publish the packages in dist/ (see scripts/build_packages) to PyPI.
+# Authenticate by setting UV_PUBLISH_TOKEN to a PyPI API token (or
+# use trusted publishing). See `uv publish --help` for other options.
+########################################################################
+
 set -euo pipefail
 
 # Determine the script's directory (even if it's a symbolic link)
@@ -8,21 +14,9 @@ while [ -h "$SOURCE" ]; do SOURCE="$(readlink "$SOURCE")"; done
 SCRIPTS_DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
 SRC_DIR="$(cd -P "$(dirname "$SCRIPTS_DIR")" && pwd)"
 
-# List of plugins to publish
-plugins=(
-    "rastervision_pipeline"
-    "rastervision_aws_batch"
-    "rastervision_aws_s3"
-    "rastervision_core"
-    "rastervision_pytorch_learner"
-    "rastervision_pytorch_backend"
-    "rastervision_gdal_vsi"
-    "rastervision_aws_sagemaker"
-)
-
 # Usage documentation
 function usage() {
-    echo "Usage: $(basename "$0") [--test]"
+    echo "Usage: $(basename "$0") [--test] [-y]"
     echo ""
     echo "Publish Raster Vision plugins and top-level package to PyPI or TestPyPI."
     echo ""
@@ -31,45 +25,29 @@ function usage() {
     echo "  --test    Publish to TestPyPI instead of PyPI."
 }
 
-# Function to publish a package to the specified repository
-function publish_package() {
+function publish_all() {
     if [ "$publish_to_test" = true ]; then
         echo "Publishing to TestPyPI ... "
-        twine upload --repository testpypi dist/*
+        uv publish \
+            --publish-url https://test.pypi.org/legacy/ \
+            --check-url https://test.pypi.org/simple/ \
+            "$SRC_DIR"/dist/*
     else
         echo "Publishing to PyPI ... "
-        twine upload dist/*
+        uv publish --check-url https://pypi.org/simple/ "$SRC_DIR"/dist/*
     fi
     echo "Done."
-}
-
-# publish a plugin
-function publish_plugin() {
-    pushd "$SRC_DIR/$1" >/dev/null
-    local plugin_name="$1"
-    echo "Publishing $plugin_name ... "
-    publish_package
-    popd >/dev/null
-}
-
-# publish all plugins and the top-level package
-function publish_all() {
-    # Publish each plugin
-    for plugin in "${plugins[@]}"; do
-        publish_plugin "$plugin"
-    done
-
-    # Publish the top-level package
-    pushd "$SRC_DIR" >/dev/null
-    echo "Publishing rastervision ... "
-    publish_package
-    popd >/dev/null
 }
 
 # Check for command-line arguments
 if [[ ${1:-} == "--help" || ${1:-} == "-h" ]]; then
     usage
     exit
+fi
+
+if ! compgen -G "$SRC_DIR/dist/*" >/dev/null; then
+    echo "No packages found in $SRC_DIR/dist/. Run scripts/build_packages first."
+    exit 1
 fi
 
 # Check if the --test flag is passed
@@ -95,7 +73,6 @@ fi
 
 case "$response" in
 [yY][eE][sS] | [yY])
-    echo "Publishing to PyPI..."
     publish_all
     ;;
 *)

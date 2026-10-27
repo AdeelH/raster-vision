@@ -6,7 +6,7 @@ Miscellaneous Topics
 File Systems
 ------------
 
-The :class:`.FileSystem` architecture supports multiple file systems through an interface that is chosen by URI. There is built-in support for: local and HTTP file systems in the :mod:`rastervision.pipeline` package, AWS S3 in the :mod:`rastervision.aws_s3` plugin, and any file that can be opened using GDAL VSI in the :mod:`rastervision.gdal_vsi` plugin. Some file systems support read only (HTTP), while others are read/write. If you need to support other file storage systems, you can add new :class:`.FileSystem` subclasses via a plugin.
+The :class:`.FileSystem` architecture supports multiple file systems through an interface that is chosen by URI. There is built-in support for: local and HTTP file systems in the :mod:`rastervision.pipeline` package, and AWS S3 in the :mod:`rastervision.aws_s3` plugin. (Raster files can additionally be read from any location supported by `GDAL VSI <https://gdal.org/en/stable/user/virtual_file_systems.html>`__, such as ``/vsizip/...`` or ``/vsigs/...`` paths, by streaming them with ``allow_streaming=True``.) Some file systems support read only (HTTP), while others are read/write. If you need to support other file storage systems, you can add new :class:`.FileSystem` subclasses via a plugin.
 
 Viewing Tensorboard
 -------------------

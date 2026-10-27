@@ -21,7 +21,7 @@ class Mock(MagicMock):
         return MagicMock()
 
 
-MOCK_MODULES = ['h5py', 'osgeo']
+MOCK_MODULES = ['h5py']
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 # -- Allow Jinja templates in non-template .rst files -------------------------
@@ -152,17 +152,6 @@ nbsphinx_prolog = r"""
         :format: html
 
     .. note:: This page was generated from `{{ docname }} <https://github.com/azavea/raster-vision/blob/master/docs/{{ docpath }}>`__.
-
-    .. note::
-
-        If running outside of the Docker image, you may need to set some environment variables manually. You can do it like so:
-
-        .. code-block:: python
-
-            import os
-            from subprocess import check_output
-
-            os.environ['GDAL_DATA'] = check_output('pip show rasterio | grep Location | awk \'{print $NF"/rasterio/gdal_data/"}\'', shell=True).decode().strip()
 
 """ # noqa
 #########################

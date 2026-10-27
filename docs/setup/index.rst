@@ -25,15 +25,6 @@ You can directly install the library using ``pip``.
 
    > pip install rastervision=={{ version }}
 
-.. note::
-
-    You might also need to set an environment variable required by ``rasterio`` like so:
-
-    .. code-block:: console
-
-        > export GDAL_DATA=$(pip show rasterio | grep Location | awk '{print $NF"/rasterio/gdal_data/"}')
-
-
 This has been shown to work in the following environment. Variations on this environment may or may not work.
 
 * Ubuntu Linux 22.04
@@ -42,7 +33,7 @@ This has been shown to work in the following environment. Variations on this env
 
 .. warning::
 
-    Raster Vision also runs on macOS version 12.1, except that the ``num_workers`` for the :class:`.DataLoader` will need to be set to 0 due to an issue with mulitprocessing on Macs with Python >= 3.8. It will also be necessary to install GDAL (check `here <{{ repo }}/rastervision_gdal_vsi/requirements.txt>`__ for the exact version) prior to installing Raster Vision, which isn't necessary on Linux.
+    Raster Vision also runs on macOS version 12.1, except that the ``num_workers`` for the :class:`.DataLoader` will need to be set to 0 due to an issue with mulitprocessing on Macs with Python >= 3.8.
 
 .. warning::
 
@@ -80,21 +71,6 @@ This plugin adds the :class:`.AWSSageMakerRunner`, allowing you to run Raster Vi
 .. code-block:: console
 
     > pip install rastervision_aws_sagemaker=={{ version }}
-
-:mod:`rastervision.gdal_vsi`
-""""""""""""""""""""""""""""
-
-This plugin adds a new :class:`.FileSystem`, the :class:`.VsiFileSystem`, which allows the use of GDAL for IO. To install:
-
-.. code-block:: console
-
-    > pip install rastervision_gdal_vsi=={{ version }}
-
-The command above will attempt to install GDAL via ``pip``. If that fails, you can instead try installing via ``conda`` as shown below. Replace ``<version>`` with the version listed `here <{{ repo }}/rastervision_gdal_vsi/requirements.txt>`__.
-
-.. code-block:: console
-
-    > conda install -c conda-forge gdal==<version>
 
 .. _docker images:
 
