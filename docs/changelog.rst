@@ -11,7 +11,8 @@ Raster Vision 0.31.2 (unreleased)
   * Remove the dependency on a system/conda installation of GDAL. GDAL is now only used via the ``rasterio`` wheels, which bundle it. In particular, multi-file ``RasterioSource``\ s no longer require the ``gdalbuildvrt`` command-line tool and :func:`~rastervision.core.utils.cog.create_cog` no longer requires ``gdal_translate`` and ``gdaladdo``.
   * Remove the ``rastervision_gdal_vsi`` plugin (which required the GDAL Python bindings).
   * The Docker image no longer uses conda; Python and all dependencies are installed with uv.
-  * Fix the declared dependencies of ``rastervision_pytorch_backend`` (it now depends on ``rastervision_core`` and ``rastervision_pytorch_learner``) and ``rastervision_aws_sagemaker`` (it now depends on ``boto3``), and declare ``requires-python >= 3.10`` for all packages.
+  * Fix the declared dependencies of ``rastervision_pytorch_backend`` (it now depends on ``rastervision_core`` and ``rastervision_pytorch_learner``) and ``rastervision_aws_sagemaker`` (it now depends on ``boto3``).
+  * Drop support for Python 3.10, which has reached end-of-life. All packages now declare ``requires-python >= 3.11``.
 
 
 Raster Vision 0.31.1

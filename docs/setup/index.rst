@@ -19,7 +19,7 @@ Installing via pip
 
 .. currentmodule:: rastervision
 
-You can directly install the library using ``pip``.
+You can directly install the library using ``pip``. Raster Vision requires Python 3.11 or later.
 
 .. code-block:: console
 
