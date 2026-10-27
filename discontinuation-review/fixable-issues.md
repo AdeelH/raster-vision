@@ -45,7 +45,7 @@ It is meant to help the discontinuation decision in two ways: it shows what keep
 | 16 | [Streaming a multi-URI `RasterioSource` from http(s) is broken](#16-streaming-a-multi-uri-rasteriosource-from-https-is-broken) | Correctness | 🟡 | XS | Yes |
 | 17 | [Docker: NodeSource setup script 404s, so an old Ubuntu nodejs is silently installed](#17-docker-nodesource-setup-script-404s) | Docker | 🟡 | S | Yes (image) |
 | 18 | [Docker: `sagemaker_pytorch_training` post-install changes locked versions (protobuf)](#18-docker-sagemaker_pytorch_training-post-install-changes-locked-versions) | Docker | 🟡 | S | Yes (image) |
-| 19 | [`RasterioSource`: zero-fill of out-of-bbox areas is wrong for resized chips](#19-rasteriosource-zero-fill-of-out-of-bbox-areas-is-wrong-for-resized-chips) | Correctness | 🟡 | S | Yes |
+| 19 | ✅ ~~[`RasterioSource`: zero-fill of out-of-bbox areas is wrong for resized chips](#19-rasteriosource-zero-fill-of-out-of-bbox-areas-is-wrong-for-resized-chips)~~ (fixed) | Correctness | 🟡 | S | Yes |
 
 **Rough total:** about 2–3 weeks of focused work to fix everything, or about 1 week for the 🔴 items plus #5 and #6. See [Suggested order](#suggested-order) at the end.
 
@@ -348,6 +348,8 @@ Whatever we decide, these contributors deserve a response: merge, request change
 **Fix.** Find a compatible set (e.g. upgrade `sagemaker`) and move it into the `docker` dependency group in `uv.lock`, or drop SageMaker estimator support from the image.
 
 ### 19. `RasterioSource`: zero-fill of out-of-bbox areas is wrong for resized chips
+
+> **Status: fixed.** `fill_overflow` now converts the overflow from window pixels to chip pixels, filling a chip pixel if its center lies outside the bbox (the same rule as `get_chip_reprojected`); with no resizing, the behavior is unchanged. `XarraySource` was not affected (it zero-fills before resizing).
 
 🟡 Low · Effort **S**
 
