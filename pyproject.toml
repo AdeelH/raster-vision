@@ -9,7 +9,7 @@ description = "An open source framework for deep learning on satellite and aeria
 readme = "README.md"
 authors = [{ name = "Azavea", email = "info@azavea.com" }]
 license = { text = "Apache License 2.0" }
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
@@ -86,9 +86,10 @@ docker = [
 default-groups = ["dev"]
 # The lockfile pins the dependency versions that the test suite currently
 # passes with. Several of these (e.g. numpy 1.26, rasterio 1.3) do not have
-# wheels for Python 3.13+, so the lock is restricted to Python 3.11 and 3.12.
-# Widen this when upgrading the locked dependencies.
-environments = ["python_version >= '3.11' and python_version < '3.13'"]
+# wheels for Python 3.13+, so the lock is restricted to Python < 3.13 (and
+# >= 3.11 via requires-python). Widen this when upgrading the locked
+# dependencies.
+environments = ["python_version < '3.13'"]
 constraint-dependencies = [
     # rasterio only ships Linux ARM64 wheels from 1.4.4 onwards; older versions
     # would have to be compiled against a system GDAL on that platform.
