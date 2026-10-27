@@ -6,29 +6,24 @@ This is a guide to the process of creating a new release, and is meant for the m
 Minor or Major Version Release
 ------------------------------
 
-#.  It's a good idea to update any major dependencies before the release.
+#.  It's a good idea to update any major dependencies before the release. Dependency versions are locked in ``uv.lock``; run ``uv lock --upgrade`` (or ``uv lock --upgrade-package <package>``) to update them, and widen the ``environments`` setting in the root ``pyproject.toml`` if the new versions support more Python versions.
 #.  Update ``THIRD_PARTY_LICENSES.txt``:
 
-    #. Install `third_party_license_file_generator <https://github.com/ftpsolutions/python-third-party-license-file-generator>`_:
-
-       .. code-block:: console
-
-           pip install third_party_license_file_generator
-
     #. Update ``third_party_license_file_generator_overrides.yml``, if necessary.
-    #. Collect all ``requirements.txt`` files into a single file, ``requirements-all.txt``:
+    #. Make sure the development environment is up to date (``scripts/setup_dev_env``) and export all locked dependencies into a single file, ``requirements-all.txt``:
 
        .. code-block:: console
 
-           cat `find **/requirements.txt` requirements.txt requirements-dev.txt > requirements-all.txt;
+           uv export --all-packages --all-extras --all-groups --no-hashes --no-emit-workspace -o requirements-all.txt
 
-    #. Generate new ``THIRD_PARTY_LICENSES.txt`` file:
+    #. Generate new ``THIRD_PARTY_LICENSES.txt`` file using `third_party_license_file_generator <https://github.com/ftpsolutions/python-third-party-license-file-generator>`_:
 
        .. code-block:: console
 
-           python -m third_party_license_file_generator \
+           uv run --with third_party_license_file_generator \
+            python -m third_party_license_file_generator \
             -r requirements-all.txt \
-            -p `which python` \
+            -p .venv/bin/python \
             -o THIRD_PARTY_LICENSES.txt \
             -l third_party_license_file_generator_overrides.yml;
 
@@ -55,7 +50,7 @@ Minor or Major Version Release
    #.  Update the `the changelog <{{ repo }}/docs/changelog.rst>`__, and point out API changes.
    #.  Fix any broken badges on the GitHub repo readme.
 
-#.  Update the version number. This occurs in several places, so it's best to do this with a find-and-replace over the entire repo.
+#.  Update the version number. This occurs in several places (including the ``pyproject.toml`` of every package), so it's best to do this with a find-and-replace over the entire repo. Then run ``uv lock`` to update the versions recorded in ``uv.lock``.
 #.  Make a PR to the ``master`` branch with the preceding updates. In the PR, there should be a link to preview the docs. Check that they are building and look correct.
 #.  Make a git branch with the version as the name, and push to GitHub.
 #.  Ensure that the docs are building correctly for the new version branch on `readthedocs <https://readthedocs.org/projects/raster-vision/>`_. You will need to have admin access on your RTD account. Once the branch is building successfully, Under *Versions -> Activate a Version*, you can activate the version to add it to the sidebar of the docs for the latest version. (This might require manually triggering a rebuild of the docs.) Then, under *Admin -> Advanced Settings*, change the default version to the new version.
@@ -69,27 +64,15 @@ Minor or Major Version Release
         docker push quay.io/azavea/raster-vision:pytorch-<version>
 
 #.  Make a GitHub `tag <https://github.com/azavea/raster-vision/tags>`_ and `release <https://github.com/azavea/raster-vision/releases>`_ using the previous release as a template.
-#.  Publish all packages to PyPI. This step requires `twine <https://twine.readthedocs.io/en/stable/>`__ which you can install with
+#.  Publish all packages to PyPI. Packages are built and published using `uv <https://docs.astral.sh/uv/guides/package/>`__. To authenticate, set the ``UV_PUBLISH_TOKEN`` environment variable to a PyPI (or TestPyPI) API token:
 
     .. code-block:: console
 
-        pip install twine
-
-    To store settings for PyPI you can set up a ``~/.pypirc`` file containing:
-
-    .. code-block:: console
-
-        [pypi]
-        username=__token__
-        password=<password>
-
-        [testpypi]
-        username=__token__
-        password=<password>
+        export UV_PUBLISH_TOKEN=<token>
 
     Once packages are published they cannot be changed, so be careful. (It's possible to practice using TestPyPI.) Navigate to the repo's root directory on your local filesystem. With the version branch checked out, run the following scripts to build packages and publish to PyPI. 
     
-    Build:
+    Build (this writes the sdists and wheels of all packages to ``dist/``):
 
     .. code-block:: console
 

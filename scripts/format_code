@@ -26,7 +26,7 @@ else
     $UNIFY tests/* \
           integration_tests/* \
           docs/conf.py
-    find . \( -path "./data" -o -path "./docs" -o -path "./.history" \) -prune -o -name '*.py' -print0 | xargs -0 $UNIFY
+    find . \( -path "./data" -o -path "./docs" -o -path "./.history" -o -path "./.venv" \) -prune -o -name '*.py' -print0 | xargs -0 $UNIFY
 
     echo "Running yapf..."
     yapf -ipr "$SRC_DIR" \
@@ -37,6 +37,7 @@ else
         -e "**/conf.py" \
         -e "**/setup.py" \
         -e "*.history*" \
+        -e "*.venv*" \
         -e "data/*" \
         -e "docs/*" \
         -e "**/*.ipynb"

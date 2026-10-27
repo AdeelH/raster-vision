@@ -25,7 +25,7 @@ else
     echo "Checking that code is consistent with flake8..."
 
     flake8 "$SRC_DIR" \
-        --exclude ".git,build,docs,cookiecutter_template,*tfod_utils*,.history,data"
+        --exclude ".git,.venv,build,docs,cookiecutter_template,*tfod_utils*,.history,data"
 
     # Exit code of 1 if yapf has a non-empty diff
     # (ie. scripts/format_code needs to be run)

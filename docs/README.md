@@ -8,10 +8,10 @@ All commands are issued in this directory.
 
 ### Install dependencies
 
-You will need to install the required packages:
+Install all Raster Vision packages and the docs dependencies (from `uv.lock`) using [uv](https://docs.astral.sh/uv/):
 
 ```sh
-> pip install -r requirements.txt
+> uv sync --all-packages --all-extras --group docs
 ```
 
 ### Build
@@ -19,13 +19,13 @@ You will need to install the required packages:
 To generate html, run:
 
 ```sh
-> make html
+> uv run make html
 ```
 
 To run a live local server that updates with changes, run:
 
 ```sh
-> make livehtml
+> uv run make livehtml
 ```
 
 ### Getting started

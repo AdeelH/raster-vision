@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "rastervision"
@@ -9,6 +9,7 @@ description = "An open source framework for deep learning on satellite and aeria
 readme = "README.md"
 authors = [{ name = "Azavea", email = "info@azavea.com" }]
 license = { text = "Apache License 2.0" }
+requires-python = ">=3.10"
 classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
@@ -27,26 +28,25 @@ keywords = [
     "raster",
 ]
 dependencies = [
-    "rastervision_pipeline @ file://${PROJECT_ROOT}/rastervision_pipeline/dist/rastervision_pipeline-0.31.2.dev0-py3-none-any.whl",
-    "rastervision_aws_s3 @ file://${PROJECT_ROOT}/rastervision_aws_s3/dist/rastervision_aws_s3-0.31.2.dev0-py3-none-any.whl",
-    "rastervision_aws_batch @ file://${PROJECT_ROOT}/rastervision_aws_batch/dist/rastervision_aws_batch-0.31.2.dev0-py3-none-any.whl",
-    "rastervision_core @ file://${PROJECT_ROOT}/rastervision_core/dist/rastervision_core-0.31.2.dev0-py3-none-any.whl",
-    "rastervision_pytorch_learner @ file://${PROJECT_ROOT}/rastervision_pytorch_learner/dist/rastervision_pytorch_learner-0.31.2.dev0-py3-none-any.whl",
-    "rastervision_pytorch_backend @ file://${PROJECT_ROOT}/rastervision_pytorch_backend/dist/rastervision_pytorch_backend-0.31.2.dev0-py3-none-any.whl",
+    "rastervision_aws_batch==0.31.2-dev",
+    "rastervision_aws_s3==0.31.2-dev",
+    "rastervision_core==0.31.2-dev",
+    "rastervision_pipeline==0.31.2-dev",
+    "rastervision_pytorch_backend==0.31.2-dev",
+    "rastervision_pytorch_learner==0.31.2-dev",
 ]
-
-[tool.setuptools.dynamic]
-dependencies = { file = ["requirements.in"] }
 
 [project.optional-dependencies]
 debugging = []
-full = [
-    "rastervision_aws_sagemaker @ file://${PROJECT_ROOT}/rastervision_aws_sagemaker/dist/rastervision_aws_sagemaker-0.31.2.dev0-py3-none-any.whl",
-    "rastervision_gdal_vsi @ file://${PROJECT_ROOT}/rastervision_gdal_vsi/dist/rastervision_gdal_vsi-0.31.2.dev0-py3-none-any.whl",
-]
+full = ["rastervision_aws_sagemaker==0.31.2-dev"]
+
+[project.urls]
+"Homepage" = "https://github.com/azavea/raster-vision"
+"GitHub" = "https://github.com/azavea/raster-vision"
+
+[dependency-groups]
 dev = [
     "awscli==1.33.40",
-    "build",
     "coverage==7.2.0",
     "flake8==5.0.4",
     "jupyter_contrib_nbextensions==0.7.0",
@@ -58,6 +58,9 @@ dev = [
     "sphinx-autobuild==2021.3.14",
     "unify==0.5",
     "yapf==0.23.0",
+    # Needed by AoiSampler (efficient_aoi_sampling) but no longer a declared
+    # dependency of rastervision_core. Wheels only exist for these platforms.
+    "triangle ; (sys_platform == 'linux' and platform_machine == 'x86_64') or (sys_platform == 'darwin' and platform_machine == 'arm64') or sys_platform == 'win32'",
 ]
 docs = [
     "autodoc-pydantic==2.2.0",
@@ -72,11 +75,41 @@ docs = [
     "sphinx-gallery>=0.10,<0.11",
     "sphinx==5.3.0",
 ]
+# Extra packages installed only in the Docker image.
+docker = [
+    # onnxruntime-gpu 1.19 is built against CUDA 12, matching the base image.
+    "onnxruntime-gpu==1.19.0 ; sys_platform == 'linux' and platform_machine == 'x86_64'",
+    "pip",
+]
 
-[project.urls]
-"Homepage" = "https://github.com/azavea/raster-vision"
-"GitHub" = "https://github.com/azavea/raster-vision"
+[tool.uv]
+default-groups = ["dev"]
+# The lockfile pins the dependency versions that the test suite currently
+# passes with. Several of these (e.g. numpy 1.26, rasterio 1.3) do not have
+# wheels for Python 3.13+, so the lock is restricted to Python 3.11 and 3.12.
+# Widen this when upgrading the locked dependencies.
+environments = ["python_version >= '3.11' and python_version < '3.13'"]
+constraint-dependencies = [
+    # rasterio only ships Linux ARM64 wheels from 1.4.4 onwards; older versions
+    # would have to be compiled against a system GDAL on that platform.
+    "rasterio>=1.4.4 ; sys_platform == 'linux' and platform_machine == 'aarch64'",
+]
 
-[tool.setuptools]
-include-package-data = true
-packages = []
+[tool.uv.workspace]
+members = ["rastervision_*"]
+
+[tool.uv.sources]
+rastervision_aws_batch = { workspace = true }
+rastervision_aws_s3 = { workspace = true }
+rastervision_aws_sagemaker = { workspace = true }
+rastervision_core = { workspace = true }
+rastervision_pipeline = { workspace = true }
+rastervision_pytorch_backend = { workspace = true }
+rastervision_pytorch_learner = { workspace = true }
+
+# The top-level package is a metapackage with no code of its own.
+[tool.hatch.build.targets.wheel]
+bypass-selection = true
+
+[tool.hatch.build.targets.sdist]
+only-include = ["README.md", "LICENSE"]

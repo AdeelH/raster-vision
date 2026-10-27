@@ -1,14 +1,14 @@
 [build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "rastervision_core"
 version = "0.31.2-dev"
 description = "A rastervision plugin that adds geospatial machine learning pipelines."
-readme = "README.md"
 authors = [{ name = "Azavea", email = "info@azavea.com" }]
 license = { text = "Apache License 2.0" }
+requires-python = ">=3.10"
 classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
@@ -26,15 +26,32 @@ keywords = [
     "geospatial-processing",
     "raster",
 ]
-dynamic = ["dependencies"]
+dependencies = [
+    "boto3",
+    "geopandas",
+    "humanize",
+    "numpy",
+    "opencv-python-headless",
+    "pillow",
+    "pyproj<=3.7.0",
+    "pystac",
+    "rasterio",
+    "rastervision_pipeline==0.31.2-dev",
+    "scikit-image",
+    "scikit-learn",
+    "scipy",
+    "shapely",
+    "stackstac",
+    "tqdm",
+    "xarray",
+]
 
 [project.urls]
 "Homepage" = "https://github.com/azavea/raster-vision"
 "GitHub" = "https://github.com/azavea/raster-vision"
 
-[tool.setuptools]
-include-package-data = true
-packages = { find = { exclude = ["integration_tests*", "tests*"] } }
+[tool.hatch.build.targets.wheel]
+packages = ["rastervision"]
 
-[tool.setuptools.dynamic]
-dependencies = { file = ["requirements.in"] }
+[tool.hatch.build.targets.sdist]
+only-include = ["rastervision"]

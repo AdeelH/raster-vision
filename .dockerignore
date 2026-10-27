@@ -12,3 +12,7 @@ build/
 
 **/build/
 **/dist/
+
+**/.venv/
+**/*.egg-info/
+htmlcov/
