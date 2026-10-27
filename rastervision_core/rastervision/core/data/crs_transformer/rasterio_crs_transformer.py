@@ -1,8 +1,7 @@
-from typing import TYPE_CHECKING, Any, Callable
-import logging
+from typing import TYPE_CHECKING, Any
+from functools import partial
 
 from pyproj import Transformer
-from pyproj.exceptions import ProjError
 import numpy as np
 import rasterio as rio
 from rasterio.transform import (rowcol, xy)
@@ -16,42 +15,8 @@ from rastervision.core.data.crs_transformer import (CRSTransformer,
 if TYPE_CHECKING:
     from typing import Self
 
-log = logging.getLogger(__name__)
-
 PIXEL_PRECISION = 6
 MAP_PRECISION = 6
-
-
-def pyproj_wrapper(
-        func: Callable[..., tuple[Any, Any]],
-        from_crs: str,
-        to_crs: str,
-) -> Callable[..., tuple[Any, Any]]:
-    # For some transformations, pyproj attempts to download transformation
-    # grids from the internet for improved accuracy when
-    # Transformer.transform() is called. If it fails to connect to the
-    # internet, it silently returns (inf, inf) and silently modifies its
-    # behavior to not access the internet on subsequent calls, causing
-    # them to succeed (though possibly with a loss of accuracy). See
-    # https://github.com/pyproj4/pyproj/issues/705 for details.
-    #
-    # The below workaround forces an error to be raised by setting
-    # errcheck=True and ignoring the first error.
-    def _wrapper(*args, **kwargs):
-        try:
-            return func(*args, **kwargs, errcheck=True)
-        except ProjError as e:
-            log.debug(f'pyproj: {e}')
-            if 'network' in str(e).lower():
-                log.warning(
-                    'pyproj tried and failed to connect to the internet to '
-                    'download transformation grids for the transformation from'
-                    f'\n{from_crs}\nto\n{to_crs}.\nSee '
-                    'https://github.com/pyproj4/pyproj/issues/705 for details.'
-                )
-            return func(*args, **kwargs, errcheck=True)
-
-    return _wrapper
 
 
 class RasterioCRSTransformer(CRSTransformer):
@@ -77,14 +42,17 @@ class RasterioCRSTransformer(CRSTransformer):
             self.map2image = lambda *args, **kws: args[:2]
             self.image2map = lambda *args, **kws: args[:2]
         else:
-            self._map2image = Transformer.from_crs(
-                map_crs, image_crs, always_xy=True).transform
-            self._image2map = Transformer.from_crs(
-                image_crs, map_crs, always_xy=True).transform
-            self.map2image = pyproj_wrapper(self._map2image, map_crs,
-                                            image_crs)
-            self.image2map = pyproj_wrapper(self._image2map, image_crs,
-                                            map_crs)
+            # errcheck=True raises an error, rather than silently returning
+            # inf, if a transformation fails, e.g., because PROJ network
+            # access is enabled but a remote grid cannot be downloaded.
+            self.map2image = partial(
+                Transformer.from_crs(map_crs, image_crs,
+                                     always_xy=True).transform,
+                errcheck=True)
+            self.image2map = partial(
+                Transformer.from_crs(image_crs, map_crs,
+                                     always_xy=True).transform,
+                errcheck=True)
 
         self.round_pixels = round_pixels
 
