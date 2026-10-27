@@ -1,6 +1,8 @@
 from collections.abc import Callable
 from os.path import join
+import sys
 import unittest
+from unittest.mock import patch
 
 import torch
 import numpy as np
@@ -382,9 +384,8 @@ class TestRandomWindowGeoDataset(unittest.TestCase):
         _, window = out
         self.assertIsInstance(window, Box)
 
-    def test_triangle_missing(self):
-        import sys
-        sys.modules['triangle'] = None
+    def test_efficient_aoi_sampling_without_triangle(self):
+        # AoiSampler uses shapely and must not need the triangle library.
         scene = MockScene()
         args = dict(
             scene=scene,
@@ -393,9 +394,10 @@ class TestRandomWindowGeoDataset(unittest.TestCase):
             max_windows=10,
             transform_type=TransformType.noop,
         )
-        self.assertNoError(lambda: RandomWindowGeoDataset(**args))
-        ds = RandomWindowGeoDataset(**args)
-        self.assertIsNone(ds.aoi_sampler)
+        with patch.dict(sys.modules, {'triangle': None}):
+            ds = RandomWindowGeoDataset(**args)
+            self.assertIsNotNone(ds.aoi_sampler)
+            self.assertNoError(lambda: ds[0])
 
 
 if __name__ == '__main__':

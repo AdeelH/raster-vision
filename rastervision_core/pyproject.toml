@@ -40,7 +40,8 @@ dependencies = [
     "scikit-image",
     "scikit-learn",
     "scipy",
-    "shapely",
+    # >= 2.1 for shapely.constrained_delaunay_triangles (used by AoiSampler)
+    "shapely>=2.1",
     "stackstac",
     "tqdm",
     "xarray",

@@ -58,9 +58,6 @@ dev = [
     "sphinx-autobuild==2021.3.14",
     "unify==0.5",
     "yapf==0.23.0",
-    # Needed by AoiSampler (efficient_aoi_sampling) but no longer a declared
-    # dependency of rastervision_core. Wheels only exist for these platforms.
-    "triangle ; (sys_platform == 'linux' and platform_machine == 'x86_64') or (sys_platform == 'darwin' and platform_machine == 'arm64') or sys_platform == 'win32'",
 ]
 docs = [
     "autodoc-pydantic==2.2.0",

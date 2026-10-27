@@ -14,6 +14,10 @@ Raster Vision 0.31.2 (unreleased)
   * Fix the declared dependencies of ``rastervision_pytorch_backend`` (it now depends on ``rastervision_core`` and ``rastervision_pytorch_learner``) and ``rastervision_aws_sagemaker`` (it now depends on ``boto3``).
   * Drop support for Python 3.10, which has reached end-of-life. All packages now declare ``requires-python >= 3.11``.
 
+* Fixes:
+
+  * Remove the ``triangle`` dependency: :class:`~rastervision.core.data.utils.aoi_sampler.AoiSampler` now uses ``shapely.constrained_delaunay_triangles`` to triangulate AOIs, and ``rastervision_core`` now requires ``shapely>=2.1``. This makes ``efficient_aoi_sampling`` work without ``triangle`` being installed (previously, it was silently disabled), and also fixes incorrect sampling for AOIs with holes whose centroid lies outside the hole.
+
 
 Raster Vision 0.31.1
 --------------------

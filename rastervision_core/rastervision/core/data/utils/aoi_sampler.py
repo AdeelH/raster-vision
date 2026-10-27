@@ -1,7 +1,8 @@
 from typing import Sequence
 
 import numpy as np
-from shapely.geometry import Polygon, MultiPolygon, LinearRing
+import shapely
+from shapely.geometry import Polygon, MultiPolygon
 from shapely.ops import unary_union
 
 
@@ -64,43 +65,16 @@ class AoiSampler:
     def triangulate_polygon(self, polygon: Polygon) -> dict:
         """Triangulate polygon.
 
-        Extracts vertices and edges from the polygon (and its holes, if any)
-        and passes them to the Triangle library for triangulation.
+        Uses a constrained Delaunay triangulation (via shapely/GEOS), which
+        respects the polygon's boundary and holes, if any.
         """
-        from triangle import triangulate
-
-        vertices, edges = self.polygon_to_graph(polygon)
-
-        holes = polygon.interiors
-        if not holes:
-            args = {
-                'vertices': vertices,
-                'segments': edges,
-            }
-        else:
-            for hole in holes:
-                hole_vertices, hole_edges = self.polygon_to_graph(hole)
-                # make the indices point to entries in the global vertex list
-                hole_edges += len(vertices)
-                # append hole vertices to the global vertex list
-                vertices = np.vstack([vertices, hole_vertices])
-                edges = np.vstack([edges, hole_edges])
-
-            # the triangulation algorithm requires a sample point inside each
-            # hole
-            hole_centroids = [hole.centroid for hole in holes]
-            hole_centroids = np.concatenate(
-                [np.array(c.coords) for c in hole_centroids], axis=0)
-
-            args = {
-                'vertices': vertices,
-                'segments': edges,
-                'holes': hole_centroids
-            }
-
-        tri = triangulate(args, opts='p')
-        simplices = tri['triangles']
-        vertices = np.array(tri['vertices'])
+        triangles = shapely.constrained_delaunay_triangles(polygon)
+        # Each triangle's exterior ring has 4 coords, the last of which is a
+        # duplicate of the first. Drop it to get a (T, 3, 2) array of the 3
+        # vertices of each of the T triangles.
+        coords = shapely.get_coordinates(triangles).reshape(-1, 4, 2)[:, :3]
+        vertices = coords.reshape(-1, 2)
+        simplices = np.arange(len(vertices)).reshape(-1, 3)
         origins, bases = self.triangle_origin_and_basis(vertices, simplices)
 
         out = {
@@ -111,31 +85,6 @@ class AoiSampler:
             'areas': self.triangle_area(vertices, simplices)
         }
         return out
-
-    def polygon_to_graph(self, polygon: Polygon | LinearRing
-                         ) -> tuple[np.ndarray, np.ndarray]:
-        """Given a polygon, return its graph representation.
-
-        Args:
-            polygon: A polygon or polygon-exterior.
-
-        Returns:
-            An (N, 2) array of vertices and an (N, 2) array of indices to
-            vertices representing edges.
-        """
-        exterior = getattr(polygon, 'exterior', polygon)
-        vertices = np.array(exterior.coords)
-        # Discard the last vertex - it is a duplicate of the first vertex and
-        # duplicates cause problems for the Triangle library.
-        vertices = vertices[:-1]
-
-        N = len(vertices)
-        # Tuples of indices to vertices representing edges.
-        # mod N ensures edge from last vertex to first vertex by making the
-        # last tuple [N-1, 0].
-        edges = np.column_stack([np.arange(0, N), np.arange(1, N + 1)]) % N
-
-        return vertices, edges
 
     def triangle_side_lengths(self, vertices: np.ndarray, simplices: np.ndarray
                               ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
