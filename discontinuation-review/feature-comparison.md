@@ -125,7 +125,7 @@ Code references: [semantic_segmentation_label_store_config.py](../rastervision_c
 | GeoTIFF and anything GDAL reads | ✅ | ✅ | |
 | Cloud storage (S3, HTTP, GDAL VSI) | ✅ (pluggable `FileSystem`) | ✅ (`/vsi*` paths, including listing) | RV also downloads and caches files and writes outputs to S3. |
 | Automatic reprojection and resampling to a common grid | 🚧 | ✅ | |
-| Combining rasters of different resolutions into one input | 🚧 (`MultiRasterSource`; misaligned by up to about a secondary pixel, or more across CRSs; see §4.11) | ✅ (`IntersectionDataset`) | |
+| Combining rasters of different resolutions into one input | ✅ (`MultiRasterSource`; was misaligned before the fix in §4.11) | ✅ (`IntersectionDataset`) | |
 | Mosaicking many tiles | ❌ (needs a VRT or STAC) | ✅ | |
 | xarray / STAC item collections (stackstac) as input | ✅ (`XarraySource`) | 🚧 | TorchGeo `XarrayDataset` (experimental) reads xarray files, and some datasets query STAC (OpenAerialMap). There is no generic STAC-to-dataset path. The TorchGeo comparison table rates RV STAC ✅ and TorchGeo 🚧. |
 | Temporal stacks | 🚧 (`TemporalMultiRasterSource`, `XarraySource`) | ✅ | TorchGeo adds a time index and six temporal samplers (v0.10). |
@@ -270,6 +270,8 @@ A single `rastervision run` then produces stats, training, scene-wide prediction
 The detection bugs are small and easy to fix upstream. The missing georeferenced detection output is the substantive gap, and it isn't covered by TorchGeo's in-progress tiled-inference work, which targets per-pixel classification.
 
 ### 4.11 Hands-on test: `MultiRasterSource` alignment accuracy
+
+> **Update (2026-10-27): fixed** on the `rv-future` branch. Non-primary `RasterioSource`s are now reprojected onto the primary raster's pixel grid; the benchmark below now gives the same errors as the proper-warp baseline (0.00 px same-CRS, ≤0.07 px across CRSs). See [fixable-issues.md #1](./fixable-issues.md#1-multirastersource-misaligns-rasters-with-different-grids-or-crss).
 
 **Question.** RV combines rasters with different grids or CRSs without reprojecting them. Is that alignment correct?
 

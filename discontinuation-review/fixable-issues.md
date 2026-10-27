@@ -27,8 +27,8 @@ It is meant to help the discontinuation decision in two ways: it shows what keep
 
 | # | Issue | Area | Severity | Effort | Affects released 0.31.1? |
 |---|---|---|---|---|---|
-| 1 | [`MultiRasterSource` misaligns rasters with different grids or CRSs](#1-multirastersource-misaligns-rasters-with-different-grids-or-crss) | Correctness | 🔴 | M | Yes |
-| 2 | [`MultiRasterSource` returns zeros for coarse secondary rasters with rasterio ≥1.4](#2-multirastersource-returns-zeros-for-coarse-secondary-rasters-with-rasterio-14) | Correctness / deps | 🔴 | S | Yes (with current rasterio) |
+| 1 | ✅ ~~[`MultiRasterSource` misaligns rasters with different grids or CRSs](#1-multirastersource-misaligns-rasters-with-different-grids-or-crss)~~ (fixed) | Correctness | 🔴 | M | Yes |
+| 2 | ✅ ~~[`MultiRasterSource` returns zeros for coarse secondary rasters with rasterio ≥1.4](#2-multirastersource-returns-zeros-for-coarse-secondary-rasters-with-rasterio-14)~~ (fixed) | Correctness / deps | 🔴 | S | Yes (with current rasterio) |
 | 3 | [STAC → `XarraySource` is broken with pystac ≥1.12 (stackstac is unmaintained)](#3-stac--xarraysource-is-broken-with-pystac-112) | Correctness / deps | 🔴 | S–M | Yes (with current pystac) |
 | 4 | ✅ ~~[AOI window sampling fails because `triangle` was dropped from the requirements but is still imported](#4-aoi-window-sampling-fails-because-triangle-was-dropped-but-is-still-imported)~~ (fixed) | Correctness / deps | 🔴 (on `master`) | S | No (master only) |
 | 5 | [Dependence on GDAL outside the rasterio wheel blocks a wheel-only `uv` setup](#5-dependence-on-gdal-outside-the-rasterio-wheel) | Packaging | 🟠 | M | Yes |
@@ -45,6 +45,7 @@ It is meant to help the discontinuation decision in two ways: it shows what keep
 | 16 | [Streaming a multi-URI `RasterioSource` from http(s) is broken](#16-streaming-a-multi-uri-rasteriosource-from-https-is-broken) | Correctness | 🟡 | XS | Yes |
 | 17 | [Docker: NodeSource setup script 404s, so an old Ubuntu nodejs is silently installed](#17-docker-nodesource-setup-script-404s) | Docker | 🟡 | S | Yes (image) |
 | 18 | [Docker: `sagemaker_pytorch_training` post-install changes locked versions (protobuf)](#18-docker-sagemaker_pytorch_training-post-install-changes-locked-versions) | Docker | 🟡 | S | Yes (image) |
+| 19 | [`RasterioSource`: zero-fill of out-of-bbox areas is wrong for resized chips](#19-rasteriosource-zero-fill-of-out-of-bbox-areas-is-wrong-for-resized-chips) | Correctness | 🟡 | S | Yes |
 
 **Rough total:** about 2–3 weeks of focused work to fix everything, or about 1 week for the 🔴 items plus #5 and #6. See [Suggested order](#suggested-order) at the end.
 
@@ -66,6 +67,8 @@ The migration to a uv workspace (`uv.lock`, static `pyproject.toml` dependencies
 ## Correctness
 
 ### 1. `MultiRasterSource` misaligns rasters with different grids or CRSs
+
+> **Status: fixed.** Non-primary `RasterioSource`s are now reprojected onto the primary chip's exact pixel grid (`RasterioSource.get_chip_reprojected`, via `rasterio.warp.reproject` with bilinear resampling and per-band NODATA); sources on an identical grid (whole-pixel offset) are still read directly. Re-running the benchmark below: 0.00 px error for same-CRS different-resolution cases and ≤0.07 px across CRSs (the same as a proper `rasterio.warp` baseline), with chip read times within ~10% of before. Note: this changes the chips that models see when the grids differ, so models trained on misaligned data may behave differently. Resampling is fixed to bilinear (as before, for resized reads); a per-source resampling option (e.g. nearest for categorical layers) would be a useful follow-up.
 
 🔴 High · Effort **M** (1–2 days) · Details and measurements in [feature-comparison.md §4.11](./feature-comparison.md#411-hands-on-test-multirastersource-alignment-accuracy)
 
@@ -103,6 +106,8 @@ A proper `rasterio.warp` reprojection gives ≤0.09 px in every case. Disabling 
 **Related.** PR #2331 (`keep_native_crs`, issue #2323) avoids the EPSG:4326 map-CRS round trip. In our measurements that round trip contributes **no measurable error** when grids already match (control case: 0.00 px). So #2331 is a reasonable API improvement, but it does **not** fix this issue.
 
 ### 2. `MultiRasterSource` returns zeros for coarse secondary rasters with rasterio ≥1.4
+
+> **Status: fixed.** For `RasterioSource`s by the reprojection above (the destination grid is explicit, so there are no degenerate windows); for other raster sources (e.g. `XarraySource`), the fallback map-window path now always reads at least one pixel. `test_nonidentical_extents_and_resolutions` passes with rasterio 1.4.4 (it fails without the fix). Upgrading the locked rasterio (1.3.10 on non-ARM64) is now unblocked.
 
 🔴 High · Effort **S**
 
@@ -339,6 +344,14 @@ Whatever we decide, these contributors deserve a response: merge, request change
 **Problem.** The image installs `sagemaker_pytorch_training==2.8.1` after the locked dependencies, as before the migration. Its dependency `sagemaker-training` needs protobuf ≤3.20.3 or ≥5.28.1, which is incompatible with the locked protobuf (4.25.6, required by e.g. the `sagemaker` SDK, which needs <5). The post-install therefore upgrades protobuf (to 7.x when tested) and cffi in the image only. It is kept outside `uv.lock` so it doesn't force these versions on everyone.
 
 **Fix.** Find a compatible set (e.g. upgrade `sagemaker`) and move it into the `docker` dependency group in `uv.lock`, or drop SageMaker estimator support from the image.
+
+### 19. `RasterioSource`: zero-fill of out-of-bbox areas is wrong for resized chips
+
+🟡 Low · Effort **S**
+
+**Problem.** `RasterioSource._get_chip` zero-fills the parts of a window that lie outside the `bbox` using `fill_overflow`, which computes the overflow in *window* pixels but applies it to the chip *after* resizing to `out_shape`. E.g. a 100x100 window overflowing the top edge by 20 px, read with `out_shape=(50, 50)`, gets 20 (instead of 10) rows zeroed. Found while fixing #1; affects resized reads near the edges of a raster (including the primary source of a `MultiRasterSource`).
+
+**Fix.** Scale the overflow by the resize factor (or zero-fill before resizing).
 
 ---
 
