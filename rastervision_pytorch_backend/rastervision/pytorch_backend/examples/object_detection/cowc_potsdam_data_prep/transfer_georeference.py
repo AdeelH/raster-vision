@@ -1,39 +1,33 @@
 #!/usr/bin/env python
 
-import os
-import re
 import sys
 
-from subprocess import check_output, call
+import rasterio
+import rasterio.shutil
+from rasterio.transform import from_bounds
 
-if not len(sys.argv) >= 4:
-    print('Usage: {} <input_rgb.tif> <input_label.tif> <output_label.tif>'.
-          format(sys.argv[0]))
-    exit()
 
-input_rgb = sys.argv[1]
-input_label = sys.argv[2]
-output_label = sys.argv[3]
+def transfer_georeference(input_rgb, input_label, output_label):
+    """Copy input_label to output_label, georeferenced like input_rgb.
 
-# Get proj4 string
-proj4 = check_output(['gdalsrsinfo', '-o', 'proj4', input_rgb], stderr=None)
-proj4 = proj4[1:-2]
+    The output gets the CRS of input_rgb and a transform that maps the
+    label's pixel grid onto the bounds of input_rgb.
+    """
+    with rasterio.open(input_rgb) as ref:
+        crs = ref.crs
+        left, bottom, right, top = ref.bounds
 
-# Get upper left, lower right info
-with open(os.devnull, 'w') as devnull:
-    ullr = check_output(
-        ['gdalinfo', input_rgb], stderr=devnull).decode('utf-8')
-ul_re = re.compile(r'^Upper Left.*?([0-9\.]+).*?([0-9\.]+)', re.MULTILINE)
-lr_re = re.compile(r'^Lower Right.*?([0-9\.]+).*?([0-9\.]+)', re.MULTILINE)
-ul = re.search(ul_re, ullr)
-lr = re.search(lr_re, ullr)
+    rasterio.shutil.copy(input_label, output_label, driver='GTiff')
+    with rasterio.open(output_label, 'r+') as dst:
+        dst.crs = crs
+        dst.transform = from_bounds(left, bottom, right, top, dst.width,
+                                    dst.height)
 
-args = [
-    'gdal_translate', '-a_srs', proj4, '-a_ullr',
-    ul.group(1),
-    ul.group(2),
-    lr.group(1),
-    lr.group(2), input_label, output_label
-]
 
-call(args)
+if __name__ == '__main__':
+    if not len(sys.argv) >= 4:
+        print('Usage: {} <input_rgb.tif> <input_label.tif> <output_label.tif>'.
+              format(sys.argv[0]))
+        exit()
+
+    transfer_georeference(sys.argv[1], sys.argv[2], sys.argv[3])
