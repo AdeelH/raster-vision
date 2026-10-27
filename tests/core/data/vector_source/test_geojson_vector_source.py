@@ -182,7 +182,8 @@ class TestGeoJSONVectorSource(unittest.TestCase):
             vs = GeoJSONVectorSource(
                 path, crs_transformer=IdentityCRSTransformer())
             geom_4326_out = vs.get_geoms()[0]
-        self.assertEqual(geom_4326_out, geom_4326)
+        # compare normalized geoms since ring orientation may differ
+        self.assertEqual(geom_4326_out.normalize(), geom_4326.normalize())
 
     def test__geo_interface__(self):
         geom_4326 = Box(10., 10., 20., 20.).to_shapely()

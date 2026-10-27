@@ -406,11 +406,7 @@ class RandomWindowGeoDataset(GeoDataset):
             # only sample from polygons that intersect w/ the extent
             self.aoi = aoi.intersection(extent_polygon)
             if efficient_aoi_sampling:
-                try:
-                    self.aoi_sampler = AoiSampler([self.aoi])
-                except ModuleNotFoundError:
-                    log.info('Ignoring efficient_aoi_sampling since triangle '
-                             'is not installed.')
+                self.aoi_sampler = AoiSampler([self.aoi])
 
     @property
     def min_size(self):

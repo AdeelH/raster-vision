@@ -22,6 +22,19 @@ class TestAoiSampler(unittest.TestCase):
         polygon_with_holes = p1 - p2
         self.assertNoError(lambda: AoiSampler([polygon_with_holes]).sample())
 
+    def test_polygon_with_non_convex_hole(self):
+        # The hole's centroid lies outside the hole.
+        outer = Polygon.from_bounds(0, 0, 20, 20)
+        c_shaped_hole = Polygon([(4, 4), (16, 4), (16, 7), (7, 7), (7, 13),
+                                 (16, 13), (16, 16), (4, 16)])
+        aoi = outer - c_shaped_hole
+        aoi_sampler = AoiSampler([aoi])
+        total_area = sum(t['areas'].sum() for t in aoi_sampler.triangulations)
+        self.assertAlmostEqual(total_area, aoi.area)
+        np.random.seed(0)
+        points = MultiPoint(aoi_sampler.sample(n=500))
+        self.assertTrue(aoi.buffer(1e-9).contains(points))
+
     def test_sampler(self, nsamples: int = 200):
         """Attempt to check if points are distributed uniformly within an AOI.
 
