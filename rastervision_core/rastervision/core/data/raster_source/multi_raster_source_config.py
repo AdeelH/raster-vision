@@ -38,7 +38,10 @@ class MultiRasterSourceConfig(RasterSourceConfig):
         0,
         description=
         'Index of the raster source whose CRS, dtype, and other attributes '
-        'will override those of the other raster sources. Defaults to 0.')
+        'will override those of the other raster sources. Chips from the '
+        'other raster sources are aligned with (and, if necessary, '
+        'reprojected onto) the pixel grid of this raster source. '
+        'Defaults to 0.')
     temporal: bool = Field(
         False,
         description='Stack images from sub raster sources into a time-series '
