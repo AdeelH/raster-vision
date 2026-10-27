@@ -3,6 +3,12 @@ import logging
 
 import numpy as np
 import rasterio as rio
+from rasterio.crs import CRS
+from rasterio.enums import Resampling
+from rasterio.features import geometry_mask
+from rasterio.warp import reproject, transform_geom
+from rasterio.windows import Window, bounds as window_bounds
+from shapely.geometry import box as shapely_box, mapping
 
 from rastervision.pipeline.file_system import download_if_needed, get_tmp_dir
 from rastervision.core.box import Box
@@ -15,6 +21,7 @@ from rastervision.core.data.utils.rasterio import (
     is_masked, read_window)
 
 if TYPE_CHECKING:
+    from rasterio import Affine
     from rastervision.core.data import RasterTransformer
 
 log = logging.getLogger(__name__)
@@ -173,6 +180,93 @@ class RasterioSource(RasterSource):
         for transformer in self.raster_transformers:
             chip = transformer.transform(chip)
         return chip
+
+    def get_chip_reprojected(
+            self,
+            crs: 'CRS | str',
+            transform: 'Affine',
+            out_shape: tuple[int, int],
+            bands: Sequence[int] | slice | None = None,
+            resampling: Resampling = Resampling.bilinear) -> np.ndarray:
+        """Read a chip that is reprojected onto the given pixel grid.
+
+        The data is warped such that each pixel of the output chip
+        corresponds exactly to the pixel at the same location in the given
+        grid, even if this raster has a different CRS, resolution, or pixel
+        alignment. Output pixels that are not covered by this raster (or its
+        ``bbox``), or that are NODATA or masked, are set to zero.
+
+        Args:
+            crs: CRS of the output grid.
+            transform: Affine transform of the output grid, i.e. the mapping
+                from output pixel coordinates to coordinates in ``crs``.
+            out_shape: (height, width) of the output chip.
+            bands: Subset of bands to read. Applied on top of the
+                ``channel_order`` in the same way as in :meth:`get_chip`.
+                Defaults to ``None``.
+            resampling: Resampling method. Defaults to
+                ``Resampling.bilinear``.
+
+        Returns:
+            np.ndarray: A chip of shape (height, width, channels).
+        """
+        if bands is None or bands == slice(None):
+            bands = self.bands_to_read
+        else:
+            bands = self.bands_to_read[bands]
+        chip = self._get_chip_reprojected(
+            CRS.from_user_input(crs),
+            transform,
+            out_shape,
+            bands=bands,
+            resampling=resampling)
+        for transformer in self.raster_transformers:
+            chip = transformer.transform(chip)
+        return chip
+
+    def _get_chip_reprojected(
+            self,
+            crs: CRS,
+            transform: 'Affine',
+            out_shape: tuple[int, int],
+            bands: Sequence[int],
+            resampling: Resampling = Resampling.bilinear) -> np.ndarray:
+        bands = tuple(int(b) for b in bands)
+        h, w = out_shape
+        chip = np.zeros((len(bands), h, w), dtype=self.dtype_raw)
+        # Pixels that are not covered by the source, or that are NODATA or
+        # masked in it, are left untouched, i.e. zero. NODATA is handled
+        # per band (UNIFIED_SRC_NODATA=NO), like in read_window(); by default,
+        # GDAL only skips pixels that are NODATA in all bands.
+        with rio.Env(session=self.session):
+            reproject(
+                source=rio.band(self.image_dataset, bands),
+                destination=chip,
+                dst_transform=transform,
+                dst_crs=crs,
+                resampling=resampling,
+                init_dest_nodata=False,
+                UNIFIED_SRC_NODATA='NO')
+        full_extent = Box(0, 0, self.image_dataset.height,
+                          self.image_dataset.width)
+        if self.bbox != full_extent:
+            chip[:, ~self._get_bbox_mask(crs, transform, out_shape)] = 0
+        chip = np.transpose(chip, axes=[1, 2, 0])
+        return chip
+
+    def _get_bbox_mask(self, crs: CRS, transform: 'Affine',
+                       out_shape: tuple[int, int]) -> np.ndarray:
+        """Boolean mask of pixels in the given grid that lie within bbox."""
+        ymin, xmin, ymax, xmax = self.bbox
+        bbox_window = Window(xmin, ymin, xmax - xmin, ymax - ymin)
+        bbox_geom = shapely_box(
+            *window_bounds(bbox_window, self.image_dataset.transform))
+        # densify so that the shape is preserved under reprojection
+        bbox_geom = bbox_geom.segmentize(bbox_geom.length / 256)
+        bbox_geom = transform_geom(self.image_dataset.crs, crs,
+                                   mapping(bbox_geom))
+        return geometry_mask(
+            [bbox_geom], out_shape=out_shape, transform=transform, invert=True)
 
     def __getitem__(self, key: Any) -> 'np.ndarray':
         if isinstance(key, Box):

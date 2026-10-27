@@ -6,6 +6,7 @@ from tempfile import NamedTemporaryFile
 import numpy as np
 import rasterio
 from rasterio.enums import ColorInterp
+from rasterio.transform import from_origin
 
 from rastervision.pipeline.file_system import get_tmp_dir
 from rastervision.core import (Box, RasterStats)
@@ -266,6 +267,53 @@ class TestRasterioSource(unittest.TestCase):
         mask[:80, :80] = 1
         self.assertTrue(np.all(out[mask] == 1))
         self.assertTrue(np.all(out[~mask] == 0))
+
+    def test_get_chip_reprojected(self):
+        # 2-band uint16 raster with nodata=5 and some valid zeros
+        img_path = join(self.tmp_dir, 'tmp.tif')
+        transform = from_origin(1000, 2000, 2, 2)
+        im = (np.arange(2 * 50 * 60).reshape(2, 50, 60) % 7).astype(np.uint16)
+        im[:, :, :5] = 0
+        with rasterio.open(
+                img_path,
+                'w',
+                driver='GTiff',
+                height=50,
+                width=60,
+                count=2,
+                dtype=np.uint16,
+                crs='EPSG:32617',
+                transform=transform,
+                nodata=5) as ds:
+            ds.write(im)
+        expected = im.transpose(1, 2, 0).copy()
+        expected[expected == 5] = 0
+
+        rs = RasterioSource(img_path, channel_order=[1, 0])
+        # same grid, shifted so that it extends 10 pixels beyond the left
+        # and top edges of the raster
+        dst_transform = from_origin(980, 2020, 2, 2)
+        chip = rs.get_chip_reprojected('EPSG:32617', dst_transform, (40, 30))
+        self.assertEqual(chip.shape, (40, 30, 2))
+        self.assertEqual(chip.dtype, np.uint16)
+        # not covered by the raster
+        np.testing.assert_array_equal(chip[:10], 0)
+        np.testing.assert_array_equal(chip[:, :10], 0)
+        # covered: exact values (w/ channel_order applied), nodata -> 0
+        np.testing.assert_array_equal(chip[10:, 10:],
+                                      expected[:30, :20, [1, 0]])
+
+        # bands
+        chip = rs.get_chip_reprojected(
+            'EPSG:32617', dst_transform, (40, 30), bands=[1])
+        np.testing.assert_array_equal(chip[10:, 10:, 0], expected[:30, :20, 0])
+
+        # bbox: pixels outside of it are zero
+        rs = RasterioSource(img_path, bbox=Box(10, 10, 50, 60))
+        chip = rs.get_chip_reprojected('EPSG:32617', transform, (50, 60))
+        np.testing.assert_array_equal(chip[:10], 0)
+        np.testing.assert_array_equal(chip[:, :10], 0)
+        np.testing.assert_array_equal(chip[10:, 10:], expected[10:, 10:])
 
 
 if __name__ == '__main__':

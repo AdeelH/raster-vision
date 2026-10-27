@@ -16,6 +16,8 @@ Raster Vision 0.31.2 (unreleased)
 
 * Fixes:
 
+  * Fix misalignment of chips from the sub raster sources of a :class:`.MultiRasterSource` (and :class:`.TemporalMultiRasterSource`) when they have different CRSs, resolutions, or pixel alignments. Previously, the window was mapped between pixel grids using only its corners and snapped to whole pixels, which misaligned chips by up to about one pixel of the coarser raster (more across CRSs). Now, :class:`.RasterioSource`\ s are reprojected onto the primary raster source's pixel grid using the new :meth:`.RasterioSource.get_chip_reprojected` method. Sources whose pixel grids already match the primary source's are read directly, as before.
+  * Fix :class:`.MultiRasterSource` returning zeros for sub raster sources whose resolution is much coarser than that of the primary raster source (with ``rasterio>=1.4``).
   * Remove the ``triangle`` dependency: :class:`~rastervision.core.data.utils.aoi_sampler.AoiSampler` now uses ``shapely.constrained_delaunay_triangles`` to triangulate AOIs, and ``rastervision_core`` now requires ``shapely>=2.1``. This makes ``efficient_aoi_sampling`` work without ``triangle`` being installed (previously, it was silently disabled), and also fixes incorrect sampling for AOIs with holes whose centroid lies outside the hole.
 
 
