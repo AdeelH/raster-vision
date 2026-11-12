@@ -1,9 +1,11 @@
+from pydantic import Field
+
 from rastervision.core.box import Box
 from rastervision.core.data.raster_source import (
     RasterSourceConfig,
     RasterioSource,
 )
-from rastervision.pipeline.config import ConfigError, Field, register_config
+from rastervision.pipeline.config import ConfigError, register_config
 
 
 def rasterio_source_config_upgrader(

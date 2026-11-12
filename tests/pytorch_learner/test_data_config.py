@@ -2,8 +2,10 @@ from collections.abc import Callable, Sized
 import unittest
 from typing import Any, cast
 
+from pydantic import ValidationError
+
 from rastervision.pipeline.file_system import get_tmp_dir
-from rastervision.pipeline.config import ValidationError, build_config
+from rastervision.pipeline.config import build_config
 from rastervision.core.rv_pipeline import (
     WindowSamplingConfig,
     WindowSamplingMethod,

@@ -2,13 +2,14 @@ from collections.abc import Callable
 from os.path import join
 import unittest
 
+from pydantic import ValidationError
+
 from rastervision.pipeline.file_system.utils import get_tmp_dir, json_to_file
 from rastervision.pipeline.config import (
     Config,
     register_config,
     build_config,
     upgrade_config,
-    ValidationError,
 )
 from rastervision.pipeline.pipeline_config import PipelineConfig
 from rastervision.pipeline import registry_ as registry

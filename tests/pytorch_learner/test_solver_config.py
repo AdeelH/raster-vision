@@ -3,13 +3,14 @@ from typing import Any
 import unittest
 
 from torch import nn
+from pydantic import ValidationError
 
 from rastervision.pytorch_learner import (
     SolverConfig,
     solver_config_upgrader,
     ExternalModuleConfig,
 )
-from rastervision.pipeline.config import ValidationError, build_config
+from rastervision.pipeline.config import build_config
 
 
 class TestSolverConfig(unittest.TestCase):

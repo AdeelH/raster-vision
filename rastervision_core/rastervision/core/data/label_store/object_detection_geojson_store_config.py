@@ -1,10 +1,12 @@
 from os.path import join
 
+from pydantic import Field
+
 from rastervision.core.data.label_store import (
     LabelStoreConfig,
     ObjectDetectionGeoJSONStore,
 )
-from rastervision.pipeline.config import register_config, Field
+from rastervision.pipeline.config import register_config
 
 
 @register_config('object_detection_geojson_store')

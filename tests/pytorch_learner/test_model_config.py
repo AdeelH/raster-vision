@@ -4,8 +4,8 @@ import unittest
 
 import torch
 from torch import nn
+from pydantic import ValidationError
 
-from rastervision.pipeline.config import ValidationError
 from rastervision.pipeline.file_system import get_tmp_dir
 from rastervision.pytorch_learner import (
     Backbone,

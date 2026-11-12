@@ -1,13 +1,9 @@
 from typing import TYPE_CHECKING
 
 from typing_extensions import Annotated
-from pydantic import NonNegativeInt as NonNegInt
+from pydantic import NonNegativeInt as NonNegInt, Field, model_validator
 
-from rastervision.pipeline.config import (
-    Field,
-    register_config,
-    model_validator,
-)
+from rastervision.pipeline.config import register_config
 from rastervision.core.box import Box
 from rastervision.core.data.raster_source import (
     RasterSourceConfig,

@@ -1,9 +1,6 @@
-from rastervision.pipeline.config import (
-    Config,
-    register_config,
-    ConfigError,
-    Field,
-)
+from pydantic import Field
+
+from rastervision.pipeline.config import Config, register_config, ConfigError
 from rastervision.pipeline.utils import split_into_groups
 from rastervision.core.data.scene_config import SceneConfig
 from rastervision.core.data.class_config import ClassConfig

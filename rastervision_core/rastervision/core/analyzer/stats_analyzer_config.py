@@ -1,7 +1,9 @@
 from typing import TYPE_CHECKING, Iterable
 from os.path import join
 
-from rastervision.pipeline.config import register_config, ConfigError, Field
+from pydantic import Field
+
+from rastervision.pipeline.config import register_config, ConfigError
 from rastervision.core.analyzer import AnalyzerConfig, StatsAnalyzer
 
 if TYPE_CHECKING:
