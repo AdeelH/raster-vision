@@ -128,8 +128,8 @@ extend-exclude = [
 quote-style = "single"
 
 [tool.ruff.lint]
-# Only the basic pycodestyle (E, W) and pyflakes (F) rules.
-select = ["E", "F", "W"]
+# The basic pycodestyle (E, W) and pyflakes (F) rules, plus import sorting (I).
+select = ["E", "F", "W", "I"]
 
 [tool.ruff.lint.per-file-ignores]
 # Re-exports
@@ -137,6 +137,10 @@ select = ["E", "F", "W"]
 
 [tool.ruff.lint.pycodestyle]
 max-line-length = 90
+
+[tool.ruff.lint.isort]
+# rastervision is a namespace package spread over the rastervision_* dirs.
+known-first-party = ["rastervision", "tests", "integration_tests"]
 
 [tool.pyright]
 typeCheckingMode = "basic"

@@ -25,7 +25,10 @@ else
     cd "$SRC_DIR"
 
     echo "Linting with ruff..."
-    ruff check .
+    if ! ruff check .; then
+        echo "Unsorted imports (I001) can be fixed with ./scripts/format_code."
+        exit 1
+    fi
 
     echo "Checking formatting with ruff..."
     if ! ruff format --check .; then

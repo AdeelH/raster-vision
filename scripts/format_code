@@ -14,7 +14,7 @@ SRC_DIR="$( cd -P "$( dirname "$SCRIPTS_DIR" )" && pwd )"
 function usage() {
     echo -n \
 "Usage: $(basename "$0")
-Reformat Python code inline using ruff.
+Sort imports and reformat Python code inline using ruff.
 "
 }
 
@@ -22,5 +22,6 @@ if [ "${1:-}" = "--help" ]; then
     usage
 else
     cd "$SRC_DIR"
+    ruff check --select I --fix .
     ruff format .
 fi
