@@ -7,8 +7,12 @@ from torch import nn
 from rastervision.pipeline.config import ValidationError
 from rastervision.pipeline.file_system import get_tmp_dir
 from rastervision.pytorch_learner import (
-    Backbone, ExternalModuleConfig, SemanticSegmentationModelConfig,
-    ClassificationModelConfig, ObjectDetectionModelConfig)
+    Backbone,
+    ExternalModuleConfig,
+    SemanticSegmentationModelConfig,
+    ClassificationModelConfig,
+    ObjectDetectionModelConfig,
+)
 
 
 class TestExternalModuleConfig(unittest.TestCase):
@@ -20,8 +24,9 @@ class TestExternalModuleConfig(unittest.TestCase):
 
     def test_repo_str_validation(self):
         args = dict(github_repo='abc', entrypoint='foo')
-        self.assertRaises(ValidationError,
-                          lambda: ExternalModuleConfig(**args))
+        self.assertRaises(
+            ValidationError, lambda: ExternalModuleConfig(**args)
+        )
         args = dict(github_repo='abc/def', entrypoint='foo')
         self.assertNoError(lambda: ExternalModuleConfig(**args))
         args = dict(github_repo='abc/def:xyz', entrypoint='foo')
@@ -29,18 +34,20 @@ class TestExternalModuleConfig(unittest.TestCase):
 
     def test_disallow_both_uri_and_repo(self):
         args = dict(uri='abc/def', github_repo='abc/def', entrypoint='foo')
-        self.assertRaises(ValidationError,
-                          lambda: ExternalModuleConfig(**args))
+        self.assertRaises(
+            ValidationError, lambda: ExternalModuleConfig(**args)
+        )
 
     def test_build(self):
         with get_tmp_dir() as tmp_dir:
             cfg = ExternalModuleConfig(
                 github_repo='AdeelH/pytorch-multi-class-focal-loss:1.1',
                 entrypoint='focal_loss',
-                entrypoint_kwargs=dict(alpha=[.75, .25], gamma=2))
+                entrypoint_kwargs=dict(alpha=[0.75, 0.25], gamma=2),
+            )
             loss = cfg.build(tmp_dir)
             self.assertIsInstance(loss, nn.Module)
-            self.assertEqual(loss.alpha.tolist(), [.75, .25])
+            self.assertEqual(loss.alpha.tolist(), [0.75, 0.25])
             self.assertEqual(loss.gamma, 2)
             del loss
 
@@ -48,8 +55,9 @@ class TestExternalModuleConfig(unittest.TestCase):
 class TestSemanticSegmentationModelConfig(unittest.TestCase):
     def test_backbone_validation(self):
         args = dict(backboe=Backbone.resnet18)
-        self.assertRaises(ValidationError,
-                          lambda: SemanticSegmentationModelConfig(**args))
+        self.assertRaises(
+            ValidationError, lambda: SemanticSegmentationModelConfig(**args)
+        )
 
     def test_build(self):
         cfg = SemanticSegmentationModelConfig(pretrained=False)
@@ -73,8 +81,9 @@ class TestClassificationModelConfig(unittest.TestCase):
 class TestObjectDetectionModelConfig(unittest.TestCase):
     def test_backbone_validation(self):
         args = dict(backboe=Backbone.vgg11)
-        self.assertRaises(ValidationError,
-                          lambda: ObjectDetectionModelConfig(**args))
+        self.assertRaises(
+            ValidationError, lambda: ObjectDetectionModelConfig(**args)
+        )
 
     def test_build(self):
         cfg = ObjectDetectionModelConfig(pretrained=False)

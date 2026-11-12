@@ -11,8 +11,12 @@ from rastervision.pipeline.file_system import file_to_json
 from rastervision.core.box import Box
 from rastervision.core.data import ObjectDetectionLabels
 from rastervision.pytorch_learner.dataset import (
-    TransformType, ImageDataset, SlidingWindowGeoDataset,
-    RandomWindowGeoDataset, load_image)
+    TransformType,
+    ImageDataset,
+    SlidingWindowGeoDataset,
+    RandomWindowGeoDataset,
+    load_image,
+)
 from rastervision.core.data.utils import make_od_scene
 
 if TYPE_CHECKING:
@@ -46,8 +50,9 @@ class CocoDataset(Dataset):
             img_ann['bboxes'].append(ann['bbox'])
             img_ann['category_id'].append(ann['category_id'])
 
-    def __getitem__(self, ind: int
-                    ) -> tuple[np.ndarray, tuple[np.ndarray, np.ndarray, str]]:
+    def __getitem__(
+        self, ind: int
+    ) -> tuple[np.ndarray, tuple[np.ndarray, np.ndarray, str]]:
         img_id = self.img_ids[ind]
         path = self.img_paths[img_id]
         ann: dict[str, list] = self.img_anns[img_id]
@@ -58,7 +63,7 @@ class CocoDataset(Dataset):
 
         if len(bboxes) == 0:
             bboxes = np.empty((0, 4))
-            class_ids = np.empty((0, ), dtype=np.int64)
+            class_ids = np.empty((0,), dtype=np.int64)
         return x, (bboxes, class_ids, 'xywh')
 
     def __len__(self):
@@ -84,19 +89,22 @@ class ObjectDetectionImageDataset(ImageDataset):
         """
         ds = CocoDataset(img_dir, annotation_uri)
         super().__init__(
-            ds, *args, **kwargs, transform_type=TransformType.object_detection)
+            ds, *args, **kwargs, transform_type=TransformType.object_detection
+        )
 
 
-def make_od_geodataset(cls,
-                       image_uri: str | list[str],
-                       label_vector_uri: str | None = None,
-                       class_config: 'ClassConfig | None' = None,
-                       aoi_uri: str | list[str] = [],
-                       label_vector_default_class_id: int | None = None,
-                       image_raster_source_kw: dict = {},
-                       label_vector_source_kw: dict = {},
-                       label_source_kw: dict = {},
-                       **kwargs):
+def make_od_geodataset(
+    cls,
+    image_uri: str | list[str],
+    label_vector_uri: str | None = None,
+    class_config: 'ClassConfig | None' = None,
+    aoi_uri: str | list[str] = [],
+    label_vector_default_class_id: int | None = None,
+    image_raster_source_kw: dict = {},
+    label_vector_source_kw: dict = {},
+    label_source_kw: dict = {},
+    **kwargs,
+):
     """Create an instance of this class from image and label URIs.
 
     This is a convenience method. For more fine-grained control, it is
@@ -145,7 +153,8 @@ def make_od_geodataset(cls,
         label_vector_default_class_id=label_vector_default_class_id,
         image_raster_source_kw=image_raster_source_kw,
         label_vector_source_kw=label_vector_source_kw,
-        label_source_kw=label_source_kw)
+        label_source_kw=label_source_kw,
+    )
     ds = cls(scene, **kwargs)
     return ds
 
@@ -155,7 +164,8 @@ class ObjectDetectionSlidingWindowGeoDataset(SlidingWindowGeoDataset):
 
     def __init__(self, *args, **kwargs):
         super().__init__(
-            *args, **kwargs, transform_type=TransformType.object_detection)
+            *args, **kwargs, transform_type=TransformType.object_detection
+        )
 
 
 class ObjectDetectionRandomWindowGeoDataset(RandomWindowGeoDataset):
@@ -187,17 +197,22 @@ class ObjectDetectionRandomWindowGeoDataset(RandomWindowGeoDataset):
             **kwargs: See :meth:`.RandomWindowGeoDataset.__init__`.
         """
         from rastervision.pytorch_learner import DEFAULT_BBOX_PARAMS
+
         self.bbox_params: A.BboxParams | None = kwargs.pop(
-            'bbox_params', DEFAULT_BBOX_PARAMS)
+            'bbox_params', DEFAULT_BBOX_PARAMS
+        )
         ioa_thresh: float = kwargs.pop('ioa_thresh', 0.9)
         clip: bool = kwargs.pop('clip', False)
         neg_ratio: float | None = kwargs.pop('neg_ratio', None)
         neg_ioa_thresh: float = kwargs.pop('neg_ioa_thresh', 0.2)
 
         super().__init__(
-            *args, **kwargs, transform_type=TransformType.object_detection)
+            *args, **kwargs, transform_type=TransformType.object_detection
+        )
 
-        label_source: 'ObjectDetectionLabelSource | None' = self.scene.label_source
+        label_source: 'ObjectDetectionLabelSource | None' = (
+            self.scene.label_source
+        )
         if label_source is not None:
             label_source.ioa_thresh = ioa_thresh
             label_source.clip = clip
@@ -205,7 +220,8 @@ class ObjectDetectionRandomWindowGeoDataset(RandomWindowGeoDataset):
         if neg_ratio is not None:
             if label_source is None:
                 raise ValueError(
-                    'Scene must have a LabelSource if neg_ratio is set.')
+                    'Scene must have a LabelSource if neg_ratio is set.'
+                )
             self.neg_probability = neg_ratio / (neg_ratio + 1)
             self.neg_ioa_thresh: float = neg_ioa_thresh
 
@@ -213,34 +229,40 @@ class ObjectDetectionRandomWindowGeoDataset(RandomWindowGeoDataset):
             # possible to draw a window (that lies within the extent) around
             # each bbox.
             self.labels = label_source.get_labels(
-                ioa_thresh=ioa_thresh, clip=True)
+                ioa_thresh=ioa_thresh, clip=True
+            )
             num_bboxes_in_scene = len(self.labels)
             if num_bboxes_in_scene == 0:
                 raise ValueError(
-                    'neg_ratio specified, but no bboxes found in scene.')
+                    'neg_ratio specified, but no bboxes found in scene.'
+                )
 
             if self.has_aoi_polygons:
                 self.labels = self.labels.filter_by_aoi(
-                    self.scene.aoi_polygons)
+                    self.scene.aoi_polygons
+                )
                 num_bboxes_in_aoi = len(self.labels)
                 if num_bboxes_in_aoi == 0:
                     raise ValueError(
                         'neg_ratio specified, but no bboxes found in AOI. '
                         'Total bboxes in scene (ignoring AOI):'
-                        f'{num_bboxes_in_scene}.')
+                        f'{num_bboxes_in_scene}.'
+                    )
 
             self.bboxes = self.labels.get_boxes()
         else:
             self.neg_probability = None
 
-    def append_resize_transform(self, transform: A.BasicTransform,
-                                out_size: tuple[int, int]) -> A.BasicTransform:
-        resize_tf = A.Resize(*out_size, p=1.)
+    def append_resize_transform(
+        self, transform: A.BasicTransform, out_size: tuple[int, int]
+    ) -> A.BasicTransform:
+        resize_tf = A.Resize(*out_size, p=1.0)
         if transform is None:
             transform = resize_tf
         else:
             transform = A.Compose(
-                [transform, resize_tf], bbox_params=self.bbox_params)
+                [transform, resize_tf], bbox_params=self.bbox_params
+            )
         return transform
 
     def _sample_pos_window(self) -> Box:
@@ -257,7 +279,8 @@ class ObjectDetectionRandomWindowGeoDataset(RandomWindowGeoDataset):
         if box_h > hmax or box_w > wmax:
             raise ValueError(
                 f'Cannot sample containing window because bounding box {bbox}'
-                f'is larger than self.max_size ({self.max_size}).')
+                f'is larger than self.max_size ({self.max_size}).'
+            )
 
         # try to sample a window size that is larger than the box's size
         for _ in range(self.max_sample_attempts):
@@ -265,9 +288,11 @@ class ObjectDetectionRandomWindowGeoDataset(RandomWindowGeoDataset):
             if h >= box_h and w >= box_w:
                 window = bbox.make_random_box_container(h, w)
                 return window
-        log.warning('ObjectDetectionRandomWindowGeoDataset: Failed to find '
-                    'suitable (h, w) for positive window. '
-                    f'Using (hmax, wmax) = ({hmax}, {wmax}) instead.')
+        log.warning(
+            'ObjectDetectionRandomWindowGeoDataset: Failed to find '
+            'suitable (h, w) for positive window. '
+            f'Using (hmax, wmax) = ({hmax}, {wmax}) instead.'
+        )
         window = bbox.make_random_box_container(hmax, wmax)
         return window
 
@@ -280,12 +305,15 @@ class ObjectDetectionRandomWindowGeoDataset(RandomWindowGeoDataset):
         for _ in range(self.max_sample_attempts):
             window = super()._sample_window()
             labels = ObjectDetectionLabels.get_overlapping(
-                self.labels, window, ioa_thresh=self.neg_ioa_thresh)
+                self.labels, window, ioa_thresh=self.neg_ioa_thresh
+            )
             if len(labels) == 0:
                 return window
 
-        log.warning('ObjectDetectionRandomWindowGeoDataset: Failed to find '
-                    'negative window. Returning last sampled window.')
+        log.warning(
+            'ObjectDetectionRandomWindowGeoDataset: Failed to find '
+            'negative window. Returning last sampled window.'
+        )
         return window
 
     def _sample_window(self) -> Box:

@@ -12,13 +12,18 @@ from shapely.geometry import Polygon, mapping
 from rastervision.pipeline.file_system import json_to_file, get_tmp_dir
 from rastervision.core.box import Box
 from rastervision.core.data import ClassConfig, RasterioCRSTransformer
-from rastervision.core.data.utils.geojson import (geometry_to_feature,
-                                                  features_to_geojson)
+from rastervision.core.data.utils.geojson import (
+    geometry_to_feature,
+    features_to_geojson,
+)
 from rastervision.pytorch_learner.dataset import (
     SemanticSegmentationSlidingWindowGeoDataset,
     ClassificationSlidingWindowGeoDataset,
-    ObjectDetectionSlidingWindowGeoDataset, RandomWindowGeoDataset,
-    SlidingWindowGeoDataset, TransformType)
+    ObjectDetectionSlidingWindowGeoDataset,
+    RandomWindowGeoDataset,
+    SlidingWindowGeoDataset,
+    TransformType,
+)
 
 from tests import data_file_path
 
@@ -62,7 +67,8 @@ class TestGeoDatasetFromURIs(unittest.TestCase):
 
         # no labels
         ds = SemanticSegmentationSlidingWindowGeoDataset.from_uris(
-            image_uri=image_uri, size=10, stride=10, padding=0)
+            image_uri=image_uri, size=10, stride=10, padding=0
+        )
         x, y = ds[0]
         assert_allclose(x * 255, torch.ones_like(x))
         self.assertTrue(np.isnan(y.numpy()))
@@ -74,7 +80,8 @@ class TestGeoDatasetFromURIs(unittest.TestCase):
             label_raster_uri=image_uri,
             size=10,
             stride=10,
-            padding=0)
+            padding=0,
+        )
         x, y = ds[0]
         assert_allclose(x * 255, torch.ones_like(x))
         self.assertAlmostEqual(y.float().mean(), 1)
@@ -86,7 +93,8 @@ class TestGeoDatasetFromURIs(unittest.TestCase):
             label_vector_uri=label_vector_uri,
             size=10,
             stride=10,
-            padding=0)
+            padding=0,
+        )
         x, y = ds[0]
         assert_allclose(x * 255, torch.ones_like(x))
         assert_allclose(y, torch.ones_like(y))
@@ -101,7 +109,8 @@ class TestGeoDatasetFromURIs(unittest.TestCase):
 
         # no labels
         ds = ClassificationSlidingWindowGeoDataset.from_uris(
-            image_uri=image_uri, size=10, stride=10, padding=0)
+            image_uri=image_uri, size=10, stride=10, padding=0
+        )
         x, y = ds[0]
         assert_allclose(x * 255, torch.ones_like(x))
         self.assertTrue(np.isnan(y.numpy()))
@@ -114,7 +123,8 @@ class TestGeoDatasetFromURIs(unittest.TestCase):
             label_source_kw=dict(background_class_id=0),
             size=10,
             stride=10,
-            padding=0)
+            padding=0,
+        )
         x, y = ds[0]
         assert_allclose(x * 255, torch.ones_like(x))
         assert_allclose(y, torch.ones_like(y))
@@ -129,7 +139,8 @@ class TestGeoDatasetFromURIs(unittest.TestCase):
 
         # no labels
         ds = ObjectDetectionSlidingWindowGeoDataset.from_uris(
-            image_uri=image_uri, size=10, stride=10, padding=0)
+            image_uri=image_uri, size=10, stride=10, padding=0
+        )
         x, y = ds[0]
         assert_allclose(x * 255, torch.ones_like(x))
         self.assertTrue(np.isnan(y.numpy()))
@@ -141,18 +152,19 @@ class TestGeoDatasetFromURIs(unittest.TestCase):
             label_vector_uri=label_vector_uri,
             size=20,
             stride=20,
-            padding=0)
+            padding=0,
+        )
         x, y = ds[0]
         bboxes = y.get_field('boxes')
         class_ids = y.get_field('class_ids')
-        np.testing.assert_allclose(bboxes, np.array([[0., 0., 10., 10.]]))
+        np.testing.assert_allclose(bboxes, np.array([[0.0, 0.0, 10.0, 10.0]]))
         np.testing.assert_allclose(class_ids, np.array([1]))
 
         x, y = ds[1]
         bboxes = y.get_field('boxes')
         class_ids = y.get_field('class_ids')
         self.assertTupleEqual(bboxes.shape, (0, 4))
-        self.assertTupleEqual(class_ids.shape, (0, ))
+        self.assertTupleEqual(class_ids.shape, (0,))
 
 
 class TestSlidingWindowGeoDataset(unittest.TestCase):

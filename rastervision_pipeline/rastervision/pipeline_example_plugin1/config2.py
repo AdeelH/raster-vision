@@ -1,5 +1,7 @@
 from rastervision.pipeline_example_plugin1.sample_pipeline2 import (
-    SamplePipeline2Config, MessageMakerConfig)
+    SamplePipeline2Config,
+    MessageMakerConfig,
+)
 
 
 def get_config(runner, root_uri):
@@ -8,4 +10,5 @@ def get_config(runner, root_uri):
     # 'hola' instead of 'hello'.
     message_maker = MessageMakerConfig(greeting='hola')
     return SamplePipeline2Config(
-        root_uri=root_uri, names=names, message_maker=message_maker)
+        root_uri=root_uri, names=names, message_maker=message_maker
+    )

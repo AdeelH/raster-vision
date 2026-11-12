@@ -12,10 +12,17 @@ from albumentations.core.transforms_interface import ImageOnlyTransform
 import cv2
 import pandas as pd
 
-from rastervision.pipeline.file_system.utils import (file_exists, file_to_json,
-                                                     get_tmp_dir)
-from rastervision.pipeline.config import (build_config, Config, ConfigError,
-                                          upgrade_config)
+from rastervision.pipeline.file_system.utils import (
+    file_exists,
+    file_to_json,
+    get_tmp_dir,
+)
+from rastervision.pipeline.config import (
+    build_config,
+    Config,
+    ConfigError,
+    upgrade_config,
+)
 
 if TYPE_CHECKING:
     from typing import Self
@@ -25,18 +32,22 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
-def compute_conf_mat(out: torch.Tensor, y: torch.Tensor,
-                     num_labels: int) -> torch.Tensor:
+def compute_conf_mat(
+    out: torch.Tensor, y: torch.Tensor, num_labels: int
+) -> torch.Tensor:
     labels = torch.arange(0, num_labels).to(out.device)
     conf_mat = ((out == labels[:, None]) & (y == labels[:, None, None])).sum(
-        dim=2, dtype=torch.float32)
+        dim=2, dtype=torch.float32
+    )
     return conf_mat
 
 
-def compute_conf_mat_metrics(conf_mat: torch.Tensor,
-                             label_names: list[str],
-                             ignore_idx: int | None = None,
-                             eps: float = 1e-6):
+def compute_conf_mat_metrics(
+    conf_mat: torch.Tensor,
+    label_names: list[str],
+    ignore_idx: int | None = None,
+    eps: float = 1e-6,
+):
     # eps is to avoid dividing by zero.
     eps_tensor = torch.tensor(eps)
     conf_mat = conf_mat.cpu()
@@ -46,7 +57,8 @@ def compute_conf_mat_metrics(conf_mat: torch.Tensor,
         conf_mat = conf_mat[keep_mask, :]
         conf_mat = conf_mat[:, keep_mask]
         label_names = (
-            label_names[:ignore_idx] + label_names[(ignore_idx + 1):])
+            label_names[:ignore_idx] + label_names[(ignore_idx + 1) :]
+        )
 
     gt_count = conf_mat.sum(dim=1)
     pred_count = conf_mat.sum(dim=0)
@@ -59,49 +71,58 @@ def compute_conf_mat_metrics(conf_mat: torch.Tensor,
     weights = gt_count / total
     weighted_precision = (weights * precision).sum()
     weighted_recall = (weights * recall).sum()
-    weighted_f1 = ((2 * weighted_precision * weighted_recall) / torch.max(
-        weighted_precision + weighted_recall, eps_tensor))
+    weighted_f1 = (2 * weighted_precision * weighted_recall) / torch.max(
+        weighted_precision + weighted_recall, eps_tensor
+    )
 
     metrics = {
         'avg_precision': weighted_precision.item(),
         'avg_recall': weighted_recall.item(),
-        'avg_f1': weighted_f1.item()
+        'avg_f1': weighted_f1.item(),
     }
     for i, label in enumerate(label_names):
-        metrics.update({
-            f'{label}_precision': precision[i].item(),
-            f'{label}_recall': recall[i].item(),
-            f'{label}_f1': f1[i].item(),
-        })
+        metrics.update(
+            {
+                f'{label}_precision': precision[i].item(),
+                f'{label}_recall': recall[i].item(),
+                f'{label}_f1': f1[i].item(),
+            }
+        )
     return metrics
 
 
 def validate_albumentation_transform(tf_dict: dict | None) -> dict:
-    """ Validate a serialized albumentation transform by attempting to
+    """Validate a serialized albumentation transform by attempting to
     deserialize it.
     """
     if tf_dict is not None:
         try:
-            lambda_transforms_path = tf_dict.get('lambda_transforms_path',
-                                                 None)
+            lambda_transforms_path = tf_dict.get(
+                'lambda_transforms_path', None
+            )
             # hack: if this is being called while building the config from the
             # bundle, skip the validation because the 'lambda_transforms_path's
             # have not been adjusted yet
-            if (lambda_transforms_path is not None
-                    and lambda_transforms_path.startswith('model-bundle')):
+            if (
+                lambda_transforms_path is not None
+                and lambda_transforms_path.startswith('model-bundle')
+            ):
                 return tf_dict
             else:
                 _ = deserialize_albumentation_transform(tf_dict)
         except Exception:
-            raise ConfigError('The given serialization is invalid. Use '
-                              'A.to_dict(transform) to serialize.')
+            raise ConfigError(
+                'The given serialization is invalid. Use '
+                'A.to_dict(transform) to serialize.'
+            )
     return tf_dict
 
 
 def serialize_albumentation_transform(
-        tf: A.BasicTransform,
-        lambda_transforms_path: str | None = None,
-        dst_dir: str | None = None) -> dict:
+    tf: A.BasicTransform,
+    lambda_transforms_path: str | None = None,
+    dst_dir: str | None = None,
+) -> dict:
     """Serialize an albumentations transform to a dict.
 
     If the transform includes a Lambda transform, a `lambda_transforms_path`
@@ -163,13 +184,16 @@ def deserialize_albumentation_transform(tf_dict: dict) -> A.BasicTransform:
             filename = basename(lambda_transforms_path)
             # download the transforms definition file into tmp_dir
             lambda_transforms_path = download_if_needed(
-                lambda_transforms_path, tmp_dir)
+                lambda_transforms_path, tmp_dir
+            )
             # import it as a module
             lambda_transforms_module = _import_module(
-                name=filename, path=lambda_transforms_path)
+                name=filename, path=lambda_transforms_path
+            )
             # retrieve the lambda_transforms dict from the module
-            lambda_transforms: dict = getattr(lambda_transforms_module,
-                                              'lambda_transforms')
+            lambda_transforms: dict = getattr(
+                lambda_transforms_module, 'lambda_transforms'
+            )
             # de-serialize
             tf = A.from_dict(tf_dict, nonserializable=lambda_transforms)
     else:
@@ -178,7 +202,7 @@ def deserialize_albumentation_transform(tf_dict: dict) -> A.BasicTransform:
 
 
 class SplitTensor(nn.Module):
-    """ Wrapper around `torch.split` """
+    """Wrapper around `torch.split`"""
 
     def __init__(self, size_or_sizes, dim):
         super().__init__()
@@ -190,8 +214,8 @@ class SplitTensor(nn.Module):
 
 
 class Parallel(nn.ModuleList):
-    """ Passes inputs through multiple `nn.Module`s in parallel.
-        Returns a tuple of outputs.
+    """Passes inputs through multiple `nn.Module`s in parallel.
+    Returns a tuple of outputs.
     """
 
     def __init__(self, *args):
@@ -205,7 +229,7 @@ class Parallel(nn.ModuleList):
 
 
 class AddTensors(nn.Module):
-    """ Adds all its inputs together. """
+    """Adds all its inputs together."""
 
     def forward(self, xs):
         return sum(xs)
@@ -219,11 +243,11 @@ class MinMaxNormalize(ImageOnlyTransform):
     """
 
     def __init__(
-            self,
-            min_val=0.0,
-            max_val=1.0,
-            dtype=cv2.CV_32F,
-            p=1.0,
+        self,
+        min_val=0.0,
+        max_val=1.0,
+        dtype=cv2.CV_32F,
+        p=1.0,
     ):
         """Constructor.
 
@@ -245,7 +269,8 @@ class MinMaxNormalize(ImageOnlyTransform):
             self.min_val,
             self.max_val,
             cv2.NORM_MINMAX,
-            dtype=self.dtype)
+            dtype=self.dtype,
+        )
         # We need to clip because sometimes values are slightly less or more than
         # min_val and max_val due to rounding errors.
         return np.clip(out, self.min_val, self.max_val)
@@ -267,9 +292,9 @@ class MinMaxNormalize(ImageOnlyTransform):
         return ('min_val', 'max_val', 'dtype')
 
 
-def adjust_conv_channels(old_conv: nn.Conv2d,
-                         in_channels: int,
-                         pretrained: bool = True) -> nn.Conv2d | nn.Sequential:
+def adjust_conv_channels(
+    old_conv: nn.Conv2d, in_channels: int, pretrained: bool = True
+) -> nn.Conv2d | nn.Sequential:
 
     if in_channels == old_conv.in_channels:
         return old_conv
@@ -284,7 +309,7 @@ def adjust_conv_channels(old_conv: nn.Conv2d,
         'dilation': old_conv.dilation,
         'groups': old_conv.groups,
         'bias': old_conv.bias is not None,
-        'padding_mode': old_conv.padding_mode
+        'padding_mode': old_conv.padding_mode,
     }
 
     if not pretrained:
@@ -304,7 +329,8 @@ def adjust_conv_channels(old_conv: nn.Conv2d,
             # each split goes to its respective conv layer
             Parallel(old_conv, extra_conv),
             # sum the parallel outputs
-            AddTensors())
+            AddTensors(),
+        )
         return new_conv
     elif in_channels < old_conv.in_channels:
         new_conv = nn.Conv2d(in_channels=in_channels, **old_conv_args)
@@ -315,10 +341,12 @@ def adjust_conv_channels(old_conv: nn.Conv2d,
         raise ConfigError('Something went wrong.')
 
 
-def plot_channel_groups(axs: Iterable,
-                        imgs: Iterable[np.ndarray | torch.Tensor],
-                        channel_groups: dict,
-                        plot_title: bool = True) -> None:
+def plot_channel_groups(
+    axs: Iterable,
+    imgs: Iterable[np.ndarray | torch.Tensor],
+    channel_groups: dict,
+    plot_title: bool = True,
+) -> None:
     for title, ax, img in zip(channel_groups.keys(), axs, imgs):
         ax.imshow(img)
         if plot_title:
@@ -328,8 +356,8 @@ def plot_channel_groups(axs: Iterable,
 
 
 def channel_groups_to_imgs(
-        x: torch.Tensor,
-        channel_groups: dict[str, Sequence[int]]) -> list[torch.Tensor]:
+    x: torch.Tensor, channel_groups: dict[str, Sequence[int]]
+) -> list[torch.Tensor]:
     imgs = []
     for title, ch_inds in channel_groups.items():
         img = x[..., ch_inds]
@@ -339,12 +367,14 @@ def channel_groups_to_imgs(
         elif len(ch_inds) == 2:
             # add a 3rd channel with all pixels set to 0.5
             h, w, _ = x.shape
-            third_channel = torch.full((h, w, 1), fill_value=.5)
+            third_channel = torch.full((h, w, 1), fill_value=0.5)
             img = torch.cat((img, third_channel), dim=-1)
         elif len(ch_inds) > 3:
             # only use the first 3 channels
-            log.warning(f'Only plotting first 3 channels of channel-group '
-                        f'{title}: {ch_inds}.')
+            log.warning(
+                f'Only plotting first 3 channels of channel-group '
+                f'{title}: {ch_inds}.'
+            )
             img = x[..., ch_inds[:3]]
         imgs.append(img)
     return imgs
@@ -357,12 +387,14 @@ def log_metrics_to_csv(csv_path: str, metrics: dict[str, Any]):
     # if file already exist, append row
     log_file_exists = isfile(csv_path)
     metrics_df.to_csv(
-        csv_path, mode='a', header=(not log_file_exists), index=False)
+        csv_path, mode='a', header=(not log_file_exists), index=False
+    )
 
 
 def aggregate_metrics(
-        outputs: list[dict[str, float | torch.Tensor]],
-        exclude_keys: Container[str] = set('conf_mat')) -> dict[str, float]:
+    outputs: list[dict[str, float | torch.Tensor]],
+    exclude_keys: Container[str] = set('conf_mat'),
+) -> dict[str, float]:
     """Aggregate the output of validate_step at the end of the epoch.
 
     Args:
@@ -397,6 +429,7 @@ def log_system_details():
     import os
     import sys
     import psutil
+
     # CPUs
     log.info(f'Physical CPUs: {psutil.cpu_count(logical=False)}')
     log.info(f'Logical CPUs: {psutil.cpu_count(logical=True)}')
@@ -408,7 +441,8 @@ def log_system_details():
     if os.path.isdir('/opt/data/'):
         disk_stats = psutil.disk_usage('/opt/data')._asdict()
         log.info(
-            f'Size of /opt/data volume: {disk_stats["total"] / 2**30: .2f} GB')
+            f'Size of /opt/data volume: {disk_stats["total"] / 2**30: .2f} GB'
+        )
     disk_stats = psutil.disk_usage('/')._asdict()
     log.info(f'Size of / volume: {disk_stats["total"] / 2**30: .2f} GB')
 
@@ -421,10 +455,13 @@ def log_system_details():
         with os.popen('nvidia-smi') as f:
             log.info(f.read())
         log.info('Devices:')
-        device_query = ' '.join([
-            'nvidia-smi', '--format=csv',
-            '--query-gpu=index,name,driver_version,memory.total,memory.used,memory.free'
-        ])
+        device_query = ' '.join(
+            [
+                'nvidia-smi',
+                '--format=csv',
+                '--query-gpu=index,name,driver_version,memory.total,memory.used,memory.free',
+            ]
+        )
         with os.popen(device_query) as f:
             log.info(f.read())
     except FileNotFoundError:
@@ -459,8 +496,9 @@ class ONNXRuntimeAdapter:
         self.input_key = inputs[0].name
 
     @classmethod
-    def from_file(cls, path: str,
-                  providers: list[str] | None = None) -> 'Self':
+    def from_file(
+        cls, path: str, providers: list[str] | None = None
+    ) -> 'Self':
         """Construct from file.
 
         Args:
@@ -491,7 +529,8 @@ class ONNXRuntimeAdapter:
 
 
 def get_learner_config_from_bundle_dir(
-        model_bundle_dir: str) -> 'LearnerConfig':
+    model_bundle_dir: str,
+) -> 'LearnerConfig':
     config_path = join(model_bundle_dir, 'learner-config.json')
     if file_exists(config_path):
         cfg = Config.from_file(config_path)
@@ -500,7 +539,8 @@ def get_learner_config_from_bundle_dir(
         config_path = join(model_bundle_dir, 'pipeline-config.json')
         if not file_exists(config_path):
             raise FileNotFoundError(
-                'Could not find a valid config file in the bundle.')
+                'Could not find a valid config file in the bundle.'
+            )
         pipeline_cfg_dict = file_to_json(config_path)
         cfg_dict = pipeline_cfg_dict['learner']
         cfg_dict['plugin_versions'] = pipeline_cfg_dict['plugin_versions']

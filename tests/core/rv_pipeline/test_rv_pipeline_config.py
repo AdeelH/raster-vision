@@ -1,9 +1,12 @@
 import unittest
 
-from rastervision.core.data import (ClassConfig, DatasetConfig)
-from rastervision.core.backend import (BackendConfig)
+from rastervision.core.data import ClassConfig, DatasetConfig
+from rastervision.core.backend import BackendConfig
 from rastervision.core.rv_pipeline.rv_pipeline_config import (
-    PredictOptions, RVPipelineConfig, rv_pipeline_config_upgrader)
+    PredictOptions,
+    RVPipelineConfig,
+    rv_pipeline_config_upgrader,
+)
 
 
 class TestPredictOptions(unittest.TestCase):
@@ -18,12 +21,14 @@ class TestRVPipelineConfig(unittest.TestCase):
             dataset=DatasetConfig(
                 class_config=ClassConfig(names=[]),
                 train_scenes=[],
-                validation_scenes=[]),
+                validation_scenes=[],
+            ),
             backend=BackendConfig(),
             train_chip_sz=20,
             chip_nodata_threshold=0.5,
             predict_chip_sz=20,
-            predict_batch_sz=8)
+            predict_batch_sz=8,
+        )
         cfg_dict = rv_pipeline_config_upgrader(cfg_dict, 10)
         cfg_dict = rv_pipeline_config_upgrader(cfg_dict, 11)
         cfg = RVPipelineConfig(**cfg_dict)
@@ -32,14 +37,16 @@ class TestRVPipelineConfig(unittest.TestCase):
             dataset=DatasetConfig(
                 class_config=ClassConfig(names=[]),
                 train_scenes=[],
-                validation_scenes=[]),
+                validation_scenes=[],
+            ),
             backend=BackendConfig(),
             train_chip_sz=20,
             chip_nodata_threshold=0.5,
             chip_options=dict(method='random'),
             predict_chip_sz=20,
             predict_batch_sz=8,
-            predict_options=dict())
+            predict_options=dict(),
+        )
         cfg_dict = rv_pipeline_config_upgrader(cfg_dict, 10)
         cfg_dict = rv_pipeline_config_upgrader(cfg_dict, 11)
         cfg = RVPipelineConfig(**cfg_dict)

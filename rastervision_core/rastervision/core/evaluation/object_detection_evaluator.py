@@ -1,5 +1,7 @@
-from rastervision.core.evaluation import (ClassificationEvaluator,
-                                          ObjectDetectionEvaluation)
+from rastervision.core.evaluation import (
+    ClassificationEvaluator,
+    ObjectDetectionEvaluation,
+)
 
 
 class ObjectDetectionEvaluator(ClassificationEvaluator):

@@ -40,11 +40,13 @@ class TestBox(unittest.TestCase):
 
     def test_bad_conatiner(self):
         box = Box(0, 0, 5, 10)
-        self.assertRaises(BoxSizeError,
-                          lambda: box.make_random_square_container(9))
+        self.assertRaises(
+            BoxSizeError, lambda: box.make_random_square_container(9)
+        )
         box = Box(0, 0, 10, 5)
-        self.assertRaises(BoxSizeError,
-                          lambda: box.make_random_square_container(9))
+        self.assertRaises(
+            BoxSizeError, lambda: box.make_random_square_container(9)
+        )
 
     def test_neq(self):
         other = Box(self.ymin + 1, self.xmin, self.ymax, self.xmax)
@@ -52,8 +54,11 @@ class TestBox(unittest.TestCase):
 
     def test_int(self):
         other = Box(
-            float(self.ymin) + 0.01, float(self.xmin), float(self.ymax),
-            float(self.xmax))
+            float(self.ymin) + 0.01,
+            float(self.xmin),
+            float(self.ymax),
+            float(self.xmax),
+        )
         self.assertTrue(other.to_int() == self.box)
 
     def test_height(self):
@@ -83,7 +88,8 @@ class TestBox(unittest.TestCase):
 
     def test_npbox_format(self):
         self.assertEqual(
-            tuple(self.box.npbox_format()), self.box.tuple_format())
+            tuple(self.box.npbox_format()), self.box.tuple_format()
+        )
         self.assertEqual(self.box.npbox_format().dtype, float)
 
     def test_geojson_coordinates(self):
@@ -101,8 +107,9 @@ class TestBox(unittest.TestCase):
             container = self.box.make_random_square_container(size)
             self.assertEqual(container.width, container.height)
             self.assertEqual(container.width, size)
-            self.assertTrue(container.to_shapely().contains(
-                self.box.to_shapely()))
+            self.assertTrue(
+                container.to_shapely().contains(self.box.to_shapely())
+            )
 
     def test_make_random_square_container_too_big(self):
         size = 1
@@ -136,8 +143,9 @@ class TestBox(unittest.TestCase):
 
     def test_to_xyxy(self):
         box = Box(*np.random.randint(100, size=4))
-        self.assertEqual(box.to_xyxy(),
-                         (box.xmin, box.ymin, box.xmax, box.ymax))
+        self.assertEqual(
+            box.to_xyxy(), (box.xmin, box.ymin, box.xmax, box.ymax)
+        )
 
     def test_to_points(self):
         box = Box(0, 0, 1, 2)
@@ -160,7 +168,8 @@ class TestBox(unittest.TestCase):
         rio_w = box.to_rasterio()
         self.assertEqual(
             (rio_w.col_off, rio_w.row_off, rio_w.width, rio_w.height),
-            (x, y, w, h))
+            (x, y, w, h),
+        )
 
     def test_from_rasterio(self):
         rio_w = RioWindow.from_slices((10, 20), (1, 2))
@@ -187,7 +196,8 @@ class TestBox(unittest.TestCase):
         dy, dx = np.random.randint(100, size=2)
         self.assertEqual(
             box.translate(dy, dx),
-            Box(box.ymin + dy, box.xmin + dx, box.ymax + dy, box.xmax + dx))
+            Box(box.ymin + dy, box.xmin + dx, box.ymax + dy, box.xmax + dx),
+        )
 
     def test_to_global_coords(self):
         extent = Box(5, 5, 8, 8)
@@ -201,8 +211,10 @@ class TestBox(unittest.TestCase):
 
     def test_to_shapely(self):
         bounds = self.box.to_shapely().bounds
-        self.assertEqual((bounds[1], bounds[0], bounds[3], bounds[2]),
-                         self.box.tuple_format())
+        self.assertEqual(
+            (bounds[1], bounds[0], bounds[3], bounds[2]),
+            self.box.tuple_format(),
+        )
 
     def test_make_square(self):
         square = Box(0, 0, 10, 10)
@@ -255,8 +267,9 @@ class TestBox(unittest.TestCase):
         self.assertRaises(ValueError, lambda: box.get_windows(1, -1))
         self.assertRaises(ValueError, lambda: box.get_windows(0, 1))
         self.assertRaises(ValueError, lambda: box.get_windows(1, 0))
-        self.assertRaises(ValueError,
-                          lambda: box.get_windows(1, 1, padding=-1))
+        self.assertRaises(
+            ValueError, lambda: box.get_windows(1, 1, padding=-1)
+        )
 
         extent = Box(0, 0, 100, 100)
         windows = extent.get_windows(size=10, stride=10)
@@ -268,38 +281,44 @@ class TestBox(unittest.TestCase):
 
         extent = Box(0, 0, 20, 20)
         windows = set(extent.get_windows(size=10, stride=10))
-        expected_windows = set([
-            Box.make_square(0, 0, 10),
-            Box.make_square(0, 10, 10),
-            Box.make_square(10, 0, 10),
-            Box.make_square(10, 10, 10)
-        ])
+        expected_windows = set(
+            [
+                Box.make_square(0, 0, 10),
+                Box.make_square(0, 10, 10),
+                Box.make_square(10, 0, 10),
+                Box.make_square(10, 10, 10),
+            ]
+        )
         self.assertSetEqual(windows, expected_windows)
 
         extent = Box(10, 10, 20, 20)
         windows = set(extent.get_windows(size=6, stride=6))
-        expected_windows = set([
-            Box(10, 10, 16, 16),
-            Box(10, 16, 16, 22),
-            Box(16, 10, 22, 16),
-            Box(16, 16, 22, 22)
-        ])
+        expected_windows = set(
+            [
+                Box(10, 10, 16, 16),
+                Box(10, 16, 16, 22),
+                Box(16, 10, 22, 16),
+                Box(16, 16, 22, 22),
+            ]
+        )
         self.assertSetEqual(windows, expected_windows)
 
         extent = Box(0, 0, 10, 10)
         args = dict(size=5, stride=3, padding=1, pad_direction='end')
         windows = set(extent.get_windows(**args))
-        expected_windows = set([
-            Box(0, 0, 5, 5),
-            Box(0, 3, 5, 8),
-            Box(0, 6, 5, 11),
-            Box(3, 0, 8, 5),
-            Box(3, 3, 8, 8),
-            Box(3, 6, 8, 11),
-            Box(6, 0, 11, 5),
-            Box(6, 3, 11, 8),
-            Box(6, 6, 11, 11),
-        ])
+        expected_windows = set(
+            [
+                Box(0, 0, 5, 5),
+                Box(0, 3, 5, 8),
+                Box(0, 6, 5, 11),
+                Box(3, 0, 8, 5),
+                Box(3, 3, 8, 8),
+                Box(3, 6, 8, 11),
+                Box(6, 0, 11, 5),
+                Box(6, 3, 11, 8),
+                Box(6, 6, 11, 11),
+            ]
+        )
         arg_str = ', '.join(f'{k}={v!r}' for k, v in args.items())
         msg = f'{extent!r}.get_windows({arg_str})'
         self.assertSetEqual(windows, expected_windows, msg=msg)
@@ -307,17 +326,19 @@ class TestBox(unittest.TestCase):
         extent = Box(0, 0, 10, 10)
         args = dict(size=5, stride=3, padding=1, pad_direction='start')
         windows = set(extent.get_windows(**args))
-        expected_windows = set([
-            Box(-1, -1, 4, 4),
-            Box(-1, 2, 4, 7),
-            Box(-1, 5, 4, 10),
-            Box(2, -1, 7, 4),
-            Box(2, 2, 7, 7),
-            Box(2, 5, 7, 10),
-            Box(5, -1, 10, 4),
-            Box(5, 2, 10, 7),
-            Box(5, 5, 10, 10),
-        ])
+        expected_windows = set(
+            [
+                Box(-1, -1, 4, 4),
+                Box(-1, 2, 4, 7),
+                Box(-1, 5, 4, 10),
+                Box(2, -1, 7, 4),
+                Box(2, 2, 7, 7),
+                Box(2, 5, 7, 10),
+                Box(5, -1, 10, 4),
+                Box(5, 2, 10, 7),
+                Box(5, 5, 10, 10),
+            ]
+        )
         arg_str = ', '.join(f'{k}={v!r}' for k, v in args.items())
         msg = f'{extent!r}.get_windows({arg_str})'
         self.assertSetEqual(windows, expected_windows, msg=msg)
@@ -325,17 +346,19 @@ class TestBox(unittest.TestCase):
         extent = Box(0, 0, 10, 10)
         args = dict(size=5, stride=3, padding=1, pad_direction='both')
         windows = set(extent.get_windows(**args))
-        expected_windows = set([
-            Box(-1, -1, 4, 4),
-            Box(-1, 2, 4, 7),
-            Box(-1, 5, 4, 10),
-            Box(2, -1, 7, 4),
-            Box(2, 2, 7, 7),
-            Box(2, 5, 7, 10),
-            Box(5, -1, 10, 4),
-            Box(5, 2, 10, 7),
-            Box(5, 5, 10, 10),
-        ])
+        expected_windows = set(
+            [
+                Box(-1, -1, 4, 4),
+                Box(-1, 2, 4, 7),
+                Box(-1, 5, 4, 10),
+                Box(2, -1, 7, 4),
+                Box(2, 2, 7, 7),
+                Box(2, 5, 7, 10),
+                Box(5, -1, 10, 4),
+                Box(5, 2, 10, 7),
+                Box(5, 5, 10, 10),
+            ]
+        )
         arg_str = ', '.join(f'{k}={v!r}' for k, v in args.items())
         msg = f'{extent!r}.get_windows({arg_str})'
         self.assertSetEqual(windows, expected_windows, msg=msg)
@@ -343,24 +366,26 @@ class TestBox(unittest.TestCase):
         extent = Box(0, 0, 10, 10)
         args = dict(size=5, stride=3, padding=2, pad_direction='both')
         windows = set(extent.get_windows(**args))
-        expected_windows = set([
-            Box(-2, -2, 3, 3),
-            Box(-2, 1, 3, 6),
-            Box(-2, 4, 3, 9),
-            Box(-2, 7, 3, 12),
-            Box(1, -2, 6, 3),
-            Box(1, 1, 6, 6),
-            Box(1, 4, 6, 9),
-            Box(1, 7, 6, 12),
-            Box(4, -2, 9, 3),
-            Box(4, 1, 9, 6),
-            Box(4, 4, 9, 9),
-            Box(4, 7, 9, 12),
-            Box(7, -2, 12, 3),
-            Box(7, 1, 12, 6),
-            Box(7, 4, 12, 9),
-            Box(7, 7, 12, 12),
-        ])
+        expected_windows = set(
+            [
+                Box(-2, -2, 3, 3),
+                Box(-2, 1, 3, 6),
+                Box(-2, 4, 3, 9),
+                Box(-2, 7, 3, 12),
+                Box(1, -2, 6, 3),
+                Box(1, 1, 6, 6),
+                Box(1, 4, 6, 9),
+                Box(1, 7, 6, 12),
+                Box(4, -2, 9, 3),
+                Box(4, 1, 9, 6),
+                Box(4, 4, 9, 9),
+                Box(4, 7, 9, 12),
+                Box(7, -2, 12, 3),
+                Box(7, 1, 12, 6),
+                Box(7, 4, 12, 9),
+                Box(7, 7, 12, 12),
+            ]
+        )
         arg_str = ', '.join(f'{k}={v!r}' for k, v in args.items())
         msg = f'{extent!r}.get_windows({arg_str})'
         self.assertSetEqual(windows, expected_windows, msg=msg)
@@ -398,12 +423,14 @@ class TestBox(unittest.TestCase):
         aoi_polygons = [Box(0, 0, 3, 3).to_shapely()]
 
         filt_windows, filt_inds = Box.filter_by_aoi(
-            windows, aoi_polygons, within=False)
+            windows, aoi_polygons, within=False
+        )
         self.assertListEqual(filt_windows, windows)
         self.assertListEqual(filt_inds, [0, 1])
 
         filt_windows, filt_inds = Box.filter_by_aoi(
-            windows, aoi_polygons, within=True)
+            windows, aoi_polygons, within=True
+        )
         self.assertListEqual(filt_windows, windows[:1])
         self.assertListEqual(filt_inds, [0])
 

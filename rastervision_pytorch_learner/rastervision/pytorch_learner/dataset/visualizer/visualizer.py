@@ -12,8 +12,10 @@ import matplotlib.pyplot as plt
 from rastervision.pipeline.file_system import make_dir
 from rastervision.core.data import ClassConfig
 from rastervision.pytorch_learner.utils import (
-    deserialize_albumentation_transform, validate_albumentation_transform,
-    MinMaxNormalize)
+    deserialize_albumentation_transform,
+    validate_albumentation_transform,
+    MinMaxNormalize,
+)
 from rastervision.pytorch_learner.learner_config import (
     RGBTuple,
     ChannelInds,
@@ -29,14 +31,17 @@ if TYPE_CHECKING:
 class Visualizer(ABC):
     """Base class for plotting samples from computer vision PyTorch Datasets."""
 
-    scale: float = 3.
+    scale: float = 3.0
 
-    def __init__(self,
-                 class_names: list[str],
-                 class_colors: list[str | RGBTuple] | None = None,
-                 transform: dict | None = None,
-                 channel_display_groups: dict[str, ChannelInds]
-                 | Sequence[ChannelInds] | None = None):
+    def __init__(
+        self,
+        class_names: list[str],
+        class_colors: list[str | RGBTuple] | None = None,
+        transform: dict | None = None,
+        channel_display_groups: dict[str, ChannelInds]
+        | Sequence[ChannelInds]
+        | None = None,
+    ):
         """Constructor.
 
         Args:
@@ -65,7 +70,8 @@ class Visualizer(ABC):
             transform = A.to_dict(MinMaxNormalize())
         self.transform = validate_albumentation_transform(transform)
         self._channel_display_groups = validate_channel_display_groups(
-            channel_display_groups)
+            channel_display_groups
+        )
 
     @property
     def class_names(self):
@@ -76,12 +82,14 @@ class Visualizer(ABC):
         return self.class_config.colors
 
     @abstractmethod
-    def plot_xyz(self,
-                 axs,
-                 x: Tensor,
-                 y: Sequence | None = None,
-                 z: Sequence | None = None,
-                 plot_title: bool = True):
+    def plot_xyz(
+        self,
+        axs,
+        x: Tensor,
+        y: Sequence | None = None,
+        z: Sequence | None = None,
+        plot_title: bool = True,
+    ):
         """Plot image, ground truth labels, and predicted labels.
 
         Args:
@@ -91,13 +99,15 @@ class Visualizer(ABC):
             z: optional predicted labels
         """
 
-    def plot_batch(self,
-                   x: Tensor,
-                   y: Sequence | None = None,
-                   output_path: str | None = None,
-                   z: Sequence | None = None,
-                   batch_limit: int | None = None,
-                   show: bool = False):
+    def plot_batch(
+        self,
+        x: Tensor,
+        y: Sequence | None = None,
+        output_path: str | None = None,
+        z: Sequence | None = None,
+        batch_limit: int | None = None,
+        show: bool = False,
+    ):
         """Plot a whole batch in a grid using plot_xyz.
 
         Args:
@@ -108,13 +118,15 @@ class Visualizer(ABC):
             batch_limit: optional limit on (rendered) batch size
         """
         params = self.get_plot_params(
-            x=x, y=y, z=z, output_path=output_path, batch_limit=batch_limit)
+            x=x, y=y, z=z, output_path=output_path, batch_limit=batch_limit
+        )
         if params['subplot_args']['nrows'] == 0:
             return
 
         if x.ndim == 4:
-            fig, axs = plt.subplots(**params['fig_args'],
-                                    **params['subplot_args'])
+            fig, axs = plt.subplots(
+                **params['fig_args'], **params['subplot_args']
+            )
             plot_xyz_args = params['plot_xyz_args']
             self._plot_batch(fig, axs, plot_xyz_args, x, y=y, z=z)
         elif x.ndim == 5:
@@ -128,10 +140,10 @@ class Visualizer(ABC):
             params['fig_args']['figsize'][1] *= T
             fig = plt.figure(**params['fig_args'])
             subfigs = fig.subfigures(
-                nrows=batch_sz, ncols=1, hspace=0.0, squeeze=False)
+                nrows=batch_sz, ncols=1, hspace=0.0, squeeze=False
+            )
             subfig_axs = [
-                subfig.subplots(
-                    nrows=T, ncols=params['subplot_args']['ncols'])
+                subfig.subplots(nrows=T, ncols=params['subplot_args']['ncols'])
                 for subfig in subfigs.flat
             ]
             for i, axs in enumerate(subfig_axs):
@@ -146,8 +158,9 @@ class Visualizer(ABC):
                 _z = None if z is None else [z[i]] * T
                 self._plot_batch(fig, axs, plot_xyz_args, _x, y=_y, z=_z)
         else:
-            raise ValueError('Expected x to have 4 or 5 dims, but found '
-                             f'x.shape: {x.shape}')
+            raise ValueError(
+                f'Expected x to have 4 or 5 dims, but found x.shape: {x.shape}'
+            )
 
         if show:
             plt.show()
@@ -158,13 +171,13 @@ class Visualizer(ABC):
         plt.close(fig)
 
     def _plot_batch(
-            self,
-            fig: 'Figure',
-            axs: Sequence,
-            plot_xyz_args: list[dict],
-            x: Tensor,
-            y: Sequence | None = None,
-            z: Sequence | None = None,
+        self,
+        fig: 'Figure',
+        axs: Sequence,
+        plot_xyz_args: list[dict],
+        x: Tensor,
+        y: Sequence | None = None,
+        z: Sequence | None = None,
     ):
         # (N, c, h, w) --> (N, h, w, c)
         x = x.permute(0, 2, 3, 1)
@@ -183,7 +196,7 @@ class Visualizer(ABC):
             self.plot_xyz(row_axs, x[i], y[i], z=z[i], **plot_xyz_args[i])
 
     def get_channel_display_groups(
-            self, nb_img_channels: int
+        self, nb_img_channels: int
     ) -> dict[str, ChannelInds] | Sequence[ChannelInds]:
         # The default channel_display_groups object depends on the number of
         # channels in the image. This number is not known when the Visualizer
@@ -201,8 +214,9 @@ class Visualizer(ABC):
         """
         return None
 
-    def get_batch(self, dataset: 'Dataset', batch_sz: int = 4,
-                  **kwargs) -> tuple[Tensor, Any]:
+    def get_batch(
+        self, dataset: 'Dataset', batch_sz: int = 4, **kwargs
+    ) -> tuple[Tensor, Any]:
         """Generate a batch from a dataset.
 
         This is a convenience method for generating a batch of data to plot.
@@ -228,8 +242,9 @@ class Visualizer(ABC):
         x = kwargs['x']
         batch_limit = kwargs.get('batch_limit')
         batch_sz = x.shape[0]
-        nrows = min(batch_sz,
-                    batch_limit) if batch_limit is not None else batch_sz
+        nrows = (
+            min(batch_sz, batch_limit) if batch_limit is not None else batch_sz
+        )
         return nrows
 
     def get_plot_ncols(self, **kwargs) -> int:
@@ -246,11 +261,7 @@ class Visualizer(ABC):
                 'constrained_layout': True,
                 'figsize': np.array((self.scale * ncols, self.scale * nrows)),
             },
-            'subplot_args': {
-                'nrows': nrows,
-                'ncols': ncols,
-                'squeeze': False
-            },
-            'plot_xyz_args': [{} for _ in range(nrows)]
+            'subplot_args': {'nrows': nrows, 'ncols': ncols, 'squeeze': False},
+            'plot_xyz_args': [{} for _ in range(nrows)],
         }
         return params

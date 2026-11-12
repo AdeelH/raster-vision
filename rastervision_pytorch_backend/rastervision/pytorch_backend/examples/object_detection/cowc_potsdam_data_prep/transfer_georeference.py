@@ -20,14 +20,18 @@ def transfer_georeference(input_rgb, input_label, output_label):
     rasterio.shutil.copy(input_label, output_label, driver='GTiff')
     with rasterio.open(output_label, 'r+') as dst:
         dst.crs = crs
-        dst.transform = from_bounds(left, bottom, right, top, dst.width,
-                                    dst.height)
+        dst.transform = from_bounds(
+            left, bottom, right, top, dst.width, dst.height
+        )
 
 
 if __name__ == '__main__':
     if not len(sys.argv) >= 4:
-        print('Usage: {} <input_rgb.tif> <input_label.tif> <output_label.tif>'.
-              format(sys.argv[0]))
+        print(
+            'Usage: {} <input_rgb.tif> <input_label.tif> <output_label.tif>'.format(
+                sys.argv[0]
+            )
+        )
         exit()
 
     transfer_georeference(sys.argv[1], sys.argv[2], sys.argv[3])

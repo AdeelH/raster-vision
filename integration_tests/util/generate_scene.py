@@ -6,9 +6,12 @@ import rasterio
 from rasterio.transform import from_origin
 
 from rastervision.core.box import Box
-from rastervision.data import (RasterioCRSTransformer, ObjectDetectionLabels,
-                               ObjectDetectionGeoJSONStore)
-from rastervision.core.class_map import (ClassItem, ClassMap)
+from rastervision.data import (
+    RasterioCRSTransformer,
+    ObjectDetectionLabels,
+    ObjectDetectionGeoJSONStore,
+)
+from rastervision.core.class_map import ClassItem, ClassMap
 
 
 @click.command()
@@ -16,13 +19,15 @@ from rastervision.core.class_map import (ClassItem, ClassMap)
     '--task',
     '-t',
     type=click.Choice(['object_detection', 'semantic_segmentation']),
-    required=True)
+    required=True,
+)
 @click.option('--chip_size', '-c', default=300, type=int)
 @click.option('--chips_per_dimension', '-s', default=3, type=int)
 @click.argument('tiff_path')
 @click.argument('labels_path')
-def generate_scene(task, tiff_path, labels_path, chip_size,
-                   chips_per_dimension):
+def generate_scene(
+    task, tiff_path, labels_path, chip_size, chips_per_dimension
+):
     """Generate a synthetic object detection scene.
 
     Randomly generates a GeoTIFF with red and greed boxes denoting two
@@ -55,25 +60,29 @@ def generate_scene(task, tiff_path, labels_path, chip_size,
             boxes.append(box)
             class_ids.append(class_id)
 
-            image[box.ymin:box.ymax, box.xmin:box.xmax, class_id - 1] = 255
+            image[box.ymin : box.ymax, box.xmin : box.xmax, class_id - 1] = 255
 
     # save image as geotiff centered in philly
     transform = from_origin(-75.163506, 39.952536, 0.000001, 0.000001)
 
-    print('Generated {} boxes with {} different classes.'.format(
-        len(boxes), len(set(class_ids))))
+    print(
+        'Generated {} boxes with {} different classes.'.format(
+            len(boxes), len(set(class_ids))
+        )
+    )
 
     with rasterio.open(
-            tiff_path,
-            'w',
-            driver='GTiff',
-            height=ymax,
-            transform=transform,
-            crs='EPSG:4326',
-            compression=rasterio.enums.Compression.none,
-            width=xmax,
-            count=nb_channels,
-            dtype='uint8') as dst:
+        tiff_path,
+        'w',
+        driver='GTiff',
+        height=ymax,
+        transform=transform,
+        crs='EPSG:4326',
+        compression=rasterio.enums.Compression.none,
+        width=xmax,
+        count=nb_channels,
+        dtype='uint8',
+    ) as dst:
         for channel_ind in range(0, nb_channels):
             dst.write(image[:, :, channel_ind], channel_ind + 1)
 
@@ -86,27 +95,29 @@ def generate_scene(task, tiff_path, labels_path, chip_size,
         # save labels to geojson
         with rasterio.open(tiff_path) as image_dataset:
             crs_transformer = RasterioCRSTransformer(image_dataset)
-            od_file = ObjectDetectionGeoJSONStore(labels_path, crs_transformer,
-                                                  class_map)
+            od_file = ObjectDetectionGeoJSONStore(
+                labels_path, crs_transformer, class_map
+            )
             od_file.save(labels)
     elif task == 'semantic_segmentation':
         label_image = np.zeros((ymax, xmax, 1)).astype(np.uint8)
 
         for box, class_id in zip(boxes, class_ids):
-            label_image[box.ymin:box.ymax, box.xmin:box.xmax, 0] = class_id
+            label_image[box.ymin : box.ymax, box.xmin : box.xmax, 0] = class_id
 
         # save labels to raster
         with rasterio.open(
-                labels_path,
-                'w',
-                driver='GTiff',
-                height=ymax,
-                transform=transform,
-                crs='EPSG:4326',
-                compression=rasterio.enums.Compression.none,
-                width=xmax,
-                count=1,
-                dtype='uint8') as dst:
+            labels_path,
+            'w',
+            driver='GTiff',
+            height=ymax,
+            transform=transform,
+            crs='EPSG:4326',
+            compression=rasterio.enums.Compression.none,
+            width=xmax,
+            count=1,
+            dtype='uint8',
+        ) as dst:
             dst.write(label_image[:, :, 0], 1)
 
 

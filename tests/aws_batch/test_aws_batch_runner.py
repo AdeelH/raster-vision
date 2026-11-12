@@ -21,16 +21,24 @@ class TestAWSBatchRunner(unittest.TestCase):
             'config.json',
             pipeline,
             num_splits=2,
-            pipeline_run_name='test')
+            pipeline_run_name='test',
+        )
         cmd_expected = [
-            'python', '-m', 'rastervision.pipeline.cli', '-vvv', 'run_command',
-            'config.json', 'predict', '--runner', 'batch'
+            'python',
+            '-m',
+            'rastervision.pipeline.cli',
+            '-vvv',
+            'run_command',
+            'config.json',
+            'predict',
+            '--runner',
+            'batch',
         ]
         args_expected = {
             'num_array_jobs': None,
             'use_gpu': False,
             'job_queue': None,
-            'job_def': None
+            'job_def': None,
         }
         self.assertListEqual(cmd, cmd_expected)
         self.assertTrue(args['job_name'].startswith('test'))

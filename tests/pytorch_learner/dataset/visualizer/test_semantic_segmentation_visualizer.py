@@ -17,7 +17,8 @@ class TestClassificationVisualizer(unittest.TestCase):
         # w/o z
         viz = SemanticSegmentationVisualizer(
             class_names=['bg', 'fg'],
-            channel_display_groups=dict(RGB=[0, 1, 2], IR=[3]))
+            channel_display_groups=dict(RGB=[0, 1, 2], IR=[3]),
+        )
         x = torch.randn(size=(2, 4, 256, 256))
         y = (torch.randn(size=(2, 256, 256)) > 0).long()
         self.assertNoError(lambda: viz.plot_batch(x, y))
@@ -25,7 +26,8 @@ class TestClassificationVisualizer(unittest.TestCase):
         # w/ z
         viz = SemanticSegmentationVisualizer(
             class_names=['bg', 'fg'],
-            channel_display_groups=dict(RGB=[0, 1, 2], IR=[3]))
+            channel_display_groups=dict(RGB=[0, 1, 2], IR=[3]),
+        )
         num_classes = 2
         x = torch.randn(size=(2, 4, 256, 256))
         y = (torch.randn(size=(2, 256, 256)) > 0).long()
@@ -35,7 +37,8 @@ class TestClassificationVisualizer(unittest.TestCase):
         # w/ z, w/o y
         viz = SemanticSegmentationVisualizer(
             class_names=['bg', 'fg'],
-            channel_display_groups=dict(RGB=[0, 1, 2], IR=[3]))
+            channel_display_groups=dict(RGB=[0, 1, 2], IR=[3]),
+        )
         num_classes = 2
         x = torch.randn(size=(2, 4, 256, 256))
         y = None
@@ -46,7 +49,8 @@ class TestClassificationVisualizer(unittest.TestCase):
         # w/o z
         viz = SemanticSegmentationVisualizer(
             class_names=['bg', 'fg'],
-            channel_display_groups=dict(RGB=[0, 1, 2], IR=[3]))
+            channel_display_groups=dict(RGB=[0, 1, 2], IR=[3]),
+        )
         x = torch.randn(size=(2, 3, 4, 256, 256))
         y = (torch.randn(size=(2, 256, 256)) > 0).long()
         self.assertNoError(lambda: viz.plot_batch(x, y))
@@ -56,7 +60,8 @@ class TestClassificationVisualizer(unittest.TestCase):
         # w/ z
         viz = SemanticSegmentationVisualizer(
             class_names=['bg', 'fg'],
-            channel_display_groups=dict(RGB=[0, 1, 2], IR=[3]))
+            channel_display_groups=dict(RGB=[0, 1, 2], IR=[3]),
+        )
         num_classes = 2
         x = torch.randn(size=(2, 3, 4, 256, 256))
         y = (torch.randn(size=(2, 256, 256)) > 0).long()
@@ -68,7 +73,8 @@ class TestClassificationVisualizer(unittest.TestCase):
         # w/ z, w/o y
         viz = SemanticSegmentationVisualizer(
             class_names=['bg', 'fg'],
-            channel_display_groups=dict(RGB=[0, 1, 2], IR=[3]))
+            channel_display_groups=dict(RGB=[0, 1, 2], IR=[3]),
+        )
         num_classes = 2
         x = torch.randn(size=(2, 3, 4, 256, 256))
         y = None

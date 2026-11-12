@@ -7,8 +7,7 @@ from moto import mock_aws
 from shapely.geometry import Polygon
 
 from rastervision.pipeline.file_system import get_tmp_dir
-from rastervision.core.utils.stac import (S3StacIO, setup_stac_io,
-                                          read_stac)
+from rastervision.core.utils.stac import S3StacIO, setup_stac_io, read_stac
 
 from tests import data_file_path
 
@@ -26,6 +25,7 @@ class TestStac(unittest.TestCase):
     @mock_aws
     def test_setup_stac_io_s3(self):
         from pystac import StacIO
+
         default_stac_io = StacIO.default()
         try:
             setup_stac_io()
@@ -47,7 +47,7 @@ class TestStac(unittest.TestCase):
             'label_bbox': Polygon,
             'image_bbox': (type(None), Polygon),
             'bboxes_intersect': bool,
-            'aoi_geometry': (type(None), dict)
+            'aoi_geometry': (type(None), dict),
         }
 
         with get_tmp_dir() as tmp_dir:

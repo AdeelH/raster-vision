@@ -7,13 +7,15 @@ import glob
 
 from tqdm.auto import tqdm
 
-from rastervision.pipeline.file_system import (FileSystem, NotReadableError)
+from rastervision.pipeline.file_system import FileSystem, NotReadableError
 
 
-def make_dir(path: str,
-             check_empty: bool = False,
-             force_empty: bool = False,
-             use_dirname: bool = False):
+def make_dir(
+    path: str,
+    check_empty: bool = False,
+    force_empty: bool = False,
+    use_dirname: bool = False,
+):
     """Make a local directory.
 
     Args:
@@ -38,11 +40,13 @@ def make_dir(path: str,
         with os.scandir(directory) as it:
             if any(it):
                 raise ValueError(
-                    f'{directory} needs to be an empty directory!')
+                    f'{directory} needs to be an empty directory!'
+                )
 
 
-def progressbar(file_obj, method: Literal['read', 'write'], size: int,
-                desc: str):
+def progressbar(
+    file_obj, method: Literal['read', 'write'], size: int, desc: str
+):
     return tqdm.wrapattr(
         file_obj,
         method,
@@ -50,7 +54,8 @@ def progressbar(file_obj, method: Literal['read', 'write'], size: int,
         desc=desc,
         bytes=True,
         mininterval=0.5,
-        delay=5)
+        delay=5,
+    )
 
 
 class LocalFileSystem(FileSystem):
@@ -62,7 +67,7 @@ class LocalFileSystem(FileSystem):
 
     @staticmethod
     def file_exists(uri: str, include_dir: bool = True) -> bool:
-        return (os.path.isfile(uri) or (include_dir and os.path.isdir(uri)))
+        return os.path.isfile(uri) or (include_dir and os.path.isdir(uri))
 
     @staticmethod
     def read_str(file_uri: str) -> str:
@@ -72,7 +77,8 @@ class LocalFileSystem(FileSystem):
         file_size = os.path.getsize(file_uri)
         with open(file_uri, 'r') as in_file, io.StringIO() as str_buffer:
             with progressbar(
-                    in_file, 'read', file_size, desc='Reading file') as bar:
+                in_file, 'read', file_size, desc='Reading file'
+            ) as bar:
                 shutil.copyfileobj(bar, str_buffer)
             return str_buffer.getvalue()
 
@@ -84,7 +90,8 @@ class LocalFileSystem(FileSystem):
         file_size = os.path.getsize(file_uri)
         with open(file_uri, 'rb') as in_file, io.BytesIO() as byte_buffer:
             with progressbar(
-                    in_file, 'read', file_size, desc='Reading file') as bar:
+                in_file, 'read', file_size, desc='Reading file'
+            ) as bar:
                 shutil.copyfileobj(bar, byte_buffer)
             return byte_buffer.getvalue()
 
@@ -101,8 +108,9 @@ class LocalFileSystem(FileSystem):
             content_file.write(data)
 
     @staticmethod
-    def sync_from_dir(src_dir_uri: str, dst_dir: str,
-                      delete: bool = False) -> None:
+    def sync_from_dir(
+        src_dir_uri: str, dst_dir: str, delete: bool = False
+    ) -> None:
         if src_dir_uri == dst_dir:
             return
 
@@ -115,16 +123,18 @@ class LocalFileSystem(FileSystem):
                 if not os.path.isdir(dest):
                     os.makedirs(dest)
                     for entry in os.scandir(src):
-                        recursive_overwrite(entry.path,
-                                            os.path.join(dest, entry.name))
+                        recursive_overwrite(
+                            entry.path, os.path.join(dest, entry.name)
+                        )
             else:
                 shutil.copyfile(src, dest)
 
         recursive_overwrite(src_dir_uri, dst_dir)
 
     @staticmethod
-    def sync_to_dir(src_dir: str, dst_dir_uri: str,
-                    delete: bool = False) -> None:
+    def sync_to_dir(
+        src_dir: str, dst_dir_uri: str, delete: bool = False
+    ) -> None:
         LocalFileSystem.sync_from_dir(src_dir, dst_dir_uri, delete)
 
     @staticmethod

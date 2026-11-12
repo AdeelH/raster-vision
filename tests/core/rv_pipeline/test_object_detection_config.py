@@ -1,6 +1,6 @@
 import unittest
 
-from rastervision.core.rv_pipeline import (ObjectDetectionPredictOptions)
+from rastervision.core.rv_pipeline import ObjectDetectionPredictOptions
 
 
 class TestObjectDetectionPredictOptions(unittest.TestCase):

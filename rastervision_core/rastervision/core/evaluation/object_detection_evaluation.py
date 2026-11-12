@@ -3,8 +3,10 @@ from typing import TYPE_CHECKING
 import numpy as np
 import geopandas as gpd
 
-from rastervision.core.evaluation import (ClassificationEvaluation,
-                                          ClassEvaluationItem)
+from rastervision.core.evaluation import (
+    ClassificationEvaluation,
+    ClassEvaluationItem,
+)
 
 if TYPE_CHECKING:
     from rastervision.core.data import ObjectDetectionLabels
@@ -12,10 +14,11 @@ if TYPE_CHECKING:
 
 
 def compute_metrics(
-        gt_labels: 'ObjectDetectionLabels',
-        pred_labels: 'ObjectDetectionLabels',
-        num_classes: int,
-        iou_thresh: float = 0.5) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    gt_labels: 'ObjectDetectionLabels',
+    pred_labels: 'ObjectDetectionLabels',
+    num_classes: int,
+    iou_thresh: float = 0.5,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Compute per-class true positives, false positives, and false negatives.
 
     Does the following:
@@ -39,10 +42,12 @@ def compute_metrics(
     pred_classes = pred_labels.get_class_ids()
 
     gt_df = gpd.GeoDataFrame(
-        dict(class_id=gt_classes, id=range(len(gt_geoms))), geometry=gt_geoms)
+        dict(class_id=gt_classes, id=range(len(gt_geoms))), geometry=gt_geoms
+    )
     pred_df = gpd.GeoDataFrame(
         dict(class_id=pred_classes, id=range(len(pred_geoms))),
-        geometry=pred_geoms)
+        geometry=pred_geoms,
+    )
 
     gt_df.loc[:, '_geometry'] = gt_df.geometry
     pred_df.loc[:, '_geometry'] = pred_df.geometry
@@ -52,25 +57,31 @@ def compute_metrics(
         how='inner',
         predicate='intersects',
         lsuffix='gt',
-        rsuffix='pred')
+        rsuffix='pred',
+    )
 
     intersection = match_df['_geometry_gt'].intersection(
-        match_df['_geometry_pred'])
+        match_df['_geometry_pred']
+    )
     union = match_df['_geometry_gt'].union(match_df['_geometry_pred'])
-    match_df.loc[:, 'iou'] = (intersection.area / union.area)
+    match_df.loc[:, 'iou'] = intersection.area / union.area
     match_df = match_df.loc[match_df['iou'] > iou_thresh]
     match_df = match_df.sort_values('iou').drop_duplicates(
-        ['id_gt'], keep='last')
+        ['id_gt'], keep='last'
+    )
     match_df = match_df.sort_values('iou').drop_duplicates(
-        ['id_pred'], keep='last')
+        ['id_pred'], keep='last'
+    )
 
-    tp = np.zeros((num_classes, ))
-    fp = np.zeros((num_classes, ))
-    fn = np.zeros((num_classes, ))
+    tp = np.zeros((num_classes,))
+    fp = np.zeros((num_classes,))
+    fn = np.zeros((num_classes,))
 
     for class_id in range(num_classes):
-        tp[class_id] = sum((match_df['class_id_gt'] == class_id)
-                           & (match_df['class_id_pred'] == class_id))
+        tp[class_id] = sum(
+            (match_df['class_id_gt'] == class_id)
+            & (match_df['class_id_pred'] == class_id)
+        )
         fp[class_id] = sum(pred_df['class_id'] == class_id) - tp[class_id]
         fn[class_id] = sum(gt_df['class_id'] == class_id) - tp[class_id]
 
@@ -83,29 +94,36 @@ class ObjectDetectionEvaluation(ClassificationEvaluation):
         self.class_config = class_config
         self.iou_thresh = iou_thresh
 
-    def compute(self, ground_truth_labels: 'ObjectDetectionLabels',
-                prediction_labels: 'ObjectDetectionLabels'):
+    def compute(
+        self,
+        ground_truth_labels: 'ObjectDetectionLabels',
+        prediction_labels: 'ObjectDetectionLabels',
+    ):
         self.class_to_eval_item = ObjectDetectionEvaluation.compute_eval_items(
             ground_truth_labels,
             prediction_labels,
             self.class_config,
-            iou_thresh=self.iou_thresh)
+            iou_thresh=self.iou_thresh,
+        )
         self.compute_avg()
 
     @staticmethod
     def compute_eval_items(
-            gt_labels: 'ObjectDetectionLabels',
-            pred_labels: 'ObjectDetectionLabels',
-            class_config: 'ClassConfig',
-            iou_thresh: float = 0.5) -> dict[int, ClassEvaluationItem]:
+        gt_labels: 'ObjectDetectionLabels',
+        pred_labels: 'ObjectDetectionLabels',
+        class_config: 'ClassConfig',
+        iou_thresh: float = 0.5,
+    ) -> dict[int, ClassEvaluationItem]:
         num_classes = len(class_config)
-        tps, fps, fns = compute_metrics(gt_labels, pred_labels, num_classes,
-                                        iou_thresh)
+        tps, fps, fns = compute_metrics(
+            gt_labels, pred_labels, num_classes, iou_thresh
+        )
         class_to_eval_item = {}
         for class_id, (tp, fp, fn) in enumerate(zip(tps, fps, fns)):
             class_name = class_config.get_name(class_id)
             eval_item = ClassEvaluationItem(
-                class_id=class_id, class_name=class_name, tp=tp, fp=fp, fn=fn)
+                class_id=class_id, class_name=class_name, tp=tp, fp=fp, fn=fn
+            )
             class_to_eval_item[class_id] = eval_item
 
         return class_to_eval_item

@@ -3,7 +3,8 @@ import unittest
 
 from rastervision.pipeline.file_system import get_tmp_dir, make_dir
 from rastervision.pytorch_learner.dataset.regression_dataset import (
-    RegressionDataReader)
+    RegressionDataReader,
+)
 
 
 class TestRegressionDataReader(unittest.TestCase):
