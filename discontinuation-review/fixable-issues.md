@@ -37,7 +37,7 @@ It is meant to help the discontinuation decision in two ways: it shows what keep
 | 8 | ✅ ~~[No-data / `null_class` handling in `SemanticSegmentationLabelSource` (#2326)](#8-no-data--null_class-handling-in-semanticsegmentationlabelsource-2326)~~ (docstring fixed) | Correctness / API | 🟠 | S | Yes |
 | 9 | [Five community PRs awaiting review](#9-five-community-prs-awaiting-review) | Project health | 🟠 | S–M | — |
 | 10 | [Multi-URI `RasterioSource` (`build_vrt`) has no tests](#10-multi-uri-rasteriosource-build_vrt-has-no-tests) | Tests | 🟡 | S | — |
-| 11 | [Test suite only runs inside Docker and with `unittest`](#11-test-suite-only-runs-inside-docker-and-with-unittest) | Tests | 🟡 | S | — |
+| 11 | ✅ ~~[Test suite only runs inside Docker and with `unittest`](#11-test-suite-only-runs-inside-docker-and-with-unittest)~~ (fixed) | Tests | 🟡 | S | — |
 | 12 | ✅ ~~[Brittle geometry-equality test](#12-brittle-geometry-equality-test)~~ (fixed) | Tests | 🟡 | XS | — |
 | 13 | [Broken links: model zoo 0.31 and SpaceNet quickstart data (#2320)](#13-broken-links-model-zoo-031-and-spacenet-quickstart-data-2320) | Docs / assets | 🟡 | S | Yes (docs) |
 | 14 | [S3 sync silently depends on the `aws` CLI](#14-s3-sync-silently-depends-on-the-aws-cli) | Packaging / correctness | 🟠 | S | Yes |
@@ -317,6 +317,8 @@ Whatever we decide, these contributors deserve a response: merge, request change
 ### 11. Test suite only runs inside Docker and with `unittest`
 
 🟡 Low · Effort **S**
+
+> **Status: fixed.** The CLI and `tiny_spacenet` tests use temporary directories (the `tiny_spacenet` example now accepts a `root_uri` argument), the upgrader test helper was renamed to `check_config_upgrader`, and `tests/__init__.py` isolates the tests from the developer's AWS credentials and config (an expired SSO session made the `get_aws_session` tests fail). The full suite (567 tests) passes outside Docker with both `unittest` and `pytest`. Running the integration tests on a machine with a display also uncovered a crash: matplotlib's Tk backend was used to create plots that are only saved to file, and the Tk objects were garbage-collected on another thread. Those plots now use figures not managed by `pyplot`.
 
 **Problems.**
 - `tests/pipeline/test_cli.py` hardcodes `/opt/data/...` output paths, which exist only in the Docker image. The same CLI command succeeds when given `/tmp`.

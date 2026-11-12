@@ -43,7 +43,7 @@ In the {{ tiny_spacenet }} example, the :class:`.SemanticSegmentationConfig` is 
 
 .. literalinclude:: /../rastervision_pytorch_backend/rastervision/pytorch_backend/examples/tiny_spacenet.py
     :language: python
-    :lines: 48-52
+    :lines: 58-63
     :dedent:
 
 .. seealso:: The :class:`.ChipClassificationConfig`, :class:`.SemanticSegmentationConfig`, and :class:`.ObjectDetectionConfig` API docs have more information on configuring pipelines.
@@ -290,7 +290,7 @@ In our {{ tiny_spacenet }} example, we configured the PyTorch semantic segmentat
 
 .. literalinclude:: /../rastervision_pytorch_backend/rastervision/pytorch_backend/examples/tiny_spacenet.py
     :language: python
-    :lines: 32-46
+    :lines: 39-56
     :dedent:
 
 .. seealso:: :mod:`rastervision.pytorch_backend` and :mod:`rastervision.pytorch_learner` API docs for more information on configuring backends.
@@ -308,7 +308,7 @@ In our {{ tiny_spacenet }} example, we configured the dataset with single scenes
 
 .. literalinclude:: /../rastervision_pytorch_backend/rastervision/pytorch_backend/examples/tiny_spacenet.py
     :language: python
-    :lines: 23-30
+    :lines: 27-37
     :dedent:
 
 .. _scene:

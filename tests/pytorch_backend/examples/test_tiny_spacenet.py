@@ -1,6 +1,5 @@
 import unittest
 from os.path import join
-import shutil
 
 from click.testing import CliRunner
 
@@ -18,15 +17,24 @@ from tests import data_file_path
 
 
 class TestTinySpacenet(unittest.TestCase):
+    def setUp(self):
+        self.tmp_dir_obj = get_tmp_dir()
+        self.root_uri = self.tmp_dir_obj.name
+
+    def tearDown(self):
+        self.tmp_dir_obj.cleanup()
+
     def test_rastervision_run_tiny_spacenet(self):
         runner = CliRunner()
-        shutil.rmtree('/opt/data/output/tiny_spacenet', ignore_errors=True)
         result = runner.invoke(
             main,
             [
                 'run',
                 'inprocess',
                 'rastervision.pytorch_backend.examples.tiny_spacenet',
+                '-a',
+                'root_uri',
+                self.root_uri,
             ],
         )
         if result.exit_code != 0:
@@ -34,7 +42,7 @@ class TestTinySpacenet(unittest.TestCase):
             raise result.exception
 
         # test predict command
-        bundle_path = '/opt/data/output/tiny_spacenet/bundle/model-bundle.zip'
+        bundle_path = join(self.root_uri, 'bundle', 'model-bundle.zip')
         img_path = data_file_path('small-rgb-tile.tif')
         with get_tmp_dir() as tmp_dir:
             result = runner.invoke(
@@ -54,7 +62,7 @@ class TestTinySpacenet(unittest.TestCase):
             raise result.exception
 
         # test predict_scene command
-        bundle_path = '/opt/data/output/tiny_spacenet/bundle/model-bundle.zip'
+        bundle_path = join(self.root_uri, 'bundle', 'model-bundle.zip')
         img_path = data_file_path('small-rgb-tile.tif')
         with get_tmp_dir() as tmp_dir:
             pred_uri = join(tmp_dir, 'pred')
