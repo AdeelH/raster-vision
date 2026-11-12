@@ -1,4 +1,3 @@
-# flake8: noqa
 
 from rastervision.core.data.label_store.label_store import *
 from rastervision.core.data.label_store.label_store_config import *

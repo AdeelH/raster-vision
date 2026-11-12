@@ -1,4 +1,3 @@
-# flake8: noqa
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:

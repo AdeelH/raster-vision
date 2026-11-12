@@ -78,7 +78,6 @@ COPY scripts /opt/src/scripts/
 COPY scripts/rastervision /usr/local/bin/rastervision
 COPY tests /opt/src/tests/
 COPY integration_tests /opt/src/integration_tests/
-COPY .flake8 /opt/src/.flake8
 COPY .coveragerc /opt/src/.coveragerc
 COPY pyproject.toml uv.lock README.md LICENSE /opt/src/
 

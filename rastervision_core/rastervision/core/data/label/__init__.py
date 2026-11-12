@@ -1,4 +1,3 @@
-# flake8: noqa
 
 from rastervision.core.data.label.labels import *
 from rastervision.core.data.label.chip_classification_labels import *

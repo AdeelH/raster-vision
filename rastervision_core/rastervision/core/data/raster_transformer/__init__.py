@@ -1,4 +1,3 @@
-# flake8: noqa
 
 from rastervision.core.data.raster_transformer.raster_transformer import *
 from rastervision.core.data.raster_transformer.raster_transformer_config import *

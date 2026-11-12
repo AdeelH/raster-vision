@@ -20,6 +20,14 @@ Everyone who contributes code to Raster Vision will be asked to sign a CLA, whic
    - Emailing the document to contracts@element84.com
    - Mailing a hardcopy to: ``Element 84, 210 N. Lee Street Suite 203 Alexandria, VA 22314, USA``.
 
+Code style
+----------
+
+Raster Vision uses `ruff <https://docs.astral.sh/ruff/>`__ for formatting and linting, and `pyright <https://microsoft.github.io/pyright/>`__ for type checking. Their configuration is in the root ``pyproject.toml``. Both are installed by ``scripts/setup_dev_env``.
+
+- Format the code with ``scripts/format_code`` (``ruff format``).
+- Check the code with ``scripts/style_tests``, which runs ``ruff check``, ``ruff format --check`` and ``pyright``. CI runs the same checks.
+
 
 .. toctree::
     :maxdepth: 2

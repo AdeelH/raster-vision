@@ -14,7 +14,7 @@ SRC_DIR="$( cd -P "$( dirname "$SCRIPTS_DIR" )" && pwd )"
 function usage() {
     echo -n \
 "Usage: $(basename "$0")
-Test that code is compliant with yapf (code formatter) and flake8.
+Lint (ruff), check formatting (ruff format), and type check (pyright) the code.
 "
 }
 
@@ -22,25 +22,17 @@ Test that code is compliant with yapf (code formatter) and flake8.
 if [ "${1:-}" = "--help" ]; then
     usage
 else
-    echo "Checking that code is consistent with flake8..."
+    cd "$SRC_DIR"
 
-    flake8 "$SRC_DIR" \
-        --exclude ".git,.venv,build,docs,cookiecutter_template,*tfod_utils*,.history,data"
+    echo "Linting with ruff..."
+    ruff check .
 
-    # Exit code of 1 if yapf has a non-empty diff
-    # (ie. scripts/format_code needs to be run)
-    echo "Checking that code is consistent with yapf..."
-    
-    if !(yapf -dpr \
-        -e "*build*" \
-        -e "*.egg-info*" \
-        -e "*cookiecutter_template*" \
-        -e "*tfod_utils*" \
-        -e "*.history*" \
-        -e "**/*.ipynb" \
-        "$SRC_DIR/rastervision_*/" "$SRC_DIR/tests/" "$SRC_DIR/integration_tests/" \
-         > /dev/null); then
-        echo "Code has not been formatted by yapf. Need to run ./scripts/format_code."
+    echo "Checking formatting with ruff..."
+    if ! ruff format --check .; then
+        echo "Code has not been formatted. Need to run ./scripts/format_code."
         exit 1
     fi
+
+    echo "Type checking with pyright..."
+    pyright
 fi
