@@ -1,7 +1,16 @@
-from typing import TYPE_CHECKING, cast
-from os.path import join
 import logging
+from os.path import join
+from typing import TYPE_CHECKING, cast
 
+from rastervision.core.analyzer import StatsAnalyzerConfig
+from rastervision.core.data import (
+    PolygonVectorOutputConfig,
+    SceneConfig,
+    SemanticSegmentationLabelStoreConfig,
+    StatsTransformerConfig,
+)
+from rastervision.core.data.raster_source import ChannelOrderError
+from rastervision.core.rv_pipeline import PredictOptions
 from rastervision.pipeline import rv_config_ as rv_config
 from rastervision.pipeline.config import build_config, upgrade_config
 from rastervision.pipeline.file_system.utils import (
@@ -10,19 +19,10 @@ from rastervision.pipeline.file_system.utils import (
     get_tmp_dir,
     unzip,
 )
-from rastervision.core.data.raster_source import ChannelOrderError
-from rastervision.core.data import (
-    SceneConfig,
-    SemanticSegmentationLabelStoreConfig,
-    PolygonVectorOutputConfig,
-    StatsTransformerConfig,
-)
-from rastervision.core.rv_pipeline import PredictOptions
-from rastervision.core.analyzer import StatsAnalyzerConfig
 
 if TYPE_CHECKING:
-    from rastervision.core.rv_pipeline import RVPipeline, RVPipelineConfig
     from rastervision.core.data import Scene
+    from rastervision.core.rv_pipeline import RVPipeline, RVPipelineConfig
 
 log = logging.getLogger(__name__)
 

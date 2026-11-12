@@ -1,5 +1,5 @@
-from os.path import join
 import unittest
+from os.path import join
 
 from rastervision.pipeline.file_system import get_tmp_dir, make_dir
 from rastervision.pytorch_learner.dataset.regression_dataset import (

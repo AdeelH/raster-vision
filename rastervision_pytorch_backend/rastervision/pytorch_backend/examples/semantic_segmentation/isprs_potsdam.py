@@ -1,14 +1,7 @@
-from os.path import join, basename
+from os.path import basename, join
 
 import albumentations as A
 
-from rastervision.core.rv_pipeline import (
-    SemanticSegmentationConfig,
-    SemanticSegmentationChipOptions,
-    SemanticSegmentationPredictOptions,
-    WindowSamplingConfig,
-    WindowSamplingMethod,
-)
 from rastervision.core.data import (
     ClassConfig,
     DatasetConfig,
@@ -19,22 +12,29 @@ from rastervision.core.data import (
     SemanticSegmentationLabelSourceConfig,
     SemanticSegmentationLabelStoreConfig,
 )
+from rastervision.core.rv_pipeline import (
+    SemanticSegmentationChipOptions,
+    SemanticSegmentationConfig,
+    SemanticSegmentationPredictOptions,
+    WindowSamplingConfig,
+    WindowSamplingMethod,
+)
 from rastervision.pytorch_backend import PyTorchSemanticSegmentationConfig
+from rastervision.pytorch_backend.examples.semantic_segmentation.utils import (
+    Unnormalize,
+    example_multiband_transform,
+    example_rgb_transform,
+    imagenet_stats,
+)
+from rastervision.pytorch_backend.examples.utils import save_image_crop
 from rastervision.pytorch_learner import (
     Backbone,
     ExternalModuleConfig,
     PlotOptions,
-    SolverConfig,
     SemanticSegmentationGeoDataConfig,
     SemanticSegmentationImageDataConfig,
     SemanticSegmentationModelConfig,
-)
-from rastervision.pytorch_backend.examples.utils import save_image_crop
-from rastervision.pytorch_backend.examples.semantic_segmentation.utils import (
-    example_multiband_transform,
-    example_rgb_transform,
-    imagenet_stats,
-    Unnormalize,
+    SolverConfig,
 )
 
 TRAIN_IDS = [

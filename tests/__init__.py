@@ -1,5 +1,5 @@
-from collections.abc import Callable
 import os
+from collections.abc import Callable
 
 # Never use the developer's real AWS credentials or config in tests (e.g. an
 # expired SSO session would make some tests fail). Tests that need AWS use moto.

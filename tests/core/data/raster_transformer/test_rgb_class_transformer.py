@@ -2,12 +2,12 @@ import unittest
 
 import numpy as np
 
+from rastervision.core.data.class_config import ClassConfig
 from rastervision.core.data.raster_transformer import (
     RGBClassTransformer,
     RGBClassTransformerConfig,
 )
 from rastervision.core.data.utils import color_to_triple
-from rastervision.core.data.class_config import ClassConfig
 
 
 class TestRGBClassTransformerConfig(unittest.TestCase):

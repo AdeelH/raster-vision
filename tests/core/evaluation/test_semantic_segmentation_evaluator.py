@@ -1,20 +1,19 @@
-from typing import cast
 import unittest
 from os.path import join
+from typing import cast
 
 import numpy as np
 
-from rastervision.pipeline.file_system import file_to_json, get_tmp_dir
-from rastervision.core.data import ClassConfig
 from rastervision.core.data import (
+    ClassConfig,
     LabelStore,
     Scene,
     SemanticSegmentationLabelSource,
 )
 from rastervision.core.evaluation import SemanticSegmentationEvaluator
-
-from tests.core.data.mock_raster_source import MockRasterSource
+from rastervision.pipeline.file_system import file_to_json, get_tmp_dir
 from tests import data_file_path
+from tests.core.data.mock_raster_source import MockRasterSource
 
 
 class MockRVPipelineConfig:

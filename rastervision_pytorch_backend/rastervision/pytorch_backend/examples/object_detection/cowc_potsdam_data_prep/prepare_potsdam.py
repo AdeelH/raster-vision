@@ -1,14 +1,12 @@
-import os
 import glob
+import os
 
-import rasterio
-from PIL import Image
-import numpy as np
 import click
-
+import numpy as np
+import rasterio
 from object_detection.utils.np_box_list import BoxList
-
-from rv.utils import save_geojson, make_empty_dir
+from PIL import Image
+from rv.utils import make_empty_dir, save_geojson
 
 
 def png_to_geojson(geotiff_path, label_png_path, output_path, object_half_len):

@@ -2,13 +2,13 @@ import unittest
 from typing import Any
 
 from rastervision.core.data import ClassConfig
-from rastervision.core.data.vector_transformer import (
-    ClassInferenceTransformer,
-    ClassInferenceTransformerConfig,
-)
 from rastervision.core.data.utils import (
     geometries_to_geojson,
     geometry_to_feature,
+)
+from rastervision.core.data.vector_transformer import (
+    ClassInferenceTransformer,
+    ClassInferenceTransformerConfig,
 )
 from rastervision.core.data.vector_transformer.label_maker.filter import (
     create_filter,

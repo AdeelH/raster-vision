@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Sequence
 
 import numpy as np
 import shapely
-from shapely.geometry import Polygon, MultiPolygon
+from shapely.geometry import MultiPolygon, Polygon
 from shapely.ops import unary_union
 
 if TYPE_CHECKING:

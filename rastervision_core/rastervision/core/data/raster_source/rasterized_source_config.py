@@ -5,10 +5,10 @@ from pydantic import Field, field_validator
 from rastervision.core.data.raster_source import RasterizedSource
 from rastervision.core.data.vector_source import VectorSourceConfig
 from rastervision.core.data.vector_transformer import (
-    ClassInferenceTransformerConfig,
     BufferTransformerConfig,
+    ClassInferenceTransformerConfig,
 )
-from rastervision.pipeline.config import register_config, Config
+from rastervision.pipeline.config import Config, register_config
 
 if TYPE_CHECKING:
     from rastervision.core.box import Box

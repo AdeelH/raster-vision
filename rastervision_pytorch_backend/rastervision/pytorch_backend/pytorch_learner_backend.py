@@ -1,22 +1,23 @@
-from collections.abc import Sized
-from typing import TYPE_CHECKING, Any, Literal, cast
-from os.path import join, splitext
 import tempfile
+from collections.abc import Sized
+from os.path import join, splitext
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 import numpy as np
 from tqdm.auto import tqdm
 
-from rastervision.pipeline import rv_config_ as rv_config
-from rastervision.pipeline.file_system import make_dir, upload_or_copy, zipdir
 from rastervision.core.backend import Backend, SampleWriter
 from rastervision.core.data.utils.misc import save_img
 from rastervision.core.data_sample import DataSample
+from rastervision.pipeline import rv_config_ as rv_config
+from rastervision.pipeline.file_system import make_dir, upload_or_copy, zipdir
 from rastervision.pytorch_learner.learner import Learner
 
 if TYPE_CHECKING:
     from torch.utils.data import Dataset
+
     from rastervision.core.data import ClassConfig, DatasetConfig, Scene
-    from rastervision.core.rv_pipeline import RVPipelineConfig, ChipOptions
+    from rastervision.core.rv_pipeline import ChipOptions, RVPipelineConfig
     from rastervision.pytorch_learner import GeoDataConfig, LearnerConfig
 
 SPLITS: list[Literal['train', 'valid', 'test']] = ['train', 'valid', 'test']

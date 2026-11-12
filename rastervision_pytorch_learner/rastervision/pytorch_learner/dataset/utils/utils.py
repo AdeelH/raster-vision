@@ -1,13 +1,13 @@
-from typing import Iterable, Sequence
+from itertools import chain
 from os import PathLike
 from os.path import join, splitext
 from pathlib import Path
-from itertools import chain
+from typing import Iterable, Sequence
 
 import numpy as np
-from torchvision.datasets.folder import IMG_EXTENSIONS, DatasetFolder
-from PIL import Image
 import rasterio as rio
+from PIL import Image
+from torchvision.datasets.folder import IMG_EXTENSIONS, DatasetFolder
 
 IMG_EXTENSIONS = tuple([*IMG_EXTENSIONS, '.npy'])
 

@@ -7,12 +7,11 @@ from rastervision.core.box import Box
 from rastervision.core.data.crs_transformer import IdentityCRSTransformer
 from rastervision.core.data.raster_source import (
     ChannelOrderError,
+    STACItemCollectionConfig,
+    STACItemConfig,
     XarraySource,
     XarraySourceConfig,
-    STACItemConfig,
-    STACItemCollectionConfig,
 )
-
 from tests import data_file_path
 
 

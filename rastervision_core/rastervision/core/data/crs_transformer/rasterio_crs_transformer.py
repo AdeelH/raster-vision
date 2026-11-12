@@ -1,12 +1,12 @@
-from typing import TYPE_CHECKING, Any, cast
 from functools import partial
+from typing import TYPE_CHECKING, Any, cast
 
-from pyproj import Transformer
 import numpy as np
 import rasterio as rio
-from rasterio.transform import rowcol, xy
-from rasterio.windows import bounds, from_bounds, Window
+from pyproj import Transformer
 from rasterio import Affine
+from rasterio.transform import rowcol, xy
+from rasterio.windows import Window, bounds, from_bounds
 
 from rastervision.core.box import Box
 from rastervision.core.data.crs_transformer import (

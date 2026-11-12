@@ -1,39 +1,39 @@
-from typing import Any
+import unittest
 from collections.abc import Callable
 from os.path import join
-import unittest
+from typing import Any
 from uuid import uuid4
 
 import numpy as np
 
-from rastervision.pipeline.file_system import get_tmp_dir, json_to_file
 from rastervision.core.box import Box
 from rastervision.core.data import (
     ClassConfig,
     ClassInferenceTransformerConfig,
     DatasetConfig,
     GeoJSONVectorSourceConfig,
-    geoms_to_geojson,
-    pixel_to_map_coords,
+    MultiRasterSourceConfig,
+    ObjectDetectionLabelSourceConfig,
     RasterioCRSTransformer,
     RasterioSourceConfig,
-    MultiRasterSourceConfig,
     ReclassTransformerConfig,
     SceneConfig,
-    ObjectDetectionLabelSourceConfig,
+    geoms_to_geojson,
+    pixel_to_map_coords,
 )
 from rastervision.core.rv_pipeline import (
     ObjectDetectionConfig,
     ObjectDetectionWindowSamplingConfig,
     WindowSamplingMethod,
 )
+from rastervision.pipeline.file_system import get_tmp_dir, json_to_file
 from rastervision.pytorch_backend import PyTorchObjectDetectionConfig
 from rastervision.pytorch_learner import (
-    ObjectDetectionModelConfig,
-    SolverConfig,
-    ObjectDetectionGeoDataConfig,
-    PlotOptions,
     Backbone,
+    ObjectDetectionGeoDataConfig,
+    ObjectDetectionModelConfig,
+    PlotOptions,
+    SolverConfig,
 )
 from tests import data_file_path
 

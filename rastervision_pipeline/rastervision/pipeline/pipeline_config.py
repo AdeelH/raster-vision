@@ -1,14 +1,14 @@
-from typing import TYPE_CHECKING
 import builtins
 from os.path import join
+from typing import TYPE_CHECKING
 
 from pydantic import Field
 
-from rastervision.pipeline.config import Config
-from rastervision.pipeline.config import register_config
+from rastervision.pipeline.config import Config, register_config
 
 if TYPE_CHECKING:
     from typing import Self
+
     from rastervision.pipeline.pipeline import Pipeline
 
 

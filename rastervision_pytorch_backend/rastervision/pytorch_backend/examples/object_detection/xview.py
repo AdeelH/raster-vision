@@ -1,13 +1,6 @@
 import os
 from os.path import join
 
-from rastervision.core.rv_pipeline import (
-    ObjectDetectionConfig,
-    ObjectDetectionChipOptions,
-    ObjectDetectionPredictOptions,
-    ObjectDetectionWindowSamplingConfig,
-    WindowSamplingMethod,
-)
 from rastervision.core.data import (
     ClassConfig,
     ClassInferenceTransformerConfig,
@@ -17,17 +10,24 @@ from rastervision.core.data import (
     RasterioSourceConfig,
     SceneConfig,
 )
+from rastervision.core.rv_pipeline import (
+    ObjectDetectionChipOptions,
+    ObjectDetectionConfig,
+    ObjectDetectionPredictOptions,
+    ObjectDetectionWindowSamplingConfig,
+    WindowSamplingMethod,
+)
 from rastervision.pytorch_backend import PyTorchObjectDetectionConfig
+from rastervision.pytorch_backend.examples.utils import (
+    get_scene_info,
+    save_image_crop,
+)
 from rastervision.pytorch_learner import (
     Backbone,
     ObjectDetectionGeoDataConfig,
     ObjectDetectionImageDataConfig,
     ObjectDetectionModelConfig,
     SolverConfig,
-)
-from rastervision.pytorch_backend.examples.utils import (
-    get_scene_info,
-    save_image_crop,
 )
 
 

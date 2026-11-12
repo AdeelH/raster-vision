@@ -1,15 +1,15 @@
-from typing import ContextManager
-import os
 import io
+import os
 import shutil
 import urllib
 import urllib.error
 import urllib.request
-from urllib.parse import urlparse
-import requests
 from datetime import datetime
 from functools import partial
+from typing import ContextManager
+from urllib.parse import urlparse
 
+import requests
 from tqdm.auto import tqdm
 
 from rastervision.pipeline.file_system import (

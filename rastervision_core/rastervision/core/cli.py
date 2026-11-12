@@ -1,7 +1,7 @@
 import click
 
-from rastervision.pipeline.file_system import get_tmp_dir
 from rastervision.core.predictor import Predictor, ScenePredictor
+from rastervision.pipeline.file_system import get_tmp_dir
 
 
 # https://stackoverflow.com/questions/48391777/nargs-equivalent-for-options-in-click

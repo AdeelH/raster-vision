@@ -2,8 +2,8 @@ from typing import TYPE_CHECKING
 
 from pydantic import Field
 
-from rastervision.pipeline.config import Config, register_config, ConfigError
 from rastervision.core.data.raster_transformer import RasterTransformerConfig
+from rastervision.pipeline.config import Config, ConfigError, register_config
 
 if TYPE_CHECKING:
     from rastervision.core.data import RasterSource, SceneConfig

@@ -1,12 +1,14 @@
-from typing import TYPE_CHECKING
 import logging
+from typing import TYPE_CHECKING
 
 import numpy as np
 from sklearn.metrics import confusion_matrix
 from tqdm.auto import tqdm
 
-from rastervision.core.evaluation import ClassEvaluationItem
-from rastervision.core.evaluation import ClassificationEvaluation
+from rastervision.core.evaluation import (
+    ClassEvaluationItem,
+    ClassificationEvaluation,
+)
 
 if TYPE_CHECKING:
     from rastervision.core.data import ClassConfig, SemanticSegmentationLabels

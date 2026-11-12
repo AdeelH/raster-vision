@@ -1,11 +1,11 @@
 from pydantic import Field
 
-from rastervision.pipeline.config import register_config
 from rastervision.core.data.class_config import ClassConfig
 from rastervision.core.data.raster_transformer import (
     RasterTransformerConfig,
     RGBClassTransformer,
 )
+from rastervision.pipeline.config import register_config
 
 
 @register_config('rgb_class_transformer')

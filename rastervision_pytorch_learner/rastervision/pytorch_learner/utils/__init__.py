@@ -1,7 +1,7 @@
-from rastervision.pytorch_learner.utils.utils import *
-from rastervision.pytorch_learner.utils.torch_hub import *
 from rastervision.pytorch_learner.utils.distributed import *
 from rastervision.pytorch_learner.utils.prediction import *
+from rastervision.pytorch_learner.utils.torch_hub import *
+from rastervision.pytorch_learner.utils.utils import *
 
 __all__ = [
     'SplitTensor',

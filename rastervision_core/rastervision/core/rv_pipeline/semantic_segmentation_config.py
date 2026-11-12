@@ -1,20 +1,21 @@
-from typing import TYPE_CHECKING, Literal
 import logging
+from typing import TYPE_CHECKING, Literal
 
-from pydantic import NonNegativeInt as NonNegInt, Field, model_validator
 import numpy as np
+from pydantic import Field, model_validator
+from pydantic import NonNegativeInt as NonNegInt
 
-from rastervision.pipeline.config import register_config
-from rastervision.core.rv_pipeline.rv_pipeline_config import (
-    PredictOptions,
-    RVPipelineConfig,
-)
+from rastervision.core.data import SemanticSegmentationLabelStoreConfig
+from rastervision.core.evaluation import SemanticSegmentationEvaluatorConfig
 from rastervision.core.rv_pipeline.chip_options import (
     ChipOptions,
     WindowSamplingConfig,
 )
-from rastervision.core.data import SemanticSegmentationLabelStoreConfig
-from rastervision.core.evaluation import SemanticSegmentationEvaluatorConfig
+from rastervision.core.rv_pipeline.rv_pipeline_config import (
+    PredictOptions,
+    RVPipelineConfig,
+)
+from rastervision.pipeline.config import register_config
 
 if TYPE_CHECKING:
     from typing import Self

@@ -1,6 +1,7 @@
 """Defines ``ClassEvaluationItem``."""
 
 from typing import TYPE_CHECKING
+
 import numpy as np
 
 from rastervision.core.evaluation import EvaluationItem

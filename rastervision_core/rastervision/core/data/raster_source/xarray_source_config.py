@@ -1,17 +1,17 @@
-from typing import Any
 import logging
+from typing import Any
 
 from pydantic import Field
 
-from rastervision.pipeline.config import register_config
 from rastervision.core.data.raster_source.raster_source_config import (
     RasterSourceConfig,
 )
 from rastervision.core.data.raster_source.stac_config import (
-    STACItemConfig,
     STACItemCollectionConfig,
+    STACItemConfig,
 )
 from rastervision.core.data.raster_source.xarray_source import XarraySource
+from rastervision.pipeline.config import register_config
 
 log = logging.getLogger(__name__)
 

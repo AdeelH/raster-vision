@@ -1,10 +1,10 @@
 from pydantic import Field
 
-from rastervision.pipeline.config import register_config
 from rastervision.core.data.raster_transformer import (
     RasterTransformerConfig,
     ReclassTransformer,
 )
+from rastervision.pipeline.config import register_config
 
 
 @register_config('reclass_transformer')

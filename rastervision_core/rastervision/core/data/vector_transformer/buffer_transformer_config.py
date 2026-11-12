@@ -2,11 +2,11 @@ from typing import TYPE_CHECKING
 
 from pydantic import Field
 
-from rastervision.pipeline.config import register_config
 from rastervision.core.data.vector_transformer import (
-    VectorTransformerConfig,
     BufferTransformer,
+    VectorTransformerConfig,
 )
+from rastervision.pipeline.config import register_config
 
 if TYPE_CHECKING:
     from rastervision.core.data import ClassConfig

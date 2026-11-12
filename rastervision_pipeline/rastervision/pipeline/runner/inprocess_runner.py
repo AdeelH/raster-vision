@@ -18,7 +18,6 @@ class InProcessRunner(Runner):
         num_splits=1,
         pipeline_run_name: str = 'raster-vision',
     ):
-
         for command in commands:
             if command in pipeline.split_commands and num_splits > 1:
                 for split_ind in range(num_splits):

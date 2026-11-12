@@ -1,9 +1,9 @@
-from rastervision.pipeline.config import register_config
-from rastervision.core.rv_pipeline import RVPipelineConfig
 from rastervision.core.data.label_store import (
     ChipClassificationGeoJSONStoreConfig,
 )
 from rastervision.core.evaluation import ChipClassificationEvaluatorConfig
+from rastervision.core.rv_pipeline import RVPipelineConfig
+from rastervision.pipeline.config import register_config
 
 
 @register_config('chip_classification')

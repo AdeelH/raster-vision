@@ -1,6 +1,6 @@
 from rastervision.pipeline_example_plugin1.sample_pipeline2 import (
-    SamplePipeline2Config,
     MessageMakerConfig,
+    SamplePipeline2Config,
 )
 
 

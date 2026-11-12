@@ -1,26 +1,25 @@
-from typing import TYPE_CHECKING, Any, Iterable
-import warnings
-
 import logging
+import warnings
+from typing import TYPE_CHECKING, Any, Iterable
 
 import numpy as np
 import torch
 import torch.distributed as dist
 
-from rastervision.pytorch_learner.learner import Learner
-from rastervision.pytorch_learner.object_detection_utils import (
-    BoxList,
-    TorchVisionODAdapter,
-    compute_coco_eval,
-    collate_fn,
-    ONNXRuntimeAdapterForFasterRCNN,
-)
 from rastervision.pytorch_learner.dataset.visualizer import (
     ObjectDetectionVisualizer,
 )
+from rastervision.pytorch_learner.learner import Learner
+from rastervision.pytorch_learner.object_detection_utils import (
+    BoxList,
+    ONNXRuntimeAdapterForFasterRCNN,
+    TorchVisionODAdapter,
+    collate_fn,
+    compute_coco_eval,
+)
 
 if TYPE_CHECKING:
-    from torch import nn, Tensor
+    from torch import Tensor, nn
 
 warnings.filterwarnings('ignore')
 

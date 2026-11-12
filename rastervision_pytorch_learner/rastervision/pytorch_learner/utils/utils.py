@@ -1,32 +1,34 @@
-from typing import TYPE_CHECKING, Any, Container, Iterable, Sequence, cast
-from os.path import basename, join, isfile
 import logging
+from os.path import basename, isfile, join
+from typing import TYPE_CHECKING, Any, Container, Iterable, Sequence, cast
 
+import albumentations as A
+import cv2
+import numpy as np
+import pandas as pd
 import torch
 import torch.version
+from albumentations.core.transforms_interface import ImageOnlyTransform
 from torch import nn
 from torch.hub import _import_module
-import numpy as np
-import albumentations as A
-from albumentations.core.transforms_interface import ImageOnlyTransform
-import cv2
-import pandas as pd
 
+from rastervision.pipeline.config import (
+    Config,
+    ConfigError,
+    build_config,
+    upgrade_config,
+)
 from rastervision.pipeline.file_system.utils import (
     file_exists,
     file_to_json,
     get_tmp_dir,
 )
-from rastervision.pipeline.config import (
-    build_config,
-    Config,
-    ConfigError,
-    upgrade_config,
-)
 
 if TYPE_CHECKING:
     from typing import Self
+
     import onnxruntime as ort
+
     from rastervision.pytorch_learner import LearnerConfig
 
 log = logging.getLogger(__name__)
@@ -299,7 +301,6 @@ class MinMaxNormalize(ImageOnlyTransform):
 def adjust_conv_channels(
     old_conv: nn.Conv2d, in_channels: int, pretrained: bool = True
 ) -> nn.Conv2d | nn.Sequential:
-
     if in_channels == old_conv.in_channels:
         return old_conv
 
@@ -433,6 +434,7 @@ def log_system_details():
     """Log some system details."""
     import os
     import sys
+
     import psutil
 
     # CPUs

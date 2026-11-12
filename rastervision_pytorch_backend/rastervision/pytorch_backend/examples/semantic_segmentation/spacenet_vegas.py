@@ -1,16 +1,8 @@
-import re
-import random
 import os
+import random
+import re
 from abc import abstractmethod
 
-from rastervision.pipeline.file_system.utils import list_paths
-from rastervision.core.rv_pipeline import (
-    SemanticSegmentationConfig,
-    SemanticSegmentationChipOptions,
-    SemanticSegmentationPredictOptions,
-    WindowSamplingConfig,
-    WindowSamplingMethod,
-)
 from rastervision.core.data import (
     BufferTransformerConfig,
     ClassConfig,
@@ -26,13 +18,21 @@ from rastervision.core.data import (
     SemanticSegmentationLabelStoreConfig,
     StatsTransformerConfig,
 )
+from rastervision.core.rv_pipeline import (
+    SemanticSegmentationChipOptions,
+    SemanticSegmentationConfig,
+    SemanticSegmentationPredictOptions,
+    WindowSamplingConfig,
+    WindowSamplingMethod,
+)
+from rastervision.pipeline.file_system.utils import list_paths
 from rastervision.pytorch_backend import PyTorchSemanticSegmentationConfig
 from rastervision.pytorch_learner import (
     Backbone,
-    SolverConfig,
     SemanticSegmentationGeoDataConfig,
     SemanticSegmentationImageDataConfig,
     SemanticSegmentationModelConfig,
+    SolverConfig,
 )
 
 BUILDINGS = 'buildings'

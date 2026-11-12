@@ -1,14 +1,14 @@
 import unittest
 
-from shapely.geometry import Polygon, Point, LineString, mapping, shape
+from shapely.geometry import LineString, Point, Polygon, mapping, shape
 
+from rastervision.core.data.utils import (
+    geometries_to_geojson,
+    geometry_to_feature,
+)
 from rastervision.core.data.vector_transformer import (
     BufferTransformer,
     BufferTransformerConfig,
-)
-from rastervision.core.data.utils import (
-    geometry_to_feature,
-    geometries_to_geojson,
 )
 
 

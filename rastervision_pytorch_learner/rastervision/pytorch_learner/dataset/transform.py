@@ -1,11 +1,11 @@
-from typing import Any, overload
 from collections.abc import Callable
 from enum import Enum
+from typing import Any, overload
 
-from pydantic import PositiveInt as PosInt
-import numpy as np
 import albumentations as A
+import numpy as np
 import torch
+from pydantic import PositiveInt as PosInt
 
 from rastervision.pytorch_learner.object_detection_utils import BoxList
 

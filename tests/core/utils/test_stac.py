@@ -1,14 +1,13 @@
-from collections.abc import Callable
 import os
 import unittest
+from collections.abc import Callable
 
 import boto3
 from moto import mock_aws
 from shapely.geometry import Polygon
 
+from rastervision.core.utils.stac import S3StacIO, read_stac, setup_stac_io
 from rastervision.pipeline.file_system import get_tmp_dir
-from rastervision.core.utils.stac import S3StacIO, setup_stac_io, read_stac
-
 from tests import data_file_path
 
 

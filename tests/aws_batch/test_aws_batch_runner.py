@@ -1,10 +1,10 @@
-from typing import cast
 import os
 import unittest
+from typing import cast
 
+from rastervision.aws_batch.aws_batch_runner import AWSBatchRunner
 from rastervision.pipeline import rv_config_ as rv_config
 from rastervision.pipeline.pipeline import Pipeline
-from rastervision.aws_batch.aws_batch_runner import AWSBatchRunner
 
 
 class MockPipeline:

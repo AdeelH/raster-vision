@@ -1,5 +1,5 @@
-import logging
 import json
+import logging
 
 # This is in a try block since the pytorch_learner plugin (which installs these
 # dependencies) may not be installed.
@@ -24,8 +24,8 @@ try:
 except Exception:  # pragma: no cover
     pass
 
-from rastervision.pipeline.rv_config import RVConfig
 from rastervision.pipeline.registry import Registry
+from rastervision.pipeline.rv_config import RVConfig
 from rastervision.pipeline.verbosity import Verbosity
 
 root_logger = logging.getLogger('rastervision')

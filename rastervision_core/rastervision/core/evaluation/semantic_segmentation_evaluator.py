@@ -1,5 +1,5 @@
-from typing import TYPE_CHECKING, cast
 import logging
+from typing import TYPE_CHECKING, cast
 
 from rastervision.core.evaluation import (
     ClassificationEvaluator,

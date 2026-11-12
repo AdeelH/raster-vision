@@ -1,7 +1,7 @@
 from rastervision.pipeline.config import register_config
 from rastervision.pipeline_example_plugin1.sample_pipeline2 import (
-    MessageMakerConfig,
     MessageMaker,
+    MessageMakerConfig,
 )
 
 

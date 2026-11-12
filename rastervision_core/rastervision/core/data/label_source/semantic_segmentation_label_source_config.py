@@ -1,12 +1,12 @@
 from pydantic import Field
 
-from rastervision.core.data.raster_source import (
-    RasterSourceConfig,
-    RasterizedSourceConfig,
-)
 from rastervision.core.data.label_source import (
     LabelSourceConfig,
     SemanticSegmentationLabelSource,
+)
+from rastervision.core.data.raster_source import (
+    RasterizedSourceConfig,
+    RasterSourceConfig,
 )
 from rastervision.pipeline.config import register_config
 

@@ -1,11 +1,13 @@
 """Defines the abstract Labels class."""
 
-from typing import TYPE_CHECKING, Any, Iterable
 from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING, Any, Iterable
 
 if TYPE_CHECKING:
     from typing import Self
+
     from shapely.geometry.base import BaseGeometry
+
     from rastervision.core.box import Box
 
 

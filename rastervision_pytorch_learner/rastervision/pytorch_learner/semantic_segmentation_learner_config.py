@@ -1,29 +1,29 @@
-from typing import cast
-from collections.abc import Callable
-from os.path import join
-from enum import Enum
 import logging
+from collections.abc import Callable
+from enum import Enum
+from os.path import join
+from typing import cast
 
+from pydantic import Field, field_validator
 from torch import nn
 from torch.utils.data import Dataset
 from torchvision import models
-from pydantic import Field, field_validator
 
 from rastervision.core.data import Scene
 from rastervision.core.rv_pipeline import WindowSamplingMethod
-from rastervision.pipeline.config import Config, register_config, ConfigError
+from rastervision.pipeline.config import Config, ConfigError, register_config
+from rastervision.pytorch_learner.dataset import (
+    SemanticSegmentationImageDataset,
+    SemanticSegmentationRandomWindowGeoDataset,
+    SemanticSegmentationSlidingWindowGeoDataset,
+)
 from rastervision.pytorch_learner.learner_config import (
     AlbTransform,
     Backbone,
+    GeoDataConfig,
+    ImageDataConfig,
     LearnerConfig,
     ModelConfig,
-    ImageDataConfig,
-    GeoDataConfig,
-)
-from rastervision.pytorch_learner.dataset import (
-    SemanticSegmentationImageDataset,
-    SemanticSegmentationSlidingWindowGeoDataset,
-    SemanticSegmentationRandomWindowGeoDataset,
 )
 from rastervision.pytorch_learner.utils import adjust_conv_channels
 

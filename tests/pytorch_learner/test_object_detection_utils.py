@@ -7,8 +7,8 @@ from torchvision.ops import box_convert
 
 from rastervision.pytorch_learner.object_detection_utils import (
     BoxList,
-    collate_fn,
     TorchVisionODAdapter,
+    collate_fn,
 )
 
 

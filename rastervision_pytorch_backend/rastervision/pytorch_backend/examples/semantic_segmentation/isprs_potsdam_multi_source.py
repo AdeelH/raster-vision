@@ -2,26 +2,24 @@ from collections.abc import Sequence
 from functools import partial
 from typing import overload
 
+from rastervision.core.data import (
+    ClassConfig,
+    MultiRasterSourceConfig,
+    PolygonVectorOutputConfig,
+    RasterioSourceConfig,
+    RGBClassTransformerConfig,
+    SemanticSegmentationLabelSourceConfig,
+    SemanticSegmentationLabelStoreConfig,
+)
 from rastervision.core.rv_pipeline import (
-    SceneConfig,
     DatasetConfig,
+    SceneConfig,
     SemanticSegmentationChipOptions,
     SemanticSegmentationConfig,
     SemanticSegmentationPredictOptions,
     WindowSamplingConfig,
     WindowSamplingMethod,
 )
-
-from rastervision.core.data import (
-    ClassConfig,
-    RasterioSourceConfig,
-    MultiRasterSourceConfig,
-    SemanticSegmentationLabelSourceConfig,
-    SemanticSegmentationLabelStoreConfig,
-    PolygonVectorOutputConfig,
-    RGBClassTransformerConfig,
-)
-
 from rastervision.pytorch_backend import (
     PyTorchSemanticSegmentationConfig,
     SemanticSegmentationModelConfig,
@@ -29,10 +27,10 @@ from rastervision.pytorch_backend import (
 from rastervision.pytorch_backend.examples.utils import save_image_crop
 from rastervision.pytorch_learner import (
     Backbone,
-    SolverConfig,
-    SemanticSegmentationImageDataConfig,
-    SemanticSegmentationGeoDataConfig,
     PlotOptions,
+    SemanticSegmentationGeoDataConfig,
+    SemanticSegmentationImageDataConfig,
+    SolverConfig,
 )
 
 # -----------------------

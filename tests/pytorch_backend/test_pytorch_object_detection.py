@@ -1,25 +1,22 @@
 import unittest
 
-from rastervision.pipeline.file_system import get_tmp_dir
-from rastervision.pipeline.config import save_pipeline_config
 from rastervision.core.data import ClassConfig, DatasetConfig
 from rastervision.core.rv_pipeline import (
-    ObjectDetectionConfig,
     ObjectDetectionChipOptions,
+    ObjectDetectionConfig,
     ObjectDetectionPredictOptions,
     ObjectDetectionWindowSamplingConfig,
     WindowSamplingMethod,
 )
+from rastervision.pipeline.config import save_pipeline_config
+from rastervision.pipeline.file_system import get_tmp_dir
 from rastervision.pytorch_backend import PyTorchObjectDetectionConfig
-from rastervision.pytorch_learner import (
-    ObjectDetectionModelConfig,
-    SolverConfig,
-)
 from rastervision.pytorch_learner import (
     ObjectDetectionGeoDataConfig,
     ObjectDetectionImageDataConfig,
+    ObjectDetectionModelConfig,
+    SolverConfig,
 )
-
 from tests.pytorch_learner.test_object_detection_learner import make_scene
 
 

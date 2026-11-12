@@ -1,5 +1,5 @@
-from typing import TYPE_CHECKING, Any, Sequence, cast
 import logging
+from typing import TYPE_CHECKING, Any, Sequence, cast
 
 import numpy as np
 from xarray import DataArray
@@ -7,11 +7,12 @@ from xarray import DataArray
 from rastervision.core.box import Box
 from rastervision.core.data.crs_transformer import RasterioCRSTransformer
 from rastervision.core.data.raster_source import RasterSource
-from rastervision.core.data.utils import parse_array_slices_Nd, fill_overflow
+from rastervision.core.data.utils import fill_overflow, parse_array_slices_Nd
 
 if TYPE_CHECKING:
     from pystac import Item, ItemCollection
-    from rastervision.core.data import RasterTransformer, CRSTransformer
+
+    from rastervision.core.data import CRSTransformer, RasterTransformer
 
 log = logging.getLogger(__name__)
 

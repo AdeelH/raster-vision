@@ -5,8 +5,8 @@ import numpy as np
 from rastervision.core.box import Box
 from rastervision.core.data.label import ObjectDetectionLabels
 from rastervision.core.data.label_source import LabelSource
-from rastervision.core.data.vector_source import VectorSource
 from rastervision.core.data.utils import parse_array_slices_2d
+from rastervision.core.data.vector_source import VectorSource
 
 if TYPE_CHECKING:
     from rastervision.core.data import CRSTransformer

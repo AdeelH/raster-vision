@@ -6,12 +6,12 @@ import rasterio
 from rasterio.transform import from_origin
 
 from rastervision.core.box import Box
-from rastervision.data import (
-    RasterioCRSTransformer,
-    ObjectDetectionLabels,
-    ObjectDetectionGeoJSONStore,
-)
 from rastervision.core.class_map import ClassItem, ClassMap
+from rastervision.data import (
+    ObjectDetectionGeoJSONStore,
+    ObjectDetectionLabels,
+    RasterioCRSTransformer,
+)
 
 
 @click.command()

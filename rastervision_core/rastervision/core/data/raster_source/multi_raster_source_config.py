@@ -1,17 +1,19 @@
 from typing import TYPE_CHECKING
 
+from pydantic import Field, model_validator
+from pydantic import NonNegativeInt as NonNegInt
 from typing_extensions import Annotated
-from pydantic import NonNegativeInt as NonNegInt, Field, model_validator
 
-from rastervision.pipeline.config import register_config
 from rastervision.core.box import Box
 from rastervision.core.data.raster_source import (
-    RasterSourceConfig,
     MultiRasterSource,
+    RasterSourceConfig,
 )
+from rastervision.pipeline.config import register_config
 
 if TYPE_CHECKING:
     from typing import Self
+
     from rastervision.core.data import SceneConfig
     from rastervision.core.rv_pipeline import RVPipelineConfig
 

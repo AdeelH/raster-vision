@@ -1,27 +1,28 @@
-from typing import TYPE_CHECKING, cast
-from os.path import join
-from collections import defaultdict
 import logging
+from collections import defaultdict
+from os.path import join
+from typing import TYPE_CHECKING, cast
 
 import albumentations as A
 import numpy as np
 from torch.utils.data import Dataset
 
-from rastervision.pipeline.file_system import file_to_json
 from rastervision.core.box import Box
 from rastervision.core.data import ObjectDetectionLabels
+from rastervision.core.data.utils import make_od_scene
+from rastervision.pipeline.file_system import file_to_json
 from rastervision.pytorch_learner.dataset import (
     AlbumentationsTransform,
-    TransformType,
     ImageDataset,
-    SlidingWindowGeoDataset,
     RandomWindowGeoDataset,
+    SlidingWindowGeoDataset,
+    TransformType,
     load_image,
 )
-from rastervision.core.data.utils import make_od_scene
 
 if TYPE_CHECKING:
     from typing import Self
+
     from rastervision.core.data import ClassConfig, ObjectDetectionLabelSource
 log = logging.getLogger(__name__)
 

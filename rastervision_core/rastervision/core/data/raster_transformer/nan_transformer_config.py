@@ -1,12 +1,12 @@
 from pydantic import Field
 
-from rastervision.pipeline.config import register_config
-from rastervision.core.data.raster_transformer.raster_transformer_config import (  # noqa
-    RasterTransformerConfig,
-)
 from rastervision.core.data.raster_transformer.nan_transformer import (  # noqa
     NanTransformer,
 )
+from rastervision.core.data.raster_transformer.raster_transformer_config import (  # noqa
+    RasterTransformerConfig,
+)
+from rastervision.pipeline.config import register_config
 
 
 @register_config('nan_transformer')

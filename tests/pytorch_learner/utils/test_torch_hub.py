@@ -1,10 +1,12 @@
-from collections.abc import Callable
 import unittest
-from os.path import join, exists
+from collections.abc import Callable
 from os import makedirs
+from os.path import exists, join
 
 from torch import nn
 
+from rastervision.pipeline.file_system import get_tmp_dir
+from rastervision.pytorch_learner import ExternalModuleConfig
 from rastervision.pytorch_learner.utils.torch_hub import (
     _remove_dir,
     _repo_name_to_dir_name,
@@ -14,8 +16,6 @@ from rastervision.pytorch_learner.utils.torch_hub import (
     torch_hub_load_local,
     torch_hub_load_uri,
 )
-from rastervision.pipeline.file_system import get_tmp_dir
-from rastervision.pytorch_learner import ExternalModuleConfig
 
 
 class TestTorchHubUtils(unittest.TestCase):

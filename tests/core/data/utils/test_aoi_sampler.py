@@ -1,11 +1,11 @@
-from typing import cast
-from collections.abc import Callable
 import unittest
+from collections.abc import Callable
 from itertools import product
+from typing import cast
 
 import numpy as np
 from scipy.stats import chisquare
-from shapely.geometry import Polygon, MultiPolygon, MultiPoint
+from shapely.geometry import MultiPoint, MultiPolygon, Polygon
 
 from rastervision.core.data.utils import AoiSampler
 

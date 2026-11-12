@@ -1,29 +1,29 @@
-from typing import TYPE_CHECKING, Any, Sequence
 from abc import ABC, abstractmethod
 from collections.abc import Callable
+from typing import TYPE_CHECKING, Any, Sequence
 
-import numpy as np
-import torch
-from torch import Tensor
-from torch.utils.data import DataLoader
 import albumentations as A
 import matplotlib.pyplot as plt
+import numpy as np
+import torch
 from matplotlib.figure import Figure
+from torch import Tensor
+from torch.utils.data import DataLoader
 
-from rastervision.pipeline.file_system import make_dir
 from rastervision.core.data import ClassConfig
-from rastervision.pytorch_learner.utils import (
-    deserialize_albumentation_transform,
-    validate_albumentation_transform,
-    MinMaxNormalize,
-)
+from rastervision.pipeline.file_system import make_dir
 from rastervision.pytorch_learner.learner_config import (
-    RGBTuple,
     ChannelInds,
-    validate_channel_display_groups,
+    RGBTuple,
     get_default_channel_display_groups,
+    validate_channel_display_groups,
 )
 from rastervision.pytorch_learner.object_detection_utils import BoxList
+from rastervision.pytorch_learner.utils import (
+    MinMaxNormalize,
+    deserialize_albumentation_transform,
+    validate_albumentation_transform,
+)
 
 if TYPE_CHECKING:
     from torch.utils.data import Dataset

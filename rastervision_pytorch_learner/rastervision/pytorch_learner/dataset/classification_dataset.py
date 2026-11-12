@@ -1,20 +1,21 @@
-from typing import TYPE_CHECKING, Sequence, cast
 import logging
+from typing import TYPE_CHECKING, Sequence, cast
 
+from rastervision.core.data.utils import make_cc_scene
 from rastervision.pytorch_learner.dataset import (
     ImageDataset,
-    TransformType,
-    SlidingWindowGeoDataset,
     RandomWindowGeoDataset,
+    SlidingWindowGeoDataset,
+    TransformType,
     make_image_folder_dataset,
 )
-from rastervision.core.data.utils import make_cc_scene
 
 if TYPE_CHECKING:
     from typing import Self
+
     from rastervision.core.data import (
-        ClassConfig,
         ChipClassificationLabelSource,
+        ClassConfig,
     )
 
 log = logging.getLogger(__name__)

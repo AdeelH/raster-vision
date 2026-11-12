@@ -1,9 +1,10 @@
 from typing import TYPE_CHECKING
+
 from pydantic import Field
 
 from rastervision.core.data.vector_source import (
-    VectorSourceConfig,
     GeoJSONVectorSource,
+    VectorSourceConfig,
 )
 from rastervision.pipeline.config import register_config
 

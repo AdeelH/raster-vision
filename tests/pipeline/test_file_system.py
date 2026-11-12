@@ -1,28 +1,28 @@
+import datetime
 import os
 import unittest
-import datetime
 
 import boto3
 from moto import mock_aws
 
+from rastervision.aws_s3 import S3FileSystem
 from rastervision.pipeline.file_system import (
-    file_to_str,
-    str_to_file,
-    download_if_needed,
-    upload_or_copy,
-    make_dir,
-    get_local_path,
-    file_exists,
-    sync_from_dir,
-    sync_to_dir,
-    list_paths,
-    get_tmp_dir,
-    uri_to_vsi_path,
+    FileSystem,
     NotReadableError,
     NotWritableError,
-    FileSystem,
+    download_if_needed,
+    file_exists,
+    file_to_str,
+    get_local_path,
+    get_tmp_dir,
+    list_paths,
+    make_dir,
+    str_to_file,
+    sync_from_dir,
+    sync_to_dir,
+    upload_or_copy,
+    uri_to_vsi_path,
 )
-from rastervision.aws_s3 import S3FileSystem
 
 LOREM = """ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
         eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut

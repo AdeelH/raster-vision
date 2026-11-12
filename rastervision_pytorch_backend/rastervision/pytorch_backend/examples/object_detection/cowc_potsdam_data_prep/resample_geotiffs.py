@@ -1,12 +1,11 @@
-import os
 import glob
+import os
 
 import click
 import rasterio
 from rasterio.enums import Resampling
 from rasterio.transform import from_origin
 from rasterio.warp import calculate_default_transform, reproject
-
 from rv.utils import make_empty_dir
 
 

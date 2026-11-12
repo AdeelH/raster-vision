@@ -1,25 +1,25 @@
-from typing import TYPE_CHECKING, Any, Iterable, Sequence
-from collections.abc import Callable
 from collections import defaultdict
-from os.path import join
-from operator import iand
+from collections.abc import Callable
 from functools import reduce
+from operator import iand
+from os.path import join
 from pprint import pformat
+from typing import TYPE_CHECKING, Any, Iterable, Sequence
 
+import numpy as np
 import torch
 import torch.nn as nn
+from pycocotools.coco import COCO
+from pycocotools.cocoeval import COCOeval
 from torchvision.ops import (
+    batched_nms,
     box_area,
     box_convert,
-    batched_nms,
     clip_boxes_to_image,
 )
 from torchvision.utils import draw_bounding_boxes
-from pycocotools.coco import COCO
-from pycocotools.cocoeval import COCOeval
-import numpy as np
 
-from rastervision.pipeline.file_system import json_to_file, get_tmp_dir
+from rastervision.pipeline.file_system import get_tmp_dir, json_to_file
 from rastervision.pytorch_learner.utils.utils import ONNXRuntimeAdapter
 
 if TYPE_CHECKING:

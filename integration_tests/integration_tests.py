@@ -1,19 +1,20 @@
 #!/usr/bin/env python
 
-from os.path import join, dirname, abspath, isfile
+import importlib
 import math
 import traceback
-import importlib
+from os.path import abspath, dirname, isfile, join
 from pprint import pformat
 
 import click
 import numpy as np
 
-from rastervision.pipeline import rv_config_ as rv_config, Verbosity
+from rastervision.core import Predictor
+from rastervision.pipeline import Verbosity
+from rastervision.pipeline import rv_config_ as rv_config
+from rastervision.pipeline.cli import _run_pipeline
 from rastervision.pipeline.file_system import file_to_json, get_tmp_dir
 from rastervision.pipeline.runner import InProcessRunner
-from rastervision.pipeline.cli import _run_pipeline
-from rastervision.core import Predictor
 
 ALL_TESTS = {
     'chip_classification.basic': {

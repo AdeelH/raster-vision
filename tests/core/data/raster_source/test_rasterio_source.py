@@ -1,5 +1,5 @@
-from collections.abc import Callable
 import unittest
+from collections.abc import Callable
 from os.path import join
 from tempfile import NamedTemporaryFile
 
@@ -9,16 +9,15 @@ import rasterio.crs
 from rasterio.enums import ColorInterp
 from rasterio.transform import from_origin
 
-from rastervision.pipeline.file_system import get_tmp_dir
 from rastervision.core import Box, RasterStats
-from rastervision.core.data.utils.misc import save_img
 from rastervision.core.data.raster_source import (
     ChannelOrderError,
     RasterioSource,
     RasterioSourceConfig,
 )
 from rastervision.core.data.raster_transformer import StatsTransformerConfig
-
+from rastervision.core.data.utils.misc import save_img
+from rastervision.pipeline.file_system import get_tmp_dir
 from tests import data_file_path
 
 

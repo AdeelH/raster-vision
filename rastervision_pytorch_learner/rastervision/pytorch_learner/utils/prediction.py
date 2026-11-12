@@ -1,5 +1,5 @@
-from typing import TYPE_CHECKING, Iterator, cast
 import logging
+from typing import TYPE_CHECKING, Iterator, cast
 
 from rastervision.core.data import (
     ChipClassificationLabels,
@@ -10,10 +10,11 @@ from rastervision.core.utils import calculate_required_padding
 
 if TYPE_CHECKING:
     import numpy as np
+
     from rastervision.core.data import Scene, SemanticSegmentationLabelStore
     from rastervision.core.rv_pipeline import (
-        PredictOptions,
         ObjectDetectionPredictOptions,
+        PredictOptions,
         SemanticSegmentationPredictOptions,
     )
     from rastervision.pytorch_learner import (

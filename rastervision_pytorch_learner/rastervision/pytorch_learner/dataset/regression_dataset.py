@@ -1,16 +1,16 @@
-from typing import Iterable
-from os.path import join
-import logging
 import csv
+import logging
+from os.path import join
+from typing import Iterable
 
 import numpy as np
 from torch.utils.data import Dataset
 
 from rastervision.pytorch_learner.dataset import (
     ImageDataset,
-    TransformType,
-    SlidingWindowGeoDataset,
     RandomWindowGeoDataset,
+    SlidingWindowGeoDataset,
+    TransformType,
     load_image,
 )
 
@@ -48,7 +48,6 @@ class RegressionImageDataset(ImageDataset):
     def __init__(
         self, data_dir: str, class_names: Iterable[str], *args, **kwargs
     ):
-
         ds = RegressionDataReader(data_dir, class_names)
         super().__init__(
             ds, *args, **kwargs, transform_type=TransformType.regression
