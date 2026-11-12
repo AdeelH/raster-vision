@@ -1,6 +1,7 @@
 from collections.abc import Callable
 from os.path import join
 import unittest
+from typing import Any
 from unittest.mock import patch
 
 import numpy as np
@@ -25,6 +26,7 @@ from rastervision.core.data import (
     RasterioSource,
     RasterioCRSTransformer,
 )
+from rastervision.core.data.raster_source import RasterSourceConfig
 from rastervision.core.data.raster_source.multi_raster_source_config import (
     multi_rs_config_upgrader,
 )
@@ -61,7 +63,7 @@ def make_cfg_diverse(
             [CastTransformerConfig(to_dtype='float32')],
             [CastTransformerConfig(to_dtype='int')],
         ]
-    rs_cfgs = [
+    rs_cfgs: list[RasterSourceConfig] = [
         RasterioSourceConfig(uris=[path], transformers=tfs)
         for path, tfs in zip(img_paths, transformers)
     ]
@@ -90,16 +92,19 @@ class TestMultiRasterSourceConfig(unittest.TestCase):
 
     def test_build(self):
         cfg = make_cfg()
-        self.assertNoError(lambda: cfg.build(tmp_dir=get_tmp_dir()))
+        with get_tmp_dir() as tmp_dir:
+            self.assertNoError(lambda: cfg.build(tmp_dir=tmp_dir))
 
     def test_build_with_bbox(self):
         cfg = make_cfg(bbox=(0, 0, 1, 1))
-        rs = cfg.build(tmp_dir=get_tmp_dir())
+        with get_tmp_dir() as tmp_dir:
+            rs = cfg.build(tmp_dir=tmp_dir)
         self.assertEqual(rs.bbox, Box(0, 0, 1, 1))
 
     def test_build_temporal(self):
         cfg = make_cfg(temporal=True)
-        rs = cfg.build(tmp_dir=get_tmp_dir())
+        with get_tmp_dir() as tmp_dir:
+            rs = cfg.build(tmp_dir=tmp_dir)
         self.assertIsInstance(rs, TemporalMultiRasterSource)
         self.assertEqual(rs.shape, (3, 256, 256, 3))
 
@@ -278,7 +283,7 @@ class TestMultiRasterSource(unittest.TestCase):
         self.assertEqual(rs.bbox, Box(ymin=51, xmin=50, ymax=207, xmax=206))
 
         # test error if both bbox and bbox_map_coords specified
-        args = dict(
+        args: dict[str, Any] = dict(
             item=item,
             assets=['red', 'green'],
             bbox=bbox,

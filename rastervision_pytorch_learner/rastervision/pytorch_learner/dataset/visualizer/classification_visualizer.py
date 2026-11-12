@@ -20,8 +20,8 @@ class ClassificationVisualizer(Visualizer):
         self,
         axs: Sequence['Axes'],
         x: torch.Tensor,
-        y: int | None = None,
-        z: int | None = None,
+        y: torch.Tensor | None = None,
+        z: torch.Tensor | None = None,
         plot_title: bool = True,
     ) -> None:
         channel_groups = self.get_channel_display_groups(x.shape[1])

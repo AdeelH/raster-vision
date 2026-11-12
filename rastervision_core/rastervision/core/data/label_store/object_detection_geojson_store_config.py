@@ -20,6 +20,7 @@ class ObjectDetectionGeoJSONStoreConfig(LabelStoreConfig):
     )
 
     def build(self, class_config, crs_transformer, bbox=None, tmp_dir=None):
+        assert self.uri is not None
         return ObjectDetectionGeoJSONStore(
             self.uri, class_config, crs_transformer, bbox=bbox
         )

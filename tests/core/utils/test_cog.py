@@ -1,5 +1,6 @@
 import os
 import unittest
+from typing import Any
 
 import numpy as np
 import rasterio
@@ -27,7 +28,7 @@ def make_raster(
 ) -> np.ndarray:
     rng = np.random.default_rng(0)
     arr = rng.integers(0, 255, size=(count, height, width)).astype(dtype)
-    profile = dict(
+    profile: dict[str, Any] = dict(
         driver='GTiff',
         height=height,
         width=width,

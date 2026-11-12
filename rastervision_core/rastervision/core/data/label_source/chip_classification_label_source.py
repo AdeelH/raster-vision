@@ -20,7 +20,7 @@ def infer_cells(
     ioa_thresh: float,
     use_intersection_over_cell: bool,
     pick_min_class_id: bool,
-    background_class_id: int,
+    background_class_id: int | None,
 ) -> ChipClassificationLabels:
     """Infer ChipClassificationLabels grid from GeoJSON containing polygons.
 
@@ -60,9 +60,7 @@ def infer_cells(
     # table with each cell matched to all polygons that intersect it; i.e.,
     # there will be a row for each unique (cell, polygon) combination. Cells
     # that didn't match any labels will have missing values as their class_ids.
-    df: gpd.GeoDataFrame = cells_df.sjoin(
-        labels_df, how='left', predicate='intersects'
-    )
+    df = cells_df.sjoin(labels_df, how='left', predicate='intersects')
     df.loc[:, 'geometry_intersection'] = df['geometry_cell'].intersection(
         df['geometry_label']
     )
@@ -235,7 +233,7 @@ class ChipClassificationLabelSource(LabelSource):
             background_class_id=cfg.background_class_id,
         )
         for cell in known_cells:
-            class_id = self.labels.get_cell_class_id(cell)
+            class_id = self.labels[cell].class_id
             labels.set_cell(cell, class_id)
         return labels
 

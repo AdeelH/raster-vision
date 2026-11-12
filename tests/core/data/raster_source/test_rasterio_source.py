@@ -32,12 +32,14 @@ class TestRasterioSourceConfig(unittest.TestCase):
     def test_build(self):
         img_path = data_file_path('small-rgb-tile.tif')
         cfg = RasterioSourceConfig(uris=[img_path])
-        self.assertNoError(lambda: cfg.build(tmp_dir=get_tmp_dir()))
+        with get_tmp_dir() as tmp_dir:
+            self.assertNoError(lambda: cfg.build(tmp_dir=tmp_dir))
 
     def test_build_with_bbox(self):
         img_path = data_file_path('small-rgb-tile.tif')
         cfg = RasterioSourceConfig(uris=[img_path], bbox=(0, 0, 1, 1))
-        rs = cfg.build(tmp_dir=get_tmp_dir())
+        with get_tmp_dir() as tmp_dir:
+            rs = cfg.build(tmp_dir=tmp_dir)
         self.assertEqual(rs.bbox, Box(0, 0, 1, 1))
 
 

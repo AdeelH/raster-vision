@@ -4,7 +4,7 @@ from os.path import join
 from rastervision.pipeline.config import register_config, Config, Field
 
 if TYPE_CHECKING:
-    from rastervision.core.data import ClassConfig
+    from rastervision.core.data import ClassConfig, Scene
     from rastervision.core.evaluation import Evaluator
     from rastervision.core.rv_pipeline import RVPipelineConfig
 
@@ -24,9 +24,9 @@ class EvaluatorConfig(Config):
     def build(
         self,
         class_config: 'ClassConfig',
-        scene_group: tuple[str, Iterable[str]] | None = None,
+        scene_group: tuple[str, Iterable['Scene']] | None = None,
     ) -> 'Evaluator':
-        pass
+        raise NotImplementedError()
 
     def get_output_uri(self, scene_group_name: str | None = None) -> str:
         assert self.output_uri is not None

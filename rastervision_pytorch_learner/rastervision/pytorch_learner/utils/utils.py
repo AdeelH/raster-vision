@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Container, Iterable, Sequence
+from typing import TYPE_CHECKING, Any, Container, Iterable, Sequence, cast
 from os.path import basename, join, isfile
 import logging
 
@@ -91,7 +91,7 @@ def compute_conf_mat_metrics(
     return metrics
 
 
-def validate_albumentation_transform(tf_dict: dict | None) -> dict:
+def validate_albumentation_transform(tf_dict: dict | None) -> dict | None:
     """Validate a serialized albumentation transform by attempting to
     deserialize it.
     """
@@ -161,7 +161,9 @@ def serialize_albumentation_transform(
     return tf_dict
 
 
-def deserialize_albumentation_transform(tf_dict: dict) -> A.BasicTransform:
+def deserialize_albumentation_transform(
+    tf_dict: dict,
+) -> A.BasicTransform | A.Compose:
     """Deserialize an albumentations transform serialized by
     `serialize_albumentation_transform()`.
 
@@ -174,7 +176,7 @@ def deserialize_albumentation_transform(tf_dict: dict) -> A.BasicTransform:
         tf_dict (dict): Serialized albumentations transform.
 
     Returns:
-        A.BasicTransform: Deserialized transform.
+        A.BasicTransform | A.Compose: Deserialized transform.
     """
     lambda_transforms_path = tf_dict.get('lambda_transforms_path', None)
     if lambda_transforms_path is not None:
@@ -198,6 +200,8 @@ def deserialize_albumentation_transform(tf_dict: dict) -> A.BasicTransform:
             tf = A.from_dict(tf_dict, nonserializable=lambda_transforms)
     else:
         tf = A.from_dict(tf_dict)
+    # A.from_dict() always constructs a transform (or Compose) instance.
+    assert isinstance(tf, (A.BasicTransform, A.Compose))
     return tf
 
 
@@ -265,7 +269,7 @@ class MinMaxNormalize(ImageOnlyTransform):
         # cv2's stubs do not allow dst=None
         out = cv2.normalize(  # pyright: ignore[reportCallIssue]
             image,
-            None,
+            None,  # pyright: ignore[reportArgumentType]
             self.min_val,
             self.max_val,
             cv2.NORM_MINMAX,
@@ -413,10 +417,11 @@ def aggregate_metrics(
         metric_vals = [out[metric_name] for out in outputs]
         elem = metric_vals[0]
         if isinstance(elem, torch.Tensor):
+            tensors = cast(list[torch.Tensor], metric_vals)
             if elem.ndim == 0:
-                metric_vals = torch.stack(metric_vals)
+                metric_vals = torch.stack(tensors)
             else:
-                metric_vals = torch.cat(metric_vals)
+                metric_vals = torch.cat(tensors)
             metric_avg = metric_vals.float().mean().item()
         else:
             metric_avg = sum(metric_vals) / len(metric_vals)
@@ -547,4 +552,4 @@ def get_learner_config_from_bundle_dir(
         cfg_dict = upgrade_config(cfg_dict)
         cfg_dict.pop('plugin_versions', None)
         cfg = build_config(cfg_dict)
-    return cfg
+    return cast('LearnerConfig', cfg)

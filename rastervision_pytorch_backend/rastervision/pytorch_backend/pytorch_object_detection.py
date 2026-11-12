@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from os.path import join, basename
 import uuid
 
@@ -10,6 +10,7 @@ from rastervision.pytorch_backend.pytorch_learner_backend import (
     PyTorchLearnerBackend,
 )
 from rastervision.pytorch_backend.utils import chip_collate_fn_od
+from rastervision.pytorch_learner.object_detection_utils import BoxList
 from rastervision.pytorch_learner.utils import predict_scene_od
 
 if TYPE_CHECKING:
@@ -18,7 +19,7 @@ if TYPE_CHECKING:
         ChipOptions,
         ObjectDetectionPredictOptions,
     )
-    from rastervision.pytorch_learner.object_detection_utils import BoxList
+    from rastervision.pytorch_learner import ObjectDetectionLearner
     from rastervision.pytorch_learner.object_detection_learner_config import (
         ObjectDetectionGeoDataConfig,
     )
@@ -85,7 +86,8 @@ class PyTorchObjectDetectionSampleWriter(PyTorchLearnerSampleWriter):
             }
         )
 
-        boxlist: 'BoxList' = sample.label
+        boxlist = sample.label
+        assert isinstance(boxlist, BoxList)
         npboxes = boxlist.convert_boxes('xywh')
         class_ids = boxlist.get_field('class_ids')
         for i, (bbox, class_id) in enumerate(zip(npboxes, class_ids)):
@@ -123,7 +125,9 @@ class PyTorchObjectDetection(PyTorchLearnerBackend):
     ) -> ObjectDetectionLabels:
         if self.learner is None:
             self.load_model()
-        labels = predict_scene_od(self.learner, scene, predict_options)
+        assert self.learner is not None
+        learner = cast('ObjectDetectionLearner', self.learner)
+        labels = predict_scene_od(learner, scene, predict_options)
         return labels
 
     def _make_chip_data_config(

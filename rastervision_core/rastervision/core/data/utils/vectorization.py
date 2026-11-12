@@ -2,7 +2,7 @@
 # Ported over from https://github.com/azavea/mask-to-polygons.
 ###############################################################################
 
-from typing import TYPE_CHECKING, Iterator
+from typing import TYPE_CHECKING, Iterator, Sequence
 from itertools import chain
 
 import numpy as np
@@ -14,7 +14,7 @@ from shapely.geometry import shape
 if TYPE_CHECKING:
     from shapely.geometry.base import BaseGeometry
 
-RotatedRectange = tuple[tuple[float, float], tuple[float, float], float]
+RotatedRectange = tuple[Sequence[float], Sequence[float], float]
 
 
 def mask_to_polygons(
@@ -88,6 +88,8 @@ def mask_to_building_polygons(
             continue
 
         rectangle = get_rectangle(component)
+        # Non-empty components always have a contour.
+        assert rectangle is not None
         kernel = get_kernel(rectangle, width_factor, thickness)
         if kernel is None:
             iterators.append(mask_to_polygons(component, transform))

@@ -1,6 +1,7 @@
 from collections.abc import Callable
 from os.path import join
 import unittest
+from typing import Any
 
 import numpy as np
 
@@ -109,7 +110,7 @@ class TestSemanticSegmentationLabelStore(unittest.TestCase):
             del label_store
 
             # test compatibility validation
-            args = dict(
+            args: dict[str, Any] = dict(
                 uri=tmp_dir,
                 crs_transformer=IdentityCRSTransformer(),
                 class_config=ClassConfig(names=['bg', 'fg', 'null']),

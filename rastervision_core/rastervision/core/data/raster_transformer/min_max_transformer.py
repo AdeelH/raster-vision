@@ -1,4 +1,5 @@
 import numpy as np
+import numpy.typing as npt
 
 from rastervision.core.data.raster_transformer import RasterTransformer
 
@@ -15,5 +16,5 @@ class MinMaxTransformer(RasterTransformer):
         chip_normalized = (255 * chip_normalized).astype(np.uint8)
         return chip_normalized
 
-    def get_out_dtype(self, in_dtype: np.dtype) -> np.dtype:
+    def get_out_dtype(self, in_dtype: npt.DTypeLike) -> np.dtype:
         return np.dtype(np.uint8)

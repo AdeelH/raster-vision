@@ -1,9 +1,10 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 import warnings
 
 import logging
 
 import torch
+from torch import Tensor
 from torch.nn import functional as F
 import torch.distributed as dist
 
@@ -31,14 +32,17 @@ class SemanticSegmentationLearner(Learner):
 
     def train_step(self, batch, batch_ind):
         x, y = batch
+        assert self.model is not None and self.loss is not None
         out = self.post_forward(self.model(x))
         return {'train_loss': self.loss(out, y)}
 
     def validate_step(self, batch, batch_ind):
         x, y = batch
+        assert self.model is not None and self.loss is not None
         out = self.post_forward(self.model(x))
         val_loss = self.loss(out, y)
 
+        assert self.cfg.data.class_names is not None
         num_labels = len(self.cfg.data.class_names)
         y = y.view(-1)
         out = self.prob_to_pred(out).view(-1)
@@ -49,6 +53,7 @@ class SemanticSegmentationLearner(Learner):
     def validate_end(self, outputs):
         metrics = aggregate_metrics(outputs, exclude_keys={'conf_mat'})
         conf_mat = sum([o['conf_mat'] for o in outputs])
+        assert isinstance(conf_mat, Tensor)
 
         if self.is_ddp_process:
             metrics = self.reduce_distributed_metrics(metrics)
@@ -56,11 +61,13 @@ class SemanticSegmentationLearner(Learner):
             if not self.is_ddp_master:
                 return metrics
 
+        assert self.cfg.solver is not None
         ignored_idx = self.cfg.solver.ignore_class_index
         if ignored_idx is not None and ignored_idx < 0:
             ignored_idx += self.cfg.data.num_classes
 
         class_names = self.cfg.data.class_names
+        assert class_names is not None
         conf_mat_metrics = compute_conf_mat_metrics(
             conf_mat, class_names, ignore_idx=ignored_idx
         )
@@ -80,12 +87,13 @@ class SemanticSegmentationLearner(Learner):
         out_shape: tuple[int, int] | None = None,
     ) -> torch.Tensor:
         if out_shape is None:
-            out_shape = x.shape[-2:]
+            out_shape = cast(tuple[int, int], x.shape[-2:])
 
         x = self.to_batch(x).float()
         x = self.to_device(x, self.device)
 
         with torch.inference_mode():
+            assert self.model is not None
             out = self.model(x)
             out = self.post_forward(out)
         out = self.postprocess_model_output(
@@ -101,9 +109,10 @@ class SemanticSegmentationLearner(Learner):
     ) -> torch.Tensor:
 
         if out_shape is None:
-            out_shape = x.shape[-2:]
+            out_shape = cast(tuple[int, int], x.shape[-2:])
 
         x = self.to_batch(x).float()
+        assert self.model is not None
         out = self.model(x)
         out = self.post_forward(out)
         out = self.postprocess_model_output(
@@ -137,7 +146,7 @@ class SemanticSegmentationLearner(Learner):
         sample_input: torch.Tensor | None = None,
         **kwargs,
     ) -> None:
-        args = dict(
+        args: dict[str, Any] = dict(
             input_names=['x'],
             output_names=['out'],
             dynamic_axes={

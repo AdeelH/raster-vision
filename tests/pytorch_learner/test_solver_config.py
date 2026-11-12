@@ -1,4 +1,5 @@
 from collections.abc import Callable
+from typing import Any
 import unittest
 
 from torch import nn
@@ -58,7 +59,7 @@ class TestSolverConfig(unittest.TestCase):
         self.assertEqual(loss.ignore_index, 1)
 
     def test_disallow_loss_opts_if_external(self):
-        args = dict(
+        args: dict[str, Any] = dict(
             external_loss_def=ExternalModuleConfig(
                 uri='abc/def', entrypoint='foo'
             ),
@@ -66,7 +67,7 @@ class TestSolverConfig(unittest.TestCase):
         )
         self.assertRaises(ValidationError, lambda: SolverConfig(**args))
 
-        args = dict(
+        args: dict[str, Any] = dict(
             external_loss_def=ExternalModuleConfig(
                 uri='abc/def', entrypoint='foo'
             ),
@@ -74,7 +75,7 @@ class TestSolverConfig(unittest.TestCase):
         )
         self.assertRaises(ValidationError, lambda: SolverConfig(**args))
 
-        args = dict(
+        args: dict[str, Any] = dict(
             external_loss_def=ExternalModuleConfig(
                 uri='abc/def', entrypoint='foo'
             )

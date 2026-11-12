@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Iterator
+from typing import TYPE_CHECKING, Iterator, cast
 import logging
 
 from rastervision.core.data import (
@@ -114,8 +114,11 @@ def predict_scene_ss(
     stride = predict_options.stride
     crop_sz = predict_options.crop_sz
     batch_sz = predict_options.batch_sz
+    # stride and crop_sz are resolved by the PredictOptions validators
+    assert stride is not None
+    assert crop_sz != 'auto'
 
-    label_store: 'SemanticSegmentationLabelStore' = scene.label_store
+    label_store = cast('SemanticSegmentationLabelStore', scene.label_store)
     raw_out = label_store.smooth_output
 
     base_tf, _ = learner.cfg.data.get_data_transforms()

@@ -1,5 +1,6 @@
 from collections.abc import Callable
 import unittest
+from typing import Any
 
 from rastervision.core.data.class_config import (
     ClassConfig,
@@ -17,21 +18,22 @@ class TestClassConfig(unittest.TestCase):
             self.fail(msg)
 
     def test_len_validation(self):
-        args = dict(names=['a', 'b'], colors=['red', 'green'])
+        args: dict[str, Any] = dict(names=['a', 'b'], colors=['red', 'green'])
         self.assertNoError(lambda: ClassConfig(**args))
 
         args = dict(names=['a', 'b'], colors=['red'])
         self.assertRaises(ValidationError, lambda: ClassConfig(**args))
 
     def test_auto_colors_initialization(self):
-        args = dict(names=['a', 'b'])
+        args: dict[str, Any] = dict(names=['a', 'b'])
         self.assertNoError(lambda: ClassConfig(**args))
 
         cfg = ClassConfig(**args)
+        assert cfg.colors is not None
         self.assertEqual(len(cfg.names), len(cfg.colors))
 
     def test_null_class_validation(self):
-        args = dict(names=['a', 'b'], null_class='a')
+        args: dict[str, Any] = dict(names=['a', 'b'], null_class='a')
         self.assertNoError(lambda: ClassConfig(**args))
 
         args = dict(names=['a', 'b'], null_class='c')
@@ -48,6 +50,7 @@ class TestClassConfig(unittest.TestCase):
     def test_ensure_null_class(self):
         cfg = ClassConfig(names=['a', 'b'])
         cfg.ensure_null_class()
+        assert cfg.colors is not None
         self.assertEqual(len(cfg.names), 3)
         self.assertEqual(len(cfg.colors), 3)
         self.assertEqual(cfg.names[-1], DEFAULT_NULL_CLASS_NAME)
@@ -57,6 +60,7 @@ class TestClassConfig(unittest.TestCase):
         cfg.ensure_null_class()
         cfg.ensure_null_class()
         cfg.ensure_null_class()
+        assert cfg.colors is not None
         self.assertEqual(len(cfg.names), 3)
         self.assertEqual(len(cfg.colors), 3)
         self.assertEqual(cfg.names[-1], DEFAULT_NULL_CLASS_NAME)
@@ -64,6 +68,7 @@ class TestClassConfig(unittest.TestCase):
 
         cfg = ClassConfig(names=['a', 'b'], null_class='a')
         cfg.ensure_null_class()
+        assert cfg.colors is not None
         self.assertEqual(len(cfg.names), 2)
         self.assertEqual(len(cfg.colors), 2)
 
@@ -71,6 +76,7 @@ class TestClassConfig(unittest.TestCase):
             names=['a', 'b'], colors=['red', DEFAULT_NULL_CLASS_COLOR]
         )
         cfg.ensure_null_class()
+        assert cfg.colors is not None
         self.assertEqual(len(cfg.names), 3)
         self.assertEqual(len(cfg.colors), 3)
         self.assertEqual(cfg.names[-1], DEFAULT_NULL_CLASS_NAME)

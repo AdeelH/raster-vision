@@ -19,6 +19,8 @@ from rastervision.core.data.vector_transformer import (
 
 if TYPE_CHECKING:
     from typing import Self
+    from rastervision.core.data import SceneConfig
+    from rastervision.core.rv_pipeline import RVPipelineConfig
 
 
 def cc_label_source_config_upgrader(cfg_dict: dict, version: int) -> dict:
@@ -137,9 +139,17 @@ class ChipClassificationLabelSourceConfig(LabelSourceConfig):
             self, vector_source, bbox=bbox, lazy=self.lazy
         )
 
-    def update(self, pipeline=None, scene=None):
+    def update(
+        self,
+        pipeline: 'RVPipelineConfig | None' = None,
+        scene: 'SceneConfig | None' = None,
+    ) -> None:
         super().update(pipeline, scene)
         if self.cell_sz is None and pipeline is not None:
-            self.cell_sz = pipeline.chip_options.get_chip_sz(scene.id)
+            assert pipeline.chip_options is not None
+            assert scene is not None
+            chip_sz = pipeline.chip_options.get_chip_sz(scene.id)
+            assert isinstance(chip_sz, int)
+            self.cell_sz = chip_sz
         if self.vector_source is not None:
             self.vector_source.update(pipeline, scene)

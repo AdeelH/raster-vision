@@ -4,6 +4,7 @@ from rastervision.pipeline.config import register_config, Config
 
 if TYPE_CHECKING:
     from rastervision.core.analyzer.analyzer import Analyzer  # noqa
+    from rastervision.core.data import Scene
 
 
 @register_config('analyzer')
@@ -11,9 +12,9 @@ class AnalyzerConfig(Config):
     """Configure an :class:`.Analyzer`."""
 
     def build(
-        self, scene_group: tuple[str, Iterable[str]] | None = None
+        self, scene_group: tuple[str, Iterable['Scene']] | None = None
     ) -> 'Analyzer':
-        pass
+        raise NotImplementedError()
 
     def get_bundle_filenames(self) -> list[str]:
         """Returns the names of files that should be included in a model bundle.

@@ -6,6 +6,7 @@ from sagemaker.workflow.pipeline import Pipeline as SageMakerPipeline
 from sagemaker.workflow.steps import ProcessingStep, Step, TrainingStep
 
 from rastervision.pipeline import rv_config_ as rv_config
+from rastervision.pipeline.pipeline import Pipeline
 from rastervision.aws_sagemaker.aws_sagemaker_runner import AWSSageMakerRunner
 
 import boto3
@@ -51,7 +52,7 @@ class TestAWSSageMakerRunner(unittest.TestCase):
         os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
 
     def test_build_pipeline(self):
-        pipeline = MockRVPipeline()
+        pipeline = cast(Pipeline, MockRVPipeline())
         runner = AWSSageMakerRunner()
         rv_config.set_verbosity(4)
         sagemaker_pipeline = runner.build_pipeline(
@@ -70,15 +71,19 @@ class TestAWSSageMakerRunner(unittest.TestCase):
         self.assertIsInstance(steps[1], ProcessingStep)
         # train
         self.assertIsInstance(steps[2], TrainingStep)
+        assert steps[2].depends_on is not None
         self.assertEqual(len(steps[2].depends_on), 2)
         # predict #1
         self.assertIsInstance(steps[3], ProcessingStep)
+        assert steps[3].depends_on is not None
         self.assertEqual(len(steps[3].depends_on), 3)
         # predict #2
         self.assertIsInstance(steps[4], ProcessingStep)
+        assert steps[4].depends_on is not None
         self.assertEqual(len(steps[4].depends_on), 3)
         # eval
         self.assertIsInstance(steps[5], ProcessingStep)
+        assert steps[5].depends_on is not None
         self.assertEqual(len(steps[5].depends_on), 5)
 
 

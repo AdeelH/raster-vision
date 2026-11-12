@@ -50,6 +50,8 @@ class TestRVPipelineConfig(unittest.TestCase):
         cfg_dict = rv_pipeline_config_upgrader(cfg_dict, 10)
         cfg_dict = rv_pipeline_config_upgrader(cfg_dict, 11)
         cfg = RVPipelineConfig(**cfg_dict)
+        assert cfg.chip_options is not None
+        assert cfg.predict_options is not None
         self.assertEqual(cfg.chip_options.get_chip_sz(), 20)
         self.assertEqual(cfg.chip_options.nodata_threshold, 0.5)
         self.assertEqual(cfg.predict_options.chip_sz, 20)

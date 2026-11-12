@@ -4,7 +4,6 @@ from os.path import join
 from enum import Enum
 import logging
 
-import albumentations as A
 from torch import nn
 from torch.utils.data import Dataset
 from torchvision import models
@@ -19,6 +18,7 @@ from rastervision.pipeline.config import (
     ConfigError,
 )
 from rastervision.pytorch_learner.learner_config import (
+    AlbTransform,
     Backbone,
     LearnerConfig,
     ModelConfig,
@@ -105,7 +105,7 @@ class SemanticSegmentationImageDataConfig(
         ImageDataConfig.update(self, *args, **kwargs)
 
     def dir_to_dataset(
-        self, data_dir: str, transform: A.BasicTransform
+        self, data_dir: str, transform: AlbTransform | None
     ) -> Dataset:
         if self.data_format != SemanticSegmentationDataFormat.default:
             raise NotImplementedError()
@@ -134,7 +134,7 @@ class SemanticSegmentationGeoDataConfig(
     def scene_to_dataset(
         self,
         scene: Scene,
-        transform: A.BasicTransform | None = None,
+        transform: AlbTransform | None = None,
         for_chipping: bool = False,
     ) -> Dataset:
         if isinstance(self.sampling, dict):
@@ -232,7 +232,7 @@ class SemanticSegmentationModelConfig(ModelConfig):
                 )
             backbone = cast(nn.Module, model.backbone)
             backbone.conv1 = adjust_conv_channels(
-                old_conv=backbone.conv1,
+                old_conv=cast(nn.Conv2d, backbone.conv1),
                 in_channels=in_channels,
                 pretrained=pretrained,
             )

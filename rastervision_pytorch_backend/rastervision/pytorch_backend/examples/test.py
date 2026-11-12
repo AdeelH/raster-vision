@@ -317,12 +317,13 @@ def compare(
             console_info(f'Comparing\n- {root_uri_old}\n- {root_uri_new}')
             _compare(root_uri_old, root_uri_new, download_dir)
         return
+    assert root_uri_old is not None and root_uri_new is not None
     return _compare(root_uri_old, root_uri_new, download_dir)
 
 
 def _compare(
-    root_uri_old: str | None,
-    root_uri_new: str | None,
+    root_uri_old: str,
+    root_uri_new: str,
     download_dir: str | None = None,
 ) -> None:
     """Compare different runs of the same example."""
@@ -377,7 +378,7 @@ def _run(
     exp_cfg: dict,
     test: bool = False,
     remote: bool = False,
-    commands: list[str] = None,
+    commands: list[str] | None = None,
 ) -> None:
     """Builds a command from the params in exp_cfg and other arguments and
     then executes it.
@@ -482,7 +483,7 @@ def validate_keys(keys: list[str]) -> None:
         raise ValueError('{} are invalid keys'.format(', '.join(invalid_keys)))
 
 
-def run_command(cmd: str) -> None:
+def run_command(cmd: list[str]) -> None:
     """Run a command in a sub-process."""
     cmd_str = ' '.join(cmd)
     console_info(f'Running command:\n{cmd_str}')

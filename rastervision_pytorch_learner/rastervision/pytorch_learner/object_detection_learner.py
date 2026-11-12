@@ -34,6 +34,8 @@ class ObjectDetectionLearner(Learner):
     def build_model(self, model_def_path: str | None = None) -> 'nn.Module':
         """Override to pass img_sz."""
         cfg = self.cfg
+        assert cfg.model is not None
+        assert cfg.data.img_channels is not None
         model = cfg.model.build(
             num_classes=cfg.data.num_classes,
             in_channels=cfg.data.img_channels,
@@ -59,11 +61,15 @@ class ObjectDetectionLearner(Learner):
             and model_weights_path.lower().endswith('.onnx')
         )
         if self._onnx_mode:
+            assert model_weights_path is not None
             model = self.load_onnx_model(model_weights_path)
         else:
             model = self.build_model(model_def_path)
 
-        if self.cfg.model.external_def is not None:
+        if (
+            self.cfg.model is not None
+            and self.cfg.model.external_def is not None
+        ):
             # this model will have 1 extra output classes that we will ignore
             self.model = TorchVisionODAdapter(model, ignored_output_inds=[0])
         else:
@@ -82,24 +88,27 @@ class ObjectDetectionLearner(Learner):
 
     def train_step(self, batch, batch_ind):
         x, y = batch
+        assert self.model is not None
         loss_dict = self.model(x, y)
         loss_dict['train_loss'] = sum(loss_dict.values())
         return loss_dict
 
     def validate_step(self, batch, batch_ind):
         x, y = batch
+        assert self.model is not None
         outs = self.model(x)
         ys = self.to_device(y, 'cpu')
         outs = self.to_device(outs, 'cpu')
 
         return {'ys': ys, 'outs': outs}
 
-    def validate_end(self, outputs):
+    def validate_end(self, outputs: list[dict[str, Any]]):
         outs = []
         ys = []
         for o in outputs:
             outs.extend(o['outs'])
             ys.extend(o['ys'])
+        assert self.cfg.data.class_names is not None
         num_class_ids = len(self.cfg.data.class_names)
 
         if self.is_ddp_process:
@@ -134,7 +143,7 @@ class ObjectDetectionLearner(Learner):
         x: 'Tensor',
         raw_out: bool = False,
         out_shape: tuple[int, int] | None = None,
-    ) -> BoxList:
+    ) -> list[BoxList]:
         """Make prediction for an image or batch of images.
 
         Args:
@@ -147,7 +156,7 @@ class ObjectDetectionLearner(Learner):
                 Defaults to ``None``.
 
         Returns:
-            BoxList: Predicted boxes.
+            list[BoxList]: Predicted boxes.
         """
         out: list[BoxList] = super().predict(x, raw_out=raw_out)
         out = self.postprocess_model_output(x, out, out_shape=out_shape)
@@ -158,7 +167,7 @@ class ObjectDetectionLearner(Learner):
         x: 'Tensor',
         raw_out: bool = False,
         out_shape: tuple[int, int] | None = None,
-    ) -> BoxList:
+    ) -> list[BoxList]:
         out: list[BoxList] = super().predict(x, raw_out=raw_out)
         out = self.postprocess_model_output(x, out, out_shape=out_shape)
         return out
@@ -205,6 +214,7 @@ class ObjectDetectionLearner(Learner):
         **kwargs,
     ) -> None:
         if model is None and isinstance(self.model, TorchVisionODAdapter):
+            assert isinstance(self.model.model, torch.nn.Module)
             model = self.model.model
         return super().export_to_onnx(path, model, sample_input, **kwargs)
 

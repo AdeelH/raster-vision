@@ -74,9 +74,11 @@ class SpacenetConfig(object):
         label_dir = os.path.join(self.raw_uri, self.base_dir, self.label_dir)
         label_paths = list_paths(label_dir, ext='.geojson')
         label_re = re.compile(rf'.*{self.label_fn_prefix}(\d+)\.geojson')
-        scene_ids = [
-            label_re.match(label_path).group(1) for label_path in label_paths
-        ]
+        scene_ids = []
+        for label_path in label_paths:
+            match = label_re.match(label_path)
+            assert match is not None
+            scene_ids.append(match.group(1))
         return scene_ids
 
     @abstractmethod

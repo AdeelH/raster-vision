@@ -44,6 +44,8 @@ dependencies = [
     "shapely>=2.1",
     "stackstac",
     "tqdm",
+    # >= 4.4 for TypeVar defaults (PEP 696)
+    "typing_extensions>=4.4",
     "xarray",
 ]
 

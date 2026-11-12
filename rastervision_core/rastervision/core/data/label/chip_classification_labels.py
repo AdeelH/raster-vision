@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Iterable
+from typing import TYPE_CHECKING, Any, Iterable, Mapping
 from dataclasses import dataclass
 
 import numpy as np
@@ -10,7 +10,7 @@ from rastervision.core.utils.types import Vector
 if TYPE_CHECKING:
     from typing import Self
     from rastervision.core.data import ClassConfig, CRSTransformer
-    from shapely.geometry import Polygon
+    from shapely.geometry.base import BaseGeometry
 
 
 @dataclass
@@ -26,7 +26,8 @@ class ChipClassificationLabels(Labels):
     """Represents a spatial grid of cells associated with classes."""
 
     def __init__(
-        self, cell_to_label: dict[Box, tuple[int, Vector | None]] | None = None
+        self,
+        cell_to_label: Mapping[Box, tuple[int, Vector | None]] | None = None,
     ):
         if cell_to_label is None:
             cell_to_label = {}
@@ -45,7 +46,7 @@ class ChipClassificationLabels(Labels):
         )
 
     def __add__(self, other: 'Self') -> 'Self':
-        result = ChipClassificationLabels()
+        result = self.make_empty()
         result.extend(self)
         result.extend(other)
         return result
@@ -70,17 +71,17 @@ class ChipClassificationLabels(Labels):
 
     @classmethod
     def make_empty(cls) -> 'Self':
-        return ChipClassificationLabels()
+        return cls()
 
-    def filter_by_aoi(self, aoi_polygons: Iterable['Polygon']):
+    def filter_by_aoi(self, aoi_polygons: Iterable['BaseGeometry']):
         result = ChipClassificationLabels()
         for cell in self.cell_to_label:
             cell_box = Box(*cell)
             cell_poly = cell_box.to_shapely()
             for aoi in aoi_polygons:
                 if cell_poly.within(aoi):
-                    (class_id, scores) = self.cell_to_label[cell]
-                    result.set_cell(cell_box, class_id, scores)
+                    label = self.cell_to_label[cell]
+                    result.set_cell(cell_box, label.class_id, label.scores)
         return result
 
     def set_cell(
@@ -101,7 +102,7 @@ class ChipClassificationLabels(Labels):
         class_id = int(class_id)
         self.cell_to_label[cell] = ClassificationLabel(class_id, scores)
 
-    def get_cell_class_id(self, cell: Box) -> int:
+    def get_cell_class_id(self, cell: Box) -> int | None:
         """Return class_id for a cell."""
         result = self.cell_to_label.get(cell)
         if result is not None:
@@ -127,7 +128,10 @@ class ChipClassificationLabels(Labels):
         Args:
             cell: (Box)
         """
-        return ChipClassificationLabels({cell: self[cell]})
+        cell_label = self[cell]
+        return ChipClassificationLabels(
+            {cell: (cell_label.class_id, cell_label.scores)}
+        )
 
     def get_cells(self) -> list[Box]:
         """Return list of all cells (list of Box)."""
@@ -152,7 +156,8 @@ class ChipClassificationLabels(Labels):
             labels: ChipClassificationLabels
         """
         for cell in labels.get_cells():
-            self.set_cell(cell, *labels[cell])
+            label = labels[cell]
+            self.set_cell(cell, label.class_id, label.scores)
 
     def save(
         self,

@@ -67,9 +67,9 @@ class XarraySource(RasterSource):
 
         num_channels_raw = len(data_array.band)
         if channel_order is None:
-            channel_order = np.arange(num_channels_raw, dtype=int)
+            channel_order_arr = np.arange(num_channels_raw, dtype=int)
         else:
-            channel_order = np.array(channel_order, dtype=int)
+            channel_order_arr = np.array(channel_order, dtype=int)
 
         height, width = len(data_array.y), len(data_array.x)
         self.full_extent = Box(0, 0, height, width)
@@ -86,7 +86,7 @@ class XarraySource(RasterSource):
                 bbox = new_bbox
 
         super().__init__(
-            channel_order=channel_order,
+            channel_order=channel_order_arr,
             num_channels_raw=num_channels_raw,
             dtype_raw=dtype_raw,
             raster_transformers=raster_transformers,
@@ -100,7 +100,9 @@ class XarraySource(RasterSource):
         raster_transformers: list['RasterTransformer'] = [],
         channel_order: Sequence[int] | None = None,
         bbox: Box | tuple[int, int, int, int] | None = None,
-        bbox_map_coords: Box | tuple[int, int, int, int] | None = None,
+        bbox_map_coords: Box[float]
+        | tuple[float, float, float, float]
+        | None = None,
         temporal: bool = False,
         allow_streaming: bool = False,
         stackstac_args: dict = dict(rescale=False),
@@ -175,7 +177,7 @@ class XarraySource(RasterSource):
         return raster_source
 
     @property
-    def shape(self) -> tuple[int, int, int]:
+    def shape(self) -> tuple[int, ...]:
         """Shape of the raster as a (height, width, num_channels) tuple."""
         H, W = self.bbox.size
         if self.temporal:
@@ -184,15 +186,15 @@ class XarraySource(RasterSource):
         return H, W, self.num_channels
 
     @property
-    def crs_transformer(self) -> RasterioCRSTransformer:
+    def crs_transformer(self) -> 'CRSTransformer':
         return self._crs_transformer
 
     def _get_chip(
         self,
         window: Box,
-        bands: int | Sequence[int] | slice = slice(None),
+        bands: int | Sequence[int] | np.ndarray | slice = slice(None),
         time: int | Sequence[int] | slice = slice(None),
-        out_shape: tuple[int, ...] | None = None,
+        out_shape: tuple[int, int] | None = None,
     ) -> np.ndarray:
         window = window.to_global_coords(self.bbox)
 
@@ -228,7 +230,7 @@ class XarraySource(RasterSource):
         window: Box,
         bands: int | Sequence[int] | slice | None = None,
         time: int | Sequence[int] | slice = slice(None),
-        out_shape: tuple[int, ...] | None = None,
+        out_shape: tuple[int, int] | None = None,
     ) -> np.ndarray:
         """Read a chip specified by a window from the file.
 
@@ -245,11 +247,11 @@ class XarraySource(RasterSource):
             np.ndarray: A chip of shape (height, width, channels).
         """
         if bands is None or bands == slice(None):
-            bands = self.channel_order
+            selected_bands = self.channel_order
         else:
-            bands = cast(np.ndarray, self.channel_order)[bands]
+            selected_bands = cast(np.ndarray, self.channel_order)[bands]
         chip = self._get_chip(
-            window, bands=bands, time=time, out_shape=out_shape
+            window, bands=selected_bands, time=time, out_shape=out_shape
         )
         for transformer in self.raster_transformers:
             chip = transformer.transform(chip)
@@ -266,7 +268,7 @@ class XarraySource(RasterSource):
             t, h, w, c = dim_slices
         else:
             h, w, c = dim_slices
-            t = None
+            t = slice(None)
 
         out_shape = None
         if h.step is not None or w.step is not None:

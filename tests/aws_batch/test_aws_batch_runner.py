@@ -1,7 +1,9 @@
+from typing import cast
 import os
 import unittest
 
 from rastervision.pipeline import rv_config_ as rv_config
+from rastervision.pipeline.pipeline import Pipeline
 from rastervision.aws_batch.aws_batch_runner import AWSBatchRunner
 
 
@@ -13,7 +15,7 @@ class MockPipeline:
 
 class TestAWSBatchRunner(unittest.TestCase):
     def test_build_cmd(self):
-        pipeline = MockPipeline()
+        pipeline = cast(Pipeline, MockPipeline())
         runner = AWSBatchRunner()
         rv_config.set_verbosity(4)
         cmd, args = runner.build_cmd(

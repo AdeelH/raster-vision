@@ -1,4 +1,5 @@
 import os
+from collections.abc import Sequence
 from os.path import join
 
 from rastervision.core.rv_pipeline import (
@@ -95,7 +96,10 @@ def get_config(
 
     if multiband:
         channel_order = [0, 1, 2, 3]
-        channel_display_groups = {'RGB': [0, 1, 2], 'IR': [3]}
+        channel_display_groups: dict[str, Sequence[int]] | None = {
+            'RGB': [0, 1, 2],
+            'IR': [3],
+        }
     else:
         channel_order = [0, 1, 2]
         channel_display_groups = None

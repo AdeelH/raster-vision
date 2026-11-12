@@ -28,16 +28,10 @@ def vector_source_config_upgrader(
             class_id_to_filter=cfg_dict.get('class_id_to_filter'),
         ).dict()
 
-        line_bufs = (
-            {}
-            if cfg_dict.get('line_bufs') is None
-            else cfg_dict.get('line_bufs')
-        )
-        point_bufs = (
-            {}
-            if cfg_dict.get('point_bufs') is None
-            else cfg_dict.get('point_bufs')
-        )
+        line_bufs = cfg_dict.get('line_bufs')
+        line_bufs = {} if line_bufs is None else line_bufs
+        point_bufs = cfg_dict.get('point_bufs')
+        point_bufs = {} if point_bufs is None else point_bufs
         buf_tfs = [
             BufferTransformerConfig(
                 geom_type='LineString', class_bufs=line_bufs

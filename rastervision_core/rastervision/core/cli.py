@@ -13,6 +13,7 @@ class OptionEatAll(click.Option):
 
     def add_to_parser(self, parser, ctx):
         def is_next_option(arg: str) -> bool:
+            assert self._eat_all_parser is not None
             for prefix in self._eat_all_parser.prefixes:
                 if arg.startswith(prefix):
                     return True
@@ -25,6 +26,7 @@ class OptionEatAll(click.Option):
             while state.rargs and not is_next_option(state.rargs[0]):
                 values.append(state.rargs.pop(0))
             # call the actual process
+            assert self._previous_parser_process is not None
             self._previous_parser_process(values, state)
 
         retval = super().add_to_parser(parser, ctx)

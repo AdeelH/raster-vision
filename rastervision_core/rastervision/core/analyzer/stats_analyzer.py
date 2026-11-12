@@ -11,7 +11,7 @@ class StatsAnalyzer(Analyzer):
     def __init__(
         self,
         stats_uri: str | None = None,
-        sample_prob: float = 0.1,
+        sample_prob: float | None = 0.1,
         chip_sz: int = 300,
         nodata_value: float | None = 0,
     ):

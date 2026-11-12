@@ -1,4 +1,5 @@
-from typing import TYPE_CHECKING
+from collections.abc import Sized
+from typing import TYPE_CHECKING, Any, Literal, cast
 from os.path import join, splitext
 import tempfile
 
@@ -18,7 +19,7 @@ if TYPE_CHECKING:
     from rastervision.core.rv_pipeline import RVPipelineConfig, ChipOptions
     from rastervision.pytorch_learner import GeoDataConfig, LearnerConfig
 
-SPLITS = ['train', 'valid', 'test']
+SPLITS: list[Literal['train', 'valid', 'test']] = ['train', 'valid', 'test']
 
 
 def write_chip(chip: np.ndarray, path: str) -> None:
@@ -119,7 +120,7 @@ class PyTorchLearnerBackend(Backend):
         self.pipeline_cfg = pipeline_cfg
         self.learner_cfg = learner_cfg
         self.tmp_dir = tmp_dir
-        self.learner = None
+        self.learner: Learner | None = None
 
     def train(self, source_bundle_uri: str | None = None):
         if source_bundle_uri is not None:
@@ -163,7 +164,7 @@ class PyTorchLearnerBackend(Backend):
 
         with self.get_sample_writer() as sample_writer:
             for split, ds in zip(SPLITS, [train_ds, valid_ds, test_ds]):
-                if len(ds) == 0:
+                if len(cast(Sized, ds)) == 0:
                     continue
                 self.chip_pytorch_dataset(
                     ds,
@@ -178,11 +179,13 @@ class PyTorchLearnerBackend(Backend):
         dataset: 'Dataset',
         sample_writer: 'PyTorchLearnerSampleWriter',
         chip_options: 'ChipOptions',
-        split: str | None = None,
+        split: Literal['train', 'valid', 'test'] | None = None,
         dataloader_kw: dict = {},
     ) -> None:
         from torch.utils.data import DataLoader
 
+        solver = self.learner_cfg.solver
+        assert solver is not None
         num_workers = rv_config.get_namespace_option(
             'rastervision',
             'CHIP_NUM_WORKERS',
@@ -191,10 +194,12 @@ class PyTorchLearnerBackend(Backend):
         batch_size = rv_config.get_namespace_option(
             'rastervision',
             'CHIP_BATCH_SIZE',
-            default=self.learner_cfg.solver.batch_sz,
+            default=solver.batch_sz,
         )
+        # Defaults are always non-None, so the lookup result is too.
+        assert batch_size is not None and num_workers is not None
 
-        dl_kw = dict(
+        dl_kw: dict[str, Any] = dict(
             batch_size=int(batch_size),
             num_workers=int(num_workers),
             shuffle=False,
@@ -207,7 +212,7 @@ class PyTorchLearnerBackend(Backend):
             desc = f'Chipping {split} scenes.'
         else:
             desc = 'Chipping dataset.'
-        with tqdm(total=len(dataset), desc=desc) as bar:
+        with tqdm(total=len(cast(Sized, dataset)), desc=desc) as bar:
             for (xs, ys), ws in dl:
                 for x, y, w in zip(xs, ys, ws):
                     if not chip_options.keep_chip(x, y):

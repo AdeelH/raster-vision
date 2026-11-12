@@ -1,5 +1,6 @@
 import unittest
 from os.path import join
+from typing import cast
 
 import numpy as np
 
@@ -11,6 +12,7 @@ from rastervision.core.data import (
     StatsTransformer,
     StatsTransformerConfig,
 )
+from rastervision.core.rv_pipeline import RVPipelineConfig
 from rastervision.core.data.raster_transformer.stats_transformer_config import (  # noqa
     stats_transformer_config_upgrader,
 )
@@ -22,23 +24,27 @@ class MockRVPipelineConfig:
     analyze_uri = '/abc/def/analyze'
 
 
+def make_mock_pipeline_config() -> RVPipelineConfig:
+    return cast(RVPipelineConfig, MockRVPipelineConfig())
+
+
 class TestStatsTransformerConfig(unittest.TestCase):
     def test_update(self):
         cfg = StatsTransformerConfig(stats_uri=None)
-        cfg.update(MockRVPipelineConfig())
+        cfg.update(make_mock_pipeline_config())
         self.assertEqual(
             cfg.stats_uri, '/abc/def/analyze/stats/train_scenes/stats.json'
         )
 
         cfg = StatsTransformerConfig(stats_uri=None, scene_group='group1')
-        cfg.update(MockRVPipelineConfig())
+        cfg.update(make_mock_pipeline_config())
         self.assertEqual(
             cfg.stats_uri, '/abc/def/analyze/stats/group1/stats.json'
         )
 
     def test_update_root(self):
         cfg = StatsTransformerConfig(stats_uri=None, scene_group='group1')
-        cfg.update(MockRVPipelineConfig())
+        cfg.update(make_mock_pipeline_config())
         self.assertEqual(
             cfg.stats_uri, '/abc/def/analyze/stats/group1/stats.json'
         )
@@ -105,6 +111,7 @@ class TestStatsTransformer(unittest.TestCase):
         tf = StatsTransformer([1, 2], [3, 4])
         stats = tf.stats
         self.assertIsInstance(stats, RasterStats)
+        assert stats.means is not None and stats.stds is not None
         np.testing.assert_array_equal(stats.means, np.array([1, 2]))
         np.testing.assert_array_equal(stats.stds, np.array([3, 4]))
 

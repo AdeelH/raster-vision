@@ -70,7 +70,7 @@ class ChipClassificationGeoJSONStore(LabelStore):
         return ls.get_labels()
 
     @property
-    def bbox(self) -> 'Box':
+    def bbox(self) -> 'Box | None':
         return self._bbox
 
     @property

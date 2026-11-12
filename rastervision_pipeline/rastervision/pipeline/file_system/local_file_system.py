@@ -44,9 +44,7 @@ def make_dir(
                 )
 
 
-def progressbar(
-    file_obj, method: Literal['read', 'write'], size: int, desc: str
-):
+def progressbar(file_obj, method: Literal['read'], size: int, desc: str):
     return tqdm.wrapattr(
         file_obj,
         method,
@@ -148,7 +146,7 @@ class LocalFileSystem(FileSystem):
         LocalFileSystem.copy_to(src_uri, dst_path)
 
     @staticmethod
-    def local_path(uri: str, download_dir: str) -> None:
+    def local_path(uri: str, download_dir: str) -> str:
         path = uri
         return path
 

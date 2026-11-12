@@ -21,7 +21,7 @@ class TemporalMultiRasterSource(MultiRasterSource):
         self,
         raster_sources: Sequence[RasterSource],
         primary_source_idx: NonNegInt = 0,
-        raster_transformers: Sequence['RasterTransformer'] = [],
+        raster_transformers: list['RasterTransformer'] = [],
         bbox: Box | None = None,
     ):
         """Constructor.
@@ -144,5 +144,5 @@ class TemporalMultiRasterSource(MultiRasterSource):
         return chip
 
     @property
-    def shape(self) -> tuple[int, int, int, int]:
+    def shape(self) -> tuple[int, ...]:
         return (len(self.raster_sources), *self.primary_source.shape)

@@ -22,8 +22,8 @@ class RegressionVisualizer(Visualizer):
         self,
         axs: Sequence,
         x: torch.Tensor,
-        y: int,
-        z: int | None = None,
+        y: torch.Tensor | None,
+        z: torch.Tensor | None = None,
         plot_title: bool = True,
     ) -> None:
         channel_groups = self.get_channel_display_groups(x.shape[1])

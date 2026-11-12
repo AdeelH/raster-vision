@@ -53,8 +53,11 @@ class TestObjectDetectionEvaluation(unittest.TestCase):
         self.assertEqual(eval_item2.f1, 2 / 3)
 
         avg_item = eval.avg_item
+        assert avg_item is not None
         self.assertEqual(avg_item['gt_count'], 4)
         self.assertAlmostEqual(avg_item['metrics']['precision'], 1.0)
+        self.assertEqual(avg_item['metrics']['recall'], 0.75)
+        self.assertAlmostEqual(avg_item['metrics']['f1'], 0.83, places=2)
         self.assertEqual(avg_item['metrics']['recall'], 0.75)
         self.assertAlmostEqual(avg_item['metrics']['f1'], 0.83, places=2)
 
@@ -78,6 +81,7 @@ class TestObjectDetectionEvaluation(unittest.TestCase):
         self.assertTrue(np.isnan(eval_item2.f1))
 
         avg_item = eval.avg_item
+        assert avg_item is not None
         self.assertEqual(avg_item['gt_count'], 4)
         self.assertEqual(avg_item['metrics']['precision'], 0.0)
         self.assertEqual(avg_item['metrics']['recall'], 0.0)
@@ -103,6 +107,7 @@ class TestObjectDetectionEvaluation(unittest.TestCase):
         self.assertTrue(np.isnan(eval_item2.f1))
 
         avg_item = eval.avg_item
+        assert avg_item is not None
         self.assertEqual(avg_item['gt_count'], 0)
         self.assertEqual(avg_item['metrics']['precision'], 0.0)
         self.assertEqual(avg_item['metrics']['recall'], 0.0)

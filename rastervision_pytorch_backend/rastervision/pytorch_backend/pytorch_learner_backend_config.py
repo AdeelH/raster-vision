@@ -59,18 +59,21 @@ class PyTorchLearnerBackendConfig(BackendConfig):
 
         if isinstance(self.data, ImageDataConfig):
             if self.data.uri is None and self.data.group_uris is None:
+                assert pipeline is not None
                 self.data.uri = pipeline.chip_uri
 
         if self.data.class_config is None:
+            assert pipeline is not None
             self.data.class_config = pipeline.dataset.class_config
 
         if not self.data.img_channels:
+            assert pipeline is not None
             self.data.img_channels = self.get_img_channels(pipeline)
 
-    def get_learner_config(self, pipeline: RVPipelineConfig | None):
+    def get_learner_config(self, pipeline: RVPipelineConfig):
         raise NotImplementedError()
 
-    def build(self, pipeline: RVPipelineConfig | None, tmp_dir: str):
+    def build(self, pipeline: RVPipelineConfig, tmp_dir: str):
         raise NotImplementedError()
 
     def filter_commands(self, commands: list[str]) -> list[str]:

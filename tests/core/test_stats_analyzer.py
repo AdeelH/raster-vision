@@ -60,6 +60,8 @@ class TestStatsAnalyzer(unittest.TestCase):
         analyzer.process(scenes, self.tmp_dir.name)
 
         stats = RasterStats.load(join(self.tmp_dir.name, 'stats.json'))
+        assert stats.means is not None
+        assert stats.stds is not None
         np.testing.assert_array_almost_equal(stats.means, exp_means, decimal=3)
         np.testing.assert_array_almost_equal(stats.stds, exp_stds, decimal=3)
         if is_random:
@@ -78,7 +80,7 @@ class TestStatsAnalyzer(unittest.TestCase):
         scenes, _, _ = zip(*[make_scene(i) for i in range(3)])
 
         analyzer_cfg = StatsAnalyzerConfig(output_uri=self.tmp_dir.name)
-        analyzer = analyzer_cfg.build(scene_group=('abc', set(range(3))))
+        analyzer = analyzer_cfg.build(scene_group=('abc', scenes))
         analyzer.process(scenes, self.tmp_dir.name)
 
         expected_stats_path = join(self.tmp_dir.name, 'abc', 'stats.json')

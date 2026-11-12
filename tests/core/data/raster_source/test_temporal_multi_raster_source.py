@@ -1,5 +1,6 @@
 from collections.abc import Callable
 import unittest
+from typing import Any
 
 import numpy as np
 from xarray import DataArray
@@ -50,7 +51,9 @@ class TestTemporalMultiRasterSource(unittest.TestCase):
         )
         self.assertNoError(lambda: TemporalMultiRasterSource([rs1, rs3]))
 
-        args = dict(raster_sources=[rs1, rs3], primary_source_idx=10)
+        args: dict[str, Any] = dict(
+            raster_sources=[rs1, rs3], primary_source_idx=10
+        )
         self.assertRaises(
             IndexError, lambda: TemporalMultiRasterSource(**args)
         )

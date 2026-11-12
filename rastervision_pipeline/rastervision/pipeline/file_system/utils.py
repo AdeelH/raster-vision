@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING, Any
+from contextlib import AbstractContextManager
 import os
 from os.path import abspath, basename, join
 import shutil
@@ -25,7 +26,7 @@ log = logging.getLogger(__name__)
 
 
 def get_local_path(
-    uri: str, download_dir: str, fs: FileSystem | None = None
+    uri: str, download_dir: str | None, fs: type[FileSystem] | None = None
 ) -> str:
     """Return the path where a local copy of URI should be stored.
 
@@ -35,7 +36,7 @@ def get_local_path(
     Args:
         uri: the URI of the file to be copied
         download_dir: path of the local directory in which files should
-            be copied
+            be copied. Only required if ``uri`` is remote.
         fs: if supplied, use fs instead of automatically chosen FileSystem for
             URI
 
@@ -47,6 +48,10 @@ def get_local_path(
 
     if not fs:
         fs = FileSystem.get_file_system(uri, 'r')
+    if download_dir is None:
+        if not issubclass(fs, LocalFileSystem):
+            raise ValueError(f'download_dir is required for remote URI {uri}.')
+        return uri
     path = fs.local_path(uri, download_dir)
 
     return path
@@ -56,7 +61,7 @@ def sync_to_dir(
     src_dir: str,
     dst_dir_uri: str,
     delete: bool = False,
-    fs: FileSystem | None = None,
+    fs: type[FileSystem] | None = None,
 ) -> None:  # pragma: no cover
     """Synchronize a local source directory to destination directory.
 
@@ -81,7 +86,7 @@ def sync_from_dir(
     src_dir_uri: str,
     dst_dir: str,
     delete: bool = False,
-    fs: FileSystem | None = None,
+    fs: type[FileSystem] | None = None,
 ):
     """Synchronize a source directory to local destination directory.
 
@@ -106,8 +111,8 @@ def start_sync(
     src_dir: str,
     dst_dir_uri: str,
     sync_interval: int = 600,
-    fs: FileSystem | None = None,
-) -> None:  # pragma: no cover
+    fs: type[FileSystem] | None = None,
+) -> AbstractContextManager[Timer]:  # pragma: no cover
     """Repeatedly sync a local source directory to a destination on a schedule.
 
     Calls :func:`sync_to_dir` on a schedule.
@@ -144,7 +149,7 @@ def start_sync(
 def download_if_needed(
     uri: str,
     download_dir: str | None = None,
-    fs: FileSystem | None = None,
+    fs: type[FileSystem] | None = None,
     use_cache: bool = True,
 ) -> str:
     """Download a file to a directory if remote and return its local path.
@@ -192,7 +197,7 @@ def download_if_needed(
 
 
 def download_or_copy(
-    uri: str, target_dir: str, fs: FileSystem | None = None
+    uri: str, target_dir: str, fs: type[FileSystem] | None = None
 ) -> str:
     """Download or copy a file to a directory and return the local file path.
 
@@ -221,7 +226,7 @@ def download_or_copy(
 
 
 def file_exists(
-    uri: str, fs: FileSystem | None = None, include_dir: bool = True
+    uri: str, fs: type[FileSystem] | None = None, include_dir: bool = True
 ) -> bool:
     """Check if file exists.
 
@@ -239,7 +244,7 @@ def file_exists(
 
 
 def list_paths(
-    uri: str, ext: str = '', fs: FileSystem | None = None, **kwargs
+    uri: str, ext: str = '', fs: type[FileSystem] | None = None, **kwargs
 ) -> list[str]:
     """List paths rooted at URI.
 
@@ -262,7 +267,7 @@ def list_paths(
 
 
 def upload_or_copy(
-    src_path: str, dst_uri: str, fs: FileSystem | None = None
+    src_path: str, dst_uri: str, fs: type[FileSystem] | None = None
 ) -> None:
     """Upload or copy a file.
 
@@ -290,7 +295,7 @@ def upload_or_copy(
     fs.copy_to(src_path, dst_uri)
 
 
-def file_to_str(uri: str, fs: FileSystem | None = None) -> str:
+def file_to_str(uri: str, fs: type[FileSystem] | None = None) -> str:
     """Load contents of text file into a string.
 
     Args:
@@ -309,7 +314,7 @@ def file_to_str(uri: str, fs: FileSystem | None = None) -> str:
 
 
 def str_to_file(
-    content_str: str, uri: str, fs: FileSystem | None = None
+    content_str: str, uri: str, fs: type[FileSystem] | None = None
 ) -> None:
     """Writes string to text file.
 

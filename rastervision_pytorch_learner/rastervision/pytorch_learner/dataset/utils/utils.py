@@ -25,7 +25,7 @@ class GeoDatasetError(DatasetError):
 
 
 def discover_images(
-    dir: PathLike, extensions: Iterable[str] = IMG_EXTENSIONS
+    dir: str | PathLike[str], extensions: Iterable[str] = IMG_EXTENSIONS
 ) -> list[Path]:
     """Find all images with the given ``extensions`` in ``dir``."""
     dir = Path(dir)
@@ -35,7 +35,7 @@ def discover_images(
     return list(img_paths)
 
 
-def load_image(path: PathLike) -> np.ndarray:
+def load_image(path: str | PathLike[str]) -> np.ndarray:
     """Read in image from path and return as a (H, W, C) numpy array."""
     ext = splitext(path)[-1]
     if ext == '.npy':

@@ -3,6 +3,7 @@ from os.path import join
 
 import numpy as np
 import rasterio as rio
+from shapely.geometry.base import BaseGeometry
 
 from rastervision.pipeline.file_system import get_tmp_dir
 from rastervision.core.box import Box
@@ -85,7 +86,9 @@ class TestSemanticSegmentationDiscreteLabels(unittest.TestCase):
     def test_get_with_aoi(self):
         null_class_id = self.class_config.null_class_id
 
-        aoi_polygons = [Box.make_square(5, 15, 2).to_shapely()]
+        aoi_polygons: list[BaseGeometry] = [
+            Box.make_square(5, 15, 2).to_shapely()
+        ]
         exp_label_arr = np.full_like(self.label_arr1, fill_value=null_class_id)
         exp_label_arr[5:7, 5:7] = self.label_arr1[5:7, 5:7]
 
@@ -279,7 +282,7 @@ class TestSemanticSegmentationSmoothLabels(unittest.TestCase):
         null_class_id = 2
 
         aoi = Box(5, 15, 7, 17)
-        aoi_polygons = [aoi.to_shapely()]
+        aoi_polygons: list[BaseGeometry] = [aoi.to_shapely()]
         exp_label_arr = self.labels.get_label_arr(self.windows[2])
         exp_label_arr[:] = null_class_id
         y0, x0, y1, x1 = aoi

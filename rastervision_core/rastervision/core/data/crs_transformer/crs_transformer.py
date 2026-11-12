@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, overload
+from typing import TYPE_CHECKING, TypeVar, cast, overload
 
 import numpy as np
 from shapely.ops import transform
@@ -7,6 +7,13 @@ from shapely.geometry.base import BaseGeometry
 from shapely.affinity import translate
 
 from rastervision.core.box import Box
+
+if TYPE_CHECKING:
+    from affine import Affine
+
+# An (x, y) point, either as scalars or as arrays. Point transforms preserve
+# which of the two it is.
+PointT = TypeVar('PointT', tuple[float, float], tuple[np.ndarray, np.ndarray])
 
 
 class CRSTransformer(ABC):
@@ -17,7 +24,7 @@ class CRSTransformer(ABC):
 
     def __init__(
         self,
-        transform: Any | None = None,
+        transform: 'Affine | None' = None,
         image_crs: str | None = None,
         map_crs: str | None = None,
     ):
@@ -27,27 +34,24 @@ class CRSTransformer(ABC):
 
     @overload
     def map_to_pixel(
-        self, inp: tuple[float, float], bbox: Box | None = None
-    ) -> tuple[int, int]: ...
+        self,
+        inp: tuple[float, float] | tuple[np.ndarray, np.ndarray],
+        bbox: Box[int] | None = None,
+    ) -> tuple[np.ndarray, np.ndarray]: ...
 
     @overload
     def map_to_pixel(
-        self, inp: tuple['np.ndarray', 'np.ndarray'], bbox: Box | None = None
-    ) -> tuple['np.ndarray', 'np.ndarray']: ...
-
-    @overload
-    def map_to_pixel(self, inp: Box, bbox: Box | None = None) -> Box: ...
+        self, inp: Box[float], bbox: Box[int] | None = None
+    ) -> Box[int]: ...
 
     @overload
     def map_to_pixel(
-        self, inp: BaseGeometry, bbox: Box | None = None
+        self, inp: BaseGeometry, bbox: Box[int] | None = None
     ) -> BaseGeometry: ...
 
     def map_to_pixel(
-        self, inp, bbox: Box | None = None
-    ) -> (
-        'tuple[int, int] | tuple[np.ndarray, np.ndarray] | Box | BaseGeometry'
-    ):
+        self, inp, bbox: Box[int] | None = None
+    ) -> 'tuple[np.ndarray, np.ndarray] | Box[int] | BaseGeometry':
         """Transform input from map to pixel coords.
 
         Args:
@@ -59,7 +63,9 @@ class CRSTransformer(ABC):
                 source of the RasterSource. Defaults to None.
 
         Returns:
-            Coordinate-transformed input in the same format.
+            Coordinate-transformed input in the same format. Box coordinates
+            are integers when ``round_pixels`` is enabled (the default for
+            :class:`.RasterioCRSTransformer`).
         """
         if isinstance(inp, Box):
             box_out = self._map_to_pixel_box(inp)
@@ -88,25 +94,24 @@ class CRSTransformer(ABC):
 
     @overload
     def pixel_to_map(
-        self, inp: tuple[float, float], bbox: Box | None = None
-    ) -> tuple[float, float]: ...
+        self,
+        inp: tuple[float, float] | tuple[np.ndarray, np.ndarray],
+        bbox: Box[int] | None = None,
+    ) -> tuple[np.ndarray, np.ndarray]: ...
 
     @overload
     def pixel_to_map(
-        self, inp: tuple['np.ndarray', 'np.ndarray'], bbox: Box | None = None
-    ) -> tuple['np.ndarray', 'np.ndarray']: ...
-
-    @overload
-    def pixel_to_map(self, inp: Box, bbox: Box | None = None) -> Box: ...
+        self, inp: Box[int], bbox: Box[int] | None = None
+    ) -> Box[float]: ...
 
     @overload
     def pixel_to_map(
-        self, inp: BaseGeometry, bbox: Box | None = None
+        self, inp: BaseGeometry, bbox: Box[int] | None = None
     ) -> BaseGeometry: ...
 
     def pixel_to_map(
-        self, inp, bbox: Box | None = None
-    ) -> 'tuple[float, float] | tuple[np.ndarray, np.ndarray] | Box | BaseGeometry':
+        self, inp, bbox: Box[int] | None = None
+    ) -> 'tuple[np.ndarray, np.ndarray] | Box[float] | BaseGeometry':
         """Transform input from pixel to map coords.
 
         Args:
@@ -149,9 +154,7 @@ class CRSTransformer(ABC):
             )
 
     @abstractmethod
-    def _map_to_pixel_point(
-        self, point: tuple[float, float]
-    ) -> tuple[int, int]:
+    def _map_to_pixel_point(self, point: PointT) -> PointT:
         """Transform point(s) from map to pixel coordinates.
 
         Args:
@@ -162,7 +165,7 @@ class CRSTransformer(ABC):
             ``(x, y)`` tuple in pixel coordinates.
         """
 
-    def _map_to_pixel_box(self, box: Box) -> Box:
+    def _map_to_pixel_box(self, box: Box[float]) -> Box[int]:
         """Transform a :class:`Box` from map to pixel coordinates.
 
         Args:
@@ -175,7 +178,8 @@ class CRSTransformer(ABC):
         xmin_tf, ymin_tf = self._map_to_pixel_point((xmin, ymin))
         xmax_tf, ymax_tf = self._map_to_pixel_point((xmax, ymax))
         pixel_box = Box(ymin_tf, xmin_tf, ymax_tf, xmax_tf)
-        return pixel_box
+        # Coordinates are only integral if the subclass rounds them.
+        return cast(Box[int], pixel_box)
 
     def _map_to_pixel_geom(self, geom: BaseGeometry) -> BaseGeometry:
         """Transform a shapely geom from map to pixel coordinates.
@@ -193,9 +197,7 @@ class CRSTransformer(ABC):
         return pixel_geom
 
     @abstractmethod
-    def _pixel_to_map_point(
-        self, point: tuple[int, int]
-    ) -> tuple[float, float]:
+    def _pixel_to_map_point(self, point: PointT) -> PointT:
         """Transform point(s) from pixel to map coordinates.
 
         Args:
@@ -206,7 +208,7 @@ class CRSTransformer(ABC):
             ``(x, y)`` tuple in map coordinates (eg. lon/lat).
         """
 
-    def _pixel_to_map_box(self, box: Box) -> Box:
+    def _pixel_to_map_box(self, box: Box[int]) -> Box[float]:
         """Transform a :class:`Box` from pixel to map coordinates.
 
         Args:

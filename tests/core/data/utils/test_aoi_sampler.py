@@ -78,7 +78,7 @@ class TestAoiSampler(unittest.TestCase):
         vbar = Polygon.from_bounds(xmin=2, ymin=0, xmax=4, ymax=6)
         polygons = MultiPolygon([hbar, vbar])
 
-        aoi_sampler = AoiSampler(polygons)
+        aoi_sampler = AoiSampler(list(polygons.geoms))
 
         # break the polygon up into small blocks of 1x1
         blocks = []

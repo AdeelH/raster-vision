@@ -38,7 +38,7 @@ class MultiRasterSource(RasterSource):
         raster_sources: Sequence[RasterSource],
         primary_source_idx: NonNegInt = 0,
         channel_order: Sequence[NonNegInt] | None = None,
-        raster_transformers: Sequence['RasterTransformer'] = [],
+        raster_transformers: list['RasterTransformer'] = [],
         bbox: Box | None = None,
     ):
         """Constructor.
@@ -100,7 +100,9 @@ class MultiRasterSource(RasterSource):
         raster_transformers: list['RasterTransformer'] = [],
         channel_order: Sequence[int] | None = None,
         bbox: Box | tuple[int, int, int, int] | None = None,
-        bbox_map_coords: Box | tuple[int, int, int, int] | None = None,
+        bbox_map_coords: Box[float]
+        | tuple[float, float, float, float]
+        | None = None,
         allow_streaming: bool = False,
     ) -> 'Self':
         """Construct a ``MultiRasterSource`` from a STAC Item.
@@ -164,7 +166,7 @@ class MultiRasterSource(RasterSource):
             channel_order=channel_order,
             bbox=bbox,
         )
-        return raster_source
+        return cast('Self', raster_source)
 
     def validate_raster_sources(self) -> None:
         """Validate sub-``RasterSources``.
@@ -227,7 +229,8 @@ class MultiRasterSource(RasterSource):
         primary_rs = self.primary_source
         primary_sub_chip = primary_rs.get_chip(window, out_shape=out_shape)
         if out_shape is None:
-            out_shape = primary_sub_chip.shape[-3:-1]
+            out_h, out_w = primary_sub_chip.shape[-3:-1]
+            out_shape = (out_h, out_w)
 
         sub_chips = [
             self._get_aligned_sub_chip(rs, window, out_shape)
@@ -363,8 +366,8 @@ def _get_window_transform(
     ymin, xmin, ymax, xmax = window
     win_h, win_w = ymax - ymin, xmax - xmin
     # Window is an attrs class whose fields pyright can't see
-    window = Window(xmin, ymin, win_w, win_h)  # pyright: ignore[reportCallIssue]
-    win_transform = window_transform(window, transform)
+    rio_window = Window(xmin, ymin, win_w, win_h)  # pyright: ignore[reportCallIssue]
+    win_transform = window_transform(rio_window, transform)
     out_h, out_w = out_shape
     if (out_h, out_w) != (win_h, win_w):
         win_transform = win_transform * Affine.scale(

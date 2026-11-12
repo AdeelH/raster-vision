@@ -1,5 +1,6 @@
-from collections.abc import Callable
+from collections.abc import Callable, Sized
 import unittest
+from typing import Any, cast
 
 from rastervision.pipeline.file_system import get_tmp_dir
 from rastervision.pipeline.config import ValidationError, build_config
@@ -187,7 +188,7 @@ class TestImageDataConfig(unittest.TestCase):
         group_uris = ['a', 'b', 'c']
 
         # test missing group_uris
-        args = dict(group_train_sz=1)
+        args: dict[str, Any] = dict(group_train_sz=1)
         self.assertRaises(ValidationError, lambda: ImageDataConfig(**args))
         args = dict(group_train_sz_rel=0.5)
         self.assertRaises(ValidationError, lambda: ImageDataConfig(**args))
@@ -234,7 +235,7 @@ class TestImageDataConfig(unittest.TestCase):
         ):
             ds = cfg.build_dataset('valid', tmp_dir='/tmp')
         self.assertIsInstance(ds, ConcatDataset)
-        self.assertEqual(len(ds), 4)
+        self.assertEqual(len(cast(Sized, ds)), 4)
         self.assertListEqual(calls, [('a', 'valid'), ('b', 'valid')])
 
     def test_build_cc(self):
@@ -281,9 +282,9 @@ class TestImageDataConfig(unittest.TestCase):
                 img_sz=img_sz,
             )
             train_ds, val_ds, test_ds = data_cfg.build(tmp_dir)
-            self.assertEqual(len(train_ds), nclasses * nchips)
-            self.assertEqual(len(val_ds), nclasses * nchips)
-            self.assertEqual(len(test_ds), 0)
+            self.assertEqual(len(cast(Sized, train_ds)), nclasses * nchips)
+            self.assertEqual(len(cast(Sized, val_ds)), nclasses * nchips)
+            self.assertEqual(len(cast(Sized, test_ds)), 0)
             x, y = train_ds[0]
             self.assertEqual(x.shape, (nchannels, img_sz, img_sz))
             self.assertIn(y, range(nclasses))
@@ -304,9 +305,9 @@ class TestImageDataConfig(unittest.TestCase):
                 img_sz=img_sz,
             )
             train_ds, val_ds, test_ds = data_cfg.build(tmp_dir)
-            self.assertEqual(len(train_ds), nclasses * nchips)
-            self.assertEqual(len(val_ds), nclasses * nchips)
-            self.assertEqual(len(test_ds), 0)
+            self.assertEqual(len(cast(Sized, train_ds)), nclasses * nchips)
+            self.assertEqual(len(cast(Sized, val_ds)), nclasses * nchips)
+            self.assertEqual(len(cast(Sized, test_ds)), 0)
             x, y = train_ds[0]
             self.assertEqual(x.shape, (nchannels, img_sz, img_sz))
             self.assertIn(y, range(nclasses))
@@ -362,9 +363,9 @@ class TestImageDataConfig(unittest.TestCase):
                 img_sz=img_sz,
             )
             train_ds, val_ds, test_ds = data_cfg.build(tmp_dir)
-            self.assertEqual(len(train_ds), nchips)
-            self.assertEqual(len(val_ds), nchips)
-            self.assertEqual(len(test_ds), 0)
+            self.assertEqual(len(cast(Sized, train_ds)), nchips)
+            self.assertEqual(len(cast(Sized, val_ds)), nchips)
+            self.assertEqual(len(cast(Sized, test_ds)), 0)
             x, y = train_ds[0]
             self.assertEqual(x.shape, (nchannels, img_sz, img_sz))
             self.assertEqual(y.shape, (img_sz, img_sz))
@@ -385,7 +386,9 @@ class TestGeoDataConfig(unittest.TestCase):
 
     def test_window_config(self):
         # update() correctly initializes size_lims
-        args = dict(method=WindowSamplingMethod.random, size=10)
+        args: dict[str, Any] = dict(
+            method=WindowSamplingMethod.random, size=10
+        )
         self.assertNoError(lambda: WindowSamplingConfig(**args))
         self.assertEqual(WindowSamplingConfig(**args).size_lims, (10, 11))
 
@@ -444,10 +447,13 @@ class TestGeoDataConfig(unittest.TestCase):
         scene_dataset = DatasetConfig(
             class_config=class_config, train_scenes=[], validation_scenes=[]
         )
-        args = dict(scene_dataset=scene_dataset, sampling={})
+        args: dict[str, Any] = dict(scene_dataset=scene_dataset, sampling={})
         self.assertNoError(lambda: GeoDataConfig(**args))
 
         cfg = GeoDataConfig(**args)
+        assert cfg.class_names is not None
+        assert cfg.class_colors is not None
+        assert class_config.colors is not None
         self.assertListEqual(cfg.class_names, class_config.names)
         self.assertListEqual(cfg.class_colors, class_config.colors)
 
@@ -527,9 +533,15 @@ class TestGeoDataConfig(unittest.TestCase):
         )
         with get_tmp_dir() as tmp_dir:
             train_ds, val_ds, test_ds = data_cfg.build(tmp_dir)
-            self.assertEqual(len(train_ds), 4 * (600 // chip_sz) ** 2)
-            self.assertEqual(len(val_ds), 2 * (600 // chip_sz) ** 2)
-            self.assertEqual(len(test_ds), 0 * (600 // chip_sz) ** 2)
+            self.assertEqual(
+                len(cast(Sized, train_ds)), 4 * (600 // chip_sz) ** 2
+            )
+            self.assertEqual(
+                len(cast(Sized, val_ds)), 2 * (600 // chip_sz) ** 2
+            )
+            self.assertEqual(
+                len(cast(Sized, test_ds)), 0 * (600 // chip_sz) ** 2
+            )
             x, y = train_ds[0]
             self.assertEqual(x.shape, (nchannels, img_sz, img_sz))
             self.assertEqual(y.shape, (img_sz, img_sz))
@@ -559,7 +571,7 @@ class TestPlotOptions(unittest.TestCase):
 
     def test_channel_display_groups(self):
         # check error on empty dict
-        args = dict(channel_display_groups={})
+        args: dict[str, Any] = dict(channel_display_groups={})
         self.assertRaises(ValidationError, lambda: PlotOptions(**args))
 
         # check error on empty list
@@ -578,14 +590,21 @@ class TestPlotOptions(unittest.TestCase):
             ),
         )
         opts = data_cfg.plot_options
+        assert opts is not None
         assert isinstance(opts.channel_display_groups, dict)
         self.assertIn('Channels: [0, 1, 2]', opts.channel_display_groups)
         self.assertIn('Channels: [4, 3, 5]', opts.channel_display_groups)
         self.assertListEqual(
-            opts.channel_display_groups['Channels: [0, 1, 2]'], [0, 1, 2]
+            cast(
+                list[int], opts.channel_display_groups['Channels: [0, 1, 2]']
+            ),
+            [0, 1, 2],
         )
         self.assertListEqual(
-            opts.channel_display_groups['Channels: [4, 3, 5]'], [4, 3, 5]
+            cast(
+                list[int], opts.channel_display_groups['Channels: [4, 3, 5]']
+            ),
+            [4, 3, 5],
         )
 
 

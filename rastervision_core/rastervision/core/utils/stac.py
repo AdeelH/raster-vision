@@ -64,6 +64,7 @@ def get_linked_image_item(label_item: Item) -> Item | None:
     elif len(links) > 1:
         raise NotImplementedError()
     image_item = links[0].resolve_stac_object().target
+    assert isinstance(image_item, Item)
     return image_item
 
 
@@ -106,7 +107,9 @@ def parse_stac(stac_uri: str, item_limit: int | None = None) -> list[dict]:
     out = []
     for label_item, image_item in zip(label_items, image_items):
         label_uri: str = list(label_item.assets.values())[0].href
-        label_bbox = box(*label_item.bbox)
+        assert label_item.bbox is not None
+        # box() takes (minx, miny, maxx, maxy); the bbox is unpacked as a list.
+        label_bbox = box(*label_item.bbox)  # pyright: ignore[reportArgumentType]
         aoi_geometry: dict | None = label_item.geometry
 
         if image_item is not None:
@@ -116,7 +119,9 @@ def parse_stac(stac_uri: str, item_limit: int | None = None) -> list[dict]:
                 if asset.media_type is not None and 'image' in asset.media_type
             ]
             image_uris = [asset.href for asset in image_assets]
-            image_bbox = box(*image_item.bbox)
+            assert image_item.bbox is not None
+            # box() takes (minx, miny, maxx, maxy); the bbox is unpacked as a list.
+            image_bbox = box(*image_item.bbox)  # pyright: ignore[reportArgumentType]
             bboxes_intersect = label_bbox.intersects(image_bbox)
         else:
             image_uris = []

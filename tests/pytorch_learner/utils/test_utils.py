@@ -1,4 +1,5 @@
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
+from typing import cast
 import unittest
 from os.path import join
 
@@ -207,11 +208,11 @@ class TestCustomModules(unittest.TestCase):
     def test_add_tensors(self):
         m = AddTensors()
         ts = [torch.randn(1, 3, 100, 100) for _ in range(5)]
-        self.assertTrue(torch.equal(m(ts), sum(ts)))
+        self.assertTrue(torch.equal(m(ts), cast(torch.Tensor, sum(ts))))
 
 
 class TestAdjustConvChannels(unittest.TestCase):
-    def _test_attribs_equal(self, old_conv: nn.Conv2d, new_conv: nn.Conv2d):
+    def _test_attribs_equal(self, old_conv: nn.Conv2d, new_conv: nn.Module):
         attribs = [
             'out_channels',
             'kernel_size',
@@ -239,6 +240,7 @@ class TestAdjustConvChannels(unittest.TestCase):
         self._test_attribs_equal(old_conv, new_conv)
         # test pretrained=True
         new_conv = adjust_conv_channels(old_conv, 1, pretrained=True)
+        assert isinstance(new_conv, nn.Conv2d)
         self.assertEqual(new_conv.in_channels, 1)
         self.assertTrue(
             torch.equal(new_conv.weight.data, old_conv.weight.data[:, :1])
@@ -276,7 +278,7 @@ class TestAggregateMetrics(unittest.TestCase):
             self.fail(msg)
 
     def test_scalars(self):
-        outputs = [
+        outputs: list[dict[str, float | torch.Tensor]] = [
             dict(train_loss=0.0),
             dict(train_loss=1.0),
         ]
@@ -285,7 +287,7 @@ class TestAggregateMetrics(unittest.TestCase):
         self.assertEqual(metrics['train_loss'], 0.5)
 
     def test_tensors_zero_dim(self):
-        outputs = [
+        outputs: list[dict[str, float | torch.Tensor]] = [
             dict(key=torch.tensor(0)),
             dict(key=torch.tensor(1)),
         ]
@@ -294,7 +296,7 @@ class TestAggregateMetrics(unittest.TestCase):
         self.assertEqual(metrics['key'], 0.5)
 
     def test_tensors(self):
-        outputs = [
+        outputs: list[dict[str, float | torch.Tensor]] = [
             dict(key=torch.zeros(8)),
             dict(key=torch.ones(8)),
         ]
@@ -303,7 +305,7 @@ class TestAggregateMetrics(unittest.TestCase):
         self.assertEqual(metrics['key'], 0.5)
 
     def test_exclude(self):
-        outputs = [
+        outputs: list[dict[str, float | torch.Tensor]] = [
             dict(conf_mat=torch.randint(0, 100, (2, 2))),
             dict(conf_mat=torch.randint(0, 100, (2, 2))),
         ]
@@ -378,7 +380,7 @@ class TestOtherUtils(unittest.TestCase):
         self.assertTrue(all(img.shape == (100, 100, 3) for img in imgs))
 
     def test_plot_channel_groups(self):
-        channel_groups = {'RGB': (0, 1, 2)}
+        channel_groups: dict[str, Sequence[int]] = {'RGB': (0, 1, 2)}
         imgs = channel_groups_to_imgs(
             torch.rand((100, 100, 3)), channel_groups
         )

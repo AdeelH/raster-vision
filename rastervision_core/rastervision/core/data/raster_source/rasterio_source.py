@@ -26,7 +26,7 @@ from rastervision.core.data.utils.rasterio import (
 
 if TYPE_CHECKING:
     from rasterio import Affine
-    from rastervision.core.data import RasterTransformer
+    from rastervision.core.data import CRSTransformer, RasterTransformer
 
 log = logging.getLogger(__name__)
 
@@ -131,7 +131,7 @@ class RasterioSource(RasterSource):
         )
 
     @property
-    def crs_transformer(self) -> RasterioCRSTransformer:
+    def crs_transformer(self) -> 'CRSTransformer':
         return self._crs_transformer
 
     def download_data(
@@ -154,7 +154,7 @@ class RasterioSource(RasterSource):
     def _get_chip(
         self,
         window: Box,
-        bands: Sequence[int] | None = None,
+        bands: Sequence[int] | np.ndarray | None = None,
         out_shape: tuple[int, ...] | None = None,
     ) -> np.ndarray:
         window = window.to_global_coords(self.bbox)
@@ -190,10 +190,12 @@ class RasterioSource(RasterSource):
             np.ndarray: A chip of shape (height, width, channels).
         """
         if bands is None or bands == slice(None):
-            bands = self.bands_to_read
+            selected_bands = self.bands_to_read
         else:
-            bands = self.bands_to_read[bands]
-        chip = self._get_chip(window, out_shape=out_shape, bands=bands)
+            selected_bands = self.bands_to_read[bands]
+        chip = self._get_chip(
+            window, out_shape=out_shape, bands=selected_bands
+        )
         for transformer in self.raster_transformers:
             chip = transformer.transform(chip)
         return chip
@@ -229,14 +231,14 @@ class RasterioSource(RasterSource):
             np.ndarray: A chip of shape (height, width, channels).
         """
         if bands is None or bands == slice(None):
-            bands = self.bands_to_read
+            selected_bands = self.bands_to_read
         else:
-            bands = self.bands_to_read[bands]
+            selected_bands = self.bands_to_read[bands]
         chip = self._get_chip_reprojected(
             CRS.from_user_input(crs),
             transform,
             out_shape,
-            bands=bands,
+            bands=selected_bands,
             resampling=resampling,
         )
         for transformer in self.raster_transformers:
@@ -248,7 +250,7 @@ class RasterioSource(RasterSource):
         crs: CRS,
         transform: 'Affine',
         out_shape: tuple[int, int],
-        bands: Sequence[int],
+        bands: Sequence[int] | np.ndarray,
         resampling: Resampling = Resampling.bilinear,
     ) -> np.ndarray:
         bands = tuple(int(b) for b in bands)

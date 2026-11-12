@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from os.path import join
 import uuid
 
@@ -15,7 +15,10 @@ from rastervision.pytorch_learner.utils import predict_scene_cc
 if TYPE_CHECKING:
     from rastervision.core.data import DatasetConfig, Scene
     from rastervision.core.rv_pipeline import ChipOptions, PredictOptions
-    from rastervision.pytorch_learner import ClassificationGeoDataConfig
+    from rastervision.pytorch_learner import (
+        ClassificationGeoDataConfig,
+        ClassificationLearner,
+    )
 
 
 class PyTorchChipClassificationSampleWriter(PyTorchLearnerSampleWriter):
@@ -31,8 +34,8 @@ class PyTorchChipClassificationSampleWriter(PyTorchLearnerSampleWriter):
 
     def get_image_path(self, sample: 'DataSample') -> str:
         split = '' if sample.split is None else sample.split
-        class_id = sample.label
-        class_name = self.class_config.get_name(class_id)
+        assert sample.label is not None
+        class_name = self.class_config.get_name(sample.label)
         img_dir = join(self.sample_dir, split, class_name)
         make_dir(img_dir)
 
@@ -67,7 +70,9 @@ class PyTorchChipClassification(PyTorchLearnerBackend):
     ) -> 'ChipClassificationLabels':
         if self.learner is None:
             self.load_model()
-        labels = predict_scene_cc(self.learner, scene, predict_options)
+        assert self.learner is not None
+        learner = cast('ClassificationLearner', self.learner)
+        labels = predict_scene_cc(learner, scene, predict_options)
         return labels
 
     def _make_chip_data_config(

@@ -131,6 +131,7 @@ class RVPipeline(Pipeline):
         if not dataset.train_scenes and not dataset.validation_scenes:
             return
         backend = cfg.backend.build(cfg, self.tmp_dir)
+        assert cfg.chip_options is not None
         backend.chip_dataset(dataset, cfg.chip_options)
 
     def train(self):
@@ -169,11 +170,14 @@ class RVPipeline(Pipeline):
         for scene_config in dataset.validation_scenes + dataset.test_scenes:
             scene = scene_config.build(class_config, self.tmp_dir)
             labels = self.predict_scene(scene)
+            assert scene.label_store is not None
             scene.label_store.save(labels)
 
     def predict_scene(self, scene: Scene) -> Labels:
         if self.backend is None:
             self.build_backend()
+        assert self.backend is not None
+        assert self.config.predict_options is not None
         labels = self.backend.predict_scene(
             scene, predict_options=self.config.predict_options
         )
@@ -243,9 +247,11 @@ class RVPipeline(Pipeline):
                 path = download_if_needed(join(train_uri, fn), tmp_dir)
                 shutil.copy(path, join(bundle_dir, fn))
 
-            if file_exists(self.config.analyze_uri, include_dir=True):
+            analyze_uri = self.config.analyze_uri
+            assert analyze_uri is not None
+            if file_exists(analyze_uri, include_dir=True):
                 analyze_dst = join(bundle_dir, 'analyze')
-                sync_from_dir(self.config.analyze_uri, analyze_dst)
+                sync_from_dir(analyze_uri, analyze_dst)
 
             path = download_if_needed(self.config.get_config_uri(), tmp_dir)
             shutil.copy(path, join(bundle_dir, 'pipeline-config.json'))

@@ -9,8 +9,11 @@ import torch
 
 from rastervision.pytorch_learner.object_detection_utils import BoxList
 
+AlbumentationsTransform = A.BasicTransform | A.Compose
+
 TransformFunc = Callable[
-    [tuple[np.ndarray, Any], A.BasicTransform], tuple[np.ndarray, Any]
+    [tuple[np.ndarray, Any], AlbumentationsTransform | None],
+    tuple[np.ndarray | torch.Tensor, Any],
 ]
 
 
@@ -22,7 +25,7 @@ class TransformType(Enum):
     semantic_segmentation = 'semantic_segmentation'
 
 
-def apply_transform(transform: A.BasicTransform, **kwargs) -> dict:
+def apply_transform(transform: AlbumentationsTransform, **kwargs) -> dict:
     """Apply Albumentations transform to possibly batched images.
 
     In case of batched images, the same transform is applied to all of them.
@@ -62,13 +65,13 @@ def apply_transform(transform: A.BasicTransform, **kwargs) -> dict:
 
 @overload
 def classification_transformer(
-    inp: tuple[np.ndarray, int], transform: A.BasicTransform | None
+    inp: tuple[np.ndarray, int], transform: AlbumentationsTransform | None
 ) -> tuple[np.ndarray, np.ndarray]: ...
 
 
 @overload
 def classification_transformer(
-    inp: tuple[np.ndarray, None], transform: A.BasicTransform | None
+    inp: tuple[np.ndarray, None], transform: AlbumentationsTransform | None
 ) -> tuple[np.ndarray, None]: ...
 
 
@@ -86,13 +89,13 @@ def classification_transformer(inp, transform):
 
 @overload
 def regression_transformer(
-    inp: tuple[np.ndarray, Any], transform: A.BasicTransform | None
+    inp: tuple[np.ndarray, Any], transform: AlbumentationsTransform | None
 ) -> tuple[np.ndarray, np.ndarray]: ...
 
 
 @overload
 def regression_transformer(
-    inp: tuple[np.ndarray, None], transform: A.BasicTransform | None
+    inp: tuple[np.ndarray, None], transform: AlbumentationsTransform | None
 ) -> tuple[np.ndarray, None]: ...
 
 
@@ -171,13 +174,13 @@ def albu_to_yxyx(
 @overload
 def object_detection_transformer(
     inp: tuple[np.ndarray, tuple[np.ndarray, np.ndarray, str]],
-    transform: A.BasicTransform | None,
+    transform: AlbumentationsTransform | None,
 ) -> tuple[torch.Tensor, BoxList | None]: ...
 
 
 @overload
 def object_detection_transformer(
-    inp: tuple[np.ndarray, None], transform: A.BasicTransform | None
+    inp: tuple[np.ndarray, None], transform: AlbumentationsTransform | None
 ) -> tuple[torch.Tensor, None]: ...
 
 
@@ -253,13 +256,14 @@ def object_detection_transformer(inp, transform):
 
 @overload
 def semantic_segmentation_transformer(
-    inp: tuple[np.ndarray, np.ndarray], transform: A.BasicTransform | None
+    inp: tuple[np.ndarray, np.ndarray],
+    transform: AlbumentationsTransform | None,
 ) -> tuple[np.ndarray, np.ndarray | None]: ...
 
 
 @overload
 def semantic_segmentation_transformer(
-    inp: tuple[np.ndarray, None], transform: A.BasicTransform | None
+    inp: tuple[np.ndarray, None], transform: AlbumentationsTransform | None
 ) -> tuple[np.ndarray, None]: ...
 
 

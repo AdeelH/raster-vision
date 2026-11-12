@@ -1,9 +1,12 @@
-from typing import Sequence
+from typing import TYPE_CHECKING, Sequence
 
 import numpy as np
 import shapely
 from shapely.geometry import Polygon, MultiPolygon
 from shapely.ops import unary_union
+
+if TYPE_CHECKING:
+    from shapely.geometry.base import BaseGeometry
 
 
 class AoiSampler:
@@ -15,7 +18,7 @@ class AoiSampler:
     sample a point within that triangle uniformly at random.
     """
 
-    def __init__(self, polygons: Sequence[Polygon]) -> None:
+    def __init__(self, polygons: Sequence['BaseGeometry']) -> None:
         # merge overlapping polygons, if any
         merged_polygons = unary_union(polygons)
         if isinstance(merged_polygons, Polygon):
@@ -25,7 +28,7 @@ class AoiSampler:
         self.polygons = merged_polygons
         self.triangulate(self.polygons)
 
-    def triangulate(self, polygons) -> dict:
+    def triangulate(self, polygons) -> None:
         triangulations = [self.triangulate_polygon(p) for p in polygons]
         self.triangulations = triangulations
         self.origins = np.vstack([t['origins'] for t in triangulations])

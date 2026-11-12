@@ -52,6 +52,7 @@ class SamplePipeline(Pipeline):
         # The num_splits is the number of parallel jobs to use and
         # split_ind tracks the index of the parallel job. In this case
         # we are splitting on the names/message_uris.
+        assert self.config.message_uris is not None
         split_groups = split_into_groups(
             list(zip(self.config.names, self.config.message_uris)), num_splits
         )
@@ -67,6 +68,7 @@ class SamplePipeline(Pipeline):
 
     def print_messages(self):
         # Read all the message files and print them.
+        assert self.config.message_uris is not None
         for message_uri in self.config.message_uris:
             message = file_to_str(message_uri)
             print(message)

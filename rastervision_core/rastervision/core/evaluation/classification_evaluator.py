@@ -37,6 +37,8 @@ class ClassificationEvaluator(Evaluator):
             evaluation_global.save(self.output_uri)
 
     def evaluate_scene(self, scene: 'Scene') -> 'ClassificationEvaluation':
+        assert scene.label_source is not None
+        assert scene.label_store is not None
         ground_truth = scene.label_source.get_labels()
         predictions = scene.label_store.get_labels()
 

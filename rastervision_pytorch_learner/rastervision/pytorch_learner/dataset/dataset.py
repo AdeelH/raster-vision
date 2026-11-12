@@ -13,13 +13,14 @@ from rastervision.core.data import Scene
 from rastervision.core.data.utils import AoiSampler
 from rastervision.pytorch_learner.learner_config import PosInt, NonNegInt
 from rastervision.pytorch_learner.dataset.transform import (
+    AlbumentationsTransform,
     TransformType,
     TF_TYPE_TO_TF_FUNC,
 )
 
 if TYPE_CHECKING:
     from typing import Self
-    from shapely.geometry import MultiPolygon, Polygon
+    from shapely.geometry.base import BaseGeometry
 
 log = logging.getLogger(__name__)
 
@@ -30,7 +31,7 @@ class AlbumentationsDataset(Dataset):
     def __init__(
         self,
         orig_dataset: Any,
-        transform: A.BasicTransform | None = None,
+        transform: AlbumentationsTransform | None = None,
         transform_type: TransformType = TransformType.noop,
         normalize=True,
         to_pytorch=True,
@@ -81,14 +82,19 @@ class AlbumentationsDataset(Dataset):
             )
             raise exc
 
-        if self.normalize and np.issubdtype(x.dtype, np.unsignedinteger):
+        if (
+            self.normalize
+            and isinstance(x, np.ndarray)
+            and np.issubdtype(x.dtype, np.unsignedinteger)
+        ):
             max_val = np.iinfo(x.dtype).max
             x = x.astype(float) / max_val
 
         if self.to_pytorch:
-            x = torch.from_numpy(x).float()
-            # (..., H, W, C) --> (..., C, H, W)
-            x = x.transpose_(-2, -1).transpose_(-3, -2)
+            if isinstance(x, np.ndarray):
+                x = torch.from_numpy(x).float()
+                # (..., H, W, C) --> (..., C, H, W)
+                x = x.transpose_(-2, -1).transpose_(-3, -2)
             if y is not None:
                 y = torch.from_numpy(y)
 
@@ -118,8 +124,8 @@ class GeoDataset(AlbumentationsDataset):
         scene: Scene,
         out_size: PosInt | tuple[PosInt, PosInt] | None = None,
         within_aoi: bool = True,
-        transform: A.BasicTransform | None = None,
-        transform_type: TransformType | None = None,
+        transform: AlbumentationsTransform | None = None,
+        transform_type: TransformType = TransformType.noop,
         normalize: bool = True,
         to_pytorch: bool = True,
         return_window: bool = False,
@@ -133,7 +139,7 @@ class GeoDataset(AlbumentationsDataset):
                 windows that lie fully within the AOI. If False, windows only
                 partially intersecting the AOI will also be allowed.
                 Defaults to True.
-            transform (A.BasicTransform | None): Albumentations
+            transform (A.BasicTransform | A.Compose | None): Albumentations
                 transform to apply to the windows. Defaults to None.
                 Each transform in Albumentations takes images of type uint8, and
                 sometimes other data types. The data type requirements can be
@@ -142,7 +148,7 @@ class GeoDataset(AlbumentationsDataset):
                 transform requirements, a RasterTransformer should be set
                 on the RasterSource that converts to uint8, such as
                 MinMaxTransformer or StatsTransformer.
-            transform_type: Type of transform. Defaults to ``None``.
+            transform_type: Type of transform. Defaults to ``TransformType.noop``.
             normalize: If True, x is normalized to [0, 1] based on its data
                 type. Defaults to ``True``.
             normalize: If ``True``, the sampled chips are normalized to [0, 1]
@@ -169,7 +175,7 @@ class GeoDataset(AlbumentationsDataset):
 
     def append_resize_transform(
         self,
-        transform: A.BasicTransform | None,
+        transform: AlbumentationsTransform | None,
         out_size: tuple[PosInt, PosInt],
     ) -> A.Resize | A.Compose:
         """Get transform to use for resizing windows to out_size."""
@@ -200,8 +206,8 @@ class SlidingWindowGeoDataset(GeoDataset):
         padding: NonNegInt | tuple[NonNegInt, NonNegInt] | None = None,
         pad_direction: Literal['both', 'start', 'end'] = 'end',
         within_aoi: bool = True,
-        transform: A.BasicTransform | None = None,
-        transform_type: TransformType | None = None,
+        transform: AlbumentationsTransform | None = None,
+        transform_type: TransformType = TransformType.noop,
         normalize: bool = True,
         to_pytorch: bool = True,
         return_window: bool = False,
@@ -235,7 +241,7 @@ class SlidingWindowGeoDataset(GeoDataset):
                 transform requirements, a RasterTransformer should be set
                 on the RasterSource that converts to uint8, such as
                 :class:`.MinMaxTransformer` or :class:`.StatsTransformer`.
-            transform_type: Type of transform. Defaults to ``None``.
+            transform_type: Type of transform. Defaults to ``TransformType.noop``.
             normalize: If ``True``, the sampled chips are normalized to [0, 1]
                 based on their data type. Defaults to ``True``.
             to_pytorch: If ``True``, the sampled chips and labels are converted
@@ -256,7 +262,7 @@ class SlidingWindowGeoDataset(GeoDataset):
         self.size: tuple[PosInt, PosInt] = ensure_tuple(size)
         self.stride: tuple[PosInt, PosInt] = ensure_tuple(stride)
         self.padding = padding
-        self.pad_direction = pad_direction
+        self.pad_direction: Literal['both', 'start', 'end'] = pad_direction
         self.windows = []
         self.init_windows()
 
@@ -305,8 +311,8 @@ class RandomWindowGeoDataset(GeoDataset):
         max_sample_attempts: PosInt = 100,
         efficient_aoi_sampling: bool = True,
         within_aoi: bool = True,
-        transform: A.BasicTransform | None = None,
-        transform_type: TransformType | None = None,
+        transform: AlbumentationsTransform | None = None,
+        transform_type: TransformType = TransformType.noop,
         normalize: bool = True,
         to_pytorch: bool = True,
         return_window: bool = False,
@@ -340,7 +346,7 @@ class RandomWindowGeoDataset(GeoDataset):
                 transform requirements, a RasterTransformer should be set
                 on the RasterSource that converts to uint8, such as
                 MinMaxTransformer or StatsTransformer.
-            transform_type: Type of transform. Defaults to ``None``.
+            transform_type: Type of transform. Defaults to ``TransformType.noop``.
             max_sample_attempts: Max attempts when trying to find a window
                 within the AOI of the scene. Only used if the scene has
                 ``aoi_polygons`` specified. ``StopIteratioin`` is raised if
@@ -357,7 +363,7 @@ class RandomWindowGeoDataset(GeoDataset):
                 Defaults to ``True``.
             transform: Albumentations transform to apply to the windows.
                 Defaults to ``None``.
-            transform_type: Type of transform. Defaults to ``None``.
+            transform_type: Type of transform. Defaults to ``TransformType.noop``.
             normalize: If ``True``, the sampled chips are normalized to [0, 1]
                 based on their data type. Defaults to ``True``.
             to_pytorch: If ``True``, the sampled chips and labels are converted
@@ -396,6 +402,7 @@ class RandomWindowGeoDataset(GeoDataset):
                 max_size = size_lims[1]
                 padding = (max_size // 2, max_size // 2)
             else:
+                assert h_lims is not None and w_lims is not None
                 max_h, max_w = h_lims[1], w_lims[1]
                 padding = (max_h // 2, max_w // 2)
         padding = ensure_tuple(padding)
@@ -422,7 +429,7 @@ class RandomWindowGeoDataset(GeoDataset):
         self.has_aoi_polygons = len(aoi_polygons) > 0
         if self.has_aoi_polygons:
             extent_polygon = self.extent.to_shapely()
-            aoi: 'Polygon | MultiPolygon' = unary_union(aoi_polygons)
+            aoi: BaseGeometry = unary_union(aoi_polygons)
             # only sample from polygons that intersect w/ the extent
             self.aoi = aoi.intersection(extent_polygon)
             if efficient_aoi_sampling:
@@ -432,12 +439,14 @@ class RandomWindowGeoDataset(GeoDataset):
     def min_size(self):
         if self.size_lims is not None:
             return self.size_lims[0], self.size_lims[0]
+        assert self.h_lims is not None and self.w_lims is not None
         return self.h_lims[0], self.w_lims[0]
 
     @property
     def max_size(self):
         if self.size_lims is not None:
             return self.size_lims[1], self.size_lims[1]
+        assert self.h_lims is not None and self.w_lims is not None
         return self.h_lims[1], self.w_lims[1]
 
     def sample_window_size(self) -> tuple[int, int]:
@@ -446,21 +455,23 @@ class RandomWindowGeoDataset(GeoDataset):
             sz_min, sz_max = self.size_lims
             if sz_max == sz_min + 1:
                 return sz_min, sz_min
-            size = torch.randint(low=sz_min, high=sz_max, size=(1,)).item()
+            size = int(
+                torch.randint(low=sz_min, high=sz_max, size=(1,)).item()
+            )
             return size, size
         assert self.h_lims is not None and self.w_lims is not None
         hmin, hmax = self.h_lims
         wmin, wmax = self.w_lims
-        h = torch.randint(low=hmin, high=hmax, size=(1,)).item()
-        w = torch.randint(low=wmin, high=wmax, size=(1,)).item()
+        h = int(torch.randint(low=hmin, high=hmax, size=(1,)).item())
+        w = int(torch.randint(low=wmin, high=wmax, size=(1,)).item())
         return h, w
 
     def sample_window_loc(self, h: int, w: int) -> tuple[int, int]:
         """Randomly sample coordinates of the top left corner of the window."""
         if not self.aoi_sampler:
             ymin, xmin, ymax, xmax = self.extent
-            y = torch.randint(low=ymin, high=ymax - h, size=(1,)).item()
-            x = torch.randint(low=xmin, high=xmax - w, size=(1,)).item()
+            y = int(torch.randint(low=ymin, high=ymax - h, size=(1,)).item())
+            x = int(torch.randint(low=xmin, high=xmax - w, size=(1,)).item())
         else:
             x, y = self.aoi_sampler.sample().round().T
             x, y = int(x.item()), int(y.item())

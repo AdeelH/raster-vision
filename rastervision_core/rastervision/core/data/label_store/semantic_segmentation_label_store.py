@@ -34,6 +34,7 @@ if TYPE_CHECKING:
         VectorOutputConfig,
         SemanticSegmentationDiscreteLabels,
     )
+    from rastervision.core.data.raster_transformer import RasterTransformer
 
 log = logging.getLogger(__name__)
 
@@ -98,10 +99,10 @@ class SemanticSegmentationLabelStore(LabelStore):
         """
         self.root_uri = uri
 
-        self.tmp_dir = tmp_dir
-        if self.tmp_dir is None:
+        if tmp_dir is None:
             self._tmp_dir = get_tmp_dir()
-            self.tmp_dir = self._tmp_dir.name
+            tmp_dir = self._tmp_dir.name
+        self.tmp_dir = tmp_dir
 
         self.vector_outputs = vector_outputs
         self._bbox = bbox
@@ -121,7 +122,7 @@ class SemanticSegmentationLabelStore(LabelStore):
 
         if file_exists(self.label_uri):
             if self.class_transformer is not None:
-                tfs = [self.class_transformer]
+                tfs: list[RasterTransformer] = [self.class_transformer]
             else:
                 tfs = []
             label_raster_source = RasterioSource(
@@ -235,6 +236,7 @@ class SemanticSegmentationLabelStore(LabelStore):
             self.write_discrete_raster_output(out_profile, labels_path, labels)
 
         if self.smooth_output:
+            assert isinstance(labels, SemanticSegmentationSmoothLabels)
             # if old scores exist, combine them with the new ones
             if self.score_source is not None:
                 log.info(
@@ -278,6 +280,7 @@ class SemanticSegmentationLabelStore(LabelStore):
     def merge_with_old_scores(
         self, labels: SemanticSegmentationSmoothLabels
     ) -> SemanticSegmentationSmoothLabels:
+        assert self.score_source is not None
         old_extent = self.score_source.extent
         new_extent = labels.extent
         if old_extent != new_extent:
@@ -402,7 +405,7 @@ class SemanticSegmentationLabelStore(LabelStore):
         return score_arr
 
     @property
-    def bbox(self) -> 'Box':
+    def bbox(self) -> 'Box | None':
         return self._bbox
 
     @property

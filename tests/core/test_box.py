@@ -1,4 +1,5 @@
 import unittest
+from typing import Any
 
 import numpy as np
 from shapely.geometry import box as ShapelyBox
@@ -304,7 +305,9 @@ class TestBox(unittest.TestCase):
         self.assertSetEqual(windows, expected_windows)
 
         extent = Box(0, 0, 10, 10)
-        args = dict(size=5, stride=3, padding=1, pad_direction='end')
+        args: dict[str, Any] = dict(
+            size=5, stride=3, padding=1, pad_direction='end'
+        )
         windows = set(extent.get_windows(**args))
         expected_windows = set(
             [

@@ -19,7 +19,7 @@ class FileSystem(ABC):
     """
 
     @staticmethod
-    def get_file_system(uri: str, mode: str = 'r') -> 'FileSystem':
+    def get_file_system(uri: str, mode: str = 'r') -> type['FileSystem']:
         """Return FileSystem that should be used for the given URI/mode pair.
 
         Args:

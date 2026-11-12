@@ -2,6 +2,7 @@ import unittest
 from os.path import join
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from typing import Any
 
 import numpy as np
 import rasterio as rio
@@ -67,7 +68,9 @@ class TestUtils(unittest.TestCase):
                 0, 256, size=(100, 100, 8), dtype=np.uint8
             )
             path = join(tmp_dir, '4.tif')
-            profile = dict(height=100, width=100, count=8, dtype=np.uint8)
+            profile: dict[str, Any] = dict(
+                height=100, width=100, count=8, dtype=np.uint8
+            )
             with rio.open(path, 'w', **profile) as ds:
                 write_window(ds, chip)
             np.testing.assert_array_equal(load_image(path), chip)

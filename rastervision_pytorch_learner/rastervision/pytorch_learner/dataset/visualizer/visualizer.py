@@ -22,6 +22,7 @@ from rastervision.pytorch_learner.learner_config import (
     validate_channel_display_groups,
     get_default_channel_display_groups,
 )
+from rastervision.pytorch_learner.object_detection_utils import BoxList
 
 if TYPE_CHECKING:
     from torch.utils.data import Dataset
@@ -69,8 +70,8 @@ class Visualizer(ABC):
         if transform is None:
             transform = A.to_dict(MinMaxNormalize())
         self.transform = validate_albumentation_transform(transform)
-        self._channel_display_groups = validate_channel_display_groups(
-            channel_display_groups
+        self._channel_display_groups: dict[str, ChannelInds] | None = (
+            validate_channel_display_groups(channel_display_groups)
         )
 
     @property
@@ -78,16 +79,18 @@ class Visualizer(ABC):
         return self.class_config.names
 
     @property
-    def class_colors(self):
-        return self.class_config.colors
+    def class_colors(self) -> list[str | tuple]:
+        colors = self.class_config.colors
+        assert colors is not None
+        return colors
 
     @abstractmethod
     def plot_xyz(
         self,
         axs,
         x: Tensor,
-        y: Sequence | None = None,
-        z: Sequence | None = None,
+        y: Tensor | BoxList | np.ndarray | None = None,
+        z: Tensor | BoxList | np.ndarray | None = None,
         plot_title: bool = True,
     ):
         """Plot image, ground truth labels, and predicted labels.
@@ -102,9 +105,9 @@ class Visualizer(ABC):
     def plot_batch(
         self,
         x: Tensor,
-        y: Sequence | None = None,
+        y: Tensor | Sequence | None = None,
         output_path: str | None = None,
-        z: Sequence | None = None,
+        z: Tensor | Sequence | None = None,
         batch_limit: int | None = None,
         show: bool = False,
     ):
@@ -176,8 +179,8 @@ class Visualizer(ABC):
         axs: Sequence,
         plot_xyz_args: list[dict],
         x: Tensor,
-        y: Sequence | None = None,
-        z: Sequence | None = None,
+        y: Tensor | Sequence | None = None,
+        z: Tensor | Sequence | None = None,
     ):
         # (N, c, h, w) --> (N, h, w, c)
         x = x.permute(0, 2, 3, 1)
@@ -197,7 +200,7 @@ class Visualizer(ABC):
 
     def get_channel_display_groups(
         self, nb_img_channels: int
-    ) -> dict[str, ChannelInds] | Sequence[ChannelInds]:
+    ) -> dict[str, ChannelInds]:
         # The default channel_display_groups object depends on the number of
         # channels in the image. This number is not known when the Visualizer
         # is constructed which is why it needs to be created later.

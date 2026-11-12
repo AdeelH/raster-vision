@@ -1,4 +1,6 @@
+from collections.abc import Sequence
 from functools import partial
+from typing import overload
 
 from rastervision.core.rv_pipeline import (
     SceneConfig,
@@ -79,7 +81,7 @@ CLASS_NAMES = [
     'Impervious',
     'Clutter',
 ]
-CLASS_COLORS = [
+CLASS_COLORS: list[str | tuple] = [
     '#ffff00',
     '#0000ff',
     '#00ffff',
@@ -99,7 +101,11 @@ BATCH_SIZE = 8
 ONE_CYCLE = True
 LOG_TENSORBOARD = True
 RUN_TENSORBOARD = False
-CHANNEL_DISPLAY_GROUPS = {'RGB': [0, 1, 2], 'IR': [3], 'Elevation': [4]}
+CHANNEL_DISPLAY_GROUPS: dict[str, Sequence[int]] = {
+    'RGB': [0, 1, 2],
+    'IR': [3],
+    'Elevation': [4],
+}
 
 # -----------------
 # Test mode settings
@@ -150,8 +156,8 @@ def get_config(
     else:
         train_ids, val_ids = TEST_MODE_TRAIN_IDS, TEST_MODE_VAL_IDS
 
-    raw_uri = UriPath(raw_uri)
-    processed_uri = UriPath(processed_uri)
+    raw_uri_path = UriPath(raw_uri)
+    processed_uri_path = UriPath(processed_uri)
 
     # -------------------------------
     # Configure dataset generation
@@ -159,7 +165,11 @@ def get_config(
     class_config = ClassConfig(names=CLASS_NAMES, colors=CLASS_COLORS)
 
     _make_scene = partial(
-        make_scene, raw_uri, processed_uri, class_config, test_mode=test
+        make_scene,
+        raw_uri_path,
+        processed_uri_path,
+        class_config,
+        test_mode=test,
     )
 
     dataset_config = DatasetConfig(
@@ -318,11 +328,27 @@ def make_multi_raster_source(
     return raster_source
 
 
+@overload
+def make_crop(
+    processed_uri: UriPath,
+    raster_uri: UriPath,
+    label_uri: UriPath,
+) -> tuple[UriPath, UriPath]: ...
+
+
+@overload
+def make_crop(
+    processed_uri: UriPath,
+    raster_uri: UriPath,
+    label_uri: None = None,
+) -> tuple[UriPath, None]: ...
+
+
 def make_crop(
     processed_uri: UriPath,
     raster_uri: UriPath,
     label_uri: UriPath | None = None,
-) -> tuple[UriPath, UriPath]:
+) -> tuple[UriPath, UriPath | None]:
     crop_uri = processed_uri / TEST_CROP_DIR / raster_uri.name
     if label_uri is not None:
         label_crop_uri = processed_uri / TEST_CROP_DIR / label_uri.name

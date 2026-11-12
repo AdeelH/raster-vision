@@ -17,6 +17,7 @@ from rastervision.pytorch_learner.dataset import (
 from rastervision.core.data.utils import make_ss_scene
 
 if TYPE_CHECKING:
+    from typing import Self
     from rastervision.core.data import ClassConfig
 
 log = logging.getLogger(__name__)
@@ -169,7 +170,9 @@ def make_ss_geodataset(
 
 
 class SemanticSegmentationSlidingWindowGeoDataset(SlidingWindowGeoDataset):
-    from_uris = classmethod(make_ss_geodataset)
+    @classmethod
+    def from_uris(cls, *args, **kwargs) -> 'Self':
+        return make_ss_geodataset(cls, *args, **kwargs)
 
     def __init__(self, *args, **kwargs):
         super().__init__(
@@ -178,7 +181,9 @@ class SemanticSegmentationSlidingWindowGeoDataset(SlidingWindowGeoDataset):
 
 
 class SemanticSegmentationRandomWindowGeoDataset(RandomWindowGeoDataset):
-    from_uris = classmethod(make_ss_geodataset)
+    @classmethod
+    def from_uris(cls, *args, **kwargs) -> 'Self':
+        return make_ss_geodataset(cls, *args, **kwargs)
 
     def __init__(self, *args, **kwargs):
         super().__init__(

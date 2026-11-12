@@ -8,7 +8,7 @@ from rastervision.core.evaluation.chip_classification_evaluator import (
 )
 
 if TYPE_CHECKING:
-    from rastervision.core.data import ClassConfig
+    from rastervision.core.data import ClassConfig, Scene
 
 
 @register_config('chip_classification_evaluator')
@@ -18,7 +18,7 @@ class ChipClassificationEvaluatorConfig(ClassificationEvaluatorConfig):
     def build(
         self,
         class_config: 'ClassConfig',
-        scene_group: tuple[str, Iterable[str]] | None = None,
+        scene_group: tuple[str, Iterable['Scene']] | None = None,
     ) -> ChipClassificationEvaluator:
         if scene_group is None:
             output_uri = self.get_output_uri()

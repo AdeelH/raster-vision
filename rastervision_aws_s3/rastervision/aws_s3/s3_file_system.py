@@ -218,8 +218,7 @@ class S3FileSystem(FileSystem):
 
     @staticmethod
     def write_str(uri: str, data: str) -> None:
-        data = bytes(data, encoding='utf-8')
-        S3FileSystem.write_bytes(uri, data)
+        S3FileSystem.write_bytes(uri, bytes(data, encoding='utf-8'))
 
     @staticmethod
     def write_bytes(uri: str, data: bytes) -> None:
@@ -299,7 +298,7 @@ class S3FileSystem(FileSystem):
             raise NotReadableError(f'Could not read {src_uri}')
 
     @staticmethod
-    def local_path(uri: str, download_dir: str) -> None:
+    def local_path(uri: str, download_dir: str) -> str:
         parsed_uri = urlparse(uri)
         path = os.path.join(
             download_dir, 's3', parsed_uri.netloc, parsed_uri.path[1:]

@@ -5,6 +5,7 @@ from rastervision.pipeline.config import register_config, ConfigError, Field
 from rastervision.core.analyzer import AnalyzerConfig, StatsAnalyzer
 
 if TYPE_CHECKING:
+    from rastervision.core.data import Scene
     from rastervision.core.rv_pipeline import RVPipelineConfig
 
 
@@ -47,11 +48,13 @@ class StatsAnalyzerConfig(AnalyzerConfig):
             self.output_uri = join(pipeline.analyze_uri, 'stats')
 
     def validate_config(self):
-        if self.sample_prob > 1 or self.sample_prob <= 0:
+        if self.sample_prob is not None and (
+            self.sample_prob > 1 or self.sample_prob <= 0
+        ):
             raise ConfigError('sample_prob must be <= 1 and > 0')
 
     def build(
-        self, scene_group: tuple[str, Iterable[str]] | None = None
+        self, scene_group: tuple[str, Iterable['Scene']] | None = None
     ) -> StatsAnalyzer:
         assert self.output_uri is not None
         if scene_group is None:

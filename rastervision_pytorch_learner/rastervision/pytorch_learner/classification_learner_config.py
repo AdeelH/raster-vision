@@ -3,13 +3,13 @@ from collections.abc import Callable
 from enum import Enum
 import logging
 
-import albumentations as A
 from torch import nn
 
 from rastervision.core.data import Scene
 from rastervision.core.rv_pipeline import WindowSamplingMethod
 from rastervision.pipeline.config import Config, register_config, ConfigError
 from rastervision.pytorch_learner.learner_config import (
+    AlbTransform,
     LearnerConfig,
     ModelConfig,
     ImageDataConfig,
@@ -55,7 +55,7 @@ class ClassificationImageDataConfig(ClassificationDataConfig, ImageDataConfig):
     )
 
     def dir_to_dataset(
-        self, data_dir: str, transform: A.BasicTransform
+        self, data_dir: str, transform: AlbTransform | None
     ) -> ClassificationImageDataset:
         ds = ClassificationImageDataset(
             data_dir, class_names=self.class_names, transform=transform
@@ -86,7 +86,7 @@ class ClassificationGeoDataConfig(ClassificationDataConfig, GeoDataConfig):
     def scene_to_dataset(
         self,
         scene: Scene,
-        transform: A.BasicTransform | None = None,
+        transform: AlbTransform | None = None,
         for_chipping: bool = False,
     ) -> (
         ClassificationSlidingWindowGeoDataset
@@ -167,7 +167,7 @@ class ClassificationModelConfig(ModelConfig):
                     'override this function.'
                 )
             model.conv1 = adjust_conv_channels(
-                old_conv=model.conv1,
+                old_conv=cast(nn.Conv2d, model.conv1),
                 in_channels=in_channels,
                 pretrained=pretrained,
             )

@@ -11,7 +11,9 @@ class RasterTransformerConfig(Config):
     """Configure a :class:`.RasterTransformer`."""
 
     def update(
-        self, pipeline: 'RVPipelineConfig' = None, scene: 'SceneConfig' = None
+        self,
+        pipeline: 'RVPipelineConfig | None' = None,
+        scene: 'SceneConfig | None' = None,
     ):
         pass
 

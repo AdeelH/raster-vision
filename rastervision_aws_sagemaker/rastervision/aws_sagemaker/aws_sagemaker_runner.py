@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from os.path import join, basename
 import logging
 from pprint import pprint
@@ -16,7 +16,8 @@ from rastervision.pipeline.file_system.utils import (
 
 if TYPE_CHECKING:
     from rastervision.pipeline.pipeline import Pipeline
-    from rastervision.core.rv_pipeline import RVPipeline, RVPipelineConfig
+    from rastervision.core.rv_pipeline import RVPipelineConfig
+    from sagemaker.workflow.entities import PipelineVariable
     from sagemaker.workflow.pipeline_context import _JobStepArguments
     from sagemaker import Session
     from sagemaker.workflow.pipeline import Pipeline as SageMakerPipeline
@@ -224,7 +225,7 @@ class AWSSageMakerRunner(Runner):
 
     def build_step(
         self,
-        pipeline: 'RVPipeline',
+        pipeline: 'Pipeline',
         step_name: str,
         job_name: str,
         cmd: list[str],
@@ -234,7 +235,7 @@ class AWSSageMakerRunner(Runner):
         use_spot_instances: bool,
         sagemaker_session: 'PipelineSession',
         instance_count: int = 1,
-        max_wait: int = DEFAULT_MAX_RUN_TIME,
+        max_wait: int | None = DEFAULT_MAX_RUN_TIME,
         max_run: int = DEFAULT_MAX_RUN_TIME,
         **kwargs,
     ) -> 'TrainingStep | ProcessingStep':
@@ -250,7 +251,7 @@ class AWSSageMakerRunner(Runner):
             from sagemaker.workflow.steps import TrainingStep
 
             estimator = self._build_pytorch_estimator(
-                pipeline_cfg=pipeline.config,
+                pipeline_cfg=cast('RVPipelineConfig', pipeline.config),
                 role=role,
                 image_uri=image_uri,
                 instance_type=instance_type,
@@ -262,7 +263,7 @@ class AWSSageMakerRunner(Runner):
                 max_run=max_run,
                 **kwargs,
             )
-            step_args: '_JobStepArguments | None' = estimator.fit(wait=False)
+            step_args = cast('_JobStepArguments', estimator.fit(wait=False))
             step = TrainingStep(job_name, step_args=step_args)
         else:
             from sagemaker.processing import Processor
@@ -274,11 +275,11 @@ class AWSSageMakerRunner(Runner):
                 instance_count=1,
                 instance_type=instance_type,
                 sagemaker_session=sagemaker_session,
-                entrypoint=cmd,
+                entrypoint=cast('list[str | PipelineVariable]', cmd),
                 **kwargs,
             )
-            step_args: '_JobStepArguments | None' = step_processor.run(
-                wait=False
+            step_args = cast(
+                '_JobStepArguments', step_processor.run(wait=False)
             )
             step = ProcessingStep(job_name, step_args=step_args)
 
@@ -320,11 +321,11 @@ class AWSSageMakerRunner(Runner):
         device = 'gpu' if use_gpu else 'cpu'
 
         if role is None:
-            role = config('role')
+            role = cast(str, config('role'))
         if image_uri is None:
-            image_uri = config(f'{device}_image')
+            image_uri = cast(str, config(f'{device}_image'))
         if instance_type is None:
-            instance_type = config(f'{device}_instance_type')
+            instance_type = cast(str, config(f'{device}_instance_type'))
         if sagemaker_session is None:
             from sagemaker import Session
 
@@ -336,7 +337,7 @@ class AWSSageMakerRunner(Runner):
             instance_count=1,
             instance_type=instance_type,
             sagemaker_session=sagemaker_session,
-            entrypoint=cmd,
+            entrypoint=cast('list[str | PipelineVariable]', cmd),
             base_job_name=job_name,
         )
         processor.run()

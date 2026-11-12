@@ -50,13 +50,15 @@ class DDPContextManager(AbstractContextManager):  # pragma: no cover
             ValueError: If ``rank`` or ``world_size`` not provided and aren't
                 set on the :class:`Learner`.
         """
-        self.learner = learner
-        self.rank = learner.ddp_rank if rank is None else rank
-        self.world_size = (
+        rank = learner.ddp_rank if rank is None else rank
+        world_size = (
             learner.ddp_world_size if world_size is None else world_size
         )
-        if self.rank is None or self.world_size is None:
+        if rank is None or world_size is None:
             raise ValueError('Could not determine rank and world_size.')
+        self.learner = learner
+        self.rank: int = rank
+        self.world_size: int = world_size
         self.noop = dist.is_initialized()
 
     def __enter__(self) -> Any:

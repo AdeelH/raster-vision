@@ -1,5 +1,5 @@
-from typing import TYPE_CHECKING, Any, Iterable, Literal, Sequence
-from collections.abc import Callable
+from typing import TYPE_CHECKING, Any, Iterable, Literal, cast
+from collections.abc import Callable, Sequence, Sized
 import os
 from os.path import join, isdir
 from enum import Enum
@@ -14,11 +14,10 @@ from pydantic import (
     PositiveInt as PosInt,
     StringConstraints,
 )
-from pydantic.v1.utils import sequence_like
 import albumentations as A
 import torch
 from torch import nn, optim
-from torch.optim.lr_scheduler import CyclicLR, MultiStepLR, _LRScheduler
+from torch.optim.lr_scheduler import CyclicLR, LRScheduler, MultiStepLR
 from torch.utils.data import Dataset, ConcatDataset, Subset
 
 from rastervision.pipeline.config import (
@@ -76,6 +75,7 @@ augmentors = [
 # types
 RGBTuple = tuple[int, int, int]
 ChannelInds = Sequence[NonNegInt]
+AlbTransform = A.BasicTransform | A.BaseCompose
 
 
 class Backbone(str, Enum):
@@ -209,7 +209,7 @@ class ExternalModuleConfig(Config):
 
     def build(
         self,
-        save_dir: str,
+        save_dir: str | None,
         hubconf_dir: str | None = None,
         ddp_rank: int | None = None,
     ) -> Any:
@@ -219,7 +219,8 @@ class ExternalModuleConfig(Config):
         no type restrictions on the object loaded through torch.hub.
 
         Args:
-            save_dir (str): The module def will be saved here.
+            save_dir (str|None): The module def will be saved here. Required
+                unless ``hubconf_dir`` is provided. Defaults to None.
             hubconf_dir (str): Path to existing definition.
                 If provided, the definition will not be fetched from the
                 external source but instead from this dir. Defaults to None.
@@ -237,6 +238,10 @@ class ExternalModuleConfig(Config):
             )
             return module
 
+        if save_dir is None:
+            raise ValueError(
+                'save_dir must be provided if hubconf_dir is not provided.'
+            )
         dst_dir = get_hubconf_dir_from_cfg(self, parent=save_dir)
         if ddp_rank is not None:
             # avoid conflicts when downloading
@@ -254,6 +259,7 @@ class ExternalModuleConfig(Config):
                 **self.entrypoint_kwargs,
             )
         else:
+            assert self.uri is not None
             log.info(f'Fetching module definition from: {self.uri}')
             module = torch_hub_load_uri(
                 uri=self.uri,
@@ -362,20 +368,21 @@ class ModelConfig(Config):
 
     def build_external_model(
         self,
-        save_dir: str,
+        save_dir: str | None,
         hubconf_dir: str | None = None,
         ddp_rank: int | None = None,
     ) -> nn.Module:
         """Build and return an external model.
 
         Args:
-            save_dir (str): The module def will be saved here.
+            save_dir (str|None): The module def will be saved here.
             hubconf_dir (str|None): Path to existing definition.
                 Defaults to None.
 
         Returns:
             A PyTorch nn.Module.
         """
+        assert self.external_def is not None
         return self.external_def.build(
             save_dir, hubconf_dir=hubconf_dir, ddp_rank=ddp_rank
         )
@@ -517,7 +524,7 @@ class SolverConfig(Config):
         train_ds_sz: int,
         last_epoch: int = -1,
         **kwargs,
-    ) -> _LRScheduler | None:
+    ) -> LRScheduler | None:
         """Returns an LR scheduler that changes the LR each step.
 
         This is used to implement the "one cycle" schedule popularized by
@@ -558,7 +565,7 @@ class SolverConfig(Config):
 
     def build_epoch_scheduler(
         self, optimizer: optim.Optimizer, last_epoch: int = -1, **kwargs
-    ) -> _LRScheduler | None:
+    ) -> LRScheduler | None:
         """Returns an LR scheduler that changes the LR each epoch.
 
         This is used to divide the learning rate by 10 at certain epochs.
@@ -779,6 +786,7 @@ class DataConfig(Config):
 
     @property
     def num_classes(self):
+        assert self.class_config is not None
         return len(self.class_config)
 
     # validators
@@ -816,7 +824,11 @@ class DataConfig(Config):
         transforms_all = [
             self.base_transform,
             self.aug_transform,
-            self.plot_options.transform,
+            (
+                self.plot_options.transform
+                if self.plot_options is not None
+                else None
+            ),
         ]
         transforms_with_lambdas = [
             tf
@@ -830,7 +842,7 @@ class DataConfig(Config):
         """Returns BboxParams used by albumentations for data augmentation."""
         return None
 
-    def get_data_transforms(self) -> tuple[A.BasicTransform, A.BasicTransform]:
+    def get_data_transforms(self) -> tuple[AlbTransform, AlbTransform]:
         """Get albumentations transform objects for data augmentation.
 
         Returns a 2-tuple of a "base" transform and an augmentation transform.
@@ -848,7 +860,7 @@ class DataConfig(Config):
             base transform and augmentation transform.
         """
         bbox_params = self.get_bbox_params()
-        base_tfs = [A.Resize(self.img_sz, self.img_sz)]
+        base_tfs: list[AlbTransform] = [A.Resize(self.img_sz, self.img_sz)]
         if self.base_transform is not None:
             base_tfs.append(
                 deserialize_albumentation_transform(self.base_transform)
@@ -874,7 +886,7 @@ class DataConfig(Config):
             'RGBShift': A.RGBShift(),
             'ToGray': A.ToGray(),
         }
-        aug_transforms = [base_transform]
+        aug_transforms: list[AlbTransform] = [base_transform]
         for augmentor in self.augmentors:
             try:
                 aug_transforms.append(augmentors_dict[augmentor])
@@ -906,16 +918,19 @@ class DataConfig(Config):
         ds: Dataset,
         size: int | None = None,
         fraction: Proportion | None = None,
-    ) -> Subset:
+    ) -> Dataset:
         if size is None and fraction is None:
             return ds
         if size is not None and fraction is not None:
             raise ValueError('Specify either size or fraction but not both.')
+        # Map-style datasets implement __len__, which torch's Dataset base
+        # class does not declare.
+        ds_len = len(cast(Sized, ds))
         if fraction is not None:
-            size = int(len(ds) * fraction)
+            size = int(ds_len * fraction)
 
         random.seed(1234)
-        inds = list(range(len(ds)))
+        inds = list(range(ds_len))
         random.shuffle(inds)
         ds = Subset(ds, inds[:size])
         return ds
@@ -982,18 +997,21 @@ class ImageDataConfig(DataConfig):
             raise ConfigError(
                 'group_train_sz_rel specified without group_uris.'
             )
-        if has_group_train_sz and sequence_like(group_train_sz):
-            if len(group_train_sz) != len(group_uris):
-                raise ConfigError('len(group_train_sz) != len(group_uris).')
-        if has_group_train_sz_rel and sequence_like(group_train_sz_rel):
-            if len(group_train_sz_rel) != len(group_uris):
-                raise ConfigError(
-                    'len(group_train_sz_rel) != len(group_uris).'
-                )
+        if group_uris is not None:
+            if isinstance(group_train_sz, Sequence):
+                if len(group_train_sz) != len(group_uris):
+                    raise ConfigError(
+                        'len(group_train_sz) != len(group_uris).'
+                    )
+            if isinstance(group_train_sz_rel, Sequence):
+                if len(group_train_sz_rel) != len(group_uris):
+                    raise ConfigError(
+                        'len(group_train_sz_rel) != len(group_uris).'
+                    )
         return self
 
     def _build_dataset(
-        self, dirs: Iterable[str], tf: A.BasicTransform | None = None
+        self, dirs: Iterable[str], tf: AlbTransform | None = None
     ) -> Dataset:
         """Make datasets for a single split.
 
@@ -1006,7 +1024,8 @@ class ImageDataConfig(DataConfig):
         """
         per_dir_datasets = [self.dir_to_dataset(d, tf) for d in dirs]
         if len(per_dir_datasets) == 0:
-            per_dir_datasets.append([])
+            # ConcatDataset only calls len() on this empty placeholder.
+            per_dir_datasets.append([])  # pyright: ignore[reportArgumentType]
         combined_dataset = ConcatDataset(per_dir_datasets)
         return combined_dataset
 
@@ -1015,9 +1034,9 @@ class ImageDataConfig(DataConfig):
         train_dirs: Iterable[str],
         val_dirs: Iterable[str],
         test_dirs: Iterable[str],
-        train_tf: A.BasicTransform | None = None,
-        val_tf: A.BasicTransform | None = None,
-        test_tf: A.BasicTransform | None = None,
+        train_tf: AlbTransform | None = None,
+        val_tf: AlbTransform | None = None,
+        test_tf: AlbTransform | None = None,
     ) -> tuple[Dataset, Dataset, Dataset]:
         """Make training, validation, and test datasets.
 
@@ -1025,11 +1044,11 @@ class ImageDataConfig(DataConfig):
             train_dirs (str): Directories where training data is located.
             val_dirs (str): Directories where validation data is located.
             test_dirs (str): Directories where test data is located.
-            train_tf (A.BasicTransform | None): Transform for the
+            train_tf (AlbTransform | None): Transform for the
                 training dataset. Defaults to None.
-            val_tf (A.BasicTransform | None): Transform for the
+            val_tf (AlbTransform | None): Transform for the
                 validation dataset. Defaults to None.
-            test_tf (A.BasicTransform | None): Transform for the
+            test_tf (AlbTransform | None): Transform for the
                 test dataset. Defaults to None.
 
         Returns:
@@ -1041,13 +1060,15 @@ class ImageDataConfig(DataConfig):
         return train_ds, val_ds, test_ds
 
     def dir_to_dataset(
-        self, data_dir: str, transform: A.BasicTransform
+        self, data_dir: str, transform: AlbTransform | None
     ) -> Dataset:
         raise NotImplementedError()
 
     def build(self, tmp_dir: str) -> tuple[Dataset, Dataset, Dataset]:
 
         if self.group_uris is None:
+            if self.uri is None:
+                raise ValueError('Either uri or group_uris must be set.')
             return self._get_datasets_from_uri(self.uri, tmp_dir=tmp_dir)
 
         if self.uri is not None:
@@ -1074,6 +1095,8 @@ class ImageDataConfig(DataConfig):
     ) -> Dataset:
 
         if self.group_uris is None:
+            if self.uri is None:
+                raise ValueError('Either uri or group_uris must be set.')
             ds = self._get_dataset_from_uri(
                 self.uri, split=split, tmp_dir=tmp_dir
             )
@@ -1137,7 +1160,7 @@ class ImageDataConfig(DataConfig):
         self,
         uri: str | list[str],
         split: Literal['train', 'valid', 'test'],
-        tmp_dir: str,
+        tmp_dir: str | None,
     ) -> Dataset:
         """Get image dataset from a single zip file.
 
@@ -1163,10 +1186,10 @@ class ImageDataConfig(DataConfig):
 
     def _get_datasets_from_group_uris(
         self,
-        uris: str | list[str],
+        uris: list[str | list[str]],
         tmp_dir: str,
-        group_train_sz: int | None = None,
-        group_train_sz_rel: float | None = None,
+        group_train_sz: int | Sequence[int] | None = None,
+        group_train_sz_rel: float | Sequence[float] | None = None,
     ) -> tuple[Dataset, Dataset, Dataset]:
         train_ds_lst, valid_ds_lst, test_ds_lst = [], [], []
 
@@ -1175,7 +1198,7 @@ class ImageDataConfig(DataConfig):
             group_sizes = group_train_sz
         elif group_train_sz_rel is not None:
             group_sizes = group_train_sz_rel
-        if not sequence_like(group_sizes):
+        if not isinstance(group_sizes, Sequence):
             group_sizes = [group_sizes] * len(uris)
 
         for uri, size in zip(uris, group_sizes):
@@ -1204,10 +1227,10 @@ class ImageDataConfig(DataConfig):
     def _get_dataset_from_group_uris(
         self,
         split: Literal['train', 'valid', 'test'],
-        uris: str | list[str],
-        tmp_dir: str,
-        group_sz: int | None = None,
-        group_sz_rel: float | None = None,
+        uris: list[str | list[str]],
+        tmp_dir: str | None,
+        group_sz: int | Sequence[int] | None = None,
+        group_sz_rel: float | Sequence[float] | None = None,
     ) -> Dataset:
 
         group_sizes = None
@@ -1215,7 +1238,7 @@ class ImageDataConfig(DataConfig):
             group_sizes = group_sz
         elif group_sz_rel is not None:
             group_sizes = group_sz_rel
-        if not sequence_like(group_sizes):
+        if not isinstance(group_sizes, Sequence):
             group_sizes = [group_sizes] * len(uris)
 
         per_uri_dataset = []
@@ -1231,7 +1254,9 @@ class ImageDataConfig(DataConfig):
         combined_dataset = ConcatDataset(per_uri_dataset)
         return combined_dataset
 
-    def get_data_dirs(self, uri: str | list[str], unzip_dir: str) -> list[str]:
+    def get_data_dirs(
+        self, uri: str | list[str], unzip_dir: str | None
+    ) -> list[str]:
         """Extract data dirs from uri.
 
         Data dirs are directories containing  "train", "valid", and
@@ -1245,8 +1270,8 @@ class ImageDataConfig(DataConfig):
                 (2) a URI of a zip file containing (1)
                 (3) a list of (2)
                 (4) a URI of a directory containing zip files containing (1)
-            unzip_dir (str): Directory where zip files will be extracted to, if
-                needed.
+            unzip_dir (str|None): Directory where zip files will be extracted
+                to, if needed. Required if any zip files need to be extracted.
 
         Returns:
             list[str]: Paths to directories that each contain contents of one
@@ -1288,6 +1313,10 @@ class ImageDataConfig(DataConfig):
             else:
                 raise FileNotFoundError(uri)
 
+        if unzip_dir is None:
+            raise ValueError(
+                'unzip_dir must be provided to extract zip files.'
+            )
         data_dirs = self.unzip_data(zip_uris, unzip_dir)
         return data_dirs
 
@@ -1377,6 +1406,8 @@ class GeoDataConfig(DataConfig):
         tmp_dir: str | None = None,
     ) -> list[Scene]:
         """Build training, validation, and test scenes."""
+        if self.scene_dataset is None:
+            raise ValueError('Cannot build scenes if scene_dataset is None.')
         class_config = self.scene_dataset.class_config
         scenes = [
             s.build(class_config, tmp_dir, use_transformers=True)
@@ -1387,7 +1418,7 @@ class GeoDataConfig(DataConfig):
     def _build_dataset(
         self,
         split: Literal['train', 'valid', 'test'],
-        tf: A.BasicTransform | None = None,
+        tf: AlbTransform | None = None,
         tmp_dir: str | None = None,
         **kwargs,
     ) -> Dataset:
@@ -1419,7 +1450,8 @@ class GeoDataConfig(DataConfig):
         ]
 
         if len(per_scene_datasets) == 0:
-            per_scene_datasets.append([])
+            # ConcatDataset only calls len() on this empty placeholder.
+            per_scene_datasets.append([])  # pyright: ignore[reportArgumentType]
 
         combined_dataset = ConcatDataset(per_scene_datasets)
 
@@ -1428,20 +1460,20 @@ class GeoDataConfig(DataConfig):
     def _build_datasets(
         self,
         tmp_dir: str | None = None,
-        train_tf: A.BasicTransform | None = None,
-        val_tf: A.BasicTransform | None = None,
-        test_tf: A.BasicTransform | None = None,
+        train_tf: AlbTransform | None = None,
+        val_tf: AlbTransform | None = None,
+        test_tf: AlbTransform | None = None,
         **kwargs,
     ) -> tuple[Dataset, Dataset, Dataset]:
         """Make training, validation, and test datasets.
 
         Args:
             tmp_dir (str): Temporary directory to be used for building scenes.
-            train_tf (A.BasicTransform | None): Transform for the
+            train_tf (AlbTransform | None): Transform for the
                 training dataset. Defaults to None.
-            val_tf (A.BasicTransform | None): Transform for the
+            val_tf (AlbTransform | None): Transform for the
                 validation dataset. Defaults to None.
-            test_tf (A.BasicTransform | None): Transform for the
+            test_tf (AlbTransform | None): Transform for the
                 test dataset. Defaults to None.
             **kwargs: Kwargs to pass to :meth:`.scene_to_dataset`.
 
@@ -1457,7 +1489,7 @@ class GeoDataConfig(DataConfig):
     def scene_to_dataset(
         self,
         scene: Scene,
-        transform: A.BasicTransform | None = None,
+        transform: AlbTransform | None = None,
         for_chipping: bool = False,
     ) -> Dataset:
         """Make a dataset from a single scene."""
