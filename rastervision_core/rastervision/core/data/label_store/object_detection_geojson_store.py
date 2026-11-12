@@ -1,5 +1,5 @@
-from typing import TYPE_CHECKING
 import logging
+from typing import TYPE_CHECKING
 
 from rastervision.core.data.label import ObjectDetectionLabels
 from rastervision.core.data.label_store import LabelStore

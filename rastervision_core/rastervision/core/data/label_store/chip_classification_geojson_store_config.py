@@ -3,8 +3,8 @@ from os.path import join
 from pydantic import Field
 
 from rastervision.core.data.label_store import (
-    LabelStoreConfig,
     ChipClassificationGeoJSONStore,
+    LabelStoreConfig,
 )
 from rastervision.pipeline.config import register_config
 

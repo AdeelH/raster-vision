@@ -1,9 +1,9 @@
-from typing import TYPE_CHECKING
 import os
+from typing import TYPE_CHECKING
 
 import rasterio
-from rasterio.enums import Resampling
 import rasterio.shutil
+from rasterio.enums import Resampling
 
 from rastervision.pipeline.file_system import download_or_copy, upload_or_copy
 

@@ -6,6 +6,7 @@ from rastervision.pytorch_learner.object_detection_utils import BoxList
 
 if TYPE_CHECKING:
     from torch import Tensor
+
     from rastervision.core.box import Box
 
 

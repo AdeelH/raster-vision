@@ -2,8 +2,8 @@ import unittest
 
 from rastervision.core.box import Box
 from rastervision.core.data import ClassConfig, IdentityCRSTransformer
-from rastervision.core.data.utils import geojson_to_geoms
 from rastervision.core.data.label_store.utils import boxes_to_geojson
+from rastervision.core.data.utils import geojson_to_geoms
 
 
 class TestUtils(unittest.TestCase):

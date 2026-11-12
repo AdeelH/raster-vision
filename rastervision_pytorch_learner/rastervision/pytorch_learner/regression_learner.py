@@ -1,21 +1,21 @@
-from typing import TYPE_CHECKING, cast
+import logging
 import warnings
 from os.path import join
-import logging
+from typing import TYPE_CHECKING, cast
 
-from matplotlib.figure import Figure
 import matplotlib.gridspec as gridspec
-
 import torch
 import torch.nn.functional as F
+from matplotlib.figure import Figure
 
-from rastervision.pytorch_learner.learner import Learner
 from rastervision.pytorch_learner.dataset.visualizer import (
     RegressionVisualizer,
 )
+from rastervision.pytorch_learner.learner import Learner
 
 if TYPE_CHECKING:
     import torch.nn as nn
+
     from rastervision.pytorch_learner import (
         RegressionGeoDataConfig,
         RegressionImageDataConfig,

@@ -1,9 +1,8 @@
-from typing import TYPE_CHECKING, Iterator
 from os.path import join
+from typing import TYPE_CHECKING, Iterator
 
 from pydantic import Field
 
-from rastervision.pipeline.config import register_config, Config
 from rastervision.core.data.label_store import (
     LabelStoreConfig,
     SemanticSegmentationLabelStore,
@@ -13,6 +12,7 @@ from rastervision.core.data.utils import (
     mask_to_building_polygons,
     mask_to_polygons,
 )
+from rastervision.pipeline.config import Config, register_config
 
 if TYPE_CHECKING:
     import numpy as np

@@ -1,6 +1,6 @@
+import unittest
 from collections.abc import Sequence
 from typing import Any, Literal
-import unittest
 
 from shapely.ops import unary_union
 

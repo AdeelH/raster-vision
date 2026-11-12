@@ -1,5 +1,5 @@
-from typing import TYPE_CHECKING, Any, Iterable, Mapping
 from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, Iterable, Mapping
 
 import numpy as np
 
@@ -9,8 +9,10 @@ from rastervision.core.utils.types import Vector
 
 if TYPE_CHECKING:
     from typing import Self
-    from rastervision.core.data import ClassConfig, CRSTransformer
+
     from shapely.geometry.base import BaseGeometry
+
+    from rastervision.core.data import ClassConfig, CRSTransformer
 
 
 @dataclass

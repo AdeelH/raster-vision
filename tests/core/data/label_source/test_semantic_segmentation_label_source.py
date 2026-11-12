@@ -14,9 +14,8 @@ from rastervision.core.data import (
     SemanticSegmentationLabelSource,
     SemanticSegmentationLabelSourceConfig,
 )
-
-from tests.core.data.mock_raster_source import MockRasterSource
 from tests import data_file_path
+from tests.core.data.mock_raster_source import MockRasterSource
 
 
 class TestSemanticSegmentationLabelSourceConfig(unittest.TestCase):

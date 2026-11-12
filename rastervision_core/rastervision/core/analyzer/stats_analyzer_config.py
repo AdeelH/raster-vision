@@ -1,10 +1,10 @@
-from typing import TYPE_CHECKING, Iterable
 from os.path import join
+from typing import TYPE_CHECKING, Iterable
 
 from pydantic import Field
 
-from rastervision.pipeline.config import register_config, ConfigError
 from rastervision.core.analyzer import AnalyzerConfig, StatsAnalyzer
+from rastervision.pipeline.config import ConfigError, register_config
 
 if TYPE_CHECKING:
     from rastervision.core.data import Scene

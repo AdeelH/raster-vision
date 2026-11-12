@@ -1,5 +1,5 @@
-from typing import TYPE_CHECKING, Any, Iterable, Sequence
 from abc import abstractmethod
+from typing import TYPE_CHECKING, Any, Iterable, Sequence
 
 import numpy as np
 from rasterio.features import rasterize
@@ -11,7 +11,9 @@ from rastervision.core.data.label.utils import discard_prediction_edges
 
 if TYPE_CHECKING:
     from typing import Self
+
     from shapely.geometry.base import BaseGeometry
+
     from rastervision.core.data import (
         ClassConfig,
         CRSTransformer,

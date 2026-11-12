@@ -1,25 +1,26 @@
-from typing import TYPE_CHECKING, Any, Literal
 import logging
+from typing import TYPE_CHECKING, Any, Literal
 
-import numpy as np
 import albumentations as A
+import numpy as np
 import torch
-from torch.utils.data import Dataset
 from shapely.ops import unary_union
+from torch.utils.data import Dataset
 
 from rastervision.core.box import Box
-from rastervision.core.utils import ensure_tuple
 from rastervision.core.data import Scene
 from rastervision.core.data.utils import AoiSampler
-from rastervision.pytorch_learner.learner_config import PosInt, NonNegInt
+from rastervision.core.utils import ensure_tuple
 from rastervision.pytorch_learner.dataset.transform import (
+    TF_TYPE_TO_TF_FUNC,
     AlbumentationsTransform,
     TransformType,
-    TF_TYPE_TO_TF_FUNC,
 )
+from rastervision.pytorch_learner.learner_config import NonNegInt, PosInt
 
 if TYPE_CHECKING:
     from typing import Self
+
     from shapely.geometry.base import BaseGeometry
 
 log = logging.getLogger(__name__)

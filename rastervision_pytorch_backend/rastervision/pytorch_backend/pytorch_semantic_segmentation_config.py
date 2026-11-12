@@ -2,14 +2,14 @@ from rastervision.pipeline.config import register_config
 from rastervision.pytorch_backend.pytorch_learner_backend_config import (
     PyTorchLearnerBackendConfig,
 )
-from rastervision.pytorch_learner.learner_config import default_augmentors
-from rastervision.pytorch_learner.semantic_segmentation_learner_config import (
-    SemanticSegmentationModelConfig,
-    SemanticSegmentationLearnerConfig,
-    SemanticSegmentationImageDataConfig,
-)
 from rastervision.pytorch_backend.pytorch_semantic_segmentation import (
     PyTorchSemanticSegmentation,
+)
+from rastervision.pytorch_learner.learner_config import default_augmentors
+from rastervision.pytorch_learner.semantic_segmentation_learner_config import (
+    SemanticSegmentationImageDataConfig,
+    SemanticSegmentationLearnerConfig,
+    SemanticSegmentationModelConfig,
 )
 
 

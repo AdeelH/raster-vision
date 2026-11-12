@@ -1,7 +1,7 @@
-import unittest
-from unittest.mock import patch
 import os
+import unittest
 from os.path import join
+from unittest.mock import patch
 
 import numpy as np
 import pyproj
@@ -11,17 +11,17 @@ from rasterio.session import AWSSession
 from rasterio.transform import Affine, from_origin
 from rasterio.windows import Window
 
-from rastervision.pipeline.file_system.utils import get_tmp_dir
 from rastervision.core.box import Box
+from rastervision.core.data import GeoJSONVectorSource, RasterioSource
 from rastervision.core.data.utils.rasterio import (
     build_vrt,
     crop_geotiff,
     download_and_build_vrt,
     get_aws_session,
-    write_geotiff_like_geojson,
     write_bbox,
+    write_geotiff_like_geojson,
 )
-from rastervision.core.data import RasterioSource, GeoJSONVectorSource
+from rastervision.pipeline.file_system.utils import get_tmp_dir
 from tests import data_file_path
 
 RIO_UTILS_LOGGER = 'rastervision.core.data.utils.rasterio'

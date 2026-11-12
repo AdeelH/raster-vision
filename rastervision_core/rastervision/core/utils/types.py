@@ -1,8 +1,8 @@
 from typing import Sequence
-from typing_extensions import Annotated
-from pydantic.types import StringConstraints
-from pydantic import Field
 
+from pydantic import Field
+from pydantic.types import StringConstraints
+from typing_extensions import Annotated
 
 NonEmptyStr = Annotated[
     str, StringConstraints(strip_whitespace=True, min_length=1)

@@ -1,14 +1,14 @@
-from typing import TYPE_CHECKING, Iterable
-from abc import abstractmethod
 import logging
+from abc import abstractmethod
+from typing import TYPE_CHECKING, Iterable
 
-from rastervision.core.evaluation import Evaluator
 from rastervision.core.data import Labels
+from rastervision.core.evaluation import Evaluator
 
 log = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    from rastervision.core.data import Scene, ClassConfig
+    from rastervision.core.data import ClassConfig, Scene
     from rastervision.core.evaluation import ClassificationEvaluation
 
 

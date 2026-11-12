@@ -6,8 +6,8 @@ from rastervision.core.data.label_source import (
 )
 from rastervision.core.data.vector_source import VectorSourceConfig
 from rastervision.core.data.vector_transformer import (
-    ClassInferenceTransformerConfig,
     BufferTransformerConfig,
+    ClassInferenceTransformerConfig,
 )
 from rastervision.pipeline.config import register_config
 

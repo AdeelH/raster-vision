@@ -1,14 +1,14 @@
 """Defines abstract base evaluation class for all tasks."""
 
-from typing import TYPE_CHECKING, Any
-from abc import ABC, abstractmethod
 import copy
 import json
+from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
-from rastervision.pipeline.file_system import str_to_file
 from rastervision.core.data.utils import ensure_json_serializable
+from rastervision.pipeline.file_system import str_to_file
 
 if TYPE_CHECKING:
     from rastervision.core.evaluation import ClassEvaluationItem

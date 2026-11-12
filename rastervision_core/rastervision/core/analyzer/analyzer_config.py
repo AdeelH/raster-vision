@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Iterable
 
-from rastervision.pipeline.config import register_config, Config
+from rastervision.pipeline.config import Config, register_config
 
 if TYPE_CHECKING:
     from rastervision.core.analyzer.analyzer import Analyzer  # noqa

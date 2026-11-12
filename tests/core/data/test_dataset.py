@@ -1,12 +1,12 @@
-from collections.abc import Callable
 import unittest
+from collections.abc import Callable
 
 from rastervision.core.data import (
-    DatasetConfig,
     ClassConfig,
-    SceneConfig,
-    RasterioSourceConfig,
+    DatasetConfig,
     LabelSourceConfig,
+    RasterioSourceConfig,
+    SceneConfig,
     dataset_config_upgrader,
 )
 from rastervision.pipeline.config import ConfigError, build_config

@@ -1,9 +1,9 @@
-from urllib.parse import urlparse
 import logging
 from itertools import islice
+from urllib.parse import urlparse
 
 import boto3
-from pystac import StacIO, Catalog, Item
+from pystac import Catalog, Item, StacIO
 from pystac.stac_io import DefaultStacIO
 from shapely.geometry import box
 
@@ -167,10 +167,11 @@ def read_stac(
         assets in the STAC catalog.
     """
     from pathlib import Path
+
     from rastervision.pipeline.file_system.utils import (
         download_if_needed,
-        is_archive,
         extract,
+        is_archive,
     )
 
     catalog_path = download_if_needed(uri)

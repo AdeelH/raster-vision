@@ -1,5 +1,5 @@
-from typing import TYPE_CHECKING, Any
 import logging
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 from PIL import ImageColor
@@ -8,9 +8,9 @@ from skimage.io import imsave
 from rastervision.core.box import Box
 
 if TYPE_CHECKING:
-    from rastervision.core.data.raster_source import RasterSource
     from rastervision.core.data.label_source import LabelSource
     from rastervision.core.data.label_store import LabelStore
+    from rastervision.core.data.raster_source import RasterSource
 
 log = logging.getLogger(__name__)
 

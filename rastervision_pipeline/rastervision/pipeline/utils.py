@@ -1,9 +1,9 @@
-from typing import Any
-from collections.abc import Callable
-import os
 import atexit
 import logging
+import os
+from collections.abc import Callable
 from math import ceil
+from typing import Any
 
 log = logging.getLogger(__name__)
 

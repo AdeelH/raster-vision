@@ -1,15 +1,14 @@
-from typing import cast
 import unittest
+from typing import cast
 
 from shapely.geometry import Point, shape
 
 from rastervision.core.data.crs_transformer import RasterioCRSTransformer
+from rastervision.core.data.utils import geoms_to_geojson
 from rastervision.core.data.vector_transformer import (
     ShiftTransformer,
     ShiftTransformerConfig,
 )
-from rastervision.core.data.utils import geoms_to_geojson
-
 from tests import data_file_path
 
 

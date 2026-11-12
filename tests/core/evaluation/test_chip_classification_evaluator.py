@@ -1,16 +1,15 @@
 import unittest
 
-from rastervision.pipeline.file_system import file_to_json, get_tmp_dir
 from rastervision.core.data import (
-    ClassConfig,
-    ChipClassificationLabelSourceConfig,
-    GeoJSONVectorSourceConfig,
     ChipClassificationGeoJSONStoreConfig,
+    ChipClassificationLabelSourceConfig,
+    ClassConfig,
+    GeoJSONVectorSourceConfig,
     RasterioSourceConfig,
     SceneConfig,
 )
 from rastervision.core.evaluation import ChipClassificationEvaluatorConfig
-
+from rastervision.pipeline.file_system import file_to_json, get_tmp_dir
 from tests import data_file_path
 
 

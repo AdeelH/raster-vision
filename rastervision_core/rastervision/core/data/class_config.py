@@ -2,8 +2,8 @@ from typing import TYPE_CHECKING
 
 from pydantic import Field, model_validator
 
-from rastervision.pipeline.config import Config, register_config, ConfigError
 from rastervision.core.data.utils import color_to_triple, normalize_color
+from rastervision.pipeline.config import Config, ConfigError, register_config
 
 if TYPE_CHECKING:
     from typing import Self

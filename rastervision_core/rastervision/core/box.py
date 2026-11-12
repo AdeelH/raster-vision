@@ -1,20 +1,21 @@
-from typing import TYPE_CHECKING, Generic, Literal, Sequence, cast, overload
-from collections.abc import Callable
-from pydantic import NonNegativeInt as NonNegInt, PositiveInt as PosInt
 import math
 import random
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Generic, Literal, Sequence, cast, overload
 
 import numpy as np
-from typing_extensions import TypeVar
+from pydantic import NonNegativeInt as NonNegInt
+from pydantic import PositiveInt as PosInt
+from rasterio.windows import Window as RioWindow
 from shapely.geometry import Polygon
 from shapely.ops import unary_union
-from rasterio.windows import Window as RioWindow
+from typing_extensions import TypeVar
 
-from rastervision.pipeline.utils import repr_with_args
 from rastervision.core.utils.misc import (
     calculate_required_padding,
     ensure_tuple,
 )
+from rastervision.pipeline.utils import repr_with_args
 
 if TYPE_CHECKING:
     from shapely.geometry.base import BaseGeometry

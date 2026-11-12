@@ -1,8 +1,8 @@
-from typing import Any, Iterator
 import io
 import os
 import subprocess
 from datetime import datetime
+from typing import Any, Iterator
 from urllib.parse import urlparse
 
 import boto3

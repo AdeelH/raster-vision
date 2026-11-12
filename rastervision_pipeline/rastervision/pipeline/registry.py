@@ -1,6 +1,7 @@
-from typing import TYPE_CHECKING, Iterable
-from collections.abc import Callable
 import inspect
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Iterable
+
 from click import Command
 
 if TYPE_CHECKING:
@@ -205,15 +206,15 @@ class Registry:
 
     def load_builtins(self):
         """Add all builtin resources."""
-        from rastervision.pipeline.runner import (
-            InProcessRunner,
-            INPROCESS,
-            LocalRunner,
-            LOCAL,
-        )
         from rastervision.pipeline.file_system import (
             HttpFileSystem,
             LocalFileSystem,
+        )
+        from rastervision.pipeline.runner import (
+            INPROCESS,
+            LOCAL,
+            InProcessRunner,
+            LocalRunner,
         )
 
         self.add_runner(INPROCESS, InProcessRunner)
@@ -245,6 +246,7 @@ class Registry:
     def discover_plugins(self):
         """Discover all raster vision plugins."""
         import pkgutil
+
         import rastervision
 
         # From https://packaging.python.org/guides/creating-and-discovering-plugins/#using-namespace-packages  # noqa

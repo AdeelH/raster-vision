@@ -1,37 +1,37 @@
-from collections.abc import Callable, Sized
 import unittest
+from collections.abc import Callable, Sized
 from typing import Any, cast
 
 from pydantic import ValidationError
 
-from rastervision.pipeline.file_system import get_tmp_dir
-from rastervision.pipeline.config import build_config
+from rastervision.core.data import ClassConfig, DatasetConfig
 from rastervision.core.rv_pipeline import (
     WindowSamplingConfig,
     WindowSamplingMethod,
 )
+from rastervision.pipeline.config import build_config
+from rastervision.pipeline.file_system import get_tmp_dir
 from rastervision.pytorch_learner import (
-    DataConfig,
-    ImageDataConfig,
-    SemanticSegmentationDataConfig,
-    SemanticSegmentationImageDataConfig,
-    SemanticSegmentationGeoDataConfig,
     ClassificationDataConfig,
     ClassificationImageDataConfig,
-    RegressionDataConfig,
-    RegressionImageDataConfig,
+    DataConfig,
+    GeoDataConfig,
+    ImageDataConfig,
     ObjectDetectionDataConfig,
     ObjectDetectionImageDataConfig,
-    data_config_upgrader,
-    ss_data_config_upgrader,
-    clf_data_config_upgrader,
-    reg_data_config_upgrader,
-    objdet_data_config_upgrader,
-    GeoDataConfig,
     PlotOptions,
+    RegressionDataConfig,
+    RegressionImageDataConfig,
+    SemanticSegmentationDataConfig,
+    SemanticSegmentationGeoDataConfig,
+    SemanticSegmentationImageDataConfig,
+    clf_data_config_upgrader,
+    data_config_upgrader,
+    objdet_data_config_upgrader,
+    reg_data_config_upgrader,
+    ss_data_config_upgrader,
     ss_image_data_config_upgrader,
 )
-from rastervision.core.data import DatasetConfig, ClassConfig
 
 
 class TestDataConfigToImageDataConfigUpgrade(unittest.TestCase):
@@ -220,8 +220,9 @@ class TestImageDataConfig(unittest.TestCase):
 
     def test_build_dataset_with_group_uris(self):
         from unittest.mock import patch
-        from torch.utils.data import ConcatDataset, TensorDataset
+
         import torch
+        from torch.utils.data import ConcatDataset, TensorDataset
 
         cfg = ImageDataConfig(group_uris=['a', 'b'])
         calls = []
@@ -243,12 +244,14 @@ class TestImageDataConfig(unittest.TestCase):
     def test_build_cc(self):
         import os
         from os.path import join
+
         import numpy as np
+
+        from rastervision.pipeline.file_system import zipdir
         from rastervision.pytorch_backend.pytorch_learner_backend import (
             get_image_ext,
             write_chip,
         )
-        from rastervision.pipeline.file_system import zipdir
 
         nclasses = 2
         class_names = [f'class_{i}' for i in range(nclasses)]
@@ -323,7 +326,9 @@ class TestImageDataConfig(unittest.TestCase):
     def test_build_ss(self):
         import os
         from os.path import join
+
         import numpy as np
+
         from rastervision.pytorch_backend.pytorch_learner_backend import (
             write_chip,
         )
@@ -461,12 +466,14 @@ class TestGeoDataConfig(unittest.TestCase):
 
     def test_build_ss(self):
         from uuid import uuid4
+
         import numpy as np
+
         from rastervision.core.data import (
             ClassConfig,
             DatasetConfig,
-            RasterioSourceConfig,
             MultiRasterSourceConfig,
+            RasterioSourceConfig,
             ReclassTransformerConfig,
             SceneConfig,
             SemanticSegmentationLabelSourceConfig,

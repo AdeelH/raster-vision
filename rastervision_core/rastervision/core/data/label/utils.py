@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING, Iterable, Iterator
 
 if TYPE_CHECKING:
     import numpy as np
+
     from rastervision.core.box import Box
 
 

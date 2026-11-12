@@ -1,11 +1,12 @@
 from typing import TYPE_CHECKING, Any
 
-from rastervision.core.data.utils import match_bboxes, geoms_to_bbox_coords
+from rastervision.core.data.utils import geoms_to_bbox_coords, match_bboxes
 
 if TYPE_CHECKING:
     from shapely.geometry.base import BaseGeometry
+
     from rastervision.core.box import Box
-    from rastervision.core.data import RasterSource, LabelSource, LabelStore
+    from rastervision.core.data import LabelSource, LabelStore, RasterSource
 
 
 class Scene:

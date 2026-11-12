@@ -1,16 +1,16 @@
+import unittest
 from collections.abc import Callable
 from typing import Any
-import unittest
 
-from torch import nn
 from pydantic import ValidationError
+from torch import nn
 
+from rastervision.pipeline.config import build_config
 from rastervision.pytorch_learner import (
+    ExternalModuleConfig,
     SolverConfig,
     solver_config_upgrader,
-    ExternalModuleConfig,
 )
-from rastervision.pipeline.config import build_config
 
 
 class TestSolverConfig(unittest.TestCase):

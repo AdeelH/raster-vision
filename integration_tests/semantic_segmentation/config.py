@@ -1,15 +1,15 @@
-from os.path import join, dirname
+from os.path import dirname, join
 
 from rastervision.core.data import (
+    BuildingVectorOutputConfig,
     ClassConfig,
+    DatasetConfig,
+    PolygonVectorOutputConfig,
+    RasterioSourceConfig,
+    RGBClassTransformerConfig,
+    SceneConfig,
     SemanticSegmentationLabelSourceConfig,
     SemanticSegmentationLabelStoreConfig,
-    RasterioSourceConfig,
-    SceneConfig,
-    PolygonVectorOutputConfig,
-    DatasetConfig,
-    BuildingVectorOutputConfig,
-    RGBClassTransformerConfig,
 )
 from rastervision.core.rv_pipeline import (
     SemanticSegmentationChipOptions,
@@ -21,10 +21,10 @@ from rastervision.core.rv_pipeline import (
 from rastervision.pytorch_backend import PyTorchSemanticSegmentationConfig
 from rastervision.pytorch_learner import (
     Backbone,
-    SolverConfig,
-    SemanticSegmentationModelConfig,
-    SemanticSegmentationImageDataConfig,
     SemanticSegmentationGeoDataConfig,
+    SemanticSegmentationImageDataConfig,
+    SemanticSegmentationModelConfig,
+    SolverConfig,
 )
 
 

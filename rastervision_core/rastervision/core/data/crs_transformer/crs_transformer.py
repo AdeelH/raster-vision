@@ -2,9 +2,9 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, TypeVar, cast, overload
 
 import numpy as np
-from shapely.ops import transform
-from shapely.geometry.base import BaseGeometry
 from shapely.affinity import translate
+from shapely.geometry.base import BaseGeometry
+from shapely.ops import transform
 
 from rastervision.core.box import Box
 

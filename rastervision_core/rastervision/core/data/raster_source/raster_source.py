@@ -1,16 +1,16 @@
-from typing import TYPE_CHECKING, Any, Sequence
 from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING, Any, Sequence
 
 import numpy as np
 import numpy.typing as npt
 from skimage.transform import resize
 
 from rastervision.core.box import Box
-from rastervision.core.data.utils import parse_array_slices_Nd
 from rastervision.core.data.raster_transformer.utils import (
-    get_transformed_num_channels,
     get_transformed_dtype,
+    get_transformed_num_channels,
 )
+from rastervision.core.data.utils import parse_array_slices_Nd
 
 if TYPE_CHECKING:
     from rastervision.core.data import CRSTransformer, RasterTransformer

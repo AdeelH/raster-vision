@@ -1,6 +1,6 @@
 from rastervision.core.evaluation import (
-    ClassificationEvaluator,
     ChipClassificationEvaluation,
+    ClassificationEvaluator,
 )
 
 

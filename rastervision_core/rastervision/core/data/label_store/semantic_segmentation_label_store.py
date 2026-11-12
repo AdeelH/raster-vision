@@ -1,38 +1,38 @@
-from typing import TYPE_CHECKING, Sequence, overload
-from os.path import join
 import logging
+from os.path import join
+from typing import TYPE_CHECKING, Sequence, overload
 
 import numpy as np
 import rasterio as rio
 import rasterio.windows as rio_windows
 from tqdm.auto import tqdm
 
-from rastervision.pipeline.file_system import (
-    get_local_path,
-    json_to_file,
-    make_dir,
-    sync_to_dir,
-    file_exists,
-    download_if_needed,
-    NotReadableError,
-    get_tmp_dir,
-)
 from rastervision.core.box import Box
-from rastervision.core.data import CRSTransformer, ClassConfig
+from rastervision.core.data import ClassConfig, CRSTransformer
 from rastervision.core.data.label import (
     SemanticSegmentationLabels,
     SemanticSegmentationSmoothLabels,
 )
-from rastervision.core.data.label_store import LabelStore
 from rastervision.core.data.label_source import SemanticSegmentationLabelSource
-from rastervision.core.data.raster_transformer import RGBClassTransformer
+from rastervision.core.data.label_store import LabelStore
 from rastervision.core.data.raster_source import RasterioSource
+from rastervision.core.data.raster_transformer import RGBClassTransformer
 from rastervision.core.data.utils import write_window
+from rastervision.pipeline.file_system import (
+    NotReadableError,
+    download_if_needed,
+    file_exists,
+    get_local_path,
+    get_tmp_dir,
+    json_to_file,
+    make_dir,
+    sync_to_dir,
+)
 
 if TYPE_CHECKING:
     from rastervision.core.data import (
-        VectorOutputConfig,
         SemanticSegmentationDiscreteLabels,
+        VectorOutputConfig,
     )
     from rastervision.core.data.raster_transformer import RasterTransformer
 

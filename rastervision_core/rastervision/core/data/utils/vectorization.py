@@ -2,11 +2,11 @@
 # Ported over from https://github.com/azavea/mask-to-polygons.
 ###############################################################################
 
-from typing import TYPE_CHECKING, Iterator, Sequence
 from itertools import chain
+from typing import TYPE_CHECKING, Iterator, Sequence
 
-import numpy as np
 import cv2
+import numpy as np
 import rasterio as rio
 import rasterio.features
 from shapely.geometry import shape

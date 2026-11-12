@@ -1,30 +1,30 @@
-from typing import TYPE_CHECKING, Any, Sequence
-from dataclasses import dataclass
-import os
-from os.path import join
 import logging
 import math
+import os
 import xml.etree.ElementTree as ET
+from dataclasses import dataclass
+from os.path import join
+from typing import TYPE_CHECKING, Any, Sequence
 
 import numpy as np
 import rasterio as rio
 import rasterio.windows as rio_windows
-from rasterio.transform import from_origin
 from rasterio.dtypes import dtype_rev, typename_fwd
 from rasterio.enums import ColorInterp, MaskFlags, Resampling
 from rasterio.errors import RasterioIOError
 from rasterio.session import AWSSession
+from rasterio.transform import from_origin
 
+from rastervision.core.box import Box
 from rastervision.pipeline.file_system.utils import (
+    download_if_needed,
     file_to_json,
     get_local_path,
     get_tmp_dir,
     make_dir,
     upload_or_copy,
-    download_if_needed,
     uri_to_vsi_path,
 )
-from rastervision.core.box import Box
 
 if TYPE_CHECKING:
     from affine import Affine
@@ -104,9 +104,10 @@ def write_geotiff_like_geojson(
         crs (str): CRS name. If None, read from the GeoJSON. If not specified
             in the GeoJSON, use "EPSG:4326". Defaults to None.
     """
-    from rastervision.core.data.utils.geojson import geojson_to_geoms
     import pyproj
     from shapely.ops import unary_union
+
+    from rastervision.core.data.utils.geojson import geojson_to_geoms
 
     geojson = file_to_json(geojson_path)
     if crs is None:

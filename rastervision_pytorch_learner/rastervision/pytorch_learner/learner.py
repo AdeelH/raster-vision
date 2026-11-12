@@ -1,63 +1,63 @@
-from typing import TYPE_CHECKING, Any, Iterator, Literal, cast
+import datetime
+import gc
+import logging
+import numbers
+import shutil
+import warnings
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Sized
-from os.path import join, isfile, basename, isdir
-import warnings
-from time import perf_counter
-import datetime
-import shutil
-import logging
-from subprocess import Popen
-import numbers
+from os.path import basename, isdir, isfile, join
 from pprint import pformat
-import gc
+from subprocess import Popen
+from time import perf_counter
+from typing import TYPE_CHECKING, Any, Iterator, Literal, cast
 
 import numpy as np
+import torch
+import torch.distributed as dist
+import torch.nn as nn
+from torch import Tensor
+from torch.multiprocessing.spawn import start_processes
+from torch.nn.parallel import DistributedDataParallel as DDP
+from torch.utils.data import DataLoader, DistributedSampler
+from torch.utils.tensorboard.writer import SummaryWriter
 from tqdm.auto import tqdm
 
-import torch
-from torch import Tensor
-import torch.nn as nn
-from torch.utils.tensorboard.writer import SummaryWriter
-from torch.utils.data import DataLoader, DistributedSampler
-from torch.nn.parallel import DistributedDataParallel as DDP
-import torch.distributed as dist
-from torch.multiprocessing.spawn import start_processes
-
 from rastervision.pipeline import rv_config_ as rv_config
-from rastervision.pipeline.utils import get_env_var
+from rastervision.pipeline.config import build_config
 from rastervision.pipeline.file_system import (
-    sync_to_dir,
-    json_to_file,
-    make_dir,
-    zipdir,
     download_if_needed,
     download_or_copy,
-    sync_from_dir,
     get_local_path,
-    unzip,
-    is_local,
     get_tmp_dir,
+    is_local,
+    json_to_file,
+    make_dir,
+    sync_from_dir,
+    sync_to_dir,
+    unzip,
+    zipdir,
 )
 from rastervision.pipeline.file_system.utils import file_exists
-from rastervision.pipeline.utils import terminate_at_exit
-from rastervision.pipeline.config import build_config
+from rastervision.pipeline.utils import get_env_var, terminate_at_exit
+from rastervision.pytorch_learner.dataset.visualizer import Visualizer
 from rastervision.pytorch_learner.utils import (
-    aggregate_metrics,
     DDPContextManager,
+    ONNXRuntimeAdapter,
+    aggregate_metrics,
     get_hubconf_dir_from_cfg,
     get_learner_config_from_bundle_dir,
     log_metrics_to_csv,
     log_system_details,
-    ONNXRuntimeAdapter,
 )
-from rastervision.pytorch_learner.dataset.visualizer import Visualizer
 
 if TYPE_CHECKING:
     from typing import Self
+
     from torch.optim import Optimizer
     from torch.optim.lr_scheduler import LRScheduler
     from torch.utils.data import Dataset, Sampler
+
     from rastervision.pytorch_learner import LearnerConfig
 
 warnings.filterwarnings('ignore')

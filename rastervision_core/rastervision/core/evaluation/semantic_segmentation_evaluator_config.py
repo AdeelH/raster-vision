@@ -1,12 +1,12 @@
 from typing import TYPE_CHECKING, Iterable
 
-from rastervision.pipeline.config import register_config
 from rastervision.core.evaluation.classification_evaluator_config import (
     ClassificationEvaluatorConfig,
 )
 from rastervision.core.evaluation.semantic_segmentation_evaluator import (
     SemanticSegmentationEvaluator,
 )
+from rastervision.pipeline.config import register_config
 
 if TYPE_CHECKING:
     from rastervision.core.data import ClassConfig, Scene

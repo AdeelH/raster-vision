@@ -1,8 +1,9 @@
+import json
+
 import click
 import numpy as np
-import rasterio
 import pyproj
-import json
+import rasterio
 
 
 def flip_geom(m, b, geom):

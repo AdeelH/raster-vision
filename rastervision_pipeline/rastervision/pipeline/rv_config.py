@@ -1,17 +1,17 @@
-from typing import Any
-import os
-from tempfile import TemporaryDirectory
-from pathlib import Path
-import logging
 import json
+import logging
+import os
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from typing import Any
 
+from everett.ext.inifile import ConfigIniEnv
 from everett.manager import (
-    ConfigManager,
     ConfigDictEnv,
+    ConfigManager,
     ConfigOSEnv,
     ConfigurationMissingError,
 )
-from everett.ext.inifile import ConfigIniEnv
 
 from rastervision.pipeline.verbosity import Verbosity
 

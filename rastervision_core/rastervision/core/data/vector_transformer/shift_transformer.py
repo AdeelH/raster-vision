@@ -1,13 +1,13 @@
 from typing import TYPE_CHECKING
-import numpy as np
 
+import numpy as np
 from shapely.ops import transform
 
 from rastervision.core.data.crs_transformer import RasterioCRSTransformer
 from rastervision.core.data.utils.geojson import (
-    pixel_to_map_coords,
-    map_to_pixel_coords,
     map_geoms,
+    map_to_pixel_coords,
+    pixel_to_map_coords,
 )
 from rastervision.core.data.vector_transformer import VectorTransformer
 
@@ -38,7 +38,6 @@ class ShiftTransformer(VectorTransformer):
     def transform(
         self, geojson: dict, crs_transformer: 'CRSTransformer | None' = None
     ) -> dict:
-
         # https://gis.stackexchange.com/questions/2951/algorithm-for-offsetting-a-latitude-longitude-by-some-amount-of-meters  # noqa
         def shift(x, y, z=None):
             lon, lat = x, y

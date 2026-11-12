@@ -2,17 +2,17 @@ from typing import TYPE_CHECKING
 
 from pydantic import Field, model_validator
 
-from rastervision.pipeline.config import register_config
-from rastervision.core.rv_pipeline import (
-    ChipOptions,
-    RVPipelineConfig,
-    PredictOptions,
-    WindowSamplingConfig,
-)
 from rastervision.core.data.label_store import (
     ObjectDetectionGeoJSONStoreConfig,
 )
 from rastervision.core.evaluation import ObjectDetectionEvaluatorConfig
+from rastervision.core.rv_pipeline import (
+    ChipOptions,
+    PredictOptions,
+    RVPipelineConfig,
+    WindowSamplingConfig,
+)
+from rastervision.pipeline.config import register_config
 
 if TYPE_CHECKING:
     from typing import Self

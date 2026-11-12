@@ -1,27 +1,27 @@
-from typing import TYPE_CHECKING, Iterable, Sequence, cast
+import logging
 from collections.abc import Callable
 from enum import Enum
-import logging
+from typing import TYPE_CHECKING, Iterable, Sequence, cast
 
+from pydantic import Field
 from torch import nn
 from torchvision import models
-from pydantic import Field
 
 from rastervision.core.data import Scene
 from rastervision.core.rv_pipeline import WindowSamplingMethod
-from rastervision.pipeline.config import Config, register_config, ConfigError
+from rastervision.pipeline.config import Config, ConfigError, register_config
+from rastervision.pytorch_learner.dataset import (
+    RegressionImageDataset,
+    RegressionRandomWindowGeoDataset,
+    RegressionSlidingWindowGeoDataset,
+)
 from rastervision.pytorch_learner.learner_config import (
     AlbTransform,
+    GeoDataConfig,
+    ImageDataConfig,
     LearnerConfig,
     ModelConfig,
     PlotOptions,
-    ImageDataConfig,
-    GeoDataConfig,
-)
-from rastervision.pytorch_learner.dataset import (
-    RegressionImageDataset,
-    RegressionSlidingWindowGeoDataset,
-    RegressionRandomWindowGeoDataset,
 )
 from rastervision.pytorch_learner.utils import adjust_conv_channels
 

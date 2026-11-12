@@ -1,5 +1,14 @@
-from os.path import join, dirname, basename
+from os.path import basename, dirname, join
 
+from rastervision.core.data import (
+    ChipClassificationLabelSourceConfig,
+    ClassConfig,
+    DatasetConfig,
+    GeoJSONVectorSourceConfig,
+    RasterioSourceConfig,
+    SceneConfig,
+    StatsTransformerConfig,
+)
 from rastervision.core.rv_pipeline import (
     ChipClassificationConfig,
     ChipOptions,
@@ -7,22 +16,13 @@ from rastervision.core.rv_pipeline import (
     WindowSamplingConfig,
     WindowSamplingMethod,
 )
-from rastervision.core.data import (
-    ClassConfig,
-    ChipClassificationLabelSourceConfig,
-    GeoJSONVectorSourceConfig,
-    RasterioSourceConfig,
-    StatsTransformerConfig,
-    SceneConfig,
-    DatasetConfig,
-)
 from rastervision.pytorch_backend import PyTorchChipClassificationConfig
 from rastervision.pytorch_learner import (
     Backbone,
-    SolverConfig,
-    ClassificationModelConfig,
-    ClassificationImageDataConfig,
     ClassificationGeoDataConfig,
+    ClassificationImageDataConfig,
+    ClassificationModelConfig,
+    SolverConfig,
 )
 
 

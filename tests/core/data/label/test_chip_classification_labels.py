@@ -1,18 +1,17 @@
 import unittest
 from os.path import join
 
-from rastervision.pipeline.file_system.utils import get_tmp_dir, file_exists
 from rastervision.core.box import Box
 from rastervision.core.data import (
+    ChipClassificationGeoJSONStore,
     ClassConfig,
     IdentityCRSTransformer,
-    ChipClassificationGeoJSONStore,
 )
 from rastervision.core.data.label.chip_classification_labels import (
-    ClassificationLabel,
     ChipClassificationLabels,
+    ClassificationLabel,
 )
-
+from rastervision.pipeline.file_system.utils import file_exists, get_tmp_dir
 from tests import data_file_path
 
 

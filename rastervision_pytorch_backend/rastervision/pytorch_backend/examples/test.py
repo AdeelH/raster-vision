@@ -1,19 +1,19 @@
-from genericpath import exists
-from pprint import pformat
 import subprocess
+from genericpath import exists
 from os.path import basename, join, relpath, split
+from pprint import pformat
 from tempfile import TemporaryDirectory
 
 import click
 
 from rastervision.pipeline.file_system import (
-    file_to_json,
-    sync_from_dir,
-    download_or_copy,
-    file_exists,
-    sync_to_dir,
     NotReadableError,
     download_if_needed,
+    download_or_copy,
+    file_exists,
+    file_to_json,
+    sync_from_dir,
+    sync_to_dir,
 )
 
 NEW_VERSION_FULL = '0.31.0'  # x.y.z

@@ -1,56 +1,63 @@
-from typing import TYPE_CHECKING, Any, Iterable, Literal, cast
-from collections.abc import Callable, Sequence, Sized
+import logging
 import os
-from os.path import join, isdir
-from enum import Enum
 import random
 import uuid
-import logging
+from collections.abc import Callable, Sequence, Sized
+from enum import Enum
+from os.path import isdir, join
+from typing import TYPE_CHECKING, Any, Iterable, Literal, cast
 
-from typing_extensions import Annotated
+import albumentations as A
+import torch
 from pydantic import (
-    NonNegativeInt as NonNegInt,
-    PositiveFloat,
-    PositiveInt as PosInt,
-    StringConstraints,
     Field,
+    PositiveFloat,
+    StringConstraints,
     field_validator,
     model_validator,
 )
-import albumentations as A
-import torch
+from pydantic import (
+    NonNegativeInt as NonNegInt,
+)
+from pydantic import (
+    PositiveInt as PosInt,
+)
 from torch import nn, optim
 from torch.optim.lr_scheduler import CyclicLR, LRScheduler, MultiStepLR
-from torch.utils.data import Dataset, ConcatDataset, Subset
+from torch.utils.data import ConcatDataset, Dataset, Subset
+from typing_extensions import Annotated
 
-from rastervision.pipeline.config import Config, register_config, ConfigError
-from rastervision.pipeline.file_system import (
-    list_paths,
-    download_if_needed,
-    unzip,
-    file_exists,
-    get_local_path,
-    sync_from_dir,
-)
 from rastervision.core.data import (
     ClassConfig,
     Scene,
+)
+from rastervision.core.data import (
     DatasetConfig as SceneDatasetConfig,
 )
 from rastervision.core.rv_pipeline import WindowSamplingConfig
 from rastervision.core.utils import NonEmptyStr, Proportion
+from rastervision.pipeline.config import Config, ConfigError, register_config
+from rastervision.pipeline.file_system import (
+    download_if_needed,
+    file_exists,
+    get_local_path,
+    list_paths,
+    sync_from_dir,
+    unzip,
+)
 from rastervision.pytorch_learner.utils import (
-    validate_albumentation_transform,
     MinMaxNormalize,
     deserialize_albumentation_transform,
     get_hubconf_dir_from_cfg,
-    torch_hub_load_local,
     torch_hub_load_github,
+    torch_hub_load_local,
     torch_hub_load_uri,
+    validate_albumentation_transform,
 )
 
 if TYPE_CHECKING:
     from typing import Self
+
     from rastervision.core.data import SceneConfig
     from rastervision.pytorch_learner.learner import Learner
 
@@ -1061,7 +1068,6 @@ class ImageDataConfig(DataConfig):
         raise NotImplementedError()
 
     def build(self, tmp_dir: str) -> tuple[Dataset, Dataset, Dataset]:
-
         if self.group_uris is None:
             if self.uri is None:
                 raise ValueError('Either uri or group_uris must be set.')
@@ -1089,7 +1095,6 @@ class ImageDataConfig(DataConfig):
         split: Literal['train', 'valid', 'test'],
         tmp_dir: str | None = None,
     ) -> Dataset:
-
         if self.group_uris is None:
             if self.uri is None:
                 raise ValueError('Either uri or group_uris must be set.')
@@ -1228,7 +1233,6 @@ class ImageDataConfig(DataConfig):
         group_sz: int | Sequence[int] | None = None,
         group_sz_rel: float | Sequence[float] | None = None,
     ) -> Dataset:
-
         group_sizes = None
         if group_sz is not None:
             group_sizes = group_sz
@@ -1496,7 +1500,6 @@ class GeoDataConfig(DataConfig):
         split: Literal['train', 'valid', 'test'],
         tmp_dir: str | None = None,
     ) -> Dataset:
-
         base_transform, aug_transform = self.get_data_transforms()
         if split == 'train':
             tf = aug_transform

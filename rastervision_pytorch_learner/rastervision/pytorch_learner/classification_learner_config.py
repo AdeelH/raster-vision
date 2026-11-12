@@ -1,24 +1,24 @@
-from typing import TYPE_CHECKING, Iterable, cast
+import logging
 from collections.abc import Callable
 from enum import Enum
-import logging
+from typing import TYPE_CHECKING, Iterable, cast
 
 from torch import nn
 
 from rastervision.core.data import Scene
 from rastervision.core.rv_pipeline import WindowSamplingMethod
-from rastervision.pipeline.config import Config, register_config, ConfigError
-from rastervision.pytorch_learner.learner_config import (
-    AlbTransform,
-    LearnerConfig,
-    ModelConfig,
-    ImageDataConfig,
-    GeoDataConfig,
-)
+from rastervision.pipeline.config import Config, ConfigError, register_config
 from rastervision.pytorch_learner.dataset import (
     ClassificationImageDataset,
-    ClassificationSlidingWindowGeoDataset,
     ClassificationRandomWindowGeoDataset,
+    ClassificationSlidingWindowGeoDataset,
+)
+from rastervision.pytorch_learner.learner_config import (
+    AlbTransform,
+    GeoDataConfig,
+    ImageDataConfig,
+    LearnerConfig,
+    ModelConfig,
 )
 from rastervision.pytorch_learner.utils import adjust_conv_channels
 

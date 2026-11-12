@@ -1,5 +1,5 @@
-from typing import cast
 import unittest
+from typing import cast
 
 from rastervision.core.evaluation import EvaluatorConfig
 from rastervision.core.rv_pipeline import RVPipelineConfig

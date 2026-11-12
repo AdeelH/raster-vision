@@ -3,12 +3,12 @@ def register_plugin(registry):
 
 
 import rastervision.pipeline
-from rastervision.pytorch_backend.pytorch_chip_classification_config import *
 from rastervision.pytorch_backend.pytorch_chip_classification import *
-from rastervision.pytorch_backend.pytorch_semantic_segmentation_config import *
-from rastervision.pytorch_backend.pytorch_semantic_segmentation import *
-from rastervision.pytorch_backend.pytorch_object_detection_config import *
+from rastervision.pytorch_backend.pytorch_chip_classification_config import *
 from rastervision.pytorch_backend.pytorch_object_detection import *
+from rastervision.pytorch_backend.pytorch_object_detection_config import *
+from rastervision.pytorch_backend.pytorch_semantic_segmentation import *
+from rastervision.pytorch_backend.pytorch_semantic_segmentation_config import *
 from rastervision.pytorch_backend.utils import *
 
 __all__ = [

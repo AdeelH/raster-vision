@@ -1,9 +1,9 @@
 from os.path import join
 
+from rastervision.pipeline.config import Config, register_config
+from rastervision.pipeline.file_system import file_to_str, str_to_file
 from rastervision.pipeline.pipeline import Pipeline
-from rastervision.pipeline.file_system import str_to_file, file_to_str
 from rastervision.pipeline.pipeline_config import PipelineConfig
-from rastervision.pipeline.config import register_config, Config
 from rastervision.pipeline.utils import split_into_groups
 
 

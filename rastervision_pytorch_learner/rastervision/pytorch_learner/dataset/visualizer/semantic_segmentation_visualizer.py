@@ -1,15 +1,15 @@
 from typing import TYPE_CHECKING, Sequence
 
-import torch
-import numpy as np
 import matplotlib.colors as mcolors
 import matplotlib.patches as mpatches
+import numpy as np
+import torch
 
 from rastervision.core.data.utils import color_to_triple
 from rastervision.pytorch_learner.dataset.visualizer import Visualizer
 from rastervision.pytorch_learner.utils import (
-    plot_channel_groups,
     channel_groups_to_imgs,
+    plot_channel_groups,
 )
 
 if TYPE_CHECKING:

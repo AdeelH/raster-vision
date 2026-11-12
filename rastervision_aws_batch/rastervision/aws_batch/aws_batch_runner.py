@@ -1,8 +1,8 @@
-from typing import TYPE_CHECKING, Any
 import logging
 import os
 import uuid
 from pprint import pformat
+from typing import TYPE_CHECKING, Any
 
 from rastervision.pipeline import rv_config_ as rv_config
 from rastervision.pipeline.runner import Runner
@@ -71,7 +71,6 @@ class AWSBatchRunner(Runner):
         num_splits: int = 1,
         pipeline_run_name: str = 'raster-vision',
     ) -> tuple[list[str], dict[str, Any]]:
-
         verbosity = rv_config.get_verbosity_cli_opt()
 
         # pipeline-specific job queue and job definition

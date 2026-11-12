@@ -1,7 +1,8 @@
-from typing import Literal, TypeVar, overload
 import math
+from typing import Literal, TypeVar, overload
 
-from pydantic.types import NonNegativeInt as NonNegInt, PositiveInt as PosInt
+from pydantic.types import NonNegativeInt as NonNegInt
+from pydantic.types import PositiveInt as PosInt
 
 T = TypeVar('T')
 

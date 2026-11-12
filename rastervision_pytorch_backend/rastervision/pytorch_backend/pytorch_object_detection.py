@@ -1,13 +1,13 @@
-from typing import TYPE_CHECKING, cast
-from os.path import join, basename
 import uuid
+from os.path import basename, join
+from typing import TYPE_CHECKING, cast
 
-from rastervision.pipeline.file_system import json_to_file
-from rastervision.core.data_sample import DataSample
 from rastervision.core.data.label import ObjectDetectionLabels
+from rastervision.core.data_sample import DataSample
+from rastervision.pipeline.file_system import json_to_file
 from rastervision.pytorch_backend.pytorch_learner_backend import (
-    PyTorchLearnerSampleWriter,
     PyTorchLearnerBackend,
+    PyTorchLearnerSampleWriter,
 )
 from rastervision.pytorch_backend.utils import chip_collate_fn_od
 from rastervision.pytorch_learner.object_detection_utils import BoxList

@@ -1,15 +1,13 @@
-from typing import TYPE_CHECKING, Any, Literal, TypeVar, cast
-from collections.abc import Callable
 import builtins
 import inspect
 import logging
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any, Literal, TypeVar, cast
 
 from pydantic import BaseModel, ConfigDict, create_model
 
-from rastervision.pipeline import (
-    registry_ as registry,
-    rv_config_ as rv_config,
-)
+from rastervision.pipeline import registry_ as registry
+from rastervision.pipeline import rv_config_ as rv_config
 from rastervision.pipeline.file_system import (
     file_to_json,
     json_to_file,
@@ -18,6 +16,7 @@ from rastervision.pipeline.file_system import (
 
 if TYPE_CHECKING:
     from typing import Self
+
     from rastervision.pipeline.pipeline_config import PipelineConfig
 
 log = logging.getLogger(__name__)

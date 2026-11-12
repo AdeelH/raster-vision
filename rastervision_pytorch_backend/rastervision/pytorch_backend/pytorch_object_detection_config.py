@@ -2,14 +2,14 @@ from rastervision.pipeline.config import register_config
 from rastervision.pytorch_backend.pytorch_learner_backend_config import (
     PyTorchLearnerBackendConfig,
 )
-from rastervision.pytorch_learner.learner_config import default_augmentors
-from rastervision.pytorch_learner.object_detection_learner_config import (
-    ObjectDetectionModelConfig,
-    ObjectDetectionLearnerConfig,
-    ObjectDetectionImageDataConfig,
-)
 from rastervision.pytorch_backend.pytorch_object_detection import (
     PyTorchObjectDetection,
+)
+from rastervision.pytorch_learner.learner_config import default_augmentors
+from rastervision.pytorch_learner.object_detection_learner_config import (
+    ObjectDetectionImageDataConfig,
+    ObjectDetectionLearnerConfig,
+    ObjectDetectionModelConfig,
 )
 
 

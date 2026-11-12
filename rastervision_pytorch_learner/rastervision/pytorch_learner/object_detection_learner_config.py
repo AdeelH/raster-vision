@@ -1,34 +1,34 @@
-from typing import TYPE_CHECKING, cast
+import logging
 from enum import Enum
 from os.path import join
-import logging
+from typing import TYPE_CHECKING, cast
 
 import albumentations as A
-
+from pydantic import Field, field_validator
 from torchvision.models.detection.backbone_utils import resnet_fpn_backbone
 from torchvision.models.detection.faster_rcnn import FasterRCNN
-from pydantic import Field, field_validator
 
 from rastervision.core.data import Scene
 from rastervision.core.rv_pipeline import WindowSamplingMethod
-from rastervision.pipeline.config import Config, register_config, ConfigError
-from rastervision.pytorch_learner.learner_config import (
-    AlbTransform,
-    LearnerConfig,
-    ModelConfig,
-    Backbone,
-    ImageDataConfig,
-    GeoDataConfig,
-)
+from rastervision.pipeline.config import Config, ConfigError, register_config
 from rastervision.pytorch_learner.dataset import (
     ObjectDetectionImageDataset,
-    ObjectDetectionSlidingWindowGeoDataset,
     ObjectDetectionRandomWindowGeoDataset,
+    ObjectDetectionSlidingWindowGeoDataset,
+)
+from rastervision.pytorch_learner.learner_config import (
+    AlbTransform,
+    Backbone,
+    GeoDataConfig,
+    ImageDataConfig,
+    LearnerConfig,
+    ModelConfig,
 )
 from rastervision.pytorch_learner.utils import adjust_conv_channels
 
 if TYPE_CHECKING:
     from torch import nn
+
     from rastervision.core.rv_pipeline import (
         ObjectDetectionWindowSamplingConfig,
     )

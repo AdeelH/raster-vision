@@ -5,16 +5,15 @@ import numpy as np
 
 from rastervision.core import Box
 from rastervision.core.data import (
+    BufferTransformerConfig,
+    ClassConfig,
+    ClassInferenceTransformerConfig,
+    GeoJSONVectorSourceConfig,
     IdentityCRSTransformer,
     RasterizedSourceConfig,
     RasterizerConfig,
-    GeoJSONVectorSourceConfig,
-    ClassConfig,
-    ClassInferenceTransformerConfig,
-    BufferTransformerConfig,
 )
-from rastervision.pipeline.file_system import json_to_file, get_tmp_dir
-
+from rastervision.pipeline.file_system import get_tmp_dir, json_to_file
 from tests import data_file_path
 
 

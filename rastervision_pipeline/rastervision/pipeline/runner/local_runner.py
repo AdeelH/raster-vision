@@ -1,9 +1,9 @@
-from typing import TYPE_CHECKING
 import sys
 from os.path import dirname, join
 from subprocess import Popen
+from typing import TYPE_CHECKING
 
-from rastervision.pipeline.file_system import str_to_file, download_if_needed
+from rastervision.pipeline.file_system import download_if_needed, str_to_file
 from rastervision.pipeline.runner.runner import Runner
 from rastervision.pipeline.utils import terminate_at_exit
 

@@ -1,21 +1,20 @@
-from typing import TYPE_CHECKING, Any, cast
-import warnings
-
 import logging
+import warnings
+from typing import TYPE_CHECKING, Any, cast
 
 import torch
+import torch.distributed as dist
 from torch import Tensor
 from torch.nn import functional as F
-import torch.distributed as dist
 
-from rastervision.pytorch_learner.learner import Learner
-from rastervision.pytorch_learner.utils import (
-    compute_conf_mat_metrics,
-    compute_conf_mat,
-    aggregate_metrics,
-)
 from rastervision.pytorch_learner.dataset.visualizer import (
     SemanticSegmentationVisualizer,
+)
+from rastervision.pytorch_learner.learner import Learner
+from rastervision.pytorch_learner.utils import (
+    aggregate_metrics,
+    compute_conf_mat,
+    compute_conf_mat_metrics,
 )
 
 if TYPE_CHECKING:
@@ -107,7 +106,6 @@ class SemanticSegmentationLearner(Learner):
         raw_out: bool = False,
         out_shape: tuple[int, int] | None = None,
     ) -> torch.Tensor:
-
         if out_shape is None:
             out_shape = cast(tuple[int, int], x.shape[-2:])
 

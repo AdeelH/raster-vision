@@ -1,14 +1,14 @@
-from typing import TYPE_CHECKING, Sequence
 from textwrap import wrap
+from typing import TYPE_CHECKING, Sequence
 
-import torch
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+import torch
 
 from rastervision.pytorch_learner.dataset.visualizer import Visualizer  # NOQA
 from rastervision.pytorch_learner.utils import (
-    plot_channel_groups,
     channel_groups_to_imgs,
+    plot_channel_groups,
 )
 
 if TYPE_CHECKING:

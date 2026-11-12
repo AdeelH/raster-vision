@@ -2,9 +2,9 @@ from typing import TYPE_CHECKING, Any, Iterable
 
 import geopandas as gpd
 
+from rastervision.core.box import Box
 from rastervision.core.data.label import ChipClassificationLabels
 from rastervision.core.data.label_source.label_source import LabelSource
-from rastervision.core.box import Box
 
 if TYPE_CHECKING:
     from rastervision.core.data import (

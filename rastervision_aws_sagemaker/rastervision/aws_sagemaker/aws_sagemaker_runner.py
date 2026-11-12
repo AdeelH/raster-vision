@@ -1,28 +1,32 @@
-from typing import TYPE_CHECKING, cast
-from os.path import join, basename
 import logging
-from pprint import pprint
 import tarfile
+from os.path import basename, join
+from pprint import pprint
+from typing import TYPE_CHECKING, cast
 
 import boto3
+
 from rastervision.pipeline import rv_config_ as rv_config
-from rastervision.pipeline.runner import Runner
 from rastervision.pipeline.file_system import FileSystem
 from rastervision.pipeline.file_system.utils import (
-    str_to_file,
     get_tmp_dir,
+    str_to_file,
     upload_or_copy,
 )
+from rastervision.pipeline.runner import Runner
 
 if TYPE_CHECKING:
-    from rastervision.pipeline.pipeline import Pipeline
-    from rastervision.core.rv_pipeline import RVPipelineConfig
-    from sagemaker.workflow.entities import PipelineVariable
-    from sagemaker.workflow.pipeline_context import _JobStepArguments
     from sagemaker import Session
+    from sagemaker.workflow.entities import PipelineVariable
     from sagemaker.workflow.pipeline import Pipeline as SageMakerPipeline
-    from sagemaker.workflow.pipeline_context import PipelineSession
+    from sagemaker.workflow.pipeline_context import (
+        PipelineSession,
+        _JobStepArguments,
+    )
     from sagemaker.workflow.steps import ProcessingStep, TrainingStep
+
+    from rastervision.core.rv_pipeline import RVPipelineConfig
+    from rastervision.pipeline.pipeline import Pipeline
 
 log = logging.getLogger(__name__)
 
@@ -107,8 +111,8 @@ class AWSSageMakerRunner(Runner):
         pipeline_run_name: str = 'rv',
     ) -> 'SageMakerPipeline':
         """Build a SageMaker Pipeline with each command as a step within it."""
-        from sagemaker.workflow.pipeline_context import PipelineSession
         from sagemaker.workflow.pipeline import Pipeline as SageMakerPipeline
+        from sagemaker.workflow.pipeline_context import PipelineSession
         from sagemaker.workflow.pipeline_definition_config import (
             PipelineDefinitionConfig,
         )
@@ -356,6 +360,7 @@ class AWSSageMakerRunner(Runner):
         **kwargs,
     ):
         from sagemaker.pytorch import PyTorch
+
         from rastervision.aws_s3.s3_file_system import S3FileSystem
 
         if distribution is None:

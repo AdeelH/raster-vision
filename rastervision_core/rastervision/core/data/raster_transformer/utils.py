@@ -1,8 +1,10 @@
 from typing import TYPE_CHECKING
+
 from pydantic.types import PositiveInt as PosInt
 
 if TYPE_CHECKING:
     import numpy as np
+
     from rastervision.core.data.raster_transformer import RasterTransformer
 
 

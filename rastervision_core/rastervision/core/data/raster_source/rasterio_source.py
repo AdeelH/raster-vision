@@ -1,5 +1,5 @@
-from typing import TYPE_CHECKING, Any, Sequence
 import logging
+from typing import TYPE_CHECKING, Any, Sequence
 
 import numpy as np
 import rasterio as rio
@@ -7,10 +7,11 @@ from rasterio.crs import CRS
 from rasterio.enums import Resampling
 from rasterio.features import geometry_mask
 from rasterio.warp import reproject, transform_geom
-from rasterio.windows import Window, bounds as window_bounds
-from shapely.geometry import box as shapely_box, mapping
+from rasterio.windows import Window
+from rasterio.windows import bounds as window_bounds
+from shapely.geometry import box as shapely_box
+from shapely.geometry import mapping
 
-from rastervision.pipeline.file_system import download_if_needed, get_tmp_dir
 from rastervision.core.box import Box
 from rastervision.core.data.crs_transformer import RasterioCRSTransformer
 from rastervision.core.data.raster_source import RasterSource
@@ -23,9 +24,11 @@ from rastervision.core.data.utils.rasterio import (
     is_masked,
     read_window,
 )
+from rastervision.pipeline.file_system import download_if_needed, get_tmp_dir
 
 if TYPE_CHECKING:
     from rasterio import Affine
+
     from rastervision.core.data import CRSTransformer, RasterTransformer
 
 log = logging.getLogger(__name__)

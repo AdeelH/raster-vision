@@ -8,9 +8,9 @@ import rasterio.crs
 from rasterio.transform import from_origin
 
 from rastervision.core.utils.cog import (
-    create_cog,
     DEFAULT_BLOCK_SIZE,
     DEFAULT_OVERVIEWS,
+    create_cog,
 )
 from rastervision.pipeline.file_system.utils import get_tmp_dir
 
