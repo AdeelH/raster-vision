@@ -154,7 +154,7 @@ A proper `rasterio.warp` reprojection gives ≤0.09 px in every case. Disabling 
 
 🟠 Medium · Effort **S**
 
-> **Status: fixed (docstring only).** The nonexistent `null_class_id` argument was removed from the docstring. Mapping label-raster nodata to the null class was not done; it is left to community PR #2329 (see #9).
+> **Status: fixed (docstring only).** The nonexistent `null_class_id` argument was removed from the docstring, and `class_config` is now documented. Mapping label-raster nodata to the null class was not done; it is left to community PR #2329 (see #9).
 
 **Problem.**
 - The `SemanticSegmentationLabelSource.__init__` docstring documents a `null_class_id` argument that the signature doesn't have.

@@ -21,7 +21,7 @@ Raster Vision 0.31.2 (unreleased)
   * Fix :class:`.MultiRasterSource` returning zeros for sub raster sources whose resolution is much coarser than that of the primary raster source (with ``rasterio>=1.4``).
   * Fix :class:`.RasterioSource` zeroing the wrong number of rows/columns when reading a resized chip (i.e. with ``out_shape``) whose window extends beyond the raster source's ``bbox``.
   * Remove the ``triangle`` dependency: :class:`~rastervision.core.data.utils.aoi_sampler.AoiSampler` now uses ``shapely.constrained_delaunay_triangles`` to triangulate AOIs, and ``rastervision_core`` now requires ``shapely>=2.1``. This makes ``efficient_aoi_sampling`` work without ``triangle`` being installed (previously, it was silently disabled), and also fixes incorrect sampling for AOIs with holes whose centroid lies outside the hole.
-  * Remove the nonexistent ``null_class_id`` argument from the docstring of :class:`.SemanticSegmentationLabelSource`.
+  * Fix the docstring of :class:`.SemanticSegmentationLabelSource`: remove the nonexistent ``null_class_id`` argument and document ``class_config``.
 
 
 Raster Vision 0.31.1
