@@ -25,9 +25,6 @@ class SemanticSegmentationLabelSource(LabelSource):
         Args:
             raster_source: A raster source that returns a single channel raster
                 with class_ids as values.
-            null_class_id: the null class id used as fill values for when
-                windows go over the edge of the label array. This can be
-                retrieved using ``class_config.null_class_id``.
             bbox: User-specified crop of the extent. If ``None``, the full
                 extent available in the source file is used.
         """
