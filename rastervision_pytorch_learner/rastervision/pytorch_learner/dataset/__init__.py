@@ -1,4 +1,3 @@
-# flake8: noqa
 
 from rastervision.pytorch_learner.dataset.dataset import *
 from rastervision.pytorch_learner.dataset.transform import *

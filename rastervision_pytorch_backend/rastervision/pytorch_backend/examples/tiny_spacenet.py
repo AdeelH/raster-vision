@@ -1,4 +1,4 @@
-# flake8: noqa
+# ruff: noqa: F403, F405
 
 from os.path import join
 from rastervision.core.rv_pipeline import *

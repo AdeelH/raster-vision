@@ -1,4 +1,3 @@
-# flake8: noqa
 
 from rastervision.pytorch_learner.dataset.visualizer.visualizer import *
 from rastervision.pytorch_learner.dataset.visualizer.classification_visualizer import *

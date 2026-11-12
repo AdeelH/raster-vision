@@ -318,7 +318,7 @@ html_theme_options = {
 # pages. Single values can also be put in this dictionary using the -A
 # command-line option of sphinx-build.
 
-# yapf: disable
+# fmt: off
 html_context = dict(
     version=version,
     release=release,
@@ -329,7 +329,7 @@ html_context = dict(
     repo_examples=f'https://github.com/azavea/raster-vision/tree/{version}/rastervision_pytorch_backend/rastervision/pytorch_backend/examples', # noqa
     s3_model_zoo=f'https://s3.amazonaws.com/azavea-research-public-data/raster-vision/examples/model-zoo-{version}', # noqa
 )
-# yapf: enable
+# fmt: on
 
 # Add any paths that contain custom themes here, relative to this directory.
 #

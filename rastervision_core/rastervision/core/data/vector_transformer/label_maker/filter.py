@@ -1,5 +1,4 @@
 # Copied from https://github.com/developmentseed/label-maker/blob/master/label_maker/filter.py
-# flake8: noqa
 
 # pylint: disable=eval-used,too-many-return-statements
 """Create a feature filtering function from a Mapbox GL Filter."""

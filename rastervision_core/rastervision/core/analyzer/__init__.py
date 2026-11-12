@@ -1,4 +1,3 @@
-# flake8: noqa
 
 from rastervision.core.analyzer.analyzer import *
 from rastervision.core.analyzer.analyzer_config import *
