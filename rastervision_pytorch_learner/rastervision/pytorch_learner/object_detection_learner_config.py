@@ -125,7 +125,7 @@ class ObjectDetectionModelConfig(ModelConfig):
     """Configure an object detection model."""
 
     backbone: Backbone = Field(
-        Backbone.resnet50,
+        default=Backbone.resnet50,
         description=
         ('The torchvision.models backbone to use, which must be in the resnet* '
          'family.'))

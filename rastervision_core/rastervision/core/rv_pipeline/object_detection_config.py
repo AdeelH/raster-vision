@@ -14,18 +14,18 @@ if TYPE_CHECKING:
 @register_config('object_detection_window_sampling')
 class ObjectDetectionWindowSamplingConfig(WindowSamplingConfig):
     ioa_thresh: float = Field(
-        0.8,
+        default=0.8,
         description='When a box is partially outside of a training chip, it '
         'is not clear if (a clipped version) of the box should be included in '
         'the chip. If the IOA (intersection over area) of the box with the '
         'chip is greater than ioa_thresh, it is included in the chip. '
         'Defaults to 0.8.')
     clip: bool = Field(
-        False,
+        default=False,
         description='Clip bounding boxes to window limits when retrieving '
         'labels for a window.')
     neg_ratio: float | None = Field(
-        None,
+        default=None,
         description='The ratio of negative chips (those containing no '
         'bounding boxes) to positive chips. This can be useful if the '
         'statistics of the background is different in positive chips. For '
@@ -33,7 +33,7 @@ class ObjectDetectionWindowSamplingConfig(WindowSamplingConfig):
         'roads, but no examples of rooftops since cars tend to not be near '
         'rooftops. Defaults to None.')
     neg_ioa_thresh: float = Field(
-        0.2,
+        default=0.2,
         description='A window will be considered negative if its max IoA with '
         'any bounding box is less than this threshold. Defaults to 0.2.')
 
@@ -47,18 +47,18 @@ class ObjectDetectionChipOptions(ChipOptions):
 @register_config('object_detection_predict_options')
 class ObjectDetectionPredictOptions(PredictOptions):
     stride: int | None = Field(
-        None,
+        default=None,
         description='Stride of the sliding window for generating chips. '
         'Defaults to half of ``chip_sz``.')
     merge_thresh: float = Field(
-        0.5,
+        default=0.5,
         description=
         ('If predicted boxes have an IOA (intersection over area) greater than '
          'merge_thresh, then they are merged into a single box during postprocessing. '
          'This is needed since the sliding window approach results in some false '
          'duplicates.'))
     score_thresh: float = Field(
-        0.5,
+        default=0.5,
         description=
         ('Predicted boxes are only output if their score is above score_thresh.'
          ))

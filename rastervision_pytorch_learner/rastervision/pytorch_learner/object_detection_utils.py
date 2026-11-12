@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from typing import Self
 
 
-def get_coco_gt(targets: Iterable['Self'],
+def get_coco_gt(targets: Iterable['BoxList'],
                 num_class_ids: int) -> dict[str, list[dict]]:
     images = []
     annotations = []
@@ -63,7 +63,7 @@ def get_coco_gt(targets: Iterable['Self'],
     return coco
 
 
-def get_coco_preds(outputs: Iterable['Self']) -> list[dict]:
+def get_coco_preds(outputs: Iterable['BoxList']) -> list[dict]:
     preds = []
     for img_id, output in enumerate(outputs, 1):
         boxes = output.convert_boxes('xywh').float().tolist()
@@ -193,7 +193,7 @@ class BoxList():
         return len(self.boxes)
 
     @staticmethod
-    def cat(box_lists: Iterable['Self']) -> 'Self':
+    def cat(box_lists: Iterable['BoxList']) -> 'BoxList':
         boxes = []
         extras = defaultdict(list)
         for bl in box_lists:

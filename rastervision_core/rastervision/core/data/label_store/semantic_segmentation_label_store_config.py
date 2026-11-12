@@ -34,7 +34,7 @@ class VectorOutputConfig(Config):
         ...,
         description='The prediction class that is to turned into vectors.')
     denoise: int = Field(
-        8,
+        default=8,
         description='Diameter of the circular structural element used to '
         'remove high-frequency signals from the image. Smaller values will '
         'reduce less noise and make vectorization slower and more memory '
@@ -42,7 +42,7 @@ class VectorOutputConfig(Config):
         'more noise and make vectorization faster but might also remove '
         'legitimate detections.')
     threshold: float | None = Field(
-        None,
+        default=None,
         description='Probability threshold for creating the binary mask for '
         'the pixels of this class. Pixels will be considered to belong to '
         'this class if their probability for this class is >= ``threshold``. '
@@ -94,16 +94,16 @@ class BuildingVectorOutputConfig(VectorOutputConfig):
     Intended to break up clusters of buildings.
     """
     min_area: float = Field(
-        0.0,
+        default=0.0,
         description='Minimum area (in pixels^2) of anything that can be '
         'considered to be a building or a cluster of buildings. The goal is '
         'to distinguish between buildings and artifacts.')
     element_width_factor: float = Field(
-        0.5,
+        default=0.5,
         description='Width of the structural element used to break building '
         'clusters as a fraction of the width of the cluster.')
     element_thickness: float = Field(
-        0.001,
+        default=0.001,
         description='Thickness of the structural element that is used to '
         'break building clusters.')
 
@@ -126,29 +126,29 @@ class SemanticSegmentationLabelStoreConfig(LabelStoreConfig):
     them in GeoJSON files.
     """
     uri: str | None = Field(
-        None,
+        default=None,
         description=(
             'URI of file with predictions. If None, and this Config is part of '
             'a SceneConfig inside an RVPipelineConfig, this fiend will be '
             'auto-generated.'))
     vector_output: list[VectorOutputConfig] = []
     rgb: bool = Field(
-        False,
+        default=False,
         description=
         ('If True, save prediction class_ids in RGB format using the colors in '
          'class_config.'))
     smooth_output: bool = Field(
-        False,
+        default=False,
         description='If True, expects labels to be continuous values '
         'representing class scores and stores both scores and discrete '
         'labels.')
     smooth_as_uint8: bool = Field(
-        False,
+        default=False,
         description='If True, stores smooth scores as uint8, resulting in '
         'loss of precision, but reduced file size. Only used if '
         'smooth_output=True.')
     rasterio_block_size: int = Field(
-        256,
+        default=256,
         description='blockxsize and blockysize params in rasterio.open() will '
         'be set to this.')
 

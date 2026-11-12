@@ -28,16 +28,16 @@ class StatsTransformerConfig(RasterTransformerConfig):
     """Configure a :class:`.StatsTransformer`."""
 
     stats_uri: str | None = Field(
-        None,
+        default=None,
         description='The URI of the output of the StatsAnalyzer. '
         'If None, and this Config is inside an RVPipeline, '
         'this field will be auto-generated.')
     scene_group: str = Field(
-        'train_scenes',
+        default='train_scenes',
         description='Name of the group of scenes whose stats to use. Defaults'
         'to "train_scenes".')
     needs_channel_order: bool = Field(
-        False,
+        default=False,
         description='Whether the means and stds in the stats_uri file need to '
         'be re-ordered/subsetted using ``channel_order`` to be compatible '
         'with the chips that will be passed to the :class:`.StatsTransformer` '

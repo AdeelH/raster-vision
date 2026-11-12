@@ -33,7 +33,10 @@ example_rgb_transform = A.Compose([
     A.OneOf([
         A.GridDistortion(),
     ]),
-    A.CoarseDropout(max_height=32, max_width=32, max_holes=5)
+    A.CoarseDropout(
+        num_holes_range=(5, 5),
+        hole_height_range=(32, 32),
+        hole_width_range=(32, 32))
 ])
 
 # not all transforms work with more than 3 channels, here are
@@ -54,7 +57,10 @@ example_multiband_transform = A.Compose([
     A.OneOf([
         A.GridDistortion(),
     ]),
-    A.CoarseDropout(max_height=32, max_width=32, max_holes=5)
+    A.CoarseDropout(
+        num_holes_range=(5, 5),
+        hole_height_range=(32, 32),
+        hole_width_range=(32, 32))
 ])
 
 imagenet_stats = {

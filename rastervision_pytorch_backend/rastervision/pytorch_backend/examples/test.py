@@ -234,7 +234,7 @@ def collect(keys, collect_dir, remote, paths, overrides=[]):
                     # is a single file
                     dst_dir = join(collect_dir, key, split(path)[0])
                     dst_dir = split(to_local_uri(src_uri, dst_dir))[0]
-                    download_or_copy(src_uri, dst_dir, delete_tmp=True)
+                    download_or_copy(src_uri, dst_dir)
                 elif file_exists(src_uri, include_dir=True):
                     # is a directory
                     dst_dir = join(collect_dir, key, path)
@@ -403,7 +403,7 @@ def _predict(exp_cfg: dict, collect_dir: str) -> None:
     pred_dir = join(collect_dir, 'sample-predictions')
     sample_filename = f'sample-img-{key}.tif'
     sample_uri_src = join(SAMPLE_IMG_DIR, sample_filename)
-    download_or_copy(sample_uri_src, pred_dir, delete_tmp=True)
+    download_or_copy(sample_uri_src, pred_dir)
     sample_uri_dst = join(pred_dir, sample_filename)
 
     pred_ext = exp_cfg['pred_ext']

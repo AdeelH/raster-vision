@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from torch.utils.data import Dataset
     from rastervision.core.data import ClassConfig, DatasetConfig, Scene
     from rastervision.core.rv_pipeline import RVPipelineConfig, ChipOptions
-    from rastervision.pytorch_learner import DataConfig, LearnerConfig
+    from rastervision.pytorch_learner import GeoDataConfig, LearnerConfig
 
 SPLITS = ['train', 'valid', 'test']
 
@@ -117,7 +117,7 @@ class PyTorchLearnerBackend(Backend):
         self.tmp_dir = tmp_dir
         self.learner = None
 
-    def train(self, source_bundle_uri=None):
+    def train(self, source_bundle_uri: str | None = None):
         if source_bundle_uri is not None:
             learner = self._build_learner_from_bundle(
                 bundle_uri=source_bundle_uri,
@@ -208,5 +208,5 @@ class PyTorchLearnerBackend(Backend):
         raise NotImplementedError()
 
     def _make_chip_data_config(self, dataset: 'DatasetConfig',
-                               chip_options: 'ChipOptions') -> 'DataConfig':
+                               chip_options: 'ChipOptions') -> 'GeoDataConfig':
         raise NotImplementedError()

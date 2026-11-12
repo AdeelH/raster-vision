@@ -161,7 +161,7 @@ class SemanticSegmentationModelConfig(ModelConfig):
     """Configure a semantic segmentation model."""
 
     backbone: Backbone = Field(
-        Backbone.resnet50,
+        default=Backbone.resnet50,
         description='The torchvision.models backbone to use. Currently, only '
         'resnet50 and resnet101 are supported.')
 

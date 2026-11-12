@@ -29,7 +29,7 @@ class WindowSamplingConfig(Config):
     """Configure the sampling of chip windows."""
 
     method: WindowSamplingMethod = Field(
-        WindowSamplingMethod.sliding, description='')
+        default=WindowSamplingMethod.sliding, description='')
     size: PosInt | tuple[PosInt, PosInt] = Field(
         ...,
         description='If method = sliding, this is the size of sliding window. '
@@ -38,19 +38,19 @@ class WindowSamplingConfig(Config):
         'size_lims nor h_lims and w_lims have been specified, then size_lims '
         'is set to (size, size + 1).')
     stride: PosInt | tuple[PosInt, PosInt] | None = Field(
-        None,
+        default=None,
         description='Stride of sliding window. Only used if method = sliding.')
     padding: NonNegInt | tuple[NonNegInt, NonNegInt] | None = Field(
-        None,
+        default=None,
         description='How many pixels are windows allowed to overflow '
         'the edges of the raster source.')
     pad_direction: Literal['both', 'start', 'end'] = Field(
-        'end',
+        default='end',
         description='If "end", only pad ymax and xmax (bottom and right). '
         'If "start", only pad ymin and xmin (top and left). If "both", '
         'pad all sides. Has no effect if padding is zero. Defaults to "end".')
     size_lims: tuple[PosInt, PosInt] | None = Field(
-        None,
+        default=None,
         description='[min, max) interval from which window sizes will be '
         'uniformly randomly sampled. The upper limit is exclusive. To fix the '
         'size to a constant value, use size_lims = (sz, sz + 1). '
@@ -59,24 +59,24 @@ class WindowSamplingConfig(Config):
         'and w_lims have been specified, then this will be set to '
         '(size, size + 1).')
     h_lims: tuple[PosInt, PosInt] | None = Field(
-        None,
+        default=None,
         description='[min, max] interval from which window heights will be '
         'uniformly randomly sampled. Only used if method = random.')
     w_lims: tuple[PosInt, PosInt] | None = Field(
-        None,
+        default=None,
         description='[min, max] interval from which window widths will be '
         'uniformly randomly sampled. Only used if method = random.')
     max_windows: NonNegInt = Field(
-        10_000,
+        default=10_000,
         description='Max number of windows to sample. Only used if '
         'method = random.')
     max_sample_attempts: PosInt = Field(
-        100,
+        default=100,
         description='Max attempts when trying to find a window within the AOI '
         'of a scene. Only used if method = random and the scene has '
         'aoi_polygons specified.')
     efficient_aoi_sampling: bool = Field(
-        True,
+        default=True,
         description='If the scene has AOIs, sampling windows at random '
         'anywhere in the extent and then checking if they fall within any of '
         'the AOIs can be very inefficient. This flag enables the use of an '
@@ -84,7 +84,7 @@ class WindowSamplingConfig(Config):
         'AOIs. Only used if method = random and the scene has aoi_polygons '
         'specified. Defaults to True')
     within_aoi: bool = Field(
-        True,
+        default=True,
         description='If True and if the scene has an AOI, only sample windows '
         'that lie fully within the AOI. If False, windows only partially '
         'intersecting the AOI will also be allowed.')
@@ -116,7 +116,7 @@ class ChipOptions(Config):
     sampling: WindowSamplingConfig | dict[str, WindowSamplingConfig] = Field(
         ..., description='Window sampling config.')
     nodata_threshold: Proportion = Field(
-        1.,
+        default=1.,
         description='Discard chips where the proportion of NODATA values is '
         'greater than or equal to this value. Might result in false positives '
         'if there are many legitimate black pixels in the chip. Use with '

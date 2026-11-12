@@ -20,13 +20,13 @@ class ClassConfig(Config):
         description='Names of classes. The i-th class in this list will have '
         'class ID = i.')
     colors: list[str | tuple] | None = Field(
-        None,
+        default=None,
         description=
         ('Colors used to visualize classes. Can be color strings accepted by '
          'matplotlib or RGB tuples. If None, a random color will be auto-generated '
          'for each class.'))
     null_class: str | None = Field(
-        None,
+        default=None,
         description='Optional name of class in `names` to use as the null '
         'class. This is used in semantic segmentation to represent the label '
         'for imagery pixels that are NODATA or that are missing a label. '

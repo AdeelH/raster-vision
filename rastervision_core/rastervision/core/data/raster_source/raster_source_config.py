@@ -34,12 +34,12 @@ class RasterSourceConfig(Config):
     """Configure a :class:`.RasterSource`."""
 
     channel_order: list[int] | None = Field(
-        None,
+        default=None,
         description=
         'The sequence of channel indices to use when reading imagery.')
     transformers: list[RasterTransformerConfig] = []
     bbox: tuple[int, int, int, int] | None = Field(
-        None,
+        default=None,
         description='User-specified bbox in pixel coords in the form '
         '(ymin, xmin, ymax, xmax). Useful for cropping the raster source so '
         'that only part of the raster is read from.')

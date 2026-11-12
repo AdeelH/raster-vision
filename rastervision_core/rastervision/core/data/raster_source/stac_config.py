@@ -13,7 +13,7 @@ class STACItemConfig(Config):
 
     uri: str = Field(..., description='URI to a JSON-serialized STAC Item.')
     assets: list[str] | None = Field(
-        None,
+        default=None,
         description=
         'Subset of assets to use. This should be a list of asset keys')
 
@@ -33,7 +33,7 @@ class STACItemCollectionConfig(Config):
     uri: str = Field(
         ..., description='URI to a JSON-serialized STAC ItemCollection.')
     assets: list[str] | None = Field(
-        None,
+        default=None,
         description=
         'Subset of assets to use. This should be a list of asset keys')
 

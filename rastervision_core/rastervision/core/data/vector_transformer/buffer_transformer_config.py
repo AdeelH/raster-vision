@@ -20,7 +20,7 @@ class BufferTransformerConfig(VectorTransformerConfig):
         description='The geometry type to apply this transform to. '
         'E.g. "LineString", "Point", "Polygon".')
     class_bufs: dict[int, float | None] = Field(
-        {},
+        default={},
         description='Mapping from class IDs to buffer amounts (in pixels). '
         'If a class ID is not found in the mapping, the value specified by '
         'the default_buf field will be used. If the buffer value for a class '
@@ -29,7 +29,7 @@ class BufferTransformerConfig(VectorTransformerConfig):
         'to Polygon is incompatible with the currently available '
         'LabelSources, but may be useful in the future.')
     default_buf: float | None = Field(
-        1,
+        default=1,
         description='Default buffer to apply to classes not in class_bufs. '
         'If None, no buffering will be applied to the geoms of those classes.')
 
