@@ -1,0 +1,5 @@
+# Bulk reformatting commits, ignored by git blame. Use with
+# git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# Reformat code with ruff format
+68efc5369f8a6b6054a685c8b68f0510b3f3c305
