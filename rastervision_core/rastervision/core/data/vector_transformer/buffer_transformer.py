@@ -10,10 +10,12 @@ if TYPE_CHECKING:
 class BufferTransformer(VectorTransformer):
     """Buffers geometries."""
 
-    def __init__(self,
-                 geom_type: str,
-                 class_bufs: dict[int, float | None] | None = None,
-                 default_buf: float | None = None):
+    def __init__(
+        self,
+        geom_type: str,
+        class_bufs: dict[int, float | None] | None = None,
+        default_buf: float | None = None,
+    ):
         """Constructor.
 
         Args:
@@ -33,11 +35,12 @@ class BufferTransformer(VectorTransformer):
         self.class_bufs = class_bufs if class_bufs is not None else {}
         self.default_buf = default_buf
 
-    def transform(self,
-                  geojson: dict,
-                  crs_transformer: 'CRSTransformer | None' = None) -> dict:
+    def transform(
+        self, geojson: dict, crs_transformer: 'CRSTransformer | None' = None
+    ) -> dict:
         return buffer_geoms(
             geojson,
             self.geom_type,
             class_bufs=self.class_bufs,
-            default_buf=self.default_buf)
+            default_buf=self.default_buf,
+        )

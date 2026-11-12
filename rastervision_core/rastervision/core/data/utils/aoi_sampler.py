@@ -82,12 +82,13 @@ class AoiSampler:
             'simplices': simplices,
             'origins': origins,
             'bases': bases,
-            'areas': self.triangle_area(vertices, simplices)
+            'areas': self.triangle_area(vertices, simplices),
         }
         return out
 
-    def triangle_side_lengths(self, vertices: np.ndarray, simplices: np.ndarray
-                              ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def triangle_side_lengths(
+        self, vertices: np.ndarray, simplices: np.ndarray
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Calculate lengths of all 3 sides of each triangle specified by the
         simplices array.
 
@@ -109,7 +110,7 @@ class AoiSampler:
         return ab, bc, ac
 
     def triangle_origin_and_basis(
-            self, vertices: np.ndarray, simplices: np.ndarray
+        self, vertices: np.ndarray, simplices: np.ndarray
     ) -> tuple[np.ndarray, tuple[np.ndarray, np.ndarray]]:
         """For each triangle ABC, return point A, vector AB, and vector AC.
 
@@ -129,8 +130,9 @@ class AoiSampler:
         AC = C - A
         return A, (AB, AC)
 
-    def triangle_area(self, vertices: np.ndarray,
-                      simplices: np.ndarray) -> np.ndarray:
+    def triangle_area(
+        self, vertices: np.ndarray, simplices: np.ndarray
+    ) -> np.ndarray:
         """Calculate area of each triangle specified by the simplices array
         using Heron's formula.
 

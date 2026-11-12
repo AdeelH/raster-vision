@@ -3,8 +3,10 @@ import unittest
 import numpy as np
 
 from rastervision.core.box import Box
-from rastervision.core.data.utils.raster import (pad_to_window_size,
-                                                 fill_overflow)
+from rastervision.core.data.utils.raster import (
+    pad_to_window_size,
+    fill_overflow,
+)
 
 
 class TestRasterUtils(unittest.TestCase):

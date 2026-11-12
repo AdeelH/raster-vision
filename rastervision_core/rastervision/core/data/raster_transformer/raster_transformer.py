@@ -1,4 +1,4 @@
-from abc import (ABC, abstractmethod)
+from abc import ABC, abstractmethod
 
 import numpy as np
 from pydantic.types import PositiveInt as PosInt

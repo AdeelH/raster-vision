@@ -11,13 +11,19 @@ import rasterio as rio
 import rasterio.windows as rio_windows
 from rasterio.transform import from_origin
 from rasterio.dtypes import dtype_rev, typename_fwd
-from rasterio.enums import (ColorInterp, MaskFlags, Resampling)
+from rasterio.enums import ColorInterp, MaskFlags, Resampling
 from rasterio.errors import RasterioIOError
 from rasterio.session import AWSSession
 
 from rastervision.pipeline.file_system.utils import (
-    file_to_json, get_local_path, get_tmp_dir, make_dir, upload_or_copy,
-    download_if_needed, uri_to_vsi_path)
+    file_to_json,
+    get_local_path,
+    get_tmp_dir,
+    make_dir,
+    upload_or_copy,
+    download_if_needed,
+    uri_to_vsi_path,
+)
 from rastervision.core.box import Box
 
 if TYPE_CHECKING:
@@ -29,9 +35,9 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
-def write_window(dataset: 'DatasetReader',
-                 arr: np.ndarray,
-                 window: Box | None = None) -> None:
+def write_window(
+    dataset: 'DatasetReader', arr: np.ndarray, window: Box | None = None
+) -> None:
     """Write a (H, W[, C]) array out to a rasterio dataset.
 
     Args:
@@ -81,11 +87,13 @@ def write_bbox(path: str, arr: np.ndarray, bbox: Box, crs_wkt: str, **kwargs):
         write_window(ds, arr)
 
 
-def write_geotiff_like_geojson(path: str,
-                               arr: np.ndarray,
-                               geojson_path: str,
-                               crs: str | None = None,
-                               **kwargs) -> None:
+def write_geotiff_like_geojson(
+    path: str,
+    arr: np.ndarray,
+    geojson_path: str,
+    crs: str | None = None,
+    **kwargs,
+) -> None:
     """Write array to GeoTIFF, georeferenced to same bbox as the given GeoJSON.
 
     Args:
@@ -142,6 +150,7 @@ def crop_geotiff(src_uri: str, window: Box, dst_uri: str):
 @dataclass
 class _VRTSourceInfo:
     """Properties of an input raster needed to add it to a mosaic VRT."""
+
     path: str
     crs: 'CRS | None'
     transform: 'Affine'
@@ -186,14 +195,17 @@ class _VRTSourceInfo:
         has_mask_band = tuple(
             (flags != {MaskFlags.all_valid} and flags != {MaskFlags.nodata})
             or ci == ColorInterp.alpha
-            for flags, ci in zip(mask_flags, ds.colorinterp))
-        has_dataset_mask = (len(mask_flags) > 0
-                            and MaskFlags.per_dataset in mask_flags[0])
+            for flags, ci in zip(mask_flags, ds.colorinterp)
+        )
+        has_dataset_mask = (
+            len(mask_flags) > 0 and MaskFlags.per_dataset in mask_flags[0]
+        )
         block_shape = ds.block_shapes[0] if ds.count > 0 else (0, 0)
         overview_factors = []
         if ds.count > 0:
             overview_factors = _get_vrt_overview_factors(
-                ds.overviews(1), ds.width, ds.height)
+                ds.overviews(1), ds.width, ds.height
+            )
         return cls(
             path=path,
             crs=ds.crs,
@@ -209,11 +221,13 @@ class _VRTSourceInfo:
             block_shape=tuple(block_shape),
             has_mask_band=has_mask_band,
             has_dataset_mask=has_dataset_mask,
-            overview_factors=overview_factors)
+            overview_factors=overview_factors,
+        )
 
 
-def _get_vrt_overview_factors(factors: list[int], width: int,
-                              height: int) -> list[int]:
+def _get_vrt_overview_factors(
+    factors: list[int], width: int, height: int
+) -> list[int]:
     """Get the power-of-2 overview factors usable for virtual overviews.
 
     Mirrors gdalbuildvrt: stop at the first overview smaller than 128x128 or
@@ -222,8 +236,10 @@ def _get_vrt_overview_factors(factors: list[int], width: int,
     out = []
     expected_factor = 2
     for factor in factors:
-        if (math.ceil(width / factor) < 128
-                and math.ceil(height / factor) < 128):
+        if (
+            math.ceil(width / factor) < 128
+            and math.ceil(height / factor) < 128
+        ):
             break
         if factor != expected_factor:
             break
@@ -232,51 +248,69 @@ def _get_vrt_overview_factors(factors: list[int], width: int,
     return out
 
 
-def _check_vrt_source(src: _VRTSourceInfo,
-                      ref: _VRTSourceInfo | None) -> str | None:
+def _check_vrt_source(
+    src: _VRTSourceInfo, ref: _VRTSourceInfo | None
+) -> str | None:
     """Return the reason why src can't be mosaiced with ref, if any."""
     tf = src.transform
     if tf.b != 0 or tf.d != 0:
         return 'Rotated geotransforms are not supported.'
     if tf.e >= 0:
-        return ('Ungeoreferenced images and images with a positive '
-                'north-south resolution are not supported.')
+        return (
+            'Ungeoreferenced images and images with a positive '
+            'north-south resolution are not supported.'
+        )
     if src.count == 0:
         return 'Dataset has no bands.'
     if ref is None:
         return None
     if src.crs != ref.crs:
-        return (f'Heterogeneous projections are not supported: expected '
-                f'{ref.crs}, got {src.crs}.')
+        return (
+            f'Heterogeneous projections are not supported: expected '
+            f'{ref.crs}, got {src.crs}.'
+        )
     if src.count != ref.count:
-        return (f'Heterogeneous band numbers are not supported: expected '
-                f'{ref.count}, got {src.count}.')
+        return (
+            f'Heterogeneous band numbers are not supported: expected '
+            f'{ref.count}, got {src.count}.'
+        )
     if src.dtypes != ref.dtypes:
-        return (f'Heterogeneous band data types are not supported: expected '
-                f'{ref.dtypes}, got {src.dtypes}.')
+        return (
+            f'Heterogeneous band data types are not supported: expected '
+            f'{ref.dtypes}, got {src.dtypes}.'
+        )
     if src.colorinterp != ref.colorinterp:
         exp = [ci.name for ci in ref.colorinterp]
         got = [ci.name for ci in src.colorinterp]
-        return ('Heterogeneous band color interpretations are not '
-                f'supported: expected {exp}, got {got}.')
+        return (
+            'Heterogeneous band color interpretations are not '
+            f'supported: expected {exp}, got {got}.'
+        )
     if src.scales != ref.scales or src.offsets != ref.offsets:
-        return ('Heterogeneous band scales/offsets are not supported: '
-                f'expected {ref.scales}/{ref.offsets}, '
-                f'got {src.scales}/{src.offsets}.')
+        return (
+            'Heterogeneous band scales/offsets are not supported: '
+            f'expected {ref.scales}/{ref.offsets}, '
+            f'got {src.scales}/{src.offsets}.'
+        )
     return None
 
 
 def _get_vrt_src_dst_rects(
-        src: _VRTSourceInfo, we_res: float, ns_res: float, minx: float,
-        maxy: float, vrt_width: int,
-        vrt_height: int) -> tuple[tuple[float, ...], tuple[float, ...]] | None:
+    src: _VRTSourceInfo,
+    we_res: float,
+    ns_res: float,
+    minx: float,
+    maxy: float,
+    vrt_width: int,
+    vrt_height: int,
+) -> tuple[tuple[float, ...], tuple[float, ...]] | None:
     """Compute the SrcRect and DstRect of a source within the VRT.
 
     Mirrors GetSrcDstWin() in gdalbuildvrt for the case where the VRT
     extent is the union of the source extents.
     """
     tf = src.transform
-    src_xoff, src_yoff = 0., 0.
+    src_xoff, src_yoff = 0.0, 0.0
     src_xsize, src_ysize = float(src.width), float(src.height)
     dst_xoff = (tf.c - minx) / we_res
     dst_yoff = (maxy - tf.f) / -ns_res
@@ -315,14 +349,16 @@ def _format_vrt_nodata(value: float) -> str:
     return '%.18g' % value
 
 
-def _add_vrt_source(band_el: ET.Element,
-                    src: _VRTSourceInfo,
-                    bidx: int,
-                    src_rect: tuple[float, ...],
-                    dst_rect: tuple[float, ...],
-                    nodata: float | None = None,
-                    use_mask_band: bool = False,
-                    is_mask: bool = False) -> None:
+def _add_vrt_source(
+    band_el: ET.Element,
+    src: _VRTSourceInfo,
+    bidx: int,
+    src_rect: tuple[float, ...],
+    dst_rect: tuple[float, ...],
+    nodata: float | None = None,
+    use_mask_band: bool = False,
+    is_mask: bool = False,
+) -> None:
     """Add a SimpleSource or ComplexSource element to a VRTRasterBand."""
     is_complex = nodata is not None or use_mask_band
     tag = 'ComplexSource' if is_complex else 'SimpleSource'
@@ -338,7 +374,8 @@ def _add_vrt_source(band_el: ET.Element,
         RasterYSize=str(src.height),
         DataType=_gdal_dtype_name(src.dtypes[bidx - 1]),
         BlockXSize=str(block_xsize),
-        BlockYSize=str(block_ysize))
+        BlockYSize=str(block_ysize),
+    )
     rect_keys = ('xOff', 'yOff', 'xSize', 'ySize')
     src_rect_attrs = {k: '%.15g' % v for k, v in zip(rect_keys, src_rect)}
     dst_rect_attrs = {k: '%.15g' % v for k, v in zip(rect_keys, dst_rect)}
@@ -363,9 +400,9 @@ def _get_vrt_colorinterp_name(ci: ColorInterp) -> str:
     return special_names.get(ci.name, ci.name.capitalize())
 
 
-def _get_vrt_common_overview_factors(sources: list[_VRTSourceInfo],
-                                     we_res: float,
-                                     ns_res: float) -> list[int]:
+def _get_vrt_common_overview_factors(
+    sources: list[_VRTSourceInfo], we_res: float, ns_res: float
+) -> list[int]:
     """Get overview factors for the VRT's virtual overviews.
 
     Mirrors gdalbuildvrt: virtual overviews are only added if all sources
@@ -374,8 +411,9 @@ def _get_vrt_common_overview_factors(sources: list[_VRTSourceInfo],
     factors = set()
     for src in sources:
         tf = src.transform
-        if (abs(tf.a - we_res) > 1e-8 * abs(we_res)
-                or abs(tf.e - ns_res) > 1e-8 * abs(ns_res)):
+        if abs(tf.a - we_res) > 1e-8 * abs(we_res) or abs(
+            tf.e - ns_res
+        ) > 1e-8 * abs(ns_res):
             return []
         factors.update(src.overview_factors)
     factors = sorted(factors)
@@ -411,7 +449,7 @@ def build_vrt(vrt_path: str, image_uris: list[str]) -> None:
 
     sources: list[_VRTSourceInfo] = []
     # the average resolution is computed using a running mean like GDAL does
-    we_res, ns_res = 0., 0.
+    we_res, ns_res = 0.0, 0.0
     with rio.Env():
         for path in image_uris_vsi:
             try:
@@ -430,8 +468,9 @@ def build_vrt(vrt_path: str, image_uris: list[str]) -> None:
             ns_res += (src.transform.e - ns_res) / len(sources)
 
     if len(sources) == 0:
-        raise ValueError('Cannot build VRT: none of the input images could '
-                         'be used.')
+        raise ValueError(
+            'Cannot build VRT: none of the input images could be used.'
+        )
 
     all_bounds = np.array([src.bounds for src in sources])
     minx, miny = all_bounds[:, :2].min(axis=0).tolist()
@@ -441,48 +480,57 @@ def build_vrt(vrt_path: str, image_uris: list[str]) -> None:
 
     rects = []
     for src in sources:
-        src_dst_rects = _get_vrt_src_dst_rects(src, we_res, ns_res, minx, maxy,
-                                               vrt_width, vrt_height)
+        src_dst_rects = _get_vrt_src_dst_rects(
+            src, we_res, ns_res, minx, maxy, vrt_width, vrt_height
+        )
         if src_dst_rects is None:
-            log.debug(f'Skipping {src.path} as it does not intersect the '
-                      'VRT extent.')
+            log.debug(
+                f'Skipping {src.path} as it does not intersect the VRT extent.'
+            )
             continue
         rects.append((src, *src_dst_rects))
 
     ref = sources[0]
     vrt_el = ET.Element(
-        'VRTDataset', rasterXSize=str(vrt_width), rasterYSize=str(vrt_height))
+        'VRTDataset', rasterXSize=str(vrt_width), rasterYSize=str(vrt_height)
+    )
     if ref.crs is not None:
         ET.SubElement(vrt_el, 'SRS').text = ref.crs.to_wkt()
-    geotransform = (minx, we_res, 0., maxy, 0., ns_res)
+    geotransform = (minx, we_res, 0.0, maxy, 0.0, ns_res)
     ET.SubElement(vrt_el, 'GeoTransform').text = ','.join(
-        f'{v:24.16e}' for v in geotransform)
+        f'{v:24.16e}' for v in geotransform
+    )
 
     for bidx in range(1, ref.count + 1):
         band_el = ET.SubElement(
             vrt_el,
             'VRTRasterBand',
             dataType=_gdal_dtype_name(ref.dtypes[bidx - 1]),
-            band=str(bidx))
+            band=str(bidx),
+        )
         nodata = ref.nodatavals[bidx - 1]
         if nodata is not None:
-            ET.SubElement(band_el,
-                          'NoDataValue').text = _format_vrt_nodata(nodata)
+            ET.SubElement(band_el, 'NoDataValue').text = _format_vrt_nodata(
+                nodata
+            )
         if ref.offsets[bidx - 1] != 0:
-            ET.SubElement(band_el,
-                          'Offset').text = '%.16g' % ref.offsets[bidx - 1]
+            ET.SubElement(band_el, 'Offset').text = (
+                '%.16g' % ref.offsets[bidx - 1]
+            )
         if ref.scales[bidx - 1] != 1:
-            ET.SubElement(band_el,
-                          'Scale').text = '%.16g' % ref.scales[bidx - 1]
+            ET.SubElement(band_el, 'Scale').text = (
+                '%.16g' % ref.scales[bidx - 1]
+            )
         ci = ref.colorinterp[bidx - 1]
         if ci != ColorInterp.undefined:
-            ET.SubElement(band_el,
-                          'ColorInterp').text = _get_vrt_colorinterp_name(ci)
+            ET.SubElement(
+                band_el, 'ColorInterp'
+            ).text = _get_vrt_colorinterp_name(ci)
         if ci == ColorInterp.palette and bidx in ref.colormaps:
             colormap = ref.colormaps[bidx]
             ct_el = ET.SubElement(band_el, 'ColorTable')
             for i in sorted(colormap.keys()):
-                c = (tuple(colormap[i]) + (255, ))[:4]
+                c = (tuple(colormap[i]) + (255,))[:4]
                 entry_attrs = {f'c{j}': str(v) for j, v in enumerate(c, 1)}
                 ET.SubElement(ct_el, 'Entry', **entry_attrs)
         for src, src_rect, dst_rect in rects:
@@ -494,8 +542,10 @@ def build_vrt(vrt_path: str, image_uris: list[str]) -> None:
                 src_rect,
                 dst_rect,
                 nodata=src_nodata,
-                use_mask_band=(src_nodata is None
-                               and src.has_mask_band[bidx - 1]))
+                use_mask_band=(
+                    src_nodata is None and src.has_mask_band[bidx - 1]
+                ),
+            )
 
     if any(src.has_dataset_mask for src in sources):
         mask_el = ET.SubElement(vrt_el, 'MaskBand')
@@ -508,14 +558,16 @@ def build_vrt(vrt_path: str, image_uris: list[str]) -> None:
                 src_rect,
                 dst_rect,
                 use_mask_band=True,
-                is_mask=True)
+                is_mask=True,
+            )
 
     overview_factors = _get_vrt_common_overview_factors(
-        [src for src, *_ in rects], we_res, ns_res)
+        [src for src, *_ in rects], we_res, ns_res
+    )
     if len(overview_factors) > 0:
         ET.SubElement(
-            vrt_el, 'OverviewList', resampling='nearest').text = ' '.join(
-                str(f) for f in overview_factors)
+            vrt_el, 'OverviewList', resampling='nearest'
+        ).text = ' '.join(str(f) for f in overview_factors)
 
     make_dir(vrt_path, use_dirname=True)
     ET.indent(vrt_el)
@@ -524,9 +576,9 @@ def build_vrt(vrt_path: str, image_uris: list[str]) -> None:
         f.write(vrt_xml + '\n')
 
 
-def download_and_build_vrt(image_uris: list[str],
-                           vrt_dir: str,
-                           stream: bool = False) -> str:
+def download_and_build_vrt(
+    image_uris: list[str], vrt_dir: str, stream: bool = False
+) -> str:
     """Download images (if needed) and build a VRT for a set of TIFF files.
 
     Args:
@@ -545,12 +597,14 @@ def download_and_build_vrt(image_uris: list[str],
     return vrt_path
 
 
-def read_window(dataset: 'DatasetReader',
-                bands: int | Sequence[int] | None = None,
-                window: tuple[tuple[int, int], tuple[int, int]] | None = None,
-                is_masked: bool = False,
-                out_shape: tuple[int, ...] | None = None,
-                session: 'Session | None' = None) -> np.ndarray:
+def read_window(
+    dataset: 'DatasetReader',
+    bands: int | Sequence[int] | None = None,
+    window: tuple[tuple[int, int], tuple[int, int]] | None = None,
+    is_masked: bool = False,
+    out_shape: tuple[int, ...] | None = None,
+    session: 'Session | None' = None,
+) -> np.ndarray:
     """Load a window of an image using Rasterio.
 
     Args:
@@ -577,7 +631,8 @@ def read_window(dataset: 'DatasetReader',
             boundless=True,
             masked=is_masked,
             out_shape=out_shape,
-            resampling=Resampling.bilinear)
+            resampling=Resampling.bilinear,
+        )
 
     if is_masked:
         im = np.ma.filled(im, fill_value=0)
@@ -612,7 +667,8 @@ def get_channel_order_from_dataset(dataset: 'DatasetReader') -> list[int]:
     colorinterp = dataset.colorinterp
     if colorinterp:
         channel_order = [
-            i for i, color_interp in enumerate(colorinterp)
+            i
+            for i, color_interp in enumerate(colorinterp)
             if color_interp != ColorInterp.alpha
         ]
     else:
@@ -631,9 +687,11 @@ def get_aws_session() -> 'Session':
     """Build a rasterio AWS session from environment variables."""
     try:
         from rastervision.aws_s3 import S3FileSystem
+
         requester_pays = S3FileSystem.get_request_payer()
     except ModuleNotFoundError:
-        requester_pays = os.getenv('AWS_REQUEST_PAYER',
-                                   '').lower() == 'requestor'
+        requester_pays = (
+            os.getenv('AWS_REQUEST_PAYER', '').lower() == 'requestor'
+        )
     session = AWSSession.from_environ(requester_pays=requester_pays)
     return session

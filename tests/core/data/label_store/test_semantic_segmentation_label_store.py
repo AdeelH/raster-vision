@@ -7,11 +7,17 @@ import numpy as np
 from rastervision.pipeline.file_system.utils import get_tmp_dir, file_exists
 from rastervision.core.box import Box
 from rastervision.core.data import (
-    BuildingVectorOutputConfig, ClassConfig, IdentityCRSTransformer,
-    PolygonVectorOutputConfig, SemanticSegmentationLabelStore,
-    SemanticSegmentationSmoothLabels, VectorOutputConfig)
+    BuildingVectorOutputConfig,
+    ClassConfig,
+    IdentityCRSTransformer,
+    PolygonVectorOutputConfig,
+    SemanticSegmentationLabelStore,
+    SemanticSegmentationSmoothLabels,
+    VectorOutputConfig,
+)
 from tests.core.data.label.test_semantic_segmentation_labels import (
-    make_random_scores)
+    make_random_scores,
+)
 
 
 class TestVectorOutputConfig(unittest.TestCase):
@@ -24,10 +30,12 @@ class TestVectorOutputConfig(unittest.TestCase):
         class_config = ClassConfig(names=['a', 'b'])
         cfg = VectorOutputConfig(class_id=0)
         self.assertEqual(
-            cfg.get_uri('abc/def', class_config), 'abc/def/class-0-a.json')
+            cfg.get_uri('abc/def', class_config), 'abc/def/class-0-a.json'
+        )
         cfg = VectorOutputConfig(class_id=1)
         self.assertEqual(
-            cfg.get_uri('abc/def', class_config), 'abc/def/class-1-b.json')
+            cfg.get_uri('abc/def', class_config), 'abc/def/class-1-b.json'
+        )
 
 
 class TestPolygonVectorOutputConfig(unittest.TestCase):
@@ -83,11 +91,14 @@ class TestSemanticSegmentationLabelStore(unittest.TestCase):
                 smooth_as_uint8=True,
                 vector_outputs=[
                     PolygonVectorOutputConfig(class_id=1, threshold=0.3)
-                ])
+                ],
+            )
             labels = SemanticSegmentationSmoothLabels(
-                extent=Box(0, 0, 10, 10), num_classes=len(class_config))
+                extent=Box(0, 0, 10, 10), num_classes=len(class_config)
+            )
             labels.pixel_scores += make_random_scores(
-                len(class_config), 10, 10)
+                len(class_config), 10, 10
+            )
             labels.pixel_hits += 1
             label_store.save(labels)
 

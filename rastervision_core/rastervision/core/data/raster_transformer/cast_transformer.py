@@ -1,5 +1,6 @@
-from rastervision.core.data.raster_transformer.raster_transformer \
-    import RasterTransformer
+from rastervision.core.data.raster_transformer.raster_transformer import (
+    RasterTransformer,
+)
 from rastervision.pipeline.utils import repr_with_args
 
 import numpy as np

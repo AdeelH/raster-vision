@@ -26,10 +26,10 @@ class ReclassTransformer(RasterTransformer):
             Array of shape (..., H, W, C)
         """
         masks = []
-        for (value_from, value_to) in self.mapping.items():
-            mask = (chip == value_from)
+        for value_from, value_to in self.mapping.items():
+            mask = chip == value_from
             masks.append((mask, value_to))
-        for (mask, value_to) in masks:
+        for mask, value_to in masks:
             chip[mask] = value_to
 
         return chip

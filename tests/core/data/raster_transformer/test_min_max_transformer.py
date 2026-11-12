@@ -15,15 +15,19 @@ class TestMinMaxTransformerConfig(unittest.TestCase):
 class TestMinMaxTransformer(unittest.TestCase):
     def test_transform(self):
         tf = MinMaxTransformer()
-        chip_in = np.array([
-            [[-2], [0]],
-            [[8], [18]],
-        ])
+        chip_in = np.array(
+            [
+                [[-2], [0]],
+                [[8], [18]],
+            ]
+        )
         chip_expexted = np.array(
             [
                 [[0], [25]],
                 [[127], [255]],
-            ], dtype=np.uint8)
+            ],
+            dtype=np.uint8,
+        )
         chip_out = tf.transform(chip_in)
         np.testing.assert_array_equal(chip_out, chip_expexted)
 

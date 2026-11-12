@@ -1,4 +1,4 @@
-from abc import (ABC, abstractmethod)
+from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -8,10 +8,12 @@ if TYPE_CHECKING:
 class VectorTransformer(ABC):
     """Transforms vector data."""
 
-    def __call__(self,
-                 geojson: dict,
-                 crs_transformer: 'CRSTransformer | None' = None,
-                 **kwargs) -> dict:
+    def __call__(
+        self,
+        geojson: dict,
+        crs_transformer: 'CRSTransformer | None' = None,
+        **kwargs,
+    ) -> dict:
         """Shortcut for :meth:`.transform`.
 
         Args:
@@ -24,12 +26,13 @@ class VectorTransformer(ABC):
             dict: Transformed GeoJSON.
         """
         return self.transform(
-            geojson, crs_transformer=crs_transformer, **kwargs)
+            geojson, crs_transformer=crs_transformer, **kwargs
+        )
 
     @abstractmethod
-    def transform(self,
-                  geojson: dict,
-                  crs_transformer: 'CRSTransformer | None' = None) -> dict:
+    def transform(
+        self, geojson: dict, crs_transformer: 'CRSTransformer | None' = None
+    ) -> dict:
         """Transform a GeoJSON mapping of vector data.
 
         Args:

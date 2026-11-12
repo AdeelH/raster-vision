@@ -14,37 +14,45 @@ from rasterio.windows import Window
 from rastervision.pipeline.file_system.utils import get_tmp_dir
 from rastervision.core.box import Box
 from rastervision.core.data.utils.rasterio import (
-    build_vrt, crop_geotiff, download_and_build_vrt, get_aws_session,
-    write_geotiff_like_geojson, write_bbox)
+    build_vrt,
+    crop_geotiff,
+    download_and_build_vrt,
+    get_aws_session,
+    write_geotiff_like_geojson,
+    write_bbox,
+)
 from rastervision.core.data import RasterioSource, GeoJSONVectorSource
 from tests import data_file_path
 
 RIO_UTILS_LOGGER = 'rastervision.core.data.utils.rasterio'
 
 
-def write_tile(path: str,
-               arr: np.ndarray,
-               xmin: float,
-               ymax: float,
-               res: float = 1.,
-               crs: str = 'EPSG:32615',
-               nodata: float | None = None,
-               transform: Affine | None = None) -> str:
+def write_tile(
+    path: str,
+    arr: np.ndarray,
+    xmin: float,
+    ymax: float,
+    res: float = 1.0,
+    crs: str = 'EPSG:32615',
+    nodata: float | None = None,
+    transform: Affine | None = None,
+) -> str:
     """Write a (C, H, W) array to a GeoTIFF."""
     if transform is None:
         transform = from_origin(xmin, ymax, res, res)
     count, height, width = arr.shape
     with rio.open(
-            path,
-            'w',
-            driver='GTiff',
-            height=height,
-            width=width,
-            count=count,
-            dtype=arr.dtype,
-            crs=crs,
-            transform=transform,
-            nodata=nodata) as ds:
+        path,
+        'w',
+        driver='GTiff',
+        height=height,
+        width=width,
+        count=count,
+        dtype=arr.dtype,
+        crs=crs,
+        transform=transform,
+        nodata=nodata,
+    ) as ds:
         ds.write(arr)
     return path
 
@@ -62,14 +70,16 @@ class TestRasterioUtils(unittest.TestCase):
             rs = RasterioSource(geotiff_path)
             geotiff_bbox = rs.crs_transformer.pixel_to_map(rs.extent)
             np.testing.assert_array_almost_equal(
-                np.array(list(geotiff_bbox)), np.array(list(bbox)), decimal=3)
+                np.array(list(geotiff_bbox)), np.array(list(bbox)), decimal=3
+            )
             self.assertEqual(rs.shape, (*arr1.shape, 1))
 
             write_bbox(geotiff_path, arr2, bbox=bbox, crs_wkt=crs_wkt)
             rs = RasterioSource(geotiff_path)
             geotiff_bbox = rs.crs_transformer.pixel_to_map(rs.extent)
             np.testing.assert_array_almost_equal(
-                np.array(list(geotiff_bbox)), np.array(list(bbox)), decimal=3)
+                np.array(list(geotiff_bbox)), np.array(list(bbox)), decimal=3
+            )
             self.assertEqual(rs.shape, arr2.shape)
 
     def test_crop_geotiff(self):
@@ -87,7 +97,8 @@ class TestRasterioUtils(unittest.TestCase):
         with get_tmp_dir() as tmp_dir:
             geotiff_path = join(tmp_dir, 'test.tiff')
             write_geotiff_like_geojson(
-                geotiff_path, arr, geojson_path, crs=None)
+                geotiff_path, arr, geojson_path, crs=None
+            )
             rs = RasterioSource(geotiff_path)
             geotiff_bbox = rs.crs_transformer.pixel_to_map(rs.extent)
             vs = GeoJSONVectorSource(geojson_path, rs.crs_transformer)
@@ -95,7 +106,8 @@ class TestRasterioUtils(unittest.TestCase):
             np.testing.assert_array_almost_equal(
                 np.array(list(geotiff_bbox)),
                 np.array(list(geojson_bbox)),
-                decimal=3)
+                decimal=3,
+            )
             self.assertEqual(rs.shape, (10, 10, 1))
 
     @patch.dict('os.environ', AWS_REQUEST_PAYER='requester')
@@ -126,7 +138,7 @@ class TestBuildVRT(unittest.TestCase):
         paths = []
         for i in range(2):
             for j in range(2):
-                tile = mosaic[:, i * h:(i + 1) * h, j * w:(j + 1) * w]
+                tile = mosaic[:, i * h : (i + 1) * h, j * w : (j + 1) * w]
                 path = join(tmp_dir, f'tile_{i}_{j}.tif')
                 write_tile(path, tile, xmin=100 + j * w, ymax=500 - i * h)
                 paths.append(path)
@@ -142,19 +154,19 @@ class TestBuildVRT(unittest.TestCase):
             with rio.open(vrt_path) as ds:
                 self.assertEqual(ds.shape, (20, 24))
                 self.assertEqual(ds.count, 3)
-                self.assertEqual(ds.dtypes, ('uint8', ) * 3)
+                self.assertEqual(ds.dtypes, ('uint8',) * 3)
                 self.assertEqual(ds.crs, CRS.from_epsg(32615))
                 self.assertEqual(ds.transform, from_origin(100, 500, 1, 1))
-                self.assertEqual(ds.nodatavals, (None, ) * 3)
+                self.assertEqual(ds.nodatavals, (None,) * 3)
                 np.testing.assert_array_equal(ds.read(), mosaic)
                 # quadrant-by-quadrant
                 for i in range(2):
                     for j in range(2):
-                        window = Window(
-                            j * 12, i * 10, 12, 10)  # pyright: ignore[reportCallIssue]
+                        window = Window(j * 12, i * 10, 12, 10)  # pyright: ignore[reportCallIssue]
                         with rio.open(paths[i * 2 + j]) as tile_ds:
                             np.testing.assert_array_equal(
-                                ds.read(window=window), tile_ds.read())
+                                ds.read(window=window), tile_ds.read()
+                            )
 
     def test_build_vrt_special_chars_in_path(self):
         with get_tmp_dir() as tmp_dir:
@@ -180,13 +192,14 @@ class TestBuildVRT(unittest.TestCase):
                 write_tile(join(tmp_dir, '2.tif'), arr2, 5, 20, nodata=nodata),
                 # leaves a gap below tile 1 and 2
                 write_tile(
-                    join(tmp_dir, '3.tif'), arr1, 20, 10, nodata=nodata),
+                    join(tmp_dir, '3.tif'), arr1, 20, 10, nodata=nodata
+                ),
             ]
             vrt_path = join(tmp_dir, 'mosaic.vrt')
             build_vrt(vrt_path, paths)
             with rio.open(vrt_path) as ds:
                 self.assertEqual(ds.shape, (20, 30))
-                self.assertEqual(ds.nodatavals, (nodata, ))
+                self.assertEqual(ds.nodatavals, (nodata,))
                 self.assertEqual(ds.transform, from_origin(0, 20, 1, 1))
                 out = ds.read(1)
         expected = np.full((20, 30), nodata, dtype=np.uint8)
@@ -200,8 +213,8 @@ class TestBuildVRT(unittest.TestCase):
         arr2 = np.full((1, 5, 5), 2, dtype=np.uint8)
         with get_tmp_dir() as tmp_dir:
             paths = [
-                write_tile(join(tmp_dir, '1.tif'), arr1, 0, 10, res=1.),
-                write_tile(join(tmp_dir, '2.tif'), arr2, 10, 10, res=2.),
+                write_tile(join(tmp_dir, '1.tif'), arr1, 0, 10, res=1.0),
+                write_tile(join(tmp_dir, '2.tif'), arr2, 10, 10, res=2.0),
             ]
             vrt_path = join(tmp_dir, 'mosaic.vrt')
             build_vrt(vrt_path, paths)
@@ -222,8 +235,8 @@ class TestBuildVRT(unittest.TestCase):
             paths = [
                 write_tile(join(tmp_dir, '1.tif'), arr, 100, 500),
                 write_tile(
-                    join(tmp_dir, '2.tif'), arr * 2, 110, 500,
-                    crs='EPSG:4326'),
+                    join(tmp_dir, '2.tif'), arr * 2, 110, 500, crs='EPSG:4326'
+                ),
                 write_tile(join(tmp_dir, '3.tif'), arr * 3, 100, 490),
             ]
             vrt_path = join(tmp_dir, 'mosaic.vrt')
@@ -248,16 +261,21 @@ class TestBuildVRT(unittest.TestCase):
             paths = [
                 write_tile(join(tmp_dir, 'ok.tif'), arr, 0, 10),
                 write_tile(
-                    join(tmp_dir, 'bands.tif'), np.ones((2, 10, 10), np.uint8),
-                    0, 10),
+                    join(tmp_dir, 'bands.tif'),
+                    np.ones((2, 10, 10), np.uint8),
+                    0,
+                    10,
+                ),
                 write_tile(
-                    join(tmp_dir, 'dtype.tif'), arr.astype(np.uint16), 0, 10),
+                    join(tmp_dir, 'dtype.tif'), arr.astype(np.uint16), 0, 10
+                ),
                 write_tile(
                     join(tmp_dir, 'rotated.tif'),
                     arr,
                     0,
                     10,
-                    transform=rotated_tf),
+                    transform=rotated_tf,
+                ),
             ]
             vrt_path = join(tmp_dir, 'mosaic.vrt')
             with self.assertLogs(RIO_UTILS_LOGGER, level='WARNING') as cm:
@@ -280,7 +298,8 @@ class TestBuildVRT(unittest.TestCase):
                     arr,
                     0,
                     10,
-                    transform=rotated_tf),
+                    transform=rotated_tf,
+                ),
             ]
             vrt_path = join(tmp_dir, 'mosaic.vrt')
             with self.assertLogs(RIO_UTILS_LOGGER, level='WARNING'):
@@ -308,8 +327,9 @@ class TestBuildVRT(unittest.TestCase):
             chip = rs.get_chip(Box(5, 6, 15, 18))
             np.testing.assert_array_equal(chip, mosaic_hwc[5:15, 6:18])
             np.testing.assert_array_equal(rs[:, :], mosaic_hwc)
-            self.assertEqual(rs.image_dataset.transform,
-                             from_origin(100, 500, 1, 1))
+            self.assertEqual(
+                rs.image_dataset.transform, from_origin(100, 500, 1, 1)
+            )
 
 
 if __name__ == '__main__':

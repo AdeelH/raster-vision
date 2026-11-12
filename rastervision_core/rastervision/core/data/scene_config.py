@@ -1,7 +1,11 @@
 from typing import TYPE_CHECKING
 
-from rastervision.pipeline.config import (Config, ConfigError, register_config,
-                                          Field)
+from rastervision.pipeline.config import (
+    Config,
+    ConfigError,
+    register_config,
+    Field,
+)
 from rastervision.core.data.raster_source import RasterSourceConfig
 from rastervision.core.data.label_source import LabelSourceConfig
 from rastervision.core.data.label_store import LabelStoreConfig
@@ -21,7 +25,8 @@ def scene_config_upgrader(cfg_dict: dict, version: int) -> dict:
                 raise ConfigError(
                     'SceneConfig.aoi_geometries is deprecated. '
                     'To use this config again, manually edit it to use '
-                    'SceneConfig.aoi_uris instead.')
+                    'SceneConfig.aoi_uris instead.'
+                )
             del cfg_dict['aoi_geometries']
         except KeyError:
             pass
@@ -30,8 +35,7 @@ def scene_config_upgrader(cfg_dict: dict, version: int) -> dict:
 
 @register_config('scene', upgrader=scene_config_upgrader)
 class SceneConfig(Config):
-    """Configure a :class:`.Scene` comprising raster data & labels for an AOI.
-    """
+    """Configure a :class:`.Scene` comprising raster data & labels for an AOI."""
 
     id: str
     raster_source: RasterSourceConfig
@@ -42,14 +46,18 @@ class SceneConfig(Config):
         description='List of URIs of GeoJSON files that define the AOIs for '
         'the scene. Each polygon defines an AOI which is a piece of the scene '
         'that is assumed to be fully labeled and usable for training or '
-        'validation. The AOIs are assumed to be in EPSG:4326 coordinates.')
+        'validation. The AOIs are assumed to be in EPSG:4326 coordinates.',
+    )
 
-    def build(self,
-              class_config: 'ClassConfig',
-              tmp_dir: str | None = None,
-              use_transformers: bool = True) -> Scene:
+    def build(
+        self,
+        class_config: 'ClassConfig',
+        tmp_dir: str | None = None,
+        use_transformers: bool = True,
+    ) -> Scene:
         raster_source = self.raster_source.build(
-            tmp_dir, use_transformers=use_transformers)
+            tmp_dir, use_transformers=use_transformers
+        )
         crs_transformer = raster_source.crs_transformer
         bbox = raster_source.bbox
 
@@ -60,25 +68,29 @@ class SceneConfig(Config):
                 class_config=class_config,
                 crs_transformer=crs_transformer,
                 bbox=bbox,
-                tmp_dir=tmp_dir)
+                tmp_dir=tmp_dir,
+            )
         if self.label_store is not None:
             label_store = self.label_store.build(
                 class_config=class_config,
                 crs_transformer=crs_transformer,
                 bbox=bbox,
-                tmp_dir=tmp_dir)
+                tmp_dir=tmp_dir,
+            )
 
         aoi_polygons = []
         if self.aoi_uris is not None:
-            aoi_polygons += get_polygons_from_uris(self.aoi_uris,
-                                                   crs_transformer)
+            aoi_polygons += get_polygons_from_uris(
+                self.aoi_uris, crs_transformer
+            )
 
         return Scene(
             self.id,
             raster_source,
             label_source=label_source,
             label_store=label_store,
-            aoi_polygons=aoi_polygons)
+            aoi_polygons=aoi_polygons,
+        )
 
     def update(self, pipeline: 'RVPipelineConfig | None' = None) -> None:
         super().update()
