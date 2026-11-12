@@ -1,10 +1,12 @@
 from os.path import join
 
+from pydantic import Field
+
 from rastervision.core.data.label_store import (
     LabelStoreConfig,
     ChipClassificationGeoJSONStore,
 )
-from rastervision.pipeline.config import register_config, Field
+from rastervision.pipeline.config import register_config
 
 
 @register_config('chip_classification_geojson_store')

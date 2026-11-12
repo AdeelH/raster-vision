@@ -1,9 +1,11 @@
 from typing import TYPE_CHECKING
+from pydantic import Field
+
 from rastervision.core.data.vector_source import (
     VectorSourceConfig,
     GeoJSONVectorSource,
 )
-from rastervision.pipeline.config import register_config, Field
+from rastervision.pipeline.config import register_config
 
 if TYPE_CHECKING:
     from rastervision.core.data import ClassConfig, CRSTransformer

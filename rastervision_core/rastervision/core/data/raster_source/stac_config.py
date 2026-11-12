@@ -1,6 +1,8 @@
 from typing import TYPE_CHECKING
 
-from rastervision.pipeline.config import Config, Field, register_config
+from pydantic import Field
+
+from rastervision.pipeline.config import Config, register_config
 from rastervision.pipeline.file_system.utils import file_to_json
 
 if TYPE_CHECKING:

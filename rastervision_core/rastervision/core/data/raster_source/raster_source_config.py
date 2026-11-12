@@ -1,11 +1,8 @@
 from typing import TYPE_CHECKING
 
-from rastervision.pipeline.config import (
-    Config,
-    register_config,
-    Field,
-    ConfigError,
-)
+from pydantic import Field
+
+from rastervision.pipeline.config import Config, register_config, ConfigError
 from rastervision.core.data.raster_transformer import RasterTransformerConfig
 
 if TYPE_CHECKING:

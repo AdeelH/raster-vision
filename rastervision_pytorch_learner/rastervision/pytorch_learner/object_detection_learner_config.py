@@ -7,16 +7,11 @@ import albumentations as A
 
 from torchvision.models.detection.backbone_utils import resnet_fpn_backbone
 from torchvision.models.detection.faster_rcnn import FasterRCNN
+from pydantic import Field, field_validator
 
 from rastervision.core.data import Scene
 from rastervision.core.rv_pipeline import WindowSamplingMethod
-from rastervision.pipeline.config import (
-    Config,
-    register_config,
-    Field,
-    field_validator,
-    ConfigError,
-)
+from rastervision.pipeline.config import Config, register_config, ConfigError
 from rastervision.pytorch_learner.learner_config import (
     AlbTransform,
     LearnerConfig,

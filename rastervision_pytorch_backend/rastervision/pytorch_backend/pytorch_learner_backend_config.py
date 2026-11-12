@@ -1,6 +1,8 @@
 import logging
 
-from rastervision.pipeline.config import register_config, Field
+from pydantic import Field
+
+from rastervision.pipeline.config import register_config
 from rastervision.pipeline.file_system import get_tmp_dir
 from rastervision.core.backend import BackendConfig
 from rastervision.core.rv_pipeline import RVPipelineConfig

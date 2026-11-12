@@ -1,17 +1,13 @@
 from typing import TYPE_CHECKING
 
+from pydantic import Field, field_validator, model_validator
+
 from rastervision.core.data.vector_source import VectorSourceConfig
 from rastervision.core.data.label_source import (
     LabelSourceConfig,
     ChipClassificationLabelSource,
 )
-from rastervision.pipeline.config import (
-    ConfigError,
-    register_config,
-    Field,
-    field_validator,
-    model_validator,
-)
+from rastervision.pipeline.config import ConfigError, register_config
 from rastervision.core.data.vector_transformer import (
     ClassInferenceTransformerConfig,
     BufferTransformerConfig,

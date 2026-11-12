@@ -13,6 +13,9 @@ from pydantic import (
     PositiveFloat,
     PositiveInt as PosInt,
     StringConstraints,
+    Field,
+    field_validator,
+    model_validator,
 )
 import albumentations as A
 import torch
@@ -20,14 +23,7 @@ from torch import nn, optim
 from torch.optim.lr_scheduler import CyclicLR, LRScheduler, MultiStepLR
 from torch.utils.data import Dataset, ConcatDataset, Subset
 
-from rastervision.pipeline.config import (
-    Config,
-    register_config,
-    ConfigError,
-    Field,
-    field_validator,
-    model_validator,
-)
+from rastervision.pipeline.config import Config, register_config, ConfigError
 from rastervision.pipeline.file_system import (
     list_paths,
     download_if_needed,

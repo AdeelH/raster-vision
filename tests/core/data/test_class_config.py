@@ -2,12 +2,13 @@ from collections.abc import Callable
 import unittest
 from typing import Any
 
+from pydantic import ValidationError
+
 from rastervision.core.data.class_config import (
     ClassConfig,
     DEFAULT_NULL_CLASS_NAME,
     DEFAULT_NULL_CLASS_COLOR,
 )
-from rastervision.pipeline.config import ValidationError
 
 
 class TestClassConfig(unittest.TestCase):

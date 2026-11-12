@@ -1,6 +1,8 @@
 from typing import TYPE_CHECKING
 from os.path import join
 
+from pydantic import Field, model_validator
+
 from rastervision.pipeline.pipeline_config import PipelineConfig
 from rastervision.core.data import (
     DatasetConfig,
@@ -13,13 +15,7 @@ from rastervision.core.backend import BackendConfig
 from rastervision.core.evaluation import EvaluatorConfig
 from rastervision.core.analyzer import AnalyzerConfig
 from rastervision.core.rv_pipeline.chip_options import ChipOptions
-from rastervision.pipeline.config import (
-    Config,
-    ConfigError,
-    Field,
-    register_config,
-    model_validator,
-)
+from rastervision.pipeline.config import Config, ConfigError, register_config
 
 if TYPE_CHECKING:
     from typing import Self

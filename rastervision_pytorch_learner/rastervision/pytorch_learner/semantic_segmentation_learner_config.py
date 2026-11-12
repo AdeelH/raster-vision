@@ -7,16 +7,11 @@ import logging
 from torch import nn
 from torch.utils.data import Dataset
 from torchvision import models
+from pydantic import Field, field_validator
 
 from rastervision.core.data import Scene
 from rastervision.core.rv_pipeline import WindowSamplingMethod
-from rastervision.pipeline.config import (
-    Config,
-    register_config,
-    Field,
-    field_validator,
-    ConfigError,
-)
+from rastervision.pipeline.config import Config, register_config, ConfigError
 from rastervision.pytorch_learner.learner_config import (
     AlbTransform,
     Backbone,

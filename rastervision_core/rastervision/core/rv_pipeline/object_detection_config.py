@@ -1,10 +1,8 @@
 from typing import TYPE_CHECKING
 
-from rastervision.pipeline.config import (
-    Field,
-    register_config,
-    model_validator,
-)
+from pydantic import Field, model_validator
+
+from rastervision.pipeline.config import register_config
 from rastervision.core.rv_pipeline import (
     ChipOptions,
     RVPipelineConfig,

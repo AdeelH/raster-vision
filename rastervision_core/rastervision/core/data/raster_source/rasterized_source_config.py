@@ -1,17 +1,14 @@
 from typing import TYPE_CHECKING
 
+from pydantic import Field, field_validator
+
 from rastervision.core.data.raster_source import RasterizedSource
 from rastervision.core.data.vector_source import VectorSourceConfig
 from rastervision.core.data.vector_transformer import (
     ClassInferenceTransformerConfig,
     BufferTransformerConfig,
 )
-from rastervision.pipeline.config import (
-    register_config,
-    Config,
-    Field,
-    field_validator,
-)
+from rastervision.pipeline.config import register_config, Config
 
 if TYPE_CHECKING:
     from rastervision.core.box import Box

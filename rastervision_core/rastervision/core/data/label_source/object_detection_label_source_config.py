@@ -1,3 +1,5 @@
+from pydantic import field_validator
+
 from rastervision.core.data.label_source import (
     LabelSourceConfig,
     ObjectDetectionLabelSource,
@@ -7,7 +9,7 @@ from rastervision.core.data.vector_transformer import (
     ClassInferenceTransformerConfig,
     BufferTransformerConfig,
 )
-from rastervision.pipeline.config import register_config, field_validator
+from rastervision.pipeline.config import register_config
 
 
 @register_config('object_detection_label_source')

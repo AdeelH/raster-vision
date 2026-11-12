@@ -1,7 +1,9 @@
 from typing import Any
 import logging
 
-from rastervision.pipeline.config import Field, register_config
+from pydantic import Field
+
+from rastervision.pipeline.config import register_config
 from rastervision.core.data.raster_source.raster_source_config import (
     RasterSourceConfig,
 )

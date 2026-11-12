@@ -1,7 +1,9 @@
 from typing import TYPE_CHECKING
 from os.path import join
 
-from rastervision.pipeline.config import register_config, Field
+from pydantic import Field
+
+from rastervision.pipeline.config import register_config
 from rastervision.core.data.raster_transformer import (
     RasterTransformerConfig,
     StatsTransformer,

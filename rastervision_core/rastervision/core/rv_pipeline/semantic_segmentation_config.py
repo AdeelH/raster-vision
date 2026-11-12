@@ -1,14 +1,10 @@
 from typing import TYPE_CHECKING, Literal
 import logging
 
-from pydantic import NonNegativeInt as NonNegInt
+from pydantic import NonNegativeInt as NonNegInt, Field, model_validator
 import numpy as np
 
-from rastervision.pipeline.config import (
-    register_config,
-    Field,
-    model_validator,
-)
+from rastervision.pipeline.config import register_config
 from rastervision.core.rv_pipeline.rv_pipeline_config import (
     PredictOptions,
     RVPipelineConfig,

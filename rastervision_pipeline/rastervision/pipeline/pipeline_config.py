@@ -2,7 +2,9 @@ from typing import TYPE_CHECKING
 import builtins
 from os.path import join
 
-from rastervision.pipeline.config import Config, Field
+from pydantic import Field
+
+from rastervision.pipeline.config import Config
 from rastervision.pipeline.config import register_config
 
 if TYPE_CHECKING:
