@@ -32,11 +32,15 @@ class Backend(ABC):
         """Returns a SampleWriter for this Backend."""
 
     @abstractmethod
-    def train(self):
+    def train(self, source_bundle_uri: str | None = None):
         """Train a model.
 
         This should download chips created by the SampleWriter, train the model, and
         then saving it to disk.
+
+        Args:
+            source_bundle_uri: If provided, the model is loaded from this
+                model-bundle before training. Defaults to ``None``.
         """
 
     @abstractmethod

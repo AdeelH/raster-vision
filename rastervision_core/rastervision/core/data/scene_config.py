@@ -38,7 +38,7 @@ class SceneConfig(Config):
     label_source: LabelSourceConfig | None = None
     label_store: LabelStoreConfig | None = None
     aoi_uris: list[str] | None = Field(
-        None,
+        default=None,
         description='List of URIs of GeoJSON files that define the AOIs for '
         'the scene. Each polygon defines an AOI which is a piece of the scene '
         'that is assumed to be fully labeled and usable for training or '

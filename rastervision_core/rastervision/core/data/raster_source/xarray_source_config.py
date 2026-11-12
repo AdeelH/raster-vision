@@ -19,19 +19,19 @@ class XarraySourceConfig(RasterSourceConfig):
         ...,
         description='STAC Item or ItemCollection to build the DataArray from.')
     allow_streaming: bool = Field(
-        True,
+        default=True,
         description='If False, load the entire DataArray into memory. '
         'Defaults to True.')
     bbox_map_coords: tuple[float, float, float, float] | None = Field(
-        None,
+        default=None,
         description='Optional user-specified bbox in EPSG:4326 coords of the '
         'form (ymin, xmin, ymax, xmax). Useful for cropping the raster source '
         'so that only part of the raster is read from. This is ignored if '
         'bbox is also specified. Defaults to None.')
     temporal: bool = Field(
-        False, description='Whether the data is a time-series.')
+        default=False, description='Whether the data is a time-series.')
     stackstac_args: dict[str, Any] = Field(
-        {}, description='Optional arguments to pass to stackstac.stack().')
+        default={}, description='Optional arguments to pass to stackstac.stack().')
 
     def build(self, tmp_dir: str | None = None,
               use_transformers: bool = True) -> XarraySource:

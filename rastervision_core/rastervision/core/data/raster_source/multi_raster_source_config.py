@@ -35,7 +35,7 @@ class MultiRasterSourceConfig(RasterSourceConfig):
         RasterSourceConfig], Field(min_length=1)] = Field(
             ..., description='List of RasterSourceConfig to combine.')
     primary_source_idx: NonNegInt = Field(
-        0,
+        default=0,
         description=
         'Index of the raster source whose CRS, dtype, and other attributes '
         'will override those of the other raster sources. Chips from the '
@@ -43,7 +43,7 @@ class MultiRasterSourceConfig(RasterSourceConfig):
         'reprojected onto) the pixel grid of this raster source. '
         'Defaults to 0.')
     temporal: bool = Field(
-        False,
+        default=False,
         description='Stack images from sub raster sources into a time-series '
         'of shape (T, H, W, C) instead of concatenating bands.')
 

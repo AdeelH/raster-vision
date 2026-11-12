@@ -30,38 +30,38 @@ class ChipClassificationLabelSourceConfig(LabelSourceConfig):
     """
     vector_source: VectorSourceConfig | None = None
     ioa_thresh: float = Field(
-        0.5,
+        default=0.5,
         description=
         ('Minimum IOA of a polygon and cell for that polygon to be a candidate for '
          'setting the class_id.'))
     use_intersection_over_cell: bool = Field(
-        False,
+        default=False,
         description=
         ('If True, then use the area of the cell as the denominator in the IOA. '
          'Otherwise, use the area of the polygon.'))
     pick_min_class_id: bool = Field(
-        False,
+        default=False,
         description=
         ('If True, the class_id for a cell is the minimum class_id of the boxes in that '
          'cell. Otherwise, pick the class_id of the box covering the greatest area.'
          ))
     background_class_id: int | None = Field(
-        None,
+        default=None,
         description=
         ('If not None, class_id to use as the background class; ie. the one that is used '
          'when a window contains no boxes. Cannot be None if infer_cells=True.'
          ))
     infer_cells: bool = Field(
-        False,
+        default=False,
         description='If True, infers a grid of cells based on the cell_sz.')
     cell_sz: int | None = Field(
-        None,
+        default=None,
         description=
         ('Size of a cell to use in pixels. If None, and this Config is part '
          'of an RVPipeline, this field will be set from RVPipeline.chip_options.'
          ))
     lazy: bool = Field(
-        False,
+        default=False,
         description='If True, labels will not be populated automatically '
         'during initialization of the label source.')
 

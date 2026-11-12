@@ -52,7 +52,7 @@ class RVConfig:
         self.set_tmp_dir_root()
         self.set_everett_config()
 
-    def set_verbosity(self, verbosity: Verbosity = Verbosity.NORMAL):
+    def set_verbosity(self, verbosity: int = Verbosity.NORMAL):
         """Set verbosity level for logging."""
         self.verbosity = verbosity
         root_log = logging.getLogger('rastervision')
@@ -63,7 +63,7 @@ class RVConfig:
         else:
             root_log.setLevel(logging.WARN)
 
-    def get_verbosity(self) -> Verbosity:
+    def get_verbosity(self) -> int:
         """Returns verbosity level for logging."""
         return self.verbosity
 

@@ -13,15 +13,15 @@ class ShiftTransformerConfig(VectorTransformerConfig):
     """Configure a :class:`.ShiftTransformer`."""
 
     x_shift: float = Field(
-        0.0,
+        default=0.0,
         description='Distance in meters to shift along the x-axis. '
         'Postive values shift eastward.')
     y_shift: float = Field(
-        0.0,
+        default=0.0,
         description='Distance in meters to shift along the y-axis. '
         'Postive values shift northward.')
     round_pixels: bool = Field(
-        True,
+        default=True,
         description='Whether to round shifted pixel values to integers.',
     )
 

@@ -36,16 +36,16 @@ def ss_chip_options_upgrader(cfg_dict: dict, version: int) -> dict:
 class SemanticSegmentationChipOptions(ChipOptions):
     """Chipping options for semantic segmentation."""
     target_class_ids: list[int] | None = Field(
-        None,
+        default=None,
         description=
         ('List of class ids considered as targets (ie. those to prioritize when '
          'creating chips) which is only used in conjunction with the '
          'target_count_threshold and negative_survival_probability options. Applies '
          'to the random_sample window method.'))
     negative_survival_prob: float = Field(
-        1.0, description='Probability of keeping a negative chip.')
+        default=1.0, description='Probability of keeping a negative chip.')
     target_count_threshold: int = Field(
-        1000,
+        default=1000,
         description=
         ('Minimum number of pixels covering target_classes that a chip must have. '
          'Applies to the random_sample window method.'))
@@ -83,12 +83,12 @@ class SemanticSegmentationChipOptions(ChipOptions):
 @register_config('semantic_segmentation_predict_options')
 class SemanticSegmentationPredictOptions(PredictOptions):
     stride: int | None = Field(
-        None,
+        default=None,
         description='Stride of the sliding window for generating chips. '
         'Allows aggregating multiple predictions for each pixel if less than '
         'the chip size. Defaults to ``chip_sz``.')
     crop_sz: NonNegInt | Literal['auto'] | None = Field(
-        None,
+        default=None,
         description=
         'Number of rows/columns of pixels from the edge of prediction '
         'windows to discard. This is useful because predictions near edges '

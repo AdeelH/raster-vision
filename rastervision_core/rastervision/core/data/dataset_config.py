@@ -23,7 +23,7 @@ class DatasetConfig(Config):
     validation_scenes: list[SceneConfig]
     test_scenes: list[SceneConfig] = []
     scene_groups: dict[str, set[str]] = Field(
-        {},
+        default={},
         description='Groupings of scenes. Should be a dict of the form: '
         '{<group-name>: set(scene_id_1, scene_id_2, ...)}. Three groups are '
         'added by default: "train_scenes", "validation_scenes", and '

@@ -31,11 +31,11 @@ class RegressionDataFormat(Enum):
 @register_config('regression_plot_options')
 class RegressionPlotOptions(PlotOptions):
     max_scatter_points: int = Field(
-        5000,
+        default=5000,
         description=('Maximum number of datapoints to use in scatter plot. '
                      'Useful to avoid running out of memory and cluttering.'))
     hist_bins: int = Field(
-        30, description='Number of bins to use for histogram.')
+        default=30, description='Number of bins to use for histogram.')
 
 
 def reg_data_config_upgrader(cfg_dict, version):
@@ -56,7 +56,7 @@ class RegressionImageDataConfig(RegressionDataConfig, ImageDataConfig):
 
     data_format: RegressionDataFormat = RegressionDataFormat.csv
     plot_options: RegressionPlotOptions | None = Field(
-        RegressionPlotOptions(), description='Options to control plotting.')
+        default=RegressionPlotOptions(), description='Options to control plotting.')
 
     def dir_to_dataset(self, data_dir: str,
                        transform: A.BasicTransform) -> RegressionImageDataset:
@@ -73,7 +73,7 @@ class RegressionGeoDataConfig(RegressionDataConfig, GeoDataConfig):
     """
 
     plot_options: RegressionPlotOptions | None = Field(
-        RegressionPlotOptions(), description='Options to control plotting.')
+        default=RegressionPlotOptions(), description='Options to control plotting.')
 
     def scene_to_dataset(
             self,

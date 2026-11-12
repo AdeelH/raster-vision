@@ -14,7 +14,7 @@ class EvaluatorConfig(Config):
     """Configure an :class:`.Evaluator`."""
 
     output_uri: str | None = Field(
-        None,
+        default=None,
         description='URI of directory where evaluator output will be saved. '
         'Evaluations for each scene-group will be save in a JSON file at '
         '<output_uri>/<scene-group-name>/eval.json. If None, and this Config '

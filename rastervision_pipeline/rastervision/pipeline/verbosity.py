@@ -7,7 +7,7 @@ class Verbosity:
     DEBUG = 4
 
     @staticmethod
-    def get() -> 'Verbosity':
+    def get() -> int:
         """Get the verbosity from RVConfig."""
         from rastervision.pipeline import rv_config_ as rv_config
         return rv_config.get_verbosity()

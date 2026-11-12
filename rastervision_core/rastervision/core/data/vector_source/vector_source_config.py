@@ -48,7 +48,7 @@ class VectorSourceConfig(Config):
     """Configure a :class:`.VectorSource`."""
 
     transformers: list[VectorTransformerConfig] = Field(
-        [], description='List of VectorTransformers.')
+        default=[], description='List of VectorTransformers.')
 
     @abstractmethod
     def build(self, class_config: 'ClassConfig',

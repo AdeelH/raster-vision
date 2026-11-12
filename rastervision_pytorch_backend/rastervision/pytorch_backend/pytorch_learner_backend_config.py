@@ -28,12 +28,12 @@ class PyTorchLearnerBackendConfig(BackendConfig):
     solver: SolverConfig
     data: DataConfig
     log_tensorboard: bool = Field(
-        True, description='If True, log events to Tensorboard log files.')
+        default=True, description='If True, log events to Tensorboard log files.')
     run_tensorboard: bool = Field(
-        False,
+        default=False,
         description='If True, run Tensorboard server pointing at log files.')
     save_all_checkpoints: bool = Field(
-        False,
+        default=False,
         description=(
             'If True, all checkpoints would be saved. The latest checkpoint '
             'would be saved as `last-model.pth`. The checkpoints prior to '

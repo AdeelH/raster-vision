@@ -17,22 +17,22 @@ class StatsAnalyzerConfig(AnalyzerConfig):
     """
 
     output_uri: str | None = Field(
-        None,
+        default=None,
         description='URI of directory where stats will be saved. '
         'Stats for a scene-group will be save in a JSON file at '
         '<output_uri>/<scene-group-name>/stats.json. If None, and this Config '
         'is part of an RVPipeline, this field will be auto-generated.')
     sample_prob: float | None = Field(
-        0.1,
+        default=0.1,
         description=(
             'The probability of using a random window for computing statistics. '
             'If None, will use a sliding window.'))
     chip_sz: int = Field(
-        300,
+        default=300,
         description='Chip size to use when sampling chips to compute stats '
         'from.')
     nodata_value: float | None = Field(
-        0,
+        default=0,
         description='NODATA value. If set, these pixels will be ignored when '
         'computing stats.')
 

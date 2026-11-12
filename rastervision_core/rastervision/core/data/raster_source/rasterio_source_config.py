@@ -31,7 +31,7 @@ class RasterioSourceConfig(RasterSourceConfig):
         'Rasterio/GDAL. If > 1 URI is provided, a VRT will be created to '
         'mosaic together the individual images.')
     allow_streaming: bool = Field(
-        False,
+        default=False,
         description='Stream assets as needed rather than downloading them.')
 
     def build(self, tmp_dir: str | None,

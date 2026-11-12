@@ -114,7 +114,7 @@ class ObjectDetectionLabels(Labels):
     def from_geojson(geojson: dict,
                      bbox: Box | None = None,
                      ioa_thresh: float = 0.8,
-                     clip: bool = True) -> 'Self':
+                     clip: bool = True) -> 'ObjectDetectionLabels':
         """Convert GeoJSON to ObjectDetectionLabels object.
 
         If bbox is provided, filter out the boxes that lie "more than a little
@@ -229,10 +229,10 @@ class ObjectDetectionLabels(Labels):
         return npboxes * np.array([[height, width, height, width]])
 
     @staticmethod
-    def get_overlapping(labels: 'Self',
+    def get_overlapping(labels: 'ObjectDetectionLabels',
                         window: Box,
                         ioa_thresh: float = 0.5,
-                        clip: bool = False) -> 'Self':
+                        clip: bool = False) -> 'ObjectDetectionLabels':
         """Return subset of labels that overlap with window.
 
         Args:
@@ -254,16 +254,19 @@ class ObjectDetectionLabels(Labels):
         return ObjectDetectionLabels.from_boxlist(boxlist)
 
     @staticmethod
-    def concatenate(labels1: 'Self', labels2: 'Self') -> 'Self':
+    def concatenate(
+            labels1: 'ObjectDetectionLabels',
+            labels2: 'ObjectDetectionLabels') -> 'ObjectDetectionLabels':
         """Return concatenation of labels."""
         new_boxlist = concatenate([labels1.to_boxlist(), labels2.to_boxlist()])
         return ObjectDetectionLabels.from_boxlist(new_boxlist)
 
     @staticmethod
-    def prune_duplicates(labels: 'Self',
+    def prune_duplicates(labels: 'ObjectDetectionLabels',
                          score_thresh: float,
                          merge_thresh: float,
-                         max_output_size: int | None = None) -> 'Self':
+                         max_output_size: int | None = None
+                         ) -> 'ObjectDetectionLabels':
         """Remove duplicate boxes via non-maximum suppression.
 
         Args:

@@ -1,5 +1,6 @@
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, TypeVar
 from collections.abc import Callable
+import builtins
 import inspect
 import logging
 
@@ -113,7 +114,7 @@ class Config(BaseModel):
             cfg_dict['plugin_versions'] = registry.plugin_versions
         return cfg_dict
 
-    def json(self, **kwargs) -> dict:
+    def json(self, **kwargs) -> str:
         return self.model_dump_json(serialize_as_any=True, **kwargs)
 
     def to_file(self, uri: str, with_rv_metadata: bool = True) -> None:
@@ -137,7 +138,7 @@ class Config(BaseModel):
             str_to_file(cfg_json, uri)
 
     @classmethod
-    def deserialize(cls, inp: 'str | dict | Config') -> 'Self':
+    def deserialize(cls, inp: 'str | builtins.dict | Config') -> 'Self':
         """Deserialize Config from a JSON file or dict, upgrading if possible.
 
         If ``inp`` is already a :class:`.Config`, it is returned as is.
@@ -165,14 +166,14 @@ class Config(BaseModel):
         return cfg
 
     @classmethod
-    def from_dict(cls, cfg_dict: dict) -> 'Self':
+    def from_dict(cls, cfg_dict: builtins.dict) -> 'Self':
         """Deserialize Config from a dict.
 
         Args:
             cfg_dict: Dict to deserialize.
         """
         if 'plugin_versions' in cfg_dict:
-            cfg_dict: dict = upgrade_config(cfg_dict)
+            cfg_dict = upgrade_config(cfg_dict)
             cfg_dict.pop('plugin_versions', None)
         cfg = build_config(cfg_dict)
         return cfg
@@ -185,6 +186,9 @@ class Config(BaseModel):
         except KeyError:
             pass
         return args.items()
+
+
+ConfigT = TypeVar('ConfigT', bound=Config)
 
 
 def save_pipeline_config(cfg: 'PipelineConfig', output_uri: str) -> None:
@@ -324,7 +328,7 @@ def get_plugin(config_cls: type) -> str:
 def register_config(type_hint: str,
                     plugin: str | None = None,
                     upgrader: Callable[[dict, int], dict] | None = None
-                    ) -> Callable[[], Config]:
+                    ) -> Callable[[type[ConfigT]], type[ConfigT]]:
     """Class decorator used to register Config classes with registry.
 
     All Configs must be registered! Registering a Config does the following:
@@ -351,7 +355,7 @@ def register_config(type_hint: str,
         ``Config`` with an additional ``type_hint`` field.
     """
 
-    def _register_config(cls: type):
+    def _register_config(cls: type[ConfigT]) -> type[ConfigT]:
         new_cls = create_model(
             cls.__name__,
             __base__=cls,

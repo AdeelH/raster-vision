@@ -115,7 +115,7 @@ class Box:
         return np.array(self.tuple_format(), dtype=float)
 
     @staticmethod
-    def to_npboxes(boxes: list['Self']) -> np.ndarray:
+    def to_npboxes(boxes: list['Box']) -> np.ndarray:
         """Return nx4 numpy array from list of Box."""
         nb_boxes = len(boxes)
         npboxes = np.empty((nb_boxes, 4))
@@ -318,7 +318,7 @@ class Box:
         return Box(ymin, xmin, ymax, xmax)
 
     @staticmethod
-    def make_square(ymin, xmin, size) -> 'Self':
+    def make_square(ymin, xmin, size) -> 'Box':
         """Return new square Box."""
         return Box(ymin, xmin, ymin + size, xmin + size)
 

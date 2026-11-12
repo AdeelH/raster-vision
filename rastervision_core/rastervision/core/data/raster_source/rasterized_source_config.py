@@ -21,7 +21,7 @@ class RasterizerConfig(Config):
         description='The class_id to use for any background pixels, i.e. '
         'pixels not covered by a polygon.')
     all_touched: bool = Field(
-        False,
+        default=False,
         description='If True, all pixels touched by geometries will be burned '
         'in. If false, only pixels whose center is within the polygon or that '
         'are selected by Bresenham\'s line algorithm will be burned in. '

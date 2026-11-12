@@ -133,16 +133,16 @@ class Backbone(str, Enum):
 class ExternalModuleConfig(Config):
     """Config describing an object to be loaded via Torch Hub."""
     uri: NonEmptyStr | None = Field(
-        None,
+        default=None,
         description=('Local uri of a zip file, or local uri of a directory,'
                      'or remote uri of zip file.'))
     github_repo: (
         Annotated[str,
                   StringConstraints(strip_whitespace=True, pattern=r'.+/.+')]
         | None) = Field(
-            None, description='<repo-owner>/<repo-name>[:tag]')
+            default=None, description='<repo-owner>/<repo-name>[:tag]')
     name: NonEmptyStr | None = Field(
-        None,
+        default=None,
         description=
         'Name of the folder in which to extract/copy the definition files.')
     entrypoint: NonEmptyStr = Field(
@@ -150,14 +150,14 @@ class ExternalModuleConfig(Config):
         description=('Name of a Callable present in ``hubconf.py``. '
                      'See docs for ``torch.hub`` for details.'))
     entrypoint_args: list = Field(
-        [],
+        default=[],
         description='Args to pass to the entrypoint. Must be serializable.')
     entrypoint_kwargs: dict = Field(
-        {},
+        default={},
         description=
         'Keyword args to pass to the entrypoint. Must be serializable.')
     force_reload: bool = Field(
-        False, description='Force reload of module definition.')
+        default=False, description='Force reload of module definition.')
 
     @model_validator(mode='after')
     def check_either_uri_or_repo(self) -> 'Self':
@@ -231,29 +231,29 @@ def model_config_upgrader(cfg_dict, version):
 class ModelConfig(Config):
     """Config related to models."""
     backbone: Backbone = Field(
-        Backbone.resnet18,
+        default=Backbone.resnet18,
         description='The torchvision.models backbone to use.')
     pretrained: bool = Field(
-        True,
+        default=True,
         description=(
             'If True, use ImageNet weights. If False, use random initialization.'
         ))
     init_weights: str | None = Field(
-        None,
+        default=None,
         description=('URI of PyTorch model weights used to initialize model. '
                      'If set, this supersedes the pretrained option.'))
     load_strict: bool = Field(
-        True,
+        default=True,
         description=(
             'If True, the keys in the state dict referenced by init_weights '
             'must match exactly. Setting this to False can be useful if you '
             'just want to load the backbone of a model.'))
     external_def: ExternalModuleConfig | None = Field(
-        None,
+        default=None,
         description='If specified, the model will be built from the '
         'definition from this external source, using Torch Hub.')
     extra_args: dict = Field(
-        {},
+        default={},
         description='Other implementation-specific args that might be useful '
         'for constructing the default model. This is ignored if using an '
         'external model.')
@@ -339,32 +339,32 @@ def solver_config_upgrader(cfg_dict: dict, version: int) -> dict:
 @register_config('solver', upgrader=solver_config_upgrader)
 class SolverConfig(Config):
     """Config related to solver aka optimizer."""
-    lr: PositiveFloat = Field(1e-4, description='Learning rate.')
+    lr: PositiveFloat = Field(default=1e-4, description='Learning rate.')
     num_epochs: PosInt = Field(
-        10,
+        default=10,
         description=
         'Number of epochs (ie. sweeps through the whole training set).')
     sync_interval: PosInt = Field(
-        1, description='The interval in epochs for each sync to the cloud.')
-    batch_sz: PosInt = Field(32, description='Batch size.')
+        default=1, description='The interval in epochs for each sync to the cloud.')
+    batch_sz: PosInt = Field(default=32, description='Batch size.')
     one_cycle: bool = Field(
-        True,
+        default=True,
         description=
         ('If True, use triangular LR scheduler with a single cycle across all '
          'epochs with start and end LR being lr/10 and the peak being lr.'))
     multi_stage: list[int] = Field(
-        [], description=('List of epoch indices at which to divide LR by 10.'))
+        default=[], description=('List of epoch indices at which to divide LR by 10.'))
     class_loss_weights: Sequence[float] | None = Field(
-        None, description=('Class weights for weighted loss.'))
+        default=None, description=('Class weights for weighted loss.'))
     ignore_class_index: int | None = Field(
-        None,
+        default=None,
         description='If specified, this index is ignored when computing the '
         'loss. See pytorch documentation for nn.CrossEntropyLoss for more '
         'details. This can also be negative, in which case it is treated as a '
         'negative slice index i.e. -1 = last index, -2 = second-last index, '
         'and so on.')
     external_loss_def: ExternalModuleConfig | None = Field(
-        None,
+        default=None,
         description='If specified, the loss will be built from the definition '
         'from this external source, using Torch Hub.')
 
@@ -556,7 +556,7 @@ def validate_channel_display_groups(
 class PlotOptions(Config):
     """Config related to plotting."""
     transform: dict | None = Field(
-        A.to_dict(MinMaxNormalize()),
+        default=A.to_dict(MinMaxNormalize()),
         description='An Albumentations transform serialized as a dict that '
         'will be applied to each image before it is plotted. Mainly useful '
         'for undoing any data transformation that you do not want included in '
@@ -568,7 +568,7 @@ class PlotOptions(Config):
     channel_display_groups: (
         dict[str, ChannelInds] | Sequence[ChannelInds] | None
     ) = Field(
-        None,
+        default=None,
         description=(
             'Groups of image channels to display together as a subplot '
             'when plotting the data and predictions. '
@@ -613,46 +613,46 @@ def data_config_upgrader(cfg_dict: dict, version: int) -> dict:
 @register_config('data', upgrader=data_config_upgrader)
 class DataConfig(Config):
     """Config related to dataset for training and testing."""
-    class_config: ClassConfig | None = Field(None, description='Class config.')
+    class_config: ClassConfig | None = Field(default=None, description='Class config.')
     img_channels: PosInt | None = Field(
-        None, description='The number of channels of the training images.')
+        default=None, description='The number of channels of the training images.')
     img_sz: PosInt = Field(
-        256,
+        default=256,
         description=
         ('Length of a side of each image in pixels. This is the size to transform '
          'it to during training, not the size in the raw dataset.'))
     train_sz: int | None = Field(
-        None,
+        default=None,
         description=
         ('If set, the number of training images to use. If fewer images exist, '
          'then an exception will be raised.'))
     train_sz_rel: float | None = Field(
-        None, description='If set, the proportion of training images to use.')
+        default=None, description='If set, the proportion of training images to use.')
     num_workers: int = Field(
-        4,
+        default=4,
         description='Number of workers to use when DataLoader makes batches.')
     augmentors: list[str] = Field(
-        default_augmentors,
+        default=default_augmentors,
         description='Names of albumentations augmentors to use for training '
         f'batches. Choices include: {augmentors}. Alternatively, a custom '
         'transform can be provided via the aug_transform option.')
     base_transform: dict | None = Field(
-        None,
+        default=None,
         description='An Albumentations transform serialized as a dict that '
         'will be applied to all datasets: training, validation, and test. '
         'This transformation is in addition to the resizing due to img_sz. '
         'This is useful for, for example, applying the same normalization to '
         'all datasets.')
     aug_transform: dict | None = Field(
-        None,
+        default=None,
         description='An Albumentations transform serialized as a dict that '
         'will be applied as data augmentation to the training dataset. This '
         'transform is applied before base_transform. If provided, the '
         'augmentors option is ignored.')
     plot_options: PlotOptions | None = Field(
-        PlotOptions(), description='Options to control plotting.')
+        default=PlotOptions(), description='Options to control plotting.')
     preview_batch_limit: int | None = Field(
-        None,
+        default=None,
         description=
         ('Optional limit on the number of items in the preview plots produced '
          'during training.'))
@@ -803,9 +803,9 @@ class DataConfig(Config):
 class ImageDataConfig(DataConfig):
     """Config related to dataset for training and testing."""
     data_format: str | None = Field(
-        None, description='Name of dataset format.')
+        default=None, description='Name of dataset format.')
     uri: str | list[str] | None = Field(
-        None,
+        default=None,
         description='One of the following:\n'
         '(1) a URI of a directory containing "train", "valid", and '
         '(optionally) "test" subdirectories;\n'
@@ -813,20 +813,20 @@ class ImageDataConfig(DataConfig):
         '(3) a list of (2);\n'
         '(4) a URI of a directory containing zip files containing (1).')
     group_uris: list[str | list[str]] | None = Field(
-        None,
+        default=None,
         description=
         'This can be set instead of uri in order to specify groups of chips. '
         'Each element in the list is expected to be an object of the same '
         'form accepted by the uri field. The purpose of separating chips into '
         'groups is to be able to use the group_train_sz field.')
     group_train_sz: int | list[int] | None = Field(
-        None,
+        default=None,
         description='If group_uris is set, this can be used to specify the '
         'number of chips to use per group. Only applies to training chips. '
         'This can either be a single value that will be used for all groups '
         'or a list of values (one for each group).')
     group_train_sz_rel: Proportion | list[Proportion] | None = Field(
-        None,
+        default=None,
         description='Relative version of group_train_sz. Must be a float '
         'in [0, 1]. If group_uris is set, this can be used to specify the '
         'proportion of the total chips in each group to use per group. '
@@ -944,7 +944,7 @@ class ImageDataConfig(DataConfig):
                         'specified. Only DataConfig.group_uris will be used.')
 
         ds = self._get_dataset_from_group_uris(
-            self.group_uris, split=split, tmp_dir=tmp_dir)
+            split=split, uris=self.group_uris, tmp_dir=tmp_dir)
 
         if split == 'train':
             if self.train_sz is not None or self.train_sz_rel is not None:
@@ -1170,9 +1170,9 @@ class GeoDataConfig(DataConfig):
     See :mod:`rastervision.pytorch_learner.dataset.dataset`.
     """
 
-    scene_dataset: 'SceneDatasetConfig | None' = Field(None, description='')
+    scene_dataset: 'SceneDatasetConfig | None' = Field(default=None, description='')
     sampling: WindowSamplingConfig | dict[str, WindowSamplingConfig] = Field(
-        {}, description='Window sampling config.')
+        default={}, description='Window sampling config.')
 
     def __repr_args__(self):
         ds_str = repr(self.scene_dataset)
@@ -1353,24 +1353,24 @@ class LearnerConfig(Config):
     data: DataConfig
 
     eval_train: bool = Field(
-        False,
+        default=False,
         description='If True, runs final evaluation on training set '
         '(in addition to validation set). Useful for debugging.')
     save_model_bundle: bool = Field(
-        True,
+        default=True,
         description=
         ('If True, saves a model bundle at the end of training which '
          'is zip file with model and this LearnerConfig which can be used to make '
          'predictions on new images at a later time.'))
     log_tensorboard: bool = Field(
-        True,
+        default=True,
         description='Save Tensorboard log files at the end of each epoch.')
     run_tensorboard: bool = Field(
-        False, description='run Tensorboard server during training')
+        default=False, description='run Tensorboard server during training')
     output_uri: str | None = Field(
-        None, description='URI of where to save output')
+        default=None, description='URI of where to save output')
     save_all_checkpoints: bool = Field(
-        False,
+        default=False,
         description=(
             'If True, all checkpoints would be saved. The latest checkpoint '
             'would be saved as `last-model.pth`. The checkpoints prior to '

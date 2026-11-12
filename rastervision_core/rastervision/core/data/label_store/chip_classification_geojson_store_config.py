@@ -10,7 +10,7 @@ class ChipClassificationGeoJSONStoreConfig(LabelStoreConfig):
     """Configure a :class:`.ChipClassificationGeoJSONStore`."""
 
     uri: str | None = Field(
-        None,
+        default=None,
         description=
         ('URI of GeoJSON file with predictions. If None, and this Config is part of '
          'a SceneConfig inside an RVPipelineConfig, it will be auto-generated.'

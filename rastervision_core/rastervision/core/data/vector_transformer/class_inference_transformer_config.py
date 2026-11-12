@@ -13,13 +13,13 @@ class ClassInferenceTransformerConfig(VectorTransformerConfig):
     """Configure a :class:`.ClassInferenceTransformer`."""
 
     default_class_id: int | None = Field(
-        None,
+        default=None,
         description='The default ``class_id`` to use if class cannot be '
         'inferred using other mechanisms. If a feature has an inferred '
         '``class_id`` of ``None``, then it will be deleted. '
         'Defaults to ``None``.')
     class_id_to_filter: dict[int, list] | None = Field(
-        None,
+        default=None,
         description='Map from ``class_id`` to JSON filter used to infer '
         'missing class IDs. Each key should be a class ID, and its value '
         'should be a boolean expression which is run against the property '
@@ -29,7 +29,7 @@ class ClassInferenceTransformerConfig(VectorTransformerConfig):
         'https://docs.mapbox.com/mapbox-gl-js/style-spec/other/#other-filter. '
         'Defaults to ``None``.')
     class_name_mapping: dict[str, str] | None = Field(
-        None,
+        default=None,
         description='``old_name --> new_name`` mapping for values in the '
         '``class_name`` or ``label`` property of the GeoJSON features. The '
         '``new_name`` must be a valid class name in the ``ClassConfig``. This '

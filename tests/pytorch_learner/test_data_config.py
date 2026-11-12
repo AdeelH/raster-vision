@@ -185,6 +185,27 @@ class TestImageDataConfig(unittest.TestCase):
             group_uris=group_uris, group_train_sz_rel=[.1] * len(group_uris))
         self.assertNoError(lambda: ImageDataConfig(**args))
 
+    def test_build_dataset_with_group_uris(self):
+        from unittest.mock import patch
+        from torch.utils.data import ConcatDataset, TensorDataset
+        import torch
+
+        cfg = ImageDataConfig(group_uris=['a', 'b'])
+        calls = []
+
+        def get_dataset_from_uri(uri, split, tmp_dir):
+            calls.append((uri, split))
+            return TensorDataset(torch.zeros(2))
+
+        with patch.object(
+                ImageDataConfig,
+                '_get_dataset_from_uri',
+                side_effect=get_dataset_from_uri):
+            ds = cfg.build_dataset('valid', tmp_dir='/tmp')
+        self.assertIsInstance(ds, ConcatDataset)
+        self.assertEqual(len(ds), 4)
+        self.assertListEqual(calls, [('a', 'valid'), ('b', 'valid')])
+
     def test_build_cc(self):
         import os
         from os.path import join
