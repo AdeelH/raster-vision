@@ -14,6 +14,6 @@ def test_config_upgrader(cfg_class: type, old_cfg_dict: dict,
     from rastervision.pipeline.config import build_config
 
     for i in range(curr_version):
-        old_cfg_dict = upgrader(old_cfg_dict, version=i)
+        old_cfg_dict = upgrader(old_cfg_dict, i)
     new_cfg = build_config(old_cfg_dict)
     assert isinstance(new_cfg, cfg_class)

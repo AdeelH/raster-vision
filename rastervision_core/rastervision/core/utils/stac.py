@@ -12,30 +12,35 @@ from rastervision.pipeline.file_system import file_to_json
 log = logging.getLogger(__name__)
 
 
-def setup_stac_io() -> None:
-    def read_method(uri: str):
-        parsed = urlparse(uri)
+class S3StacIO(DefaultStacIO):
+    """A :class:`pystac.StacIO` that can also read from and write to S3."""
+
+    def read_text_from_href(self, href: str) -> str:
+        parsed = urlparse(href)
         if parsed.scheme == 's3':
             bucket = parsed.netloc
             key = parsed.path[1:]
             s3 = boto3.resource('s3')
-            obj = s3.Object(bucket, key)
+            # boto3 resource classes are generated dynamically
+            obj = s3.Object(bucket, key)  # pyright: ignore[reportAttributeAccessIssue]
             return obj.get()['Body'].read().decode('utf-8')
-        else:
-            return DefaultStacIO.read_text_method(uri)
+        return super().read_text_from_href(href)
 
-    def write_method(uri: str, txt: str):
-        parsed = urlparse(uri)
+    def write_text_to_href(self, href: str, txt: str) -> None:
+        parsed = urlparse(href)
         if parsed.scheme == 's3':
             bucket = parsed.netloc
             key = parsed.path[1:]
             s3 = boto3.resource('s3')
-            s3.Object(bucket, key).put(Body=txt)
+            # boto3 resource classes are generated dynamically
+            obj = s3.Object(bucket, key)  # pyright: ignore[reportAttributeAccessIssue]
+            obj.put(Body=txt)
         else:
-            DefaultStacIO.write_text_method(uri, txt)
+            super().write_text_to_href(href, txt)
 
-    StacIO.read_text_method = read_method
-    StacIO.write_text_method = write_method
+
+def setup_stac_io() -> None:
+    StacIO.set_default(S3StacIO)
 
 
 def is_label_item(item: Item) -> bool:
@@ -104,7 +109,7 @@ def parse_stac(stac_uri: str, item_limit: int | None = None) -> list[dict]:
         if image_item is not None:
             image_assets = [
                 asset for asset in image_item.get_assets().values()
-                if 'image' in asset.media_type
+                if asset.media_type is not None and 'image' in asset.media_type
             ]
             image_uris = [asset.href for asset in image_assets]
             image_bbox = box(*image_item.bbox)

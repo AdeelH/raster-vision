@@ -126,7 +126,7 @@ class TestConfig(unittest.TestCase):
 
     def test_no_extras(self):
         with self.assertRaises(ValidationError):
-            BConfig(zz='abc')
+            BConfig(zz='abc')  # pyright: ignore[reportCallIssue]
 
     def test_upgrade(self):
         plugin_versions_v0 = dict(self.plugin_versions)

@@ -1425,4 +1425,6 @@ class LearnerConfig(Config):
 
     def get_model_bundle_uri(self) -> str:
         """Returns the URI of where the model bundle is stored."""
+        if self.output_uri is None:
+            raise ValueError('output_uri is not set.')
         return join(self.output_uri, 'model-bundle.zip')

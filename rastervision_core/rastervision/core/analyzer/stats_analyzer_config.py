@@ -38,6 +38,7 @@ class StatsAnalyzerConfig(AnalyzerConfig):
 
     def update(self, pipeline: 'RVPipelineConfig | None' = None) -> None:
         if pipeline is not None and self.output_uri is None:
+            assert pipeline.analyze_uri is not None
             self.output_uri = join(pipeline.analyze_uri, 'stats')
 
     def validate_config(self):
@@ -46,11 +47,12 @@ class StatsAnalyzerConfig(AnalyzerConfig):
 
     def build(self, scene_group: tuple[str, Iterable[str]] | None = None
               ) -> StatsAnalyzer:
+        assert self.output_uri is not None
         if scene_group is None:
-            output_uri = join(self.output_uri, f'stats.json')
+            output_uri = join(self.output_uri, 'stats.json')
         else:
             group_name, _ = scene_group
-            output_uri = join(self.output_uri, group_name, f'stats.json')
+            output_uri = join(self.output_uri, group_name, 'stats.json')
         return StatsAnalyzer(
             output_uri,
             sample_prob=self.sample_prob,

@@ -5,6 +5,7 @@ import unittest
 from unittest.mock import patch
 
 import torch
+from torch.testing import assert_allclose  # pyright: ignore[reportPrivateImportUsage]
 import numpy as np
 from shapely.geometry import Polygon, mapping
 
@@ -63,7 +64,7 @@ class TestGeoDatasetFromURIs(unittest.TestCase):
         ds = SemanticSegmentationSlidingWindowGeoDataset.from_uris(
             image_uri=image_uri, size=10, stride=10, padding=0)
         x, y = ds[0]
-        torch.testing.assert_allclose(x * 255, torch.ones_like(x))
+        assert_allclose(x * 255, torch.ones_like(x))
         self.assertTrue(np.isnan(y.numpy()))
 
         # raster labels
@@ -75,7 +76,7 @@ class TestGeoDatasetFromURIs(unittest.TestCase):
             stride=10,
             padding=0)
         x, y = ds[0]
-        torch.testing.assert_allclose(x * 255, torch.ones_like(x))
+        assert_allclose(x * 255, torch.ones_like(x))
         self.assertAlmostEqual(y.float().mean(), 1)
 
         # rasterized labels
@@ -87,11 +88,11 @@ class TestGeoDatasetFromURIs(unittest.TestCase):
             stride=10,
             padding=0)
         x, y = ds[0]
-        torch.testing.assert_allclose(x * 255, torch.ones_like(x))
-        torch.testing.assert_allclose(y, torch.ones_like(y))
+        assert_allclose(x * 255, torch.ones_like(x))
+        assert_allclose(y, torch.ones_like(y))
         x, y = ds[3]
-        torch.testing.assert_allclose(x * 255, torch.ones_like(x))
-        torch.testing.assert_allclose(y, torch.zeros_like(y))
+        assert_allclose(x * 255, torch.ones_like(x))
+        assert_allclose(y, torch.zeros_like(y))
 
     def test_cc_from_uris(self):
         class_config = ClassConfig(names=['bg', 'fg'], null_class='bg')
@@ -102,7 +103,7 @@ class TestGeoDatasetFromURIs(unittest.TestCase):
         ds = ClassificationSlidingWindowGeoDataset.from_uris(
             image_uri=image_uri, size=10, stride=10, padding=0)
         x, y = ds[0]
-        torch.testing.assert_allclose(x * 255, torch.ones_like(x))
+        assert_allclose(x * 255, torch.ones_like(x))
         self.assertTrue(np.isnan(y.numpy()))
 
         # vector labels
@@ -115,11 +116,11 @@ class TestGeoDatasetFromURIs(unittest.TestCase):
             stride=10,
             padding=0)
         x, y = ds[0]
-        torch.testing.assert_allclose(x * 255, torch.ones_like(x))
-        torch.testing.assert_allclose(y, torch.ones_like(y))
+        assert_allclose(x * 255, torch.ones_like(x))
+        assert_allclose(y, torch.ones_like(y))
         x, y = ds[3]
-        torch.testing.assert_allclose(x * 255, torch.ones_like(x))
-        torch.testing.assert_allclose(y, torch.zeros_like(y))
+        assert_allclose(x * 255, torch.ones_like(x))
+        assert_allclose(y, torch.zeros_like(y))
 
     def test_od_from_uris(self):
         class_config = ClassConfig(names=['bg', 'fg'], null_class='bg')
@@ -130,7 +131,7 @@ class TestGeoDatasetFromURIs(unittest.TestCase):
         ds = ObjectDetectionSlidingWindowGeoDataset.from_uris(
             image_uri=image_uri, size=10, stride=10, padding=0)
         x, y = ds[0]
-        torch.testing.assert_allclose(x * 255, torch.ones_like(x))
+        assert_allclose(x * 255, torch.ones_like(x))
         self.assertTrue(np.isnan(y.numpy()))
 
         # vector labels

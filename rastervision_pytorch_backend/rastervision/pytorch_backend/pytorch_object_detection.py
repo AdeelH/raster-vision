@@ -100,6 +100,7 @@ class PyTorchObjectDetectionSampleWriter(PyTorchLearnerSampleWriter):
 
 class PyTorchObjectDetection(PyTorchLearnerBackend):
     def get_sample_writer(self):
+        assert self.pipeline_cfg.chip_uri is not None
         output_uri = join(self.pipeline_cfg.chip_uri, f'{uuid.uuid4()}.zip')
         return PyTorchObjectDetectionSampleWriter(
             output_uri, self.pipeline_cfg.dataset.class_config, self.tmp_dir)

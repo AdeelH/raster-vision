@@ -24,6 +24,12 @@ ROADS = 'roads'
 
 
 class SpacenetConfig(object):
+    base_dir: str
+    raster_dir: str
+    label_dir: str
+    raster_fn_prefix: str
+    label_fn_prefix: str
+
     def __init__(self, raw_uri):
         self.raw_uri = raw_uri
 

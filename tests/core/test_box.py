@@ -445,7 +445,7 @@ class TestBox(unittest.TestCase):
         self.assertNotIn((4, 4), Box(2, 2, 3, 4))
 
         with self.assertRaises(NotImplementedError):
-            _ = '' in Box(0, 0, 1, 1)
+            _ = '' in Box(0, 0, 1, 1)  # pyright: ignore[reportOperatorIssue]
 
     def test_error_on_nonfinite_inputs(self):
         self.assertRaises(ValueError, lambda: Box(np.inf, 0, 0, 0))

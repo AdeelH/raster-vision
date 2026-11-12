@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 import warnings
 from os.path import join
 import logging
@@ -15,6 +15,8 @@ from rastervision.pytorch_learner.dataset.visualizer import (
 
 if TYPE_CHECKING:
     import torch.nn as nn
+    from rastervision.pytorch_learner import (RegressionGeoDataConfig,
+                                              RegressionImageDataConfig)
 
 warnings.filterwarnings('ignore')
 
@@ -29,9 +31,11 @@ class RegressionLearner(Learner):
         """Override to pass class_names, pos_class_names, and prob_class_names.
         """
         cfg = self.cfg
+        data_cfg = cast('RegressionImageDataConfig | RegressionGeoDataConfig',
+                        cfg.data)
         class_names = cfg.data.class_names
-        pos_class_names = cfg.data.pos_class_names
-        prob_class_names = cfg.data.prob_class_names
+        pos_class_names = data_cfg.pos_class_names
+        prob_class_names = data_cfg.prob_class_names
         model = cfg.model.build(
             num_classes=cfg.data.num_classes,
             in_channels=cfg.data.img_channels,
@@ -76,10 +80,16 @@ class RegressionLearner(Learner):
     def _validate(self, split):
         super()._validate(split)
 
-        y, out = self.predict_dataloader(
+        preds = self.predict_dataloader(
             self.get_dataloader(split), return_format='yz', raw_out=False)
+        ys, outs = zip(*preds)
+        y, out = torch.cat(ys), torch.cat(outs)
 
-        max_scatter_points = self.cfg.data.plot_options.max_scatter_points
+        assert self.output_dir_local is not None
+        data_cfg = cast('RegressionImageDataConfig | RegressionGeoDataConfig',
+                        self.cfg.data)
+        plot_options = data_cfg.plot_options
+        max_scatter_points = plot_options.max_scatter_points
         if y.shape[0] > max_scatter_points:
             scatter_inds = torch.randperm(
                 y.shape[0], dtype=torch.long)[0:max_scatter_points]
@@ -104,7 +114,8 @@ class RegressionLearner(Learner):
             ax.set_title('{} on {} set'.format(label, split))
             ax.set_xlabel('ground truth')
             ax.set_ylabel('predictions')
-        scatter_path = join(self.output_dir, '{}_scatter.png'.format(split))
+        scatter_path = join(self.output_dir_local,
+                            '{}_scatter.png'.format(split))
         plt.savefig(scatter_path)
 
         # make histogram of errors
@@ -112,12 +123,13 @@ class RegressionLearner(Learner):
             constrained_layout=True, figsize=(5 * ncols, 5 * nrows))
         grid = gridspec.GridSpec(ncols=ncols, nrows=nrows, figure=fig)
 
-        hist_bins = self.cfg.data.plot_options.hist_bins
+        hist_bins = plot_options.hist_bins
         for label_ind, label in enumerate(self.cfg.data.class_names):
             ax = fig.add_subplot(grid[label_ind])
             errs = torch.abs(y[:, label_ind] - out[:, label_ind]).tolist()
             ax.hist(errs, bins=hist_bins)
             ax.set_title('{} on {} set'.format(label, split))
             ax.set_xlabel('prediction error')
-        hist_path = join(self.output_dir, '{}_err_hist.png'.format(split))
+        hist_path = join(self.output_dir_local,
+                         '{}_err_hist.png'.format(split))
         plt.savefig(hist_path)

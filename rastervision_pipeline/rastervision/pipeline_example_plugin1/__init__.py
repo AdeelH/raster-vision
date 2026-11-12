@@ -3,7 +3,7 @@
 
 def register_plugin(registry):
     """Each plugin must register itself and FileSystems, Runners it defines.
-    
+
     The version number helps ensure backward compatibility of configs across
     versions. If you change the fields of a config but want it to remain
     backward-compatible you can increment the version below and define a

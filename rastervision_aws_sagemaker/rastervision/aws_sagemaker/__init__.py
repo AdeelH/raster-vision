@@ -26,5 +26,5 @@ from rastervision.aws_sagemaker.aws_sagemaker_runner import *
 
 __all__ = [
     'AWS_SAGEMAKER',
-    AWSSageMakerRunner.__name__,
+    'AWSSageMakerRunner',
 ]

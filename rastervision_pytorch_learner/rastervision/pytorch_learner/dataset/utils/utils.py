@@ -1,4 +1,4 @@
-from typing import Iterable
+from typing import Iterable, Sequence
 from os import PathLike
 from os.path import join, splitext
 from pathlib import Path
@@ -53,7 +53,7 @@ def load_image(path: PathLike) -> np.ndarray:
 
 
 def make_image_folder_dataset(
-        data_dir: str, classes: Iterable[str] | None = None) -> DatasetFolder:
+        data_dir: str, classes: Sequence[str] | None = None) -> DatasetFolder:
     """Initializes and returns an ImageFolder.
 
     If classes is specified, ImageFolder's default class-to-index mapping

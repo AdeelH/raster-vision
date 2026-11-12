@@ -15,10 +15,15 @@ from rastervision.pytorch_learner import (
     SemanticSegmentationImageDataConfig, SemanticSegmentationGeoDataConfig)
 
 
-def get_config(runner, root_uri, data_uri=None, full_train=False,
+def get_config(runner,
+               root_uri,
+               data_uri: str | None = None,
+               full_train=False,
                nochip=False):
     def get_path(part):
         if full_train:
+            if data_uri is None:
+                raise ValueError('data_uri is required if full_train is set.')
             return join(data_uri, part)
         else:
             return join(dirname(__file__), part)

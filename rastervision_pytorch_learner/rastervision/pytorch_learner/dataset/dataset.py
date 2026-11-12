@@ -39,7 +39,7 @@ class AlbumentationsDataset(Dataset):
                 Defaults to ``None``. Each transform in Albumentations takes
                 images of type uint8, and sometimes other data types. The data
                 type requirements can be seen at
-                https://albumentations.ai/docs/api_reference/augmentations/transforms/ # noqa
+                https://albumentations.ai/docs/api_reference/augmentations/transforms/
                 If there is a mismatch between the data type of imagery and the
                 transform requirements, a RasterTransformer should be set
                 on the RasterSource that converts to uint8, such as
@@ -64,7 +64,7 @@ class AlbumentationsDataset(Dataset):
             self.normalize = False
             self.to_pytorch = False
 
-    def __getitem__(self, key) -> tuple[torch.Tensor, torch.Tensor]:
+    def __getitem__(self, key) -> tuple[Any, Any]:
         val = self.orig_dataset[key]
 
         try:
@@ -130,7 +130,7 @@ class GeoDataset(AlbumentationsDataset):
                 transform to apply to the windows. Defaults to None.
                 Each transform in Albumentations takes images of type uint8, and
                 sometimes other data types. The data type requirements can be
-                seen at https://albumentations.ai/docs/api_reference/augmentations/transforms/ # noqa
+                seen at https://albumentations.ai/docs/api_reference/augmentations/transforms/
                 If there is a mismatch between the data type of imagery and the
                 transform requirements, a RasterTransformer should be set
                 on the RasterSource that converts to uint8, such as
@@ -146,10 +146,10 @@ class GeoDataset(AlbumentationsDataset):
         self.scene = scene
         self.within_aoi = within_aoi
         self.return_window = return_window
-        self.out_size = None
+        self.out_size: tuple[PosInt, PosInt] | None = None
 
         if out_size is not None:
-            self.out_size: tuple[PosInt, PosInt] = ensure_tuple(out_size)
+            self.out_size = ensure_tuple(out_size)
             transform = self.append_resize_transform(transform, self.out_size)
 
         super().__init__(
@@ -220,7 +220,7 @@ class SlidingWindowGeoDataset(GeoDataset):
                 Defaults to ``None``. Each transform in Albumentations takes
                 images of type uint8, and sometimes other data types. The data
                 type requirements can be seen at
-                https://albumentations.ai/docs/api_reference/augmentations/transforms/ # noqa
+                https://albumentations.ai/docs/api_reference/augmentations/transforms/
                 If there is a mismatch between the data type of imagery and the
                 transform requirements, a RasterTransformer should be set
                 on the RasterSource that converts to uint8, such as
@@ -263,7 +263,7 @@ class SlidingWindowGeoDataset(GeoDataset):
                 within=self.within_aoi)
         self.windows = windows
 
-    def __getitem__(self, idx: int):
+    def __getitem__(self, idx: int) -> tuple[Any, Any]:
         if idx >= len(self):
             raise StopIteration()
         window = self.windows[idx]
@@ -382,7 +382,7 @@ class RandomWindowGeoDataset(GeoDataset):
             else:
                 max_h, max_w = h_lims[1], w_lims[1]
                 padding = (max_h // 2, max_w // 2)
-        padding: tuple[NonNegInt, NonNegInt] = ensure_tuple(padding)
+        padding = ensure_tuple(padding)
 
         self.size_lims = size_lims
         self.h_lims = h_lims
@@ -428,6 +428,7 @@ class RandomWindowGeoDataset(GeoDataset):
                 return sz_min, sz_min
             size = torch.randint(low=sz_min, high=sz_max, size=(1, )).item()
             return size, size
+        assert self.h_lims is not None and self.w_lims is not None
         hmin, hmax = self.h_lims
         wmin, wmax = self.w_lims
         h = torch.randint(low=hmin, high=hmax, size=(1, )).item()
@@ -480,7 +481,7 @@ class RandomWindowGeoDataset(GeoDataset):
         raise StopIteration('Failed to find valid window within scene AOI in '
                             f'{self.max_sample_attempts} attempts.')
 
-    def __getitem__(self, idx: int):
+    def __getitem__(self, idx: int) -> tuple[Any, Any]:
         if idx >= len(self):
             raise StopIteration()
         window = self.sample_window()

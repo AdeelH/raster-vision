@@ -9,11 +9,14 @@ class Evaluator(ABC):
     """Evaluates predictions for a set of scenes."""
 
     @abstractmethod
-    def process(self, scenes: Iterable['Scene']) -> None:
+    def process(self, scenes: Iterable['Scene'],
+                tmp_dir: str | None = None) -> None:
         """Evaluate all given scenes and save the evaluations.
 
         Args:
             scenes (Iterable[Scene]): Scenes to evaluate.
+            tmp_dir (str | None): Temporary directory to use, if needed.
+                Defaults to None.
         """
 
     @abstractmethod

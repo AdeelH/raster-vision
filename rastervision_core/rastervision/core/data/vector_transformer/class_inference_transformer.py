@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING
+from collections.abc import Callable
 from copy import deepcopy
 import logging
 
@@ -76,7 +77,7 @@ class ClassInferenceTransformer(VectorTransformer):
             feature: dict,
             default_class_id: int | None,
             class_config: 'ClassConfig | None' = None,
-            class_id_to_filter: dict[int, list] | None = None,
+            class_id_to_filter: dict[int, Callable[[dict], bool]] | None = None,
             class_name_mapping: dict[str, str] | None = None) -> int | None:
         """Infer the class ID for a GeoJSON feature.
 
@@ -98,13 +99,10 @@ class ClassInferenceTransformer(VectorTransformer):
             class_config: ``ClassConfig`` to match the class names in the
                 GeoJSON features to. Required if using ``class_name_mapping``.
                 Defaults to None.
-            class_id_to_filter: Map from ``class_id`` to JSON filter used to
-                infer missing class IDs. Each key should be a class ID, and its
-                value should be a boolean expression which is run against the
-                property field for each feature. This allows matching different
-                features to different class IDs based on its properties. The
-                expression schema is that described by
-                https://docs.mapbox.com/mapbox-gl-js/style-spec/other/#other-filter.
+            class_id_to_filter: Map from ``class_id`` to filter function used
+                to infer missing class IDs. Each key should be a class ID, and
+                its value should be a function, as returned by
+                ``create_filter()``, that takes a feature and returns a bool.
                 Defaults to ``None``.
             class_name_mapping: ``old_name --> new_name`` mapping for values in
                 the ``class_name`` or ``label`` property of the GeoJSON
@@ -132,7 +130,8 @@ class ClassInferenceTransformer(VectorTransformer):
             class_name = properties.get('class_name')
             if class_name is None:
                 class_name = properties.get('label')
-            class_name = class_name_mapping.get(class_name, class_name)
+            if class_name is not None:
+                class_name = class_name_mapping.get(class_name, class_name)
             if class_name in class_config.names:
                 return class_config.names.index(class_name)
 

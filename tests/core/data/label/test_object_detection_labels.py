@@ -1,3 +1,4 @@
+from typing import Any
 import unittest
 from os.path import join
 
@@ -173,12 +174,12 @@ class TestObjectDetectionLabels(unittest.TestCase):
         # prune_duplicates does not maintain ordering of boxes, so find match
         # between pruned boxes and expected_npboxes.
         pruned_npboxes = pruned_labels.get_npboxes()
-        pruned_inds = [None, None]
+        pruned_inds: list[Any] = [None, None]
         for box_ind, box in enumerate(expected_npboxes):
             for pruned_box_ind, pruned_box in enumerate(pruned_npboxes):
                 if np.array_equal(pruned_box, box):
                     pruned_inds[box_ind] = pruned_box_ind
-        self.assertTrue(np.all(pruned_inds is not None))
+        self.assertNotIn(None, pruned_inds)
 
         expected_labels = ObjectDetectionLabels(
             expected_npboxes[pruned_inds],

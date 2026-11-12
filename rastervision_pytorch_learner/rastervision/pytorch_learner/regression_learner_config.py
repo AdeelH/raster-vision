@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Iterable, Sequence
+from typing import TYPE_CHECKING, Iterable, Sequence, cast
 from collections.abc import Callable
 from enum import Enum
 import logging
@@ -131,7 +131,7 @@ class RegressionModel(nn.Module):
                  **kwargs):
         super().__init__()
         self.backbone = backbone
-        in_features = self.backbone.fc.in_features
+        in_features = cast(nn.Linear, self.backbone.fc).in_features
         self.backbone.fc = nn.Linear(in_features, out_features)
         self.pos_out_inds = pos_out_inds
         self.prob_out_inds = prob_out_inds

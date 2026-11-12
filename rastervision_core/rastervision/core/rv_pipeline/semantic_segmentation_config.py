@@ -100,7 +100,9 @@ class SemanticSegmentationPredictOptions(PredictOptions):
     def set_auto_crop_sz(self) -> 'Self':
         if self.crop_sz == 'auto':
             if self.stride is None:
-                self.validate_stride()
+                # pydantic validators are callable at runtime
+                self.validate_stride()  # pyright: ignore[reportCallIssue]
+            assert self.stride is not None
             overlap_sz = self.chip_sz - self.stride
             if overlap_sz % 2 == 1:
                 log.warning(

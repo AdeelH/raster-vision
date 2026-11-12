@@ -3,6 +3,7 @@ import unittest
 
 import numpy as np
 import rasterio
+import rasterio.crs
 from rasterio.transform import from_origin
 
 from rastervision.core.utils.cog import (create_cog, DEFAULT_BLOCK_SIZE,

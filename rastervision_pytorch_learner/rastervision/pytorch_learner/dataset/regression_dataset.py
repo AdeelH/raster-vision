@@ -37,7 +37,7 @@ class RegressionDataReader(Dataset):
         return x, y
 
     def __len__(self):
-        return len(self.labels)
+        return len(self.img_paths)
 
 
 class RegressionImageDataset(ImageDataset):

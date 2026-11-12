@@ -444,9 +444,10 @@ class SemanticSegmentationSmoothLabels(SemanticSegmentationLabels):
         """
         super().__init__(extent, num_classes, dtype)
 
-        self.pixel_scores = np.zeros(
+        self.pixel_scores: np.ndarray = np.zeros(
             (self.num_classes, self.height, self.width), dtype=self.dtype)
-        self.pixel_hits = np.zeros((self.height, self.width), dtype=dtype_hits)
+        self.pixel_hits: np.ndarray = np.zeros((self.height, self.width),
+                                               dtype=dtype_hits)
 
     def __add__(self, other: 'Self') -> 'Self':
         """Merge self with other by adding pixel scores and hits."""

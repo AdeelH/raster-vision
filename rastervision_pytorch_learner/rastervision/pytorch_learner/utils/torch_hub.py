@@ -39,7 +39,7 @@ def _uri_to_dir_name(uri: str) -> str:
     return Path(uri).stem
 
 
-def get_hubconf_dir_from_cfg(cfg, parent: str | None = '') -> str:
+def get_hubconf_dir_from_cfg(cfg, parent: str = '') -> str:
     """Determine destination directory name from an ExternalModuleConfig.
 
     If a parent path is provided, the dir name is appended to it.

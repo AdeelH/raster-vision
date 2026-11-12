@@ -13,5 +13,5 @@ from rastervision.aws_s3.s3_file_system import *
 
 __all__ = [
     'AWS_S3',
-    S3FileSystem.__name__,
+    'S3FileSystem',
 ]

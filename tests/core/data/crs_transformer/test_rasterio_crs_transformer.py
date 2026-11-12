@@ -96,8 +96,10 @@ class TestRasterioCRSTransformer(unittest.TestCase):
         self.assertEqual(pix_geom, pix_geom_expected)
 
     def test_map_to_pixel_invalid_input(self):
-        self.assertRaises(TypeError,
-                          lambda: self.crs_tf.map_to_pixel((1, 2, 3)))
+        self.assertRaises(
+            TypeError,
+            lambda: self.crs_tf.map_to_pixel(  # pyright: ignore[reportCallIssue]
+                (1, 2, 3)))
 
     def test_pixel_to_map_point(self):
         # w/o bbox
@@ -197,8 +199,10 @@ class TestRasterioCRSTransformer(unittest.TestCase):
             decimal=3)
 
     def test_pixel_to_map_invalid_input(self):
-        self.assertRaises(TypeError,
-                          lambda: self.crs_tf.pixel_to_map((1, 2, 3)))
+        self.assertRaises(
+            TypeError,
+            lambda: self.crs_tf.pixel_to_map(  # pyright: ignore[reportCallIssue]
+                (1, 2, 3)))
 
     def test_from_dataset(self):
         # default map_crs

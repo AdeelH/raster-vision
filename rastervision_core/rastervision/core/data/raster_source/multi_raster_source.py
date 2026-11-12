@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Sequence
+from typing import TYPE_CHECKING, Sequence, cast
 
 from pydantic import NonNegativeInt as NonNegInt
 import numpy as np
@@ -327,12 +327,13 @@ def _get_pixel_offset(grid_a: tuple[CRS, Affine],
     if crs_a != crs_b:
         return None
     # position of grid_a's origin in grid_b's pixel coords
-    col, row = ~tf_b * (tf_a.c, tf_a.f)
+    # affine is untyped and pyright infers Affine * tuple as unsupported
+    col, row = ~tf_b * (tf_a.c, tf_a.f)  # pyright: ignore[reportOperatorIssue]
     dx, dy = round(col), round(row)
     tf_a_in_b = Affine.translation(dx, dy)
     # the transform from grid_a pixel coords to grid_b pixel coords should be
     # a pure whole-pixel translation
-    a_to_b = ~tf_b * tf_a
+    a_to_b = cast(Affine, ~tf_b * tf_a)
     if not a_to_b.almost_equals(tf_a_in_b, precision=GRID_ALIGNMENT_TOL):
         return None
     return dy, dx
@@ -344,8 +345,9 @@ def _get_window_transform(transform: Affine, window: Box,
     (in global pixel coords) of a raster with the given transform."""
     ymin, xmin, ymax, xmax = window
     win_h, win_w = ymax - ymin, xmax - xmin
-    win_transform = window_transform(
-        Window(xmin, ymin, win_w, win_h), transform)
+    # Window is an attrs class whose fields pyright can't see
+    window = Window(xmin, ymin, win_w, win_h)  # pyright: ignore[reportCallIssue]
+    win_transform = window_transform(window, transform)
     out_h, out_w = out_shape
     if (out_h, out_w) != (win_h, win_w):
         win_transform = win_transform * Affine.scale(win_w / out_w,

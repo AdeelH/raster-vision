@@ -1,3 +1,4 @@
+from typing import cast
 import unittest
 
 from shapely.geometry import Point, shape
@@ -30,14 +31,14 @@ class TestShiftTransformer(unittest.TestCase):
         # x_shift = 1, y_shift = 0
         tf = ShiftTransformer(x_shift=1, y_shift=0)
         geojson_out = tf(geojson_in, crs_transformer=self.crs_transformer)
-        geom_out = shape(geojson_out['features'][0]['geometry'])
+        geom_out = cast(Point, shape(geojson_out['features'][0]['geometry']))
         self.assertAlmostEqual(geom_out.y, geom_in.y)
         self.assertGreater(geom_out.x, geom_in.x)
 
         # x_shift = 0, y_shift = 1
         tf = ShiftTransformer(x_shift=0, y_shift=1)
         geojson_out = tf(geojson_in, crs_transformer=self.crs_transformer)
-        geom_out = shape(geojson_out['features'][0]['geometry'])
+        geom_out = cast(Point, shape(geojson_out['features'][0]['geometry']))
         self.assertAlmostEqual(geom_out.x, geom_in.x)
         self.assertLess(geom_out.y, geom_in.y)
 

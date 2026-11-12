@@ -370,7 +370,7 @@ class Box:
             pad_direction: Literal['both', 'start', 'end'] = 'end') -> 'Self':
         """Pad sides based on given padding and direction."""
 
-        padding: tuple[NonNegInt, NonNegInt] = ensure_tuple(padding)
+        padding = ensure_tuple(padding)
 
         if padding == (0, 0):
             return self
@@ -470,18 +470,18 @@ class Box:
     def within_aoi(window: 'Box',
                    aoi_polygons: Polygon | list[Polygon]) -> bool:
         """Check if window is within the union of given AOI polygons."""
-        aoi_polygons: Polygon | MultiPolygon = unary_union(aoi_polygons)
+        aoi: Polygon | MultiPolygon = unary_union(aoi_polygons)
         w = window.to_shapely()
-        out = aoi_polygons.contains(w)
+        out = aoi.contains(w)
         return out
 
     @staticmethod
     def intersects_aoi(window: 'Box',
                        aoi_polygons: Polygon | list[Polygon]) -> bool:
         """Check if window intersects with the union of given AOI polygons."""
-        aoi_polygons: Polygon | MultiPolygon = unary_union(aoi_polygons)
+        aoi: Polygon | MultiPolygon = unary_union(aoi_polygons)
         w = window.to_shapely()
-        out = aoi_polygons.intersects(w)
+        out = aoi.intersects(w)
         return out
 
     def __contains__(self, query: 'Self | tuple[int, int]') -> bool:
@@ -545,8 +545,8 @@ class SlidingWindows(Sequence[Box]):
                 If ``'both'``, add padding to all sides.
                 Has no effect if padding is zero. Defaults to ``'end'``.
         """
-        size: tuple[PosInt, PosInt] = ensure_tuple(size)
-        stride: tuple[PosInt, PosInt] = ensure_tuple(stride)
+        size = ensure_tuple(size)
+        stride = ensure_tuple(stride)
 
         if size[0] <= 0 or size[1] <= 0 or stride[0] <= 0 or stride[1] <= 0:
             raise ValueError('size and stride must be positive.')
@@ -575,18 +575,20 @@ class SlidingWindows(Sequence[Box]):
         self.total = self.nrows * self.ncols
 
     @overload
-    def __getitem__(self, i: int | np.integer) -> Box:
+    def __getitem__(self, key: int | np.integer) -> Box:
         ...
 
     @overload
-    def __getitem__(self, s: slice) -> list[Box]:
+    def __getitem__(self, key: slice) -> list[Box]:
         ...
 
     @overload
-    def __getitem__(self, inds: Sequence[int]) -> list[Box]:
+    def __getitem__(self, key: Sequence[int] | np.ndarray) -> list[Box]:
         ...
 
-    def __getitem__(self, key: int | slice | Sequence[int]) -> Box | list[Box]:
+    def __getitem__(
+            self, key: int | np.integer | slice | Sequence[int] | np.ndarray
+    ) -> Box | list[Box]:
         if isinstance(key, int | np.integer):
             row, col = self.index_to_rowcol(key)
             return self.get_by_rowcol(row, col)

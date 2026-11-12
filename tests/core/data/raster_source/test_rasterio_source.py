@@ -5,6 +5,7 @@ from tempfile import NamedTemporaryFile
 
 import numpy as np
 import rasterio
+import rasterio.crs
 from rasterio.enums import ColorInterp
 from rasterio.transform import from_origin
 

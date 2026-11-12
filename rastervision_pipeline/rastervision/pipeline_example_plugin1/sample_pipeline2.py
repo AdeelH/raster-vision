@@ -36,12 +36,15 @@ class SamplePipeline2Config(PipelineConfig):
 
     def update(self):
         if self.message_uris is None:
+            if self.root_uri is None:
+                raise ValueError('root_uri must be set.')
             self.message_uris = [
                 join(self.root_uri, f'{name}.txt') for name in self.names
             ]
 
 
 class SamplePipeline2(Pipeline):
+    config: SamplePipeline2Config
     commands: list[str] = ['save_messages', 'print_messages']
     split_commands = ['save_messages']
     gpu_commands = []

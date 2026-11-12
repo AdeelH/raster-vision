@@ -125,6 +125,20 @@ class TestBoxList(unittest.TestCase):
         self.assertTrue(torch.equal(boxlist.get_field('scores'), scores[:-1]))
         self.assertTrue(all(class_names == boxlist.get_field('class_names')))
 
+    def test_copy(self):
+        boxes = torch.rand((10, 4))
+        class_ids = torch.randint(0, 3, (10, ))
+        boxlist = BoxList(boxes, class_ids=class_ids)
+        boxlist_copy = boxlist.copy()
+        self.assertTrue(torch.equal(boxlist_copy.boxes, boxes))
+        self.assertTrue(
+            torch.equal(boxlist_copy.get_field('class_ids'), class_ids))
+        boxlist_copy.boxes[0] = -1
+        boxlist_copy.get_field('class_ids')[0] = -1
+        self.assertFalse(torch.equal(boxlist_copy.boxes, boxes))
+        self.assertFalse(
+            torch.equal(boxlist_copy.get_field('class_ids'), class_ids))
+
     def test_to(self):
         boxes = torch.rand((10, 4))
         class_ids = torch.randint(0, 3, (10, ))

@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Iterable
+from typing import TYPE_CHECKING, Sequence
 import logging
 
 from rastervision.pytorch_learner.dataset import (
@@ -20,7 +20,7 @@ class ClassificationImageDataset(ImageDataset):
     directories are located in the same parent directory.
     """
 
-    def __init__(self, data_dir: str, class_names: Iterable[str] | None, *args,
+    def __init__(self, data_dir: str, class_names: Sequence[str] | None, *args,
                  **kwargs):
         """Constructor.
 

@@ -6,7 +6,7 @@ from rastervision.pipeline.file_system.http_file_system import *
 from rastervision.pipeline.file_system.utils import *
 
 __all__ = [
-    FileSystem.__name__,
-    LocalFileSystem.__name__,
-    HttpFileSystem.__name__,
+    'FileSystem',
+    'LocalFileSystem',
+    'HttpFileSystem',
 ]

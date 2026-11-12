@@ -1,8 +1,9 @@
+from typing import cast
 import os
 import unittest
 
 from sagemaker.workflow.pipeline import Pipeline as SageMakerPipeline
-from sagemaker.workflow.steps import ProcessingStep, TrainingStep
+from sagemaker.workflow.steps import ProcessingStep, Step, TrainingStep
 
 from rastervision.pipeline import rv_config_ as rv_config
 from rastervision.aws_sagemaker.aws_sagemaker_runner import AWSSageMakerRunner
@@ -61,22 +62,23 @@ class TestAWSSageMakerRunner(unittest.TestCase):
         )
         self.assertIsInstance(sagemaker_pipeline, SageMakerPipeline)
         self.assertEqual(len(sagemaker_pipeline.steps), 6)
+        steps = cast(list[Step], sagemaker_pipeline.steps)
         # chip #1
-        self.assertIsInstance(sagemaker_pipeline.steps[0], ProcessingStep)
+        self.assertIsInstance(steps[0], ProcessingStep)
         # chip #2
-        self.assertIsInstance(sagemaker_pipeline.steps[1], ProcessingStep)
+        self.assertIsInstance(steps[1], ProcessingStep)
         # train
-        self.assertIsInstance(sagemaker_pipeline.steps[2], TrainingStep)
-        self.assertEqual(len(sagemaker_pipeline.steps[2].depends_on), 2)
+        self.assertIsInstance(steps[2], TrainingStep)
+        self.assertEqual(len(steps[2].depends_on), 2)
         # predict #1
-        self.assertIsInstance(sagemaker_pipeline.steps[3], ProcessingStep)
-        self.assertEqual(len(sagemaker_pipeline.steps[3].depends_on), 3)
+        self.assertIsInstance(steps[3], ProcessingStep)
+        self.assertEqual(len(steps[3].depends_on), 3)
         # predict #2
-        self.assertIsInstance(sagemaker_pipeline.steps[4], ProcessingStep)
-        self.assertEqual(len(sagemaker_pipeline.steps[4].depends_on), 3)
+        self.assertIsInstance(steps[4], ProcessingStep)
+        self.assertEqual(len(steps[4].depends_on), 3)
         # eval
-        self.assertIsInstance(sagemaker_pipeline.steps[5], ProcessingStep)
-        self.assertEqual(len(sagemaker_pipeline.steps[5].depends_on), 5)
+        self.assertIsInstance(steps[5], ProcessingStep)
+        self.assertEqual(len(steps[5].depends_on), 5)
 
 
 if __name__ == '__main__':

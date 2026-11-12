@@ -1,3 +1,4 @@
+from typing import Literal
 import os
 import io
 import shutil
@@ -40,7 +41,8 @@ def make_dir(path: str,
                     f'{directory} needs to be an empty directory!')
 
 
-def progressbar(file_obj, method: str, size: int, desc: str):
+def progressbar(file_obj, method: Literal['read', 'write'], size: int,
+                desc: str):
     return tqdm.wrapattr(
         file_obj,
         method,

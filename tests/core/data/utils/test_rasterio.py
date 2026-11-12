@@ -6,7 +6,10 @@ from os.path import join
 import numpy as np
 import pyproj
 import rasterio as rio
+from rasterio.crs import CRS
+from rasterio.session import AWSSession
 from rasterio.transform import Affine, from_origin
+from rasterio.windows import Window
 
 from rastervision.pipeline.file_system.utils import get_tmp_dir
 from rastervision.core.box import Box
@@ -98,12 +101,14 @@ class TestRasterioUtils(unittest.TestCase):
     @patch.dict('os.environ', AWS_REQUEST_PAYER='requester')
     def test_get_aws_session(self):
         session = get_aws_session()
+        assert isinstance(session, AWSSession)
         self.assertTrue(session.requester_pays)
 
     @patch.dict('sys.modules', {'rastervision.aws_s3': None})
     @patch.dict('os.environ', AWS_S3_REQUESTER_PAYS='false')
     def test_get_aws_session_no_rv_aws_s3_and_not_requester_pays(self):
         session = get_aws_session()
+        assert isinstance(session, AWSSession)
         self.assertFalse(session.requester_pays)
 
 
@@ -138,14 +143,15 @@ class TestBuildVRT(unittest.TestCase):
                 self.assertEqual(ds.shape, (20, 24))
                 self.assertEqual(ds.count, 3)
                 self.assertEqual(ds.dtypes, ('uint8', ) * 3)
-                self.assertEqual(ds.crs, rio.crs.CRS.from_epsg(32615))
+                self.assertEqual(ds.crs, CRS.from_epsg(32615))
                 self.assertEqual(ds.transform, from_origin(100, 500, 1, 1))
                 self.assertEqual(ds.nodatavals, (None, ) * 3)
                 np.testing.assert_array_equal(ds.read(), mosaic)
                 # quadrant-by-quadrant
                 for i in range(2):
                     for j in range(2):
-                        window = rio.windows.Window(j * 12, i * 10, 12, 10)
+                        window = Window(
+                            j * 12, i * 10, 12, 10)  # pyright: ignore[reportCallIssue]
                         with rio.open(paths[i * 2 + j]) as tile_ds:
                             np.testing.assert_array_equal(
                                 ds.read(window=window), tile_ds.read())
@@ -227,7 +233,7 @@ class TestBuildVRT(unittest.TestCase):
             self.assertIn('2.tif', cm.output[0])
             self.assertIn('projection', cm.output[0])
             with rio.open(vrt_path) as ds:
-                self.assertEqual(ds.crs, rio.crs.CRS.from_epsg(32615))
+                self.assertEqual(ds.crs, CRS.from_epsg(32615))
                 self.assertEqual(ds.shape, (20, 10))
                 out = ds.read(1)
                 with open(vrt_path) as f:

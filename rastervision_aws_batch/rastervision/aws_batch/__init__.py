@@ -17,5 +17,5 @@ from rastervision.aws_batch.aws_batch_runner import *
 
 __all__ = [
     'AWS_BATCH',
-    AWSBatchRunner.__name__,
+    'AWSBatchRunner',
 ]

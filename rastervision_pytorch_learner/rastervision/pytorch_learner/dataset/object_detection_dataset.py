@@ -249,7 +249,7 @@ class ObjectDetectionRandomWindowGeoDataset(RandomWindowGeoDataset):
         This is done by randomly sampling one of the bounding boxes in the
         scene and drawing a random window around it.
         """
-        bbox: Box = np.random.choice(self.bboxes)
+        bbox = self.bboxes[np.random.choice(len(self.bboxes))]
         box_h, box_w = bbox.size
 
         # check if it is possible to sample a containing window

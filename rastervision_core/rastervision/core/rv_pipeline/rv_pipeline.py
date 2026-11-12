@@ -216,9 +216,10 @@ class RVPipeline(Pipeline):
             bundle_dir = join(tmp_dir, 'bundle')
             make_dir(bundle_dir)
 
+            train_uri = self.config.train_uri
+            assert train_uri is not None
             for fn in self.config.backend.get_bundle_filenames():
-                path = download_if_needed(
-                    join(self.config.train_uri, fn), tmp_dir)
+                path = download_if_needed(join(train_uri, fn), tmp_dir)
                 shutil.copy(path, join(bundle_dir, fn))
 
             if file_exists(self.config.analyze_uri, include_dir=True):

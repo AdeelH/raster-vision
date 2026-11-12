@@ -8,6 +8,7 @@ from xarray import DataArray
 from pystac import Item
 from pyproj import Transformer
 import rasterio
+import rasterio.transform
 from rasterio.transform import from_origin
 
 from rastervision.pipeline.file_system import get_tmp_dir

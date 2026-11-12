@@ -3,6 +3,7 @@ from os.path import basename, join, isfile
 import logging
 
 import torch
+import torch.version
 from torch import nn
 from torch.hub import _import_module
 import numpy as np
@@ -37,7 +38,7 @@ def compute_conf_mat_metrics(conf_mat: torch.Tensor,
                              ignore_idx: int | None = None,
                              eps: float = 1e-6):
     # eps is to avoid dividing by zero.
-    eps = torch.tensor(eps)
+    eps_tensor = torch.tensor(eps)
     conf_mat = conf_mat.cpu()
 
     if ignore_idx is not None:
@@ -51,15 +52,15 @@ def compute_conf_mat_metrics(conf_mat: torch.Tensor,
     pred_count = conf_mat.sum(dim=0)
     total = conf_mat.sum()
     true_pos = torch.diag(conf_mat)
-    precision = true_pos / torch.max(pred_count, eps)
-    recall = true_pos / torch.max(gt_count, eps)
-    f1 = (2 * precision * recall) / torch.max(precision + recall, eps)
+    precision = true_pos / torch.max(pred_count, eps_tensor)
+    recall = true_pos / torch.max(gt_count, eps_tensor)
+    f1 = (2 * precision * recall) / torch.max(precision + recall, eps_tensor)
 
     weights = gt_count / total
     weighted_precision = (weights * precision).sum()
     weighted_recall = (weights * recall).sum()
     weighted_f1 = ((2 * weighted_precision * weighted_recall) / torch.max(
-        weighted_precision + weighted_recall, eps))
+        weighted_precision + weighted_recall, eps_tensor))
 
     metrics = {
         'avg_precision': weighted_precision.item(),
@@ -237,7 +238,8 @@ class MinMaxNormalize(ImageOnlyTransform):
         self.dtype = dtype
 
     def _apply_on_channel(self, image, **params):
-        out = cv2.normalize(
+        # cv2's stubs do not allow dst=None
+        out = cv2.normalize(  # pyright: ignore[reportCallIssue]
             image,
             None,
             self.min_val,
@@ -453,7 +455,7 @@ class ONNXRuntimeAdapter:
         self.ort_session = ort_session
         inputs = ort_session.get_inputs()
         if len(inputs) > 1:
-            return ValueError('ONNX model must only take one input.')
+            raise ValueError('ONNX model must only take one input.')
         self.input_key = inputs[0].name
 
     @classmethod
@@ -479,7 +481,8 @@ class ONNXRuntimeAdapter:
         return onnx_model
 
     def __call__(self, x: torch.Tensor | np.ndarray) -> torch.Tensor:
-        x = x.numpy()
+        if isinstance(x, torch.Tensor):
+            x = x.numpy()
         outputs = self.ort_session.run(None, {self.input_key: x})
         out = outputs[0]
         if isinstance(out, np.ndarray):

@@ -69,7 +69,7 @@ class TestStatsTransformerConfig(unittest.TestCase):
             new_cfg_dict = stats_transformer_config_upgrader(old_cfg_dict, 13)
             self.assertTrue(new_cfg_dict['needs_channel_order'])
 
-            cfg = build_config(new_cfg_dict)
+            cfg: StatsTransformerConfig = build_config(new_cfg_dict)
             self.assertIsInstance(cfg, StatsTransformerConfig)
 
             tf = cfg.build(channel_order=[1, 0])

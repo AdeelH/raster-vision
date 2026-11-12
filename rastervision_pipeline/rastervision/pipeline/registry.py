@@ -6,7 +6,7 @@ from click import Command
 if TYPE_CHECKING:
     from rastervision.pipeline.runner import Runner  # noqa
     from rastervision.pipeline.file_system import FileSystem  # noqa
-    from rastervision.pipeline.config import Upgrader, Config  # noqa
+    from rastervision.pipeline.config import Config  # noqa
 
 
 class RegistryError(Exception):

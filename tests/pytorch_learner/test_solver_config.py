@@ -26,7 +26,7 @@ class TestSolverConfig(unittest.TestCase):
         self.assertIn('ignore_class_index', new_cfg_dict)
         self.assertIsNone(new_cfg_dict['ignore_class_index'])
 
-        new_cfg = build_config(new_cfg_dict)
+        new_cfg: SolverConfig = build_config(new_cfg_dict)
         loss = new_cfg.build_loss(num_classes=2)
         self.assertTrue(loss.ignore_index < 0)
 
