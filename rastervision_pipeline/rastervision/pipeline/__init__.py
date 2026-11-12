@@ -16,9 +16,11 @@ try:
     # Without cv2:
     # ImportError: /lib/aarch64-linux-gnu/libGLdispatch.so.0: cannot allocate memory in static TLS block  # noqa: E501
     # See https://github.com/opencv/opencv/issues/14884
+    # isort: off
     import torch
     import sklearn
     import cv2
+    # isort: on
 except Exception:  # pragma: no cover
     pass
 

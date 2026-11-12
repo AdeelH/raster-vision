@@ -1,3 +1,6 @@
+# The order of these imports matters (to avoid circular imports).
+# isort: skip_file
+
 from rastervision.pytorch_learner.dataset.dataset import *
 from rastervision.pytorch_learner.dataset.transform import *
 from rastervision.pytorch_learner.dataset.utils import *

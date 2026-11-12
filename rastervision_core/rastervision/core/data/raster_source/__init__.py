@@ -1,3 +1,6 @@
+# The order of these imports matters (to avoid circular imports).
+# isort: skip_file
+
 from rastervision.core.data.raster_source.raster_source import *
 from rastervision.core.data.raster_source.raster_source_config import *
 from rastervision.core.data.raster_source.rasterio_source import *
