@@ -14,7 +14,8 @@ Raster Vision 0.31.2 (unreleased)
   * Fix the declared dependencies of ``rastervision_pytorch_backend`` (it now depends on ``rastervision_core`` and ``rastervision_pytorch_learner``) and ``rastervision_aws_sagemaker`` (it now depends on ``boto3``).
   * Drop support for Python 3.10, which has reached end-of-life. All packages now declare ``requires-python >= 3.11``.
   * Remove the ``pyproj<=3.7.0`` constraint and the workaround in :class:`.RasterioCRSTransformer` for inconsistent results when PROJ fails to download a transformation grid (`pyproj#705 <https://github.com/pyproj4/pyproj/issues/705>`__), which was fixed in PROJ 9.5.1 (bundled with ``pyproj>=3.7.1``). Transformations still raise an error, rather than silently returning ``inf``, if they fail. As a side effect, :class:`.RasterioCRSTransformer` is now picklable.
-  * Replace ``yapf`` and ``flake8`` with `ruff <https://docs.astral.sh/ruff/>`__ for formatting and linting (pycodestyle and pyflakes rules only) and add type checking with `pyright <https://microsoft.github.io/pyright/>`__ (``basic`` mode, with the rules that check type compatibility of arguments, assignments, return values and ``Optional`` values disabled for now). The code has been reformatted with ``ruff format``. Configuration for both is in the root ``pyproject.toml``; ``scripts/style_tests`` runs all checks.
+  * Replace ``yapf`` and ``flake8`` with `ruff <https://docs.astral.sh/ruff/>`__ for formatting and linting (pycodestyle and pyflakes rules only) and add type checking with `pyright <https://microsoft.github.io/pyright/>`__ (``basic`` mode). The code has been reformatted with ``ruff format`` and the type annotations have been corrected throughout so that the code passes pyright's checks. Configuration for both is in the root ``pyproject.toml``; ``scripts/style_tests`` runs all checks.
+  * :class:`.Box` is now generic in its coordinate type: ``Box[int]`` (the default, i.e. plain ``Box``) for pixel coordinates and ``Box[float]`` for map coordinates. This only affects type annotations.
 
 * Fixes:
 
@@ -36,6 +37,15 @@ Raster Vision 0.31.2 (unreleased)
     * :class:`.WindowSamplingConfig` raised a ``TypeError`` instead of a validation error for ``method='random'`` with a tuple ``size`` and no size limits.
     * The ``collect`` step of the examples' test script passed an argument that ``download_or_copy()`` no longer accepts.
     * The semantic segmentation examples passed albumentations 1.x arguments to ``CoarseDropout``, which albumentations 2.x silently ignores.
+    * The ``SlidingWindowGeoDataset`` and ``RandomWindowGeoDataset`` constructors raised a ``KeyError`` if ``transform_type`` was not specified. It now defaults to ``TransformType.noop``.
+    * :class:`.StatsAnalyzerConfig` validation raised a ``TypeError`` when ``sample_prob=None``.
+    * :class:`.NanTransformerConfig` accepted ``to_value=None``, which left NaNs in float chips and crashed for integer chips. ``to_value`` must now be a number.
+    * Scenes created by the ``make_*_scene()`` factory functions had :class:`uuid.UUID` IDs instead of strings.
+    * ``Learner.from_model_bundle()`` and ``Learner.build_dataloader()`` crashed when the ``LearnerConfig`` had no ``solver``.
+    * :class:`.ObjectDetectionLearner` crashed when setting up an ONNX model without a model config.
+    * ``DataConfig.get_custom_albumentations_transforms()`` crashed when ``plot_options`` was ``None``.
+    * :func:`~rastervision.pipeline.cli.get_configs` raised a ``TypeError`` when called without ``args``.
+    * ``get_local_path()`` now raises a ``ValueError`` (instead of a ``TypeError``) if ``download_dir`` is not specified for a remote URI.
 
 
 Raster Vision 0.31.1

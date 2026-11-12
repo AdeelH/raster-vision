@@ -101,14 +101,14 @@ class RasterizedSource(RasterSource):
         super().__init__(
             channel_order=[0],
             num_channels_raw=1,
-            dtype_raw=np.uint8,
+            dtype_raw=np.dtype(np.uint8),
             bbox=bbox,
             raster_transformers=raster_transformers,
         )
 
     @property
     def dtype(self) -> np.dtype:
-        return np.uint8
+        return np.dtype(np.uint8)
 
     @property
     def crs_transformer(self):

@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 from functools import partial
 
 from pyproj import Transformer
@@ -13,6 +13,7 @@ from rastervision.core.data.crs_transformer import (
     CRSTransformer,
     IdentityCRSTransformer,
 )
+from rastervision.core.data.crs_transformer.crs_transformer import PointT
 
 if TYPE_CHECKING:
     from typing import Self
@@ -24,11 +25,13 @@ MAP_PRECISION = 6
 class RasterioCRSTransformer(CRSTransformer):
     """Transformer for a RasterioRasterSource."""
 
+    transform: Affine
+
     def __init__(
         self,
         transform: Affine,
-        image_crs: str,
-        map_crs: str = 'epsg:4326',
+        image_crs: str | None,
+        map_crs: str | None = 'epsg:4326',
         round_pixels: bool = True,
     ):
         """Constructor.
@@ -88,9 +91,7 @@ class RasterioCRSTransformer(CRSTransformer):
         """
         return out
 
-    def _map_to_pixel_point(
-        self, map_point: tuple[float, float] | tuple[np.ndarray, np.ndarray]
-    ) -> tuple[int, int] | tuple[np.ndarray, np.ndarray]:
+    def _map_to_pixel_point(self, map_point: PointT) -> PointT:
         """Transform point from map to pixel-based coordinates.
 
         Args:
@@ -107,9 +108,9 @@ class RasterioCRSTransformer(CRSTransformer):
         if self.round_pixels:
             row, col = np.round(row), np.round(col)
         pixel_point = (col, row)
-        return pixel_point
+        return cast(PointT, pixel_point)
 
-    def _map_to_pixel_box(self, box: Box) -> Box:
+    def _map_to_pixel_box(self, box: Box[float]) -> Box[int]:
         ymin, xmin, ymax, xmax = box
         xmin, ymin = self.map2image(xmin, ymin)
         xmax, ymax = self.map2image(xmax, ymax)
@@ -135,11 +136,9 @@ class RasterioCRSTransformer(CRSTransformer):
                 round(xmax),
             )
         pixel_box = Box(ymin, xmin, ymax, xmax)
-        return pixel_box
+        return cast(Box[int], pixel_box)
 
-    def _pixel_to_map_point(
-        self, pixel_point: tuple[int, int] | tuple[np.ndarray, np.ndarray]
-    ) -> tuple[float, float] | tuple[np.ndarray, np.ndarray]:
+    def _pixel_to_map_point(self, pixel_point: PointT) -> PointT:
         """Transform point from pixel to map-based coordinates.
 
         Args:
@@ -151,9 +150,9 @@ class RasterioCRSTransformer(CRSTransformer):
         col, row = pixel_point
         x, y = xy(self.transform, row, col, offset='center')
         map_point = self.image2map(x, y)
-        return map_point
+        return cast(PointT, map_point)
 
-    def _pixel_to_map_box(self, box: Box) -> Box:
+    def _pixel_to_map_box(self, box: Box[int]) -> Box[float]:
         # Window is an attrs class whose fields pyright can't see
         rio_window = Window(*box.to_xywh())  # pyright: ignore[reportCallIssue]
         xmin, ymin, xmax, ymax = bounds(rio_window, transform=self.transform)

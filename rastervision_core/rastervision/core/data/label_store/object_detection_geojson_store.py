@@ -53,7 +53,7 @@ class ObjectDetectionGeoJSONStore(LabelStore):
             class_ids,
             self.crs_transformer,
             self.class_config,
-            scores=scores,
+            scores=None if scores is None else list(scores),
         )
         json_to_file(geojson, self.uri)
 
@@ -70,7 +70,7 @@ class ObjectDetectionGeoJSONStore(LabelStore):
         return labels
 
     @property
-    def bbox(self) -> 'Box':
+    def bbox(self) -> 'Box | None':
         return self._bbox
 
     @property

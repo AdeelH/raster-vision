@@ -1,13 +1,13 @@
 from typing import TYPE_CHECKING, Sequence
 
 import numpy as np
+import numpy.typing as npt
 
 from rastervision.core.data.raster_transformer import RasterTransformer
 from rastervision.core.raster_stats import RasterStats
 from rastervision.pipeline.utils import repr_with_args
 
 if TYPE_CHECKING:
-    from typing import Self
     from rastervision.core.data import RasterSource
 
 
@@ -28,8 +28,8 @@ class StatsTransformer(RasterTransformer):
 
     def __init__(
         self,
-        means: Sequence[float],
-        stds: Sequence[float],
+        means: Sequence[float] | np.ndarray,
+        stds: Sequence[float] | np.ndarray,
         max_stds: float = 3.0,
     ):
         """Construct a new StatsTransformer.
@@ -91,7 +91,7 @@ class StatsTransformer(RasterTransformer):
         sample_prob: float | None = 0.1,
         max_stds: float = 3.0,
         chip_sz: int = 300,
-    ) -> 'Self':
+    ) -> 'StatsTransformer':
         """Build with stats from the given raster sources.
 
         Args:
@@ -120,7 +120,7 @@ class StatsTransformer(RasterTransformer):
     @classmethod
     def from_stats_json(
         cls, uri: str, channel_order: list[int] | None = None, **kwargs
-    ) -> 'Self':
+    ) -> 'StatsTransformer':
         """Build with stats from a JSON file.
 
         The file is expected to be in the same format as written by
@@ -147,7 +147,7 @@ class StatsTransformer(RasterTransformer):
         stats: RasterStats,
         channel_order: list[int] | None = None,
         **kwargs,
-    ) -> 'Self':
+    ) -> 'StatsTransformer':
         """Build with stats from a :class:`.RasterStats` instance.
 
         The file is expected to be in the same format as written by
@@ -162,6 +162,7 @@ class StatsTransformer(RasterTransformer):
         Returns:
             A StatsTransformer.
         """
+        assert stats.means is not None and stats.stds is not None
         means, stds = stats.means, stats.stds
         if channel_order is not None:
             means = means[channel_order]
@@ -179,5 +180,5 @@ class StatsTransformer(RasterTransformer):
             self, means=self.means, stds=self.stds, max_stds=self.max_stds
         )
 
-    def get_out_dtype(self, in_dtype: np.dtype) -> np.dtype:
+    def get_out_dtype(self, in_dtype: npt.DTypeLike) -> np.dtype:
         return np.dtype(np.uint8)

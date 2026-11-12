@@ -47,6 +47,7 @@ class ShiftTransformer(VectorTransformer):
             dlat = self.y_shift / METERS_PER_DEGREE
             return lon + dlon, lat + dlat
 
+        assert crs_transformer is not None
         wgs84_transformer = self.make_wgs84_transformer(crs_transformer)
 
         geojson_pixel = geojson
@@ -61,6 +62,11 @@ class ShiftTransformer(VectorTransformer):
         return geojson_pixel_shifted
 
     def make_wgs84_transformer(self, crs_transformer: 'CRSTransformer'):
+        if crs_transformer.transform is None:
+            raise ValueError(
+                'ShiftTransformer requires a CRSTransformer with an affine '
+                'transform.'
+            )
         wgs84_transformer = RasterioCRSTransformer(
             transform=crs_transformer.transform,
             image_crs=crs_transformer.image_crs,

@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Literal, TypeVar
+from typing import TYPE_CHECKING, Any, Literal, TypeVar, cast
 from collections.abc import Callable
 import builtins
 import inspect
@@ -160,7 +160,7 @@ class Config(BaseModel):
             inp: a URI to a JSON file or a dict.
         """
         if isinstance(inp, Config):
-            return inp
+            return cast('Self', inp)
         if isinstance(inp, dict):
             return cls.from_dict(inp)
         if isinstance(inp, str):
@@ -217,7 +217,7 @@ def save_pipeline_config(cfg: 'PipelineConfig', output_uri: str) -> None:
 
 def build_config(
     x: dict | list[dict | Config] | Config,
-) -> Config | list[Config]:
+) -> Any:
     """Build a Config from various types of input.
 
     This is useful for deserializing from JSON. It implements polymorphic
@@ -228,7 +228,8 @@ def build_config(
         x: some representation of Config(s)
 
     Returns:
-        The corresponding Config(s).
+        The corresponding Config(s). Dicts without a `type_hint` (e.g. plain
+        JSON fields) are returned as dicts.
     """
     if isinstance(x, dict):
         new_x = {k: build_config(v) for k, v in x.items()}
@@ -245,7 +246,7 @@ def build_config(
 
 def _upgrade_config(
     x: dict | list[dict], plugin_versions: dict[str, int]
-) -> dict | list[dict]:
+) -> Any:
     """Upgrade serialized Config(s) to the latest version.
 
     Used to implement backward compatibility of Configs using upgraders stored
@@ -339,6 +340,7 @@ def get_plugin(config_cls: type) -> str:
     This only works correctly if the plugin is in a module under rastervision.
     """
     cls_module = inspect.getmodule(config_cls)
+    assert cls_module is not None
     return 'rastervision.' + cls_module.__name__.split('.')[1]
 
 

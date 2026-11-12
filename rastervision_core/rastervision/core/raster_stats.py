@@ -18,9 +18,9 @@ class RasterStats:
 
     def __init__(
         self,
-        means: Sequence[float] | None = None,
-        stds: Sequence[float] | None = None,
-        counts: Sequence[float] | None = None,
+        means: Sequence[float] | np.ndarray | None = None,
+        stds: Sequence[float] | np.ndarray | None = None,
+        counts: Sequence[float] | np.ndarray | None = None,
     ):
         """Constructor.
 
@@ -39,7 +39,7 @@ class RasterStats:
         """Load stats from file."""
         stats_json = file_to_json(stats_uri)
         assert 'means' in stats_json and 'stds' in stats_json
-        stats = RasterStats(
+        stats = cls(
             means=stats_json['means'],
             stds=stats_json['stds'],
             counts=stats_json.get('counts'),
@@ -108,7 +108,7 @@ class RasterStats:
         running_mean: np.ndarray | None = None,
         running_var: np.ndarray | None = None,
         running_count: np.ndarray | None = None,
-    ) -> tuple[None, None, None] | tuple[np.ndarray, np.ndarray, np.ndarray]:
+    ) -> tuple[np.ndarray | None, np.ndarray | None, np.ndarray | None]:
         """Compute running mean and var from chips in stream."""
         with tqdm(chips, desc='Analyzing chips') as bar:
             for chip in bar:
@@ -143,6 +143,9 @@ class RasterStats:
         if not has_running_stats:
             return channel_means, channel_vars, channel_counts
 
+        assert running_mean is not None
+        assert running_var is not None
+        assert running_count is not None
         running_var = parallel_variance(
             channel_means,
             channel_counts,
@@ -154,7 +157,7 @@ class RasterStats:
         running_mean = parallel_mean(
             channel_means, channel_counts, running_mean, running_count
         )
-        running_count += channel_counts
+        running_count[...] += channel_counts
 
         return running_mean, running_var, running_count
 
@@ -180,7 +183,9 @@ class RasterStats:
         return repr_with_args(self, **self.to_dict())
 
 
-def parallel_variance(mean_a, count_a, var_a, mean_b, count_b, var_b):
+def parallel_variance(
+    mean_a, count_a, var_a, mean_b, count_b, var_b
+) -> np.ndarray:
     """Compute the variance based on stats from two partitions of the data.
 
     See "Parallel Algorithm" in
@@ -205,7 +210,7 @@ def parallel_variance(mean_a, count_a, var_a, mean_b, count_b, var_b):
     return var
 
 
-def parallel_mean(mean_a, count_a, mean_b, count_b):
+def parallel_mean(mean_a, count_a, mean_b, count_b) -> np.ndarray:
     """Compute the mean based on stats from two partitions of the data.
 
     See "Parallel Algorithm" in

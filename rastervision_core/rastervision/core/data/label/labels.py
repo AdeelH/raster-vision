@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 
 if TYPE_CHECKING:
     from typing import Self
-    from shapely.geometry import Polygon
+    from shapely.geometry.base import BaseGeometry
     from rastervision.core.box import Box
 
 
@@ -24,7 +24,7 @@ class Labels(ABC):
         """
 
     @abstractmethod
-    def filter_by_aoi(self, aoi_polygons: list['Polygon']) -> 'Self':
+    def filter_by_aoi(self, aoi_polygons: list['BaseGeometry']) -> 'Self':
         """Return a copy of these labels filtered by given AOI polygons.
 
         Args:

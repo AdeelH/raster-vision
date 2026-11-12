@@ -32,6 +32,7 @@ class TestChipClassificationLabelSourceConfig(unittest.TestCase):
         cfg = ChipClassificationLabelSourceConfig(
             vector_source=GeoJSONVectorSourceConfig(uris=uri)
         )
+        assert cfg.vector_source is not None
         tfs = cfg.vector_source.transformers
         has_inf_tf = any(
             isinstance(tf, ClassInferenceTransformerConfig) for tf in tfs

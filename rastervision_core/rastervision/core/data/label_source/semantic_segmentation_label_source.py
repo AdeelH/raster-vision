@@ -4,7 +4,7 @@ import numpy as np
 
 from rastervision.core.box import Box
 from rastervision.core.data import ClassConfig
-from rastervision.core.data.label import SemanticSegmentationLabels
+from rastervision.core.data.label import SemanticSegmentationDiscreteLabels
 from rastervision.core.data.label_source.label_source import LabelSource
 from rastervision.core.data.raster_source import RasterSource
 from rastervision.core.data.utils import pad_to_window_size
@@ -40,7 +40,7 @@ class SemanticSegmentationLabelSource(LabelSource):
 
     def get_labels(
         self, window: Box | None = None
-    ) -> SemanticSegmentationLabels:
+    ) -> SemanticSegmentationDiscreteLabels:
         """Get labels for a window.
 
         Args:
@@ -54,10 +54,8 @@ class SemanticSegmentationLabelSource(LabelSource):
             window = self.extent
 
         label_arr = self.get_label_arr(window)
-        labels = SemanticSegmentationLabels.make_empty(
-            extent=self.extent,
-            num_classes=len(self.class_config),
-            smooth=False,
+        labels = SemanticSegmentationDiscreteLabels.make_empty(
+            extent=self.extent, num_classes=len(self.class_config)
         )
         labels[window] = label_arr
 

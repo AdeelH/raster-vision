@@ -1,6 +1,8 @@
+from typing import cast
 import unittest
 
 from rastervision.core.evaluation import EvaluatorConfig
+from rastervision.core.rv_pipeline import RVPipelineConfig
 
 
 class MockRVPipelineConfig:
@@ -11,7 +13,7 @@ class TestEvaluatorConfig(unittest.TestCase):
     def test_update(self):
         cfg = EvaluatorConfig(output_uri=None)
         pipeline_cfg = MockRVPipelineConfig()
-        cfg.update(pipeline_cfg)
+        cfg.update(cast(RVPipelineConfig, pipeline_cfg))
         self.assertEqual(cfg.output_uri, pipeline_cfg.eval_uri)
         self.assertEqual(
             cfg.get_output_uri(), f'{pipeline_cfg.eval_uri}/eval.json'

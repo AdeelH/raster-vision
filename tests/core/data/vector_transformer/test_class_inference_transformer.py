@@ -1,4 +1,5 @@
 import unittest
+from typing import Any
 
 from rastervision.core.data import ClassConfig
 from rastervision.core.data.vector_transformer import (
@@ -28,7 +29,7 @@ class TestClassInferenceTransformerConfig(unittest.TestCase):
 
 class TestClassInferenceTransformer(unittest.TestCase):
     def test_init(self):
-        args = dict(
+        args: dict[str, Any] = dict(
             default_class_id=None, class_name_mapping=dict(old_name='new_name')
         )
         self.assertRaises(
@@ -62,7 +63,7 @@ class TestClassInferenceTransformer(unittest.TestCase):
 
     def test_inference_with_class_name_mapping(self):
         feat = make_feature(class_name='old_name')
-        args = dict(
+        args: dict[str, Any] = dict(
             feature=feat,
             default_class_id=None,
             class_name_mapping=dict(old_name='new_name'),

@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from abc import ABC, abstractmethod
 import logging
 
@@ -134,7 +134,7 @@ class VectorSource(ABC):
         gdf = self._gdf
         if window is not None:
             window_geom = window.to_shapely()
-            gdf: gpd.GeoDataFrame = gdf[gdf.intersects(window_geom)]
+            gdf = cast(gpd.GeoDataFrame, gdf[gdf.intersects(window_geom)])
         return gdf
 
     @property

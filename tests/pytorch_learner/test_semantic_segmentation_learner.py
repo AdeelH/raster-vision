@@ -78,11 +78,13 @@ class TestSemanticSegmentationLearner(unittest.TestCase):
             self.fail(msg)
 
     def test_learner_rgb(self):
-        args = dict(num_channels=3, channel_display_groups=None)
+        args: dict[str, Any] = dict(
+            num_channels=3, channel_display_groups=None
+        )
         self.assertNoError(lambda: self._test_learner(**args))
 
     def test_learner_multiband(self):
-        args = dict(
+        args: dict[str, Any] = dict(
             num_channels=6, channel_display_groups=[(0, 1, 2), (3, 4, 5)]
         )
         self.assertNoError(lambda: self._test_learner(**args))

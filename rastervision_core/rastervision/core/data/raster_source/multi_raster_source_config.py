@@ -16,6 +16,8 @@ from rastervision.core.data.raster_source import (
 
 if TYPE_CHECKING:
     from typing import Self
+    from rastervision.core.data import SceneConfig
+    from rastervision.core.rv_pipeline import RVPipelineConfig
 
 
 def multi_rs_config_upgrader(cfg_dict: dict, version: int) -> dict:
@@ -108,6 +110,10 @@ class MultiRasterSourceConfig(RasterSourceConfig):
             )
         return multi_raster_source
 
-    def update(self, pipeline=None, scene=None):
+    def update(
+        self,
+        pipeline: 'RVPipelineConfig | None' = None,
+        scene: 'SceneConfig | None' = None,
+    ) -> None:
         for t in self.transformers:
             t.update(pipeline, scene)

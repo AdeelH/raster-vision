@@ -1,6 +1,7 @@
 from collections.abc import Callable
 from os.path import join
 import sys
+from typing import Any, cast
 import unittest
 from unittest.mock import patch
 
@@ -12,6 +13,7 @@ from shapely.geometry import Polygon, mapping
 from rastervision.pipeline.file_system import json_to_file, get_tmp_dir
 from rastervision.core.box import Box
 from rastervision.core.data import ClassConfig, RasterioCRSTransformer
+from rastervision.core.data.scene import Scene
 from rastervision.core.data.utils.geojson import (
     geometry_to_feature,
     features_to_geojson,
@@ -38,10 +40,10 @@ class MockScene:
         return np.empty((1, 1, 3)), np.empty((1, 1))
 
 
-def make_overlapping_geojson(uri: str) -> str:
+def make_overlapping_geojson(uri: str) -> dict:
     crs_tf = RasterioCRSTransformer.from_uri(uri)
-    xmin, ymin = crs_tf.pixel_to_map((0, 0))
-    xmax, ymax = crs_tf.pixel_to_map((10, 10))
+    xmin, ymin = map(float, crs_tf.pixel_to_map((0, 0)))
+    xmax, ymax = map(float, crs_tf.pixel_to_map((10, 10)))
     polygon = Polygon.from_bounds(xmin, ymin, xmax, ymax)
     geometry = mapping(polygon)
     feature = geometry_to_feature(geometry, properties=dict(class_id=1))
@@ -169,7 +171,7 @@ class TestGeoDatasetFromURIs(unittest.TestCase):
 
 class TestSlidingWindowGeoDataset(unittest.TestCase):
     def test_sample_window_within_aoi(self):
-        scene = MockScene()
+        scene = cast(Scene, MockScene())
         ds = SlidingWindowGeoDataset(
             scene,
             10,
@@ -189,7 +191,7 @@ class TestSlidingWindowGeoDataset(unittest.TestCase):
         self.assertEqual(len(ds.windows), 4)
 
     def test_out_size(self):
-        scene = MockScene()
+        scene = cast(Scene, MockScene())
         ds = SlidingWindowGeoDataset(
             scene,
             size=5,
@@ -202,7 +204,7 @@ class TestSlidingWindowGeoDataset(unittest.TestCase):
         self.assertTupleEqual(y.shape, (10, 10))
 
     def test_return_window(self):
-        scene = MockScene()
+        scene = cast(Scene, MockScene())
         ds = SlidingWindowGeoDataset(
             scene,
             10,
@@ -224,7 +226,7 @@ class TestRandomWindowGeoDataset(unittest.TestCase):
             self.fail(msg)
 
     def test_sample_window_within_aoi(self):
-        scene = MockScene()
+        scene = cast(Scene, MockScene())
 
         ds = RandomWindowGeoDataset(
             scene,
@@ -257,10 +259,10 @@ class TestRandomWindowGeoDataset(unittest.TestCase):
         self.assertNoError(ds.sample_window)
 
     def test_init_validation(self):
-        scene = MockScene()
+        scene = cast(Scene, MockScene())
 
         # neither size_lims or h/w_lims specified
-        args = dict(
+        args: dict[str, Any] = dict(
             scene=scene,
             out_size=10,
             max_windows=10,
@@ -269,7 +271,7 @@ class TestRandomWindowGeoDataset(unittest.TestCase):
         self.assertRaises(ValueError, lambda: RandomWindowGeoDataset(**args))
 
         # size_lims + h_lims specified
-        args = dict(
+        args: dict[str, Any] = dict(
             scene=scene,
             out_size=10,
             size_lims=(10, 11),
@@ -280,7 +282,7 @@ class TestRandomWindowGeoDataset(unittest.TestCase):
         self.assertRaises(ValueError, lambda: RandomWindowGeoDataset(**args))
 
         # size_lims + h_lims + w_lims specified
-        args = dict(
+        args: dict[str, Any] = dict(
             scene=scene,
             out_size=10,
             size_lims=(10, 11),
@@ -292,7 +294,7 @@ class TestRandomWindowGeoDataset(unittest.TestCase):
         self.assertRaises(ValueError, lambda: RandomWindowGeoDataset(**args))
 
         # only w_lims specified
-        args = dict(
+        args: dict[str, Any] = dict(
             scene=scene,
             out_size=10,
             w_lims=(10, 11),
@@ -324,7 +326,7 @@ class TestRandomWindowGeoDataset(unittest.TestCase):
         self.assertTupleEqual(ds.padding, (5, 5))
 
     def test_min_max_size(self):
-        scene = MockScene()
+        scene = cast(Scene, MockScene())
         ds = RandomWindowGeoDataset(
             scene,
             out_size=None,
@@ -347,7 +349,7 @@ class TestRandomWindowGeoDataset(unittest.TestCase):
         self.assertTupleEqual(ds.max_size, (15, 12))
 
     def test_sample_window_size(self):
-        scene = MockScene()
+        scene = cast(Scene, MockScene())
         ds = RandomWindowGeoDataset(
             scene,
             out_size=None,
@@ -372,7 +374,7 @@ class TestRandomWindowGeoDataset(unittest.TestCase):
         self.assertTrue(8 <= sampled_w < 12)
 
     def test_max_windows(self):
-        scene = MockScene()
+        scene = cast(Scene, MockScene())
         ds = RandomWindowGeoDataset(
             scene,
             out_size=10,
@@ -383,7 +385,7 @@ class TestRandomWindowGeoDataset(unittest.TestCase):
         self.assertRaises(StopIteration, lambda: ds[10])
 
     def test_return_window(self):
-        scene = MockScene()
+        scene = cast(Scene, MockScene())
         ds = RandomWindowGeoDataset(
             scene,
             out_size=10,
@@ -399,8 +401,8 @@ class TestRandomWindowGeoDataset(unittest.TestCase):
 
     def test_efficient_aoi_sampling_without_triangle(self):
         # AoiSampler uses shapely and must not need the triangle library.
-        scene = MockScene()
-        args = dict(
+        scene = cast(Scene, MockScene())
+        args: dict[str, Any] = dict(
             scene=scene,
             out_size=10,
             size_lims=(5, 6),

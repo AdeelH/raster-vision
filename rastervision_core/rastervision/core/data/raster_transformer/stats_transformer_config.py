@@ -65,6 +65,7 @@ class StatsTransformerConfig(RasterTransformerConfig):
     def build(
         self, channel_order: list[int] | None = None
     ) -> StatsTransformer:
+        assert self.stats_uri is not None
         if self.needs_channel_order:
             tf = StatsTransformer.from_stats_json(
                 self.stats_uri, channel_order=channel_order

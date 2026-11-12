@@ -4,16 +4,17 @@ from rastervision.core.data.raster_transformer.raster_transformer import (
 from rastervision.pipeline.utils import repr_with_args
 
 import numpy as np
+import numpy.typing as npt
 
 
 class CastTransformer(RasterTransformer):
     """Casts chips to the specified dtype."""
 
-    def __init__(self, to_dtype: str):
+    def __init__(self, to_dtype: npt.DTypeLike):
         """Constructor.
 
         Args:
-            to_dtype: (str) dtype to cast the chips to.
+            to_dtype: dtype to cast the chips to.
         """
         self.to_dtype = np.dtype(to_dtype)
 
@@ -31,5 +32,5 @@ class CastTransformer(RasterTransformer):
         """
         return chip.astype(self.to_dtype)
 
-    def get_out_dtype(self, in_dtype: 'np.dtype') -> 'np.dtype':
+    def get_out_dtype(self, in_dtype: npt.DTypeLike) -> np.dtype:
         return self.to_dtype

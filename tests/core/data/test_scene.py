@@ -1,5 +1,7 @@
 import unittest
 
+from shapely.geometry.base import BaseGeometry
+
 from rastervision.core.box import Box
 from rastervision.core.data import ClassConfig, RasterioSource, Scene
 
@@ -30,7 +32,7 @@ class TestScene(unittest.TestCase):
         self.assertListEqual(scene.aoi_polygons_bbox_coords, [])
 
         # w/ AOI
-        aoi_polygons = [
+        aoi_polygons: list[BaseGeometry] = [
             Box(50, 50, 150, 150).to_shapely(),
             Box(150, 150, 250, 250).to_shapely(),
             Box(300, 300, 400, 400).to_shapely(),

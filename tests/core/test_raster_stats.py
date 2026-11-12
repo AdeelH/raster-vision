@@ -1,5 +1,6 @@
 import unittest
 from os.path import join
+from typing import Any
 
 import numpy as np
 from xarray import DataArray
@@ -26,6 +27,8 @@ class TestRasterStats(unittest.TestCase):
             stats.save(stats_uri)
 
             stats2 = RasterStats.load(stats_uri)
+            assert stats2.means is not None
+            assert stats2.stds is not None
             np.testing.assert_array_equal(stats2.means, np.array([1, 2]))
             np.testing.assert_array_equal(stats2.stds, np.array([3, 4]))
 
@@ -34,7 +37,7 @@ class TestRasterStats(unittest.TestCase):
         da = DataArray(arr, dims=['x', 'y', 'band'])
         rs = XarraySource(da, IdentityCRSTransformer())
         stats = RasterStats()
-        args = dict(raster_sources=[rs], chip_sz=10, stride=10)
+        args: dict[str, Any] = dict(raster_sources=[rs], chip_sz=10, stride=10)
         self.assertRaises(ValueError, lambda: stats.compute(**args))
         args = dict(raster_sources=[rs], chip_sz=10, sample_prob=1)
         self.assertRaises(ValueError, lambda: stats.compute(**args))
@@ -136,7 +139,9 @@ class TestUtils(unittest.TestCase):
         arr = np.ones((20, 100, 4), dtype=np.uint8)
         da = DataArray(arr, dims=['x', 'y', 'band'])
         rs = XarraySource(da, IdentityCRSTransformer())
-        args = dict(raster_sources=[rs], chip_sz=40, sample_prob=0.5)
+        args: dict[str, Any] = dict(
+            raster_sources=[rs], chip_sz=40, sample_prob=0.5
+        )
         self.assertRaises(ValueError, lambda: list(random_chip_stream(**args)))
 
 

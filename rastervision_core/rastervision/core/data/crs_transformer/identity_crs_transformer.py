@@ -1,4 +1,5 @@
 from rastervision.core.data.crs_transformer import CRSTransformer
+from rastervision.core.data.crs_transformer.crs_transformer import PointT
 
 
 class IdentityCRSTransformer(CRSTransformer):
@@ -7,7 +8,7 @@ class IdentityCRSTransformer(CRSTransformer):
     This is useful for non-georeferenced imagery.
     """
 
-    def _map_to_pixel_point(self, map_point):
+    def _map_to_pixel_point(self, map_point: PointT) -> PointT:
         """Identity function.
 
         Args:
@@ -18,7 +19,7 @@ class IdentityCRSTransformer(CRSTransformer):
         """
         return map_point
 
-    def _pixel_to_map_point(self, pixel_point):
+    def _pixel_to_map_point(self, pixel_point: PointT) -> PointT:
         """Identity function.
 
         Args:

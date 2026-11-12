@@ -1,7 +1,8 @@
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Sequence
 from abc import ABC, abstractmethod
 
 import numpy as np
+import numpy.typing as npt
 from skimage.transform import resize
 
 from rastervision.core.box import Box
@@ -16,7 +17,9 @@ if TYPE_CHECKING:
 
 
 class ChannelOrderError(Exception):
-    def __init__(self, channel_order: list[int], num_channels_raw: int):
+    def __init__(
+        self, channel_order: Sequence[int] | np.ndarray, num_channels_raw: int
+    ):
         self.channel_order = channel_order
         self.num_channels_raw = num_channels_raw
         msg = (
@@ -36,9 +39,9 @@ class RasterSource(ABC):
     def __init__(
         self,
         *,
-        channel_order: list[int] | None,
+        channel_order: Sequence[int] | np.ndarray | None,
         num_channels_raw: int,
-        dtype_raw: np.dtype,
+        dtype_raw: npt.DTypeLike,
         bbox: Box,
         raster_transformers: list['RasterTransformer'] = [],
     ):
@@ -79,7 +82,7 @@ class RasterSource(ABC):
         return self._num_channels
 
     @property
-    def shape(self) -> tuple[int, int, int]:
+    def shape(self) -> tuple[int, ...]:
         """Shape of the raster as a (height, width, num_channels) tuple."""
         H, W = self.bbox.size
         return H, W, self.num_channels
@@ -173,7 +176,7 @@ class RasterSource(ABC):
         return chip
 
     def get_chip_by_map_window(
-        self, window_map_coords: 'Box', *args, **kwargs
+        self, window_map_coords: 'Box[float]', *args, **kwargs
     ) -> 'np.ndarray':
         """Same as get_chip(), but input is a window in map coords."""
         window_pixel_coords = self.crs_transformer.map_to_pixel(
@@ -183,7 +186,7 @@ class RasterSource(ABC):
         return chip
 
     def _get_chip_by_map_window(
-        self, window_map_coords: 'Box', *args, **kwargs
+        self, window_map_coords: 'Box[float]', *args, **kwargs
     ) -> 'np.ndarray':
         """Same as _get_chip(), but input is a window in map coords."""
         window_pixel_coords = self.crs_transformer.map_to_pixel(
@@ -208,7 +211,9 @@ class RasterSource(ABC):
     def resize(
         self, chip: 'np.ndarray', out_shape: tuple[int, int]
     ) -> 'np.ndarray':
-        out_shape = chip.shape[:-3] + out_shape
-        out = resize(chip, out_shape, preserve_range=True, anti_aliasing=True)
+        full_out_shape = chip.shape[:-3] + out_shape
+        out = resize(
+            chip, full_out_shape, preserve_range=True, anti_aliasing=True
+        )
         out = out.round(6).astype(chip.dtype)
         return out

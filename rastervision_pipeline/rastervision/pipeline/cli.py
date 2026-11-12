@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 import sys
 import os
 import logging
@@ -79,11 +79,11 @@ def get_configs(
                 'All objects returned by get_configs in '
                 f'{cfg_module_path} must be PipelineConfigs.'
             )
-    return cfgs
+    return cast(list[PipelineConfig], cfgs)
 
 
 def get_configs_from_module(
-    cfg_module_path: str, runner: str, args: dict[str, Any]
+    cfg_module_path: str, runner: str | None, args: dict[str, Any] | None
 ) -> list[PipelineConfig]:
     import importlib
     import importlib.util
@@ -93,7 +93,7 @@ def get_configs_from_module(
         spec = importlib.util.spec_from_file_location(
             'rastervision.pipeline', cfg_module_path
         )
-        if spec is None:
+        if spec is None or spec.loader is None:
             raise ImportError(
                 f'Failed to read module spec from {cfg_module_path}.'
             )
@@ -110,7 +110,7 @@ def get_configs_from_module(
             f'function in {cfg_module_path}.'
         )
 
-    cfgs = _get_configs(runner, **args)
+    cfgs = _get_configs(runner, **(args or {}))
     if not isinstance(cfgs, list):
         cfgs = [cfgs]
     return cfgs
@@ -218,11 +218,11 @@ def run(
     args = dict(arg)
     args = convert_bool_args(args)
     cfgs = get_configs(cfg_module, runner, args)
-    runner = registry.get_runner(runner)()
+    runner_obj = registry.get_runner(runner)()
 
     for cfg in cfgs:
         _run_pipeline(
-            cfg, runner, tmp_dir, splits, commands, pipeline_run_name
+            cfg, runner_obj, tmp_dir, splits, commands, pipeline_run_name
         )
 
 
@@ -261,6 +261,7 @@ def _run_command(
     command_fn = getattr(pipeline, command)
 
     if num_splits is not None and num_splits > 1:
+        assert split_ind is not None
         msg = (
             f'Running {command} command split {split_ind + 1}/{num_splits}...'
         )

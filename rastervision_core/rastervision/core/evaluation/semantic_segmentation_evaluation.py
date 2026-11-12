@@ -33,12 +33,13 @@ class SemanticSegmentationEvaluation(ClassificationEvaluation):
         num_classes = len(self.class_config)
         labels = np.arange(num_classes)
         self.conf_mat = np.zeros((num_classes, num_classes))
+        conf_mat = self.conf_mat
         windows = pred_labels.get_windows()
         with tqdm(windows, delay=5, desc='Computing metrics') as bar:
             for window in bar:
                 gt_arr = gt_labels.get_label_arr(window, null_class_id)
                 pred_arr = pred_labels.get_label_arr(window, null_class_id)
-                self.conf_mat += confusion_matrix(
+                conf_mat += confusion_matrix(
                     gt_arr.ravel(), pred_arr.ravel(), labels=labels
                 )
 

@@ -11,7 +11,7 @@ from rastervision.core.data.label.utils import discard_prediction_edges
 
 if TYPE_CHECKING:
     from typing import Self
-    from shapely.geometry import Polygon
+    from shapely.geometry.base import BaseGeometry
     from rastervision.core.data import (
         ClassConfig,
         CRSTransformer,
@@ -81,7 +81,7 @@ class SemanticSegmentationLabels(Labels):
         mask = scores[class_id] >= threshold
         return mask
 
-    def get_windows(self, **kwargs) -> list[Box]:
+    def get_windows(self, **kwargs) -> Sequence[Box]:
         """Generate sliding windows over the local extent.
 
         The keyword args are passed to :meth:`.Box.get_windows` and can
@@ -99,14 +99,14 @@ class SemanticSegmentationLabels(Labels):
         return self.extent.get_windows(size, size, **kwargs)
 
     def filter_by_aoi(
-        self, aoi_polygons: list['Polygon'], null_class_id: int, **kwargs
+        self, aoi_polygons: list['BaseGeometry'], null_class_id: int, **kwargs
     ) -> 'Self':
         """Keep only the values that lie inside the AOI.
 
         This is an inplace operation.
 
         Args:
-            aoi_polygons (list[Polygon]): AOI polygons to filter by, in pixel
+            aoi_polygons (list[BaseGeometry]): AOI polygons to filter by, in pixel
                 coordinates.
             null_class_id (int): Class ID to assign to pixels falling outside
                 the AOI polygons.
@@ -128,7 +128,10 @@ class SemanticSegmentationLabels(Labels):
         """
 
     def _filter_window_by_aoi(
-        self, window: Box, aoi_polygons: list['Polygon'], null_class_id: int
+        self,
+        window: Box,
+        aoi_polygons: list['BaseGeometry'],
+        null_class_id: int,
     ) -> None:
         window_geom = window.to_shapely()
         label_arr = self[window]
@@ -165,7 +168,7 @@ class SemanticSegmentationLabels(Labels):
     @classmethod
     def make_empty(
         cls, extent: Box, num_classes: int, smooth: bool = False
-    ) -> 'Self':
+    ) -> 'SemanticSegmentationLabels':
         """Instantiate an empty instance.
 
         Args:
@@ -202,7 +205,7 @@ class SemanticSegmentationLabels(Labels):
         num_classes: int,
         smooth: bool = False,
         crop_sz: int | None = None,
-    ) -> 'Self':
+    ) -> 'SemanticSegmentationLabels':
         """Instantiate from windows and their corresponding predictions.
 
         Args:
@@ -305,7 +308,7 @@ class SemanticSegmentationDiscreteLabels(SemanticSegmentationLabels):
         if not mask_equal:
             return False
         counts_equal = np.all(self.pixel_counts == other.pixel_counts)
-        return counts_equal
+        return bool(counts_equal)
 
     def __delitem__(self, window: Box) -> None:
         """Reset counts to zero for pixels in the window."""

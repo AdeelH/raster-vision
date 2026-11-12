@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from os.path import join
 from collections import defaultdict
 import logging
@@ -11,6 +11,7 @@ from rastervision.pipeline.file_system import file_to_json
 from rastervision.core.box import Box
 from rastervision.core.data import ObjectDetectionLabels
 from rastervision.pytorch_learner.dataset import (
+    AlbumentationsTransform,
     TransformType,
     ImageDataset,
     SlidingWindowGeoDataset,
@@ -20,6 +21,7 @@ from rastervision.pytorch_learner.dataset import (
 from rastervision.core.data.utils import make_od_scene
 
 if TYPE_CHECKING:
+    from typing import Self
     from rastervision.core.data import ClassConfig, ObjectDetectionLabelSource
 log = logging.getLogger(__name__)
 
@@ -160,7 +162,9 @@ def make_od_geodataset(
 
 
 class ObjectDetectionSlidingWindowGeoDataset(SlidingWindowGeoDataset):
-    from_uris = classmethod(make_od_geodataset)
+    @classmethod
+    def from_uris(cls, *args, **kwargs) -> 'Self':
+        return make_od_geodataset(cls, *args, **kwargs)
 
     def __init__(self, *args, **kwargs):
         super().__init__(
@@ -169,7 +173,9 @@ class ObjectDetectionSlidingWindowGeoDataset(SlidingWindowGeoDataset):
 
 
 class ObjectDetectionRandomWindowGeoDataset(RandomWindowGeoDataset):
-    from_uris = classmethod(make_od_geodataset)
+    @classmethod
+    def from_uris(cls, *args, **kwargs) -> 'Self':
+        return make_od_geodataset(cls, *args, **kwargs)
 
     def __init__(self, *args, **kwargs):
         """Constructor.
@@ -210,8 +216,8 @@ class ObjectDetectionRandomWindowGeoDataset(RandomWindowGeoDataset):
             *args, **kwargs, transform_type=TransformType.object_detection
         )
 
-        label_source: 'ObjectDetectionLabelSource | None' = (
-            self.scene.label_source
+        label_source = cast(
+            'ObjectDetectionLabelSource | None', self.scene.label_source
         )
         if label_source is not None:
             label_source.ioa_thresh = ioa_thresh
@@ -254,8 +260,10 @@ class ObjectDetectionRandomWindowGeoDataset(RandomWindowGeoDataset):
             self.neg_probability = None
 
     def append_resize_transform(
-        self, transform: A.BasicTransform, out_size: tuple[int, int]
-    ) -> A.BasicTransform:
+        self,
+        transform: AlbumentationsTransform | None,
+        out_size: tuple[int, int],
+    ) -> A.Resize | A.Compose:
         resize_tf = A.Resize(*out_size, p=1.0)
         if transform is None:
             transform = resize_tf

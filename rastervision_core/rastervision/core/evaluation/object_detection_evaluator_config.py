@@ -9,7 +9,7 @@ from rastervision.core.evaluation.object_detection_evaluator import (
 )
 
 if TYPE_CHECKING:
-    from rastervision.core.data import ClassConfig
+    from rastervision.core.data import ClassConfig, Scene
 
 
 @register_config('object_detection_evaluator')
@@ -19,7 +19,7 @@ class ObjectDetectionEvaluatorConfig(ClassificationEvaluatorConfig):
     def build(
         self,
         class_config: 'ClassConfig',
-        scene_group: tuple[str, Iterable[str]] | None = None,
+        scene_group: tuple[str, Iterable['Scene']] | None = None,
     ) -> ObjectDetectionEvaluator:
         if scene_group is None:
             output_uri = self.get_output_uri()

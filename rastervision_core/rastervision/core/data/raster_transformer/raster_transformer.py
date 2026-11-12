@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
 import numpy as np
+import numpy.typing as npt
 from pydantic.types import PositiveInt as PosInt
 
 
@@ -22,6 +23,6 @@ class RasterTransformer(ABC):
         """Number of channels in output of ``transform()``."""
         return in_channels
 
-    def get_out_dtype(self, in_dtype: np.dtype) -> np.dtype:
+    def get_out_dtype(self, in_dtype: npt.DTypeLike) -> np.dtype:
         """dtype of the output of ``transform()``."""
         return np.dtype(in_dtype)

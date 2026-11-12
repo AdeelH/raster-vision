@@ -134,6 +134,7 @@ class Predictor:
         raster_source = self.scene.raster_source
         label_store = self.scene.label_store
         raster_source.uris = image_uris  # pyright: ignore[reportAttributeAccessIssue]
+        assert label_store is not None
         label_store.uri = label_uri  # pyright: ignore[reportAttributeAccessIssue]
 
         if isinstance(
@@ -226,6 +227,7 @@ class ScenePredictor:
             scene: Scene to predict on.
         """
         labels = self.pipeline.predict_scene(scene)
+        assert scene.label_store is not None
         scene.label_store.save(labels)
 
     def build_scene(self, scene_config: 'str | dict | SceneConfig') -> 'Scene':

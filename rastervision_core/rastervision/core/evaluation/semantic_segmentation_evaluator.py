@@ -10,6 +10,7 @@ log = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from rastervision.core.data import Scene, SemanticSegmentationLabels
+    from rastervision.core.evaluation import ClassificationEvaluation
 
 
 class SemanticSegmentationEvaluator(ClassificationEvaluator):
@@ -18,9 +19,11 @@ class SemanticSegmentationEvaluator(ClassificationEvaluator):
     def create_evaluation(self) -> SemanticSegmentationEvaluation:
         return SemanticSegmentationEvaluation(self.class_config)
 
-    def evaluate_scene(self, scene: 'Scene') -> SemanticSegmentationEvaluation:
+    def evaluate_scene(self, scene: 'Scene') -> 'ClassificationEvaluation':
         """Override to pass null_class_id to filter_by_aoi()."""
         null_class_id = self.class_config.null_class_id
+        assert scene.label_source is not None
+        assert scene.label_store is not None
         ground_truth = cast(
             'SemanticSegmentationLabels', scene.label_source.get_labels()
         )

@@ -1,4 +1,5 @@
 from collections.abc import Callable
+from typing import Any
 import unittest
 
 import torch
@@ -23,17 +24,21 @@ class TestExternalModuleConfig(unittest.TestCase):
             self.fail(msg)
 
     def test_repo_str_validation(self):
-        args = dict(github_repo='abc', entrypoint='foo')
+        args: dict[str, Any] = dict(github_repo='abc', entrypoint='foo')
         self.assertRaises(
             ValidationError, lambda: ExternalModuleConfig(**args)
         )
-        args = dict(github_repo='abc/def', entrypoint='foo')
+        args: dict[str, Any] = dict(github_repo='abc/def', entrypoint='foo')
         self.assertNoError(lambda: ExternalModuleConfig(**args))
-        args = dict(github_repo='abc/def:xyz', entrypoint='foo')
+        args: dict[str, Any] = dict(
+            github_repo='abc/def:xyz', entrypoint='foo'
+        )
         self.assertNoError(lambda: ExternalModuleConfig(**args))
 
     def test_disallow_both_uri_and_repo(self):
-        args = dict(uri='abc/def', github_repo='abc/def', entrypoint='foo')
+        args: dict[str, Any] = dict(
+            uri='abc/def', github_repo='abc/def', entrypoint='foo'
+        )
         self.assertRaises(
             ValidationError, lambda: ExternalModuleConfig(**args)
         )
@@ -54,7 +59,7 @@ class TestExternalModuleConfig(unittest.TestCase):
 
 class TestSemanticSegmentationModelConfig(unittest.TestCase):
     def test_backbone_validation(self):
-        args = dict(backboe=Backbone.resnet18)
+        args: dict[str, Any] = dict(backboe=Backbone.resnet18)
         self.assertRaises(
             ValidationError, lambda: SemanticSegmentationModelConfig(**args)
         )
@@ -80,7 +85,7 @@ class TestClassificationModelConfig(unittest.TestCase):
 
 class TestObjectDetectionModelConfig(unittest.TestCase):
     def test_backbone_validation(self):
-        args = dict(backboe=Backbone.vgg11)
+        args: dict[str, Any] = dict(backboe=Backbone.vgg11)
         self.assertRaises(
             ValidationError, lambda: ObjectDetectionModelConfig(**args)
         )

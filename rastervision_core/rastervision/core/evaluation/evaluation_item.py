@@ -13,7 +13,7 @@ class EvaluationItem(ABC):
 
     @abstractmethod
     def to_json(self) -> dict:
-        return self.__dict__
+        return vars(self)
 
     def __repr__(self):
         return pformat(self.to_json())

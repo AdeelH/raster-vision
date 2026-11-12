@@ -65,10 +65,12 @@ class TestSemanticSegmentationEvaluation(unittest.TestCase):
         avg_recall = (
             (14 / 16) * recall0 + (1 / 16) * recall1 + (1 / 16) * recall2
         )
+        avg_item = eval.avg_item
+        assert avg_item is not None
         np.testing.assert_array_equal(
-            avg_conf_mat, np.array(eval.avg_item['conf_mat'])
+            avg_conf_mat, np.array(avg_item['conf_mat'])
         )
-        self.assertEqual(avg_recall, eval.avg_item['metrics']['recall'])
+        self.assertEqual(avg_recall, avg_item['metrics']['recall'])
 
 
 if __name__ == '__main__':

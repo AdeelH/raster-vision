@@ -16,7 +16,7 @@ class TestVisualizer(unittest.TestCase):
         ds = []
 
         with self.assertRaises(ValueError):
-            viz.get_batch(ds)
+            viz.get_batch(ds)  # pyright: ignore[reportArgumentType]
 
     def test_plot_batch_invalid_x_shape(self):
         viz = SemanticSegmentationVisualizer(class_names=['bg', 'fg'])

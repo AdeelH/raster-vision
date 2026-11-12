@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Sequence
+from typing import TYPE_CHECKING, Sequence, cast
 import logging
 
 from rastervision.pytorch_learner.dataset import (
@@ -11,6 +11,7 @@ from rastervision.pytorch_learner.dataset import (
 from rastervision.core.data.utils import make_cc_scene
 
 if TYPE_CHECKING:
+    from typing import Self
     from rastervision.core.data import (
         ClassConfig,
         ChipClassificationLabelSource,
@@ -112,7 +113,9 @@ def make_cc_geodataset(
 
 
 class ClassificationSlidingWindowGeoDataset(SlidingWindowGeoDataset):
-    from_uris = classmethod(make_cc_geodataset)
+    @classmethod
+    def from_uris(cls, *args, **kwargs) -> 'Self':
+        return make_cc_geodataset(cls, *args, **kwargs)
 
     def __init__(self, *args, **kwargs):
         super().__init__(
@@ -122,12 +125,14 @@ class ClassificationSlidingWindowGeoDataset(SlidingWindowGeoDataset):
     def init_windows(self):
         super().init_windows()
         if self.scene.label_source is not None:
-            ls: 'ChipClassificationLabelSource' = self.scene.label_source
+            ls = cast('ChipClassificationLabelSource', self.scene.label_source)
             ls.populate_labels(cells=self.windows)
 
 
 class ClassificationRandomWindowGeoDataset(RandomWindowGeoDataset):
-    from_uris = classmethod(make_cc_geodataset)
+    @classmethod
+    def from_uris(cls, *args, **kwargs) -> 'Self':
+        return make_cc_geodataset(cls, *args, **kwargs)
 
     def __init__(self, *args, **kwargs):
         super().__init__(

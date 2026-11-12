@@ -1,5 +1,5 @@
 from typing import TYPE_CHECKING, Iterable, Iterator, cast
-from collections.abc import Callable
+from collections.abc import Callable, Collection
 from copy import deepcopy
 
 from shapely.geometry import shape, mapping
@@ -41,7 +41,7 @@ def features_to_geojson(features: list[dict]) -> dict:
 def map_features(
     func: Callable[[dict], dict],
     geojson: dict,
-    include_geom_types: Iterable[str] = [],
+    include_geom_types: Collection[str] = [],
     progressbar_kw: dict | None = None,
 ) -> dict:
     """Map GeoJSON features to new features. Returns a new GeoJSON dict."""
@@ -73,7 +73,7 @@ def map_features(
 def map_geoms(
     func: Callable[..., 'BaseGeometry'],
     geojson: dict,
-    include_geom_types: Iterable[str] = [],
+    include_geom_types: Collection[str] = [],
     progressbar_kw: dict | None = None,
 ) -> dict:
     """Map GeoJSON features to new features by applying ``func`` to geometries.
@@ -415,7 +415,7 @@ def get_geojson_extent(geojson: dict) -> Box:
 def filter_geojson_to_window(geojson: dict, window: Box) -> dict:
     gdf = geojson_to_geodataframe(geojson)
     window_geom = window.to_shapely()
-    gdf: gpd.GeoDataFrame = gdf[gdf.intersects(window_geom)]
+    gdf = gdf[gdf.intersects(window_geom)]
     out_geojson = gdf.__geo_interface__
     return out_geojson
 

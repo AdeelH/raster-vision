@@ -24,7 +24,7 @@ class TestXarraySourceConfig(unittest.TestCase):
         item_uri = data_file_path('stac/item.json')
         cfg = XarraySourceConfig(
             stac=STACItemConfig(uri=item_uri, assets=['red']),
-            bbox_map_coords=tuple(bbox),
+            bbox_map_coords=bbox.tuple_format(),
             allow_streaming=True,
             temporal=False,
         )
@@ -39,7 +39,7 @@ class TestXarraySourceConfig(unittest.TestCase):
         item_coll_uri = data_file_path('stac/item_collection.json')
         cfg = XarraySourceConfig(
             stac=STACItemCollectionConfig(uri=item_coll_uri, assets=['red']),
-            bbox_map_coords=tuple(bbox),
+            bbox_map_coords=bbox.tuple_format(),
             allow_streaming=True,
             temporal=False,
         )
@@ -48,7 +48,7 @@ class TestXarraySourceConfig(unittest.TestCase):
 
         cfg = XarraySourceConfig(
             stac=STACItemCollectionConfig(uri=item_coll_uri, assets=['red']),
-            bbox_map_coords=tuple(bbox),
+            bbox_map_coords=bbox.tuple_format(),
             allow_streaming=True,
             temporal=True,
         )

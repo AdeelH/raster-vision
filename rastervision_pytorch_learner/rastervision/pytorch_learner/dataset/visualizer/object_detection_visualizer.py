@@ -31,12 +31,13 @@ class ObjectDetectionVisualizer(Visualizer):
         channel_groups = self.get_channel_display_groups(x.shape[1])
         imgs = channel_groups_to_imgs(x, channel_groups)
 
-        if y is not None or z is not None:
-            y = y if z is None else z
+        boxes = y if z is None else z
+        if boxes is not None:
             class_names = self.class_names
             class_colors = self.class_colors
             imgs = [
-                draw_boxes(img, y, class_names, class_colors) for img in imgs
+                draw_boxes(img, boxes, class_names, class_colors)
+                for img in imgs
             ]
 
         plot_channel_groups(axs, imgs, channel_groups, plot_title=plot_title)

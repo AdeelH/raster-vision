@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from os.path import join
 import uuid
 
@@ -20,7 +20,10 @@ if TYPE_CHECKING:
         ChipOptions,
         SemanticSegmentationPredictOptions,
     )
-    from rastervision.pytorch_learner import SemanticSegmentationGeoDataConfig
+    from rastervision.pytorch_learner import (
+        SemanticSegmentationGeoDataConfig,
+        SemanticSegmentationLearner,
+    )
 
 
 class PyTorchSemanticSegmentationSampleWriter(PyTorchLearnerSampleWriter):
@@ -82,7 +85,9 @@ class PyTorchSemanticSegmentation(PyTorchLearnerBackend):
     ) -> 'SemanticSegmentationLabels':
         if self.learner is None:
             self.load_model()
-        labels = predict_scene_ss(self.learner, scene, predict_options)
+        assert self.learner is not None
+        learner = cast('SemanticSegmentationLearner', self.learner)
+        labels = predict_scene_ss(learner, scene, predict_options)
         return labels
 
     def _make_chip_data_config(

@@ -140,17 +140,6 @@ max-line-length = 90
 
 [tool.pyright]
 typeCheckingMode = "basic"
-# The codebase predates type checking. These rules, which check type
-# compatibility rather than e.g. undefined names, wrong imports, or calls that
-# are certain to fail, are disabled until the type annotations are cleaned up.
-reportArgumentType = false
-reportAssignmentType = false
-reportReturnType = false
-reportOptionalMemberAccess = false
-reportOptionalSubscript = false
-reportOptionalCall = false
-reportOptionalIterable = false
-reportOptionalOperand = false
 pythonVersion = "3.11"
 include = ["rastervision_*", "tests", "integration_tests"]
 # Resolve the workspace packages as local source rather than as installed

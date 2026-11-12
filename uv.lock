@@ -3233,6 +3233,7 @@ dependencies = [
     { name = "shapely", marker = "python_full_version < '3.13'" },
     { name = "stackstac", marker = "python_full_version < '3.13'" },
     { name = "tqdm", marker = "python_full_version < '3.13'" },
+    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
     { name = "xarray", marker = "python_full_version < '3.13'" },
 ]
 
@@ -3254,6 +3255,7 @@ requires-dist = [
     { name = "shapely", specifier = ">=2.1" },
     { name = "stackstac" },
     { name = "tqdm" },
+    { name = "typing-extensions", specifier = ">=4.4" },
     { name = "xarray" },
 ]
 

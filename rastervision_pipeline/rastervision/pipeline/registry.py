@@ -118,7 +118,7 @@ class Registry:
         else:
             raise RegistryError(f'{runner_name} is not a registered runner.')
 
-    def add_file_system(self, file_system: 'FileSystem'):
+    def add_file_system(self, file_system: type['FileSystem']):
         """Add a FileSystem.
 
         Args:

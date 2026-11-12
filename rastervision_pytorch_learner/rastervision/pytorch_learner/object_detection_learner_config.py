@@ -18,6 +18,7 @@ from rastervision.pipeline.config import (
     ConfigError,
 )
 from rastervision.pytorch_learner.learner_config import (
+    AlbTransform,
     LearnerConfig,
     ModelConfig,
     Backbone,
@@ -70,7 +71,7 @@ class ObjectDetectionImageDataConfig(
     data_format: ObjectDetectionDataFormat = ObjectDetectionDataFormat.coco
 
     def dir_to_dataset(
-        self, data_dir: str, transform: A.BasicTransform
+        self, data_dir: str, transform: AlbTransform | None
     ) -> ObjectDetectionImageDataset:
         img_dir = join(data_dir, 'img')
         annotation_uri = join(data_dir, 'labels.json')
@@ -90,7 +91,7 @@ class ObjectDetectionGeoDataConfig(ObjectDetectionDataConfig, GeoDataConfig):
     def scene_to_dataset(
         self,
         scene: Scene,
-        transform: A.BasicTransform | None = None,
+        transform: AlbTransform | None = None,
         bbox_params: A.BboxParams | None = DEFAULT_BBOX_PARAMS,
         for_chipping: bool = False,
     ) -> (
@@ -202,7 +203,7 @@ class ObjectDetectionModelConfig(ModelConfig):
 
             # adjust channels
             backbone.body['conv1'] = adjust_conv_channels(
-                old_conv=backbone.body['conv1'],
+                old_conv=old_conv,
                 in_channels=in_channels,
                 pretrained=pretrained,
             )

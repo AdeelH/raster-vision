@@ -99,7 +99,9 @@ class ClassConfig(Config):
         return self.get_class_id(self.null_class)
 
     def get_color_to_class_id(self) -> dict[str | tuple[int, int, int], int]:
-        return dict([(self.colors[i], i) for i in range(len(self.colors))])
+        colors = self.colors
+        assert colors is not None
+        return dict([(colors[i], i) for i in range(len(colors))])
 
     def ensure_null_class(self) -> None:
         """Add a null class if one isn't set. This method is idempotent."""
@@ -122,15 +124,16 @@ class ClassConfig(Config):
 
         # use random color if default color is already taken
         null_class_color_triple = color_to_triple(null_class_color)
+        colors = self.colors
+        assert colors is not None
         all_color_triples = [
-            color_to_triple(c) if isinstance(c, str) else c
-            for c in self.colors
+            color_to_triple(c) if isinstance(c, str) else c for c in colors
         ]
         if null_class_color_triple in all_color_triples:
             null_class_color = color_to_triple()
 
         self.names.append(null_class_name)
-        self.colors.append(null_class_color)
+        colors.append(null_class_color)
         self.null_class = null_class_name
 
     def __len__(self) -> int:
@@ -139,5 +142,7 @@ class ClassConfig(Config):
     @property
     def color_triples(self) -> list[tuple[float, float, float]]:
         """Class colors in a normalized form."""
-        color_triples = [normalize_color(c) for c in self.colors]
+        colors = self.colors
+        assert colors is not None
+        color_triples = [normalize_color(c) for c in colors]
         return color_triples

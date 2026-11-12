@@ -121,7 +121,7 @@ class HttpFileSystem(FileSystem):
                 shutil.copyfileobj(in_file, out_file)
 
     @staticmethod
-    def local_path(uri: str, download_dir: str) -> None:
+    def local_path(uri: str, download_dir: str) -> str:
         parsed_uri = urlparse(uri)
         path = os.path.join(
             download_dir, 'http', parsed_uri.netloc, parsed_uri.path[1:]
@@ -136,7 +136,7 @@ class HttpFileSystem(FileSystem):
         return path
 
     @staticmethod
-    def last_modified(uri: str) -> datetime:
+    def last_modified(uri: str) -> datetime | None:
         return None
 
     @staticmethod

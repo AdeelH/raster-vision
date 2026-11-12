@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Iterable
 
 from rastervision.core.data import Scene
 
@@ -10,5 +11,5 @@ class Analyzer(ABC):
     """
 
     @abstractmethod
-    def process(self, scenes: list[Scene], tmp_dir: str):
+    def process(self, scenes: Iterable[Scene], tmp_dir: str):
         """Process scenes and save result."""

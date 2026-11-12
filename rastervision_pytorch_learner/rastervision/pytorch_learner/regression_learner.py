@@ -33,6 +33,8 @@ class RegressionLearner(Learner):
     def build_model(self, model_def_path: str | None = None) -> 'nn.Module':
         """Override to pass class_names, pos_class_names, and prob_class_names."""
         cfg = self.cfg
+        assert cfg.model is not None
+        assert cfg.data.img_channels is not None
         data_cfg = cast(
             'RegressionImageDataConfig | RegressionGeoDataConfig', cfg.data
         )
@@ -53,6 +55,7 @@ class RegressionLearner(Learner):
 
     def on_train_start(self):
         ys = []
+        assert self.train_dl is not None
         for _, y in self.train_dl:
             ys.append(y)
         y = torch.cat(ys, dim=0)
@@ -60,11 +63,13 @@ class RegressionLearner(Learner):
 
     def train_step(self, batch, batch_ind):
         x, y = batch
+        assert self.model is not None
         out = self.post_forward(self.model(x))
         return {'train_loss': F.l1_loss(out, y, reduction='sum')}
 
     def validate_step(self, batch, batch_nb):
         x, y = batch
+        assert self.model is not None
         out = self.post_forward(self.model(x))
         val_loss = F.l1_loss(out, y, reduction='sum')
         abs_error = torch.abs(out - y).sum(dim=0)
@@ -72,8 +77,10 @@ class RegressionLearner(Learner):
             dim=0
         )
 
+        class_names = self.cfg.data.class_names
+        assert class_names is not None
         metrics = {'val_loss': val_loss}
-        for i, label in enumerate(self.cfg.data.class_names):
+        for i, label in enumerate(class_names):
             metrics[f'{label}_abs_error'] = abs_error[i]
             metrics[f'{label}_scaled_abs_error'] = scaled_abs_error[i]
 
@@ -85,9 +92,9 @@ class RegressionLearner(Learner):
     def _validate(self, split):
         super()._validate(split)
 
-        preds = self.predict_dataloader(
-            self.get_dataloader(split), return_format='yz', raw_out=False
-        )
+        dl = self.get_dataloader(split)
+        assert dl is not None
+        preds = self.predict_dataloader(dl, return_format='yz', raw_out=False)
         ys, outs = zip(*preds)
         y, out = torch.cat(ys), torch.cat(outs)
 
@@ -97,6 +104,7 @@ class RegressionLearner(Learner):
             self.cfg.data,
         )
         plot_options = data_cfg.plot_options
+        assert plot_options is not None
         max_scatter_points = plot_options.max_scatter_points
         if y.shape[0] > max_scatter_points:
             scatter_inds = torch.randperm(y.shape[0], dtype=torch.long)[
@@ -106,7 +114,9 @@ class RegressionLearner(Learner):
             scatter_inds = torch.arange(0, y.shape[0], dtype=torch.long)
 
         # make scatter plot
-        num_labels = len(self.cfg.data.class_names)
+        class_names = self.cfg.data.class_names
+        assert class_names is not None
+        num_labels = len(class_names)
         ncols = num_labels
         nrows = 1
         fig = plt.figure(
@@ -114,7 +124,7 @@ class RegressionLearner(Learner):
         )
         grid = gridspec.GridSpec(ncols=ncols, nrows=nrows, figure=fig)
 
-        for label_ind, label in enumerate(self.cfg.data.class_names):
+        for label_ind, label in enumerate(class_names):
             ax = fig.add_subplot(grid[label_ind])
             ax.scatter(
                 y[scatter_inds, label_ind],
@@ -137,7 +147,7 @@ class RegressionLearner(Learner):
         grid = gridspec.GridSpec(ncols=ncols, nrows=nrows, figure=fig)
 
         hist_bins = plot_options.hist_bins
-        for label_ind, label in enumerate(self.cfg.data.class_names):
+        for label_ind, label in enumerate(class_names):
             ax = fig.add_subplot(grid[label_ind])
             errs = torch.abs(y[:, label_ind] - out[:, label_ind]).tolist()
             ax.hist(errs, bins=hist_bins)

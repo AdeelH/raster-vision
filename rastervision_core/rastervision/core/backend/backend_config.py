@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 from rastervision.pipeline.config import Config, register_config
 
 if TYPE_CHECKING:
-    from rastervision.core.rv_pipeline.rv_pipeline import RVPipeline  # noqa
+    from rastervision.core.rv_pipeline import RVPipelineConfig  # noqa
     from rastervision.core.backend.backend import Backend  # noqa
 
 
@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 class BackendConfig(Config):
     """Configure a :class:`.Backend`."""
 
-    def build(self, pipeline: 'RVPipeline', tmp_dir: str) -> 'Backend':
+    def build(self, pipeline: 'RVPipelineConfig', tmp_dir: str) -> 'Backend':
         raise NotImplementedError()
 
     def get_bundle_filenames(self) -> list[str]:
@@ -22,7 +22,7 @@ class BackendConfig(Config):
         """
         raise NotImplementedError()
 
-    def update(self, pipeline: 'RVPipeline | None' = None):  # noqa
+    def update(self, pipeline: 'RVPipelineConfig | None' = None):  # noqa
         pass
 
     def filter_commands(self, commands: list[str]) -> list[str]:

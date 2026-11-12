@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Sequence
+from typing import TYPE_CHECKING, Any, Sequence
 from dataclasses import dataclass
 import os
 from os.path import join
@@ -46,17 +46,18 @@ def write_window(
         window (Box | None): Window (in pixel coords) to write to.
             Defaults to None.
     """
-    if window is not None:
-        window = window.rasterio_format()
+    rio_window = None if window is None else window.rasterio_format()
     if arr.ndim == 2:
-        dataset.write_band(1, arr, window=window)
+        dataset.write_band(1, arr, window=rio_window)
     else:
         arr_chw = arr.transpose(2, 0, 1)
         for i, band in enumerate(arr_chw, start=1):
-            dataset.write_band(i, band, window=window)
+            dataset.write_band(i, band, window=rio_window)
 
 
-def write_bbox(path: str, arr: np.ndarray, bbox: Box, crs_wkt: str, **kwargs):
+def write_bbox(
+    path: str, arr: np.ndarray, bbox: Box[float], crs_wkt: str, **kwargs
+):
     """Write a (H, W[, C]) array to a GeoTIFF, georeferenced to the given bbox.
 
     Args:
@@ -73,7 +74,7 @@ def write_bbox(path: str, arr: np.ndarray, bbox: Box, crs_wkt: str, **kwargs):
     h_bbox, w_bbox = bbox.size
     resolution = w_bbox / w_arr, h_bbox / h_arr
     transform = from_origin(bbox.xmin, bbox.ymax, *resolution)
-    out_profile = dict(
+    out_profile: dict[str, Any] = dict(
         driver='GTiff',
         height=h_arr,
         width=w_arr,
@@ -200,9 +201,10 @@ class _VRTSourceInfo:
         has_dataset_mask = (
             len(mask_flags) > 0 and MaskFlags.per_dataset in mask_flags[0]
         )
-        block_shape = ds.block_shapes[0] if ds.count > 0 else (0, 0)
+        block_shape = (0, 0)
         overview_factors = []
         if ds.count > 0:
+            block_shape = ds.block_shapes[0]
             overview_factors = _get_vrt_overview_factors(
                 ds.overviews(1), ds.width, ds.height
             )
@@ -218,7 +220,7 @@ class _VRTSourceInfo:
             scales=tuple(ds.scales),
             offsets=tuple(ds.offsets),
             colormaps=colormaps,
-            block_shape=tuple(block_shape),
+            block_shape=block_shape,
             has_mask_band=has_mask_band,
             has_dataset_mask=has_dataset_mask,
             overview_factors=overview_factors,
@@ -379,8 +381,8 @@ def _add_vrt_source(
     rect_keys = ('xOff', 'yOff', 'xSize', 'ySize')
     src_rect_attrs = {k: '%.15g' % v for k, v in zip(rect_keys, src_rect)}
     dst_rect_attrs = {k: '%.15g' % v for k, v in zip(rect_keys, dst_rect)}
-    ET.SubElement(src_el, 'SrcRect', **src_rect_attrs)
-    ET.SubElement(src_el, 'DstRect', **dst_rect_attrs)
+    ET.SubElement(src_el, 'SrcRect', attrib=src_rect_attrs)
+    ET.SubElement(src_el, 'DstRect', attrib=dst_rect_attrs)
     if use_mask_band:
         ET.SubElement(src_el, 'UseMaskBand').text = 'true'
     if nodata is not None:
@@ -532,7 +534,7 @@ def build_vrt(vrt_path: str, image_uris: list[str]) -> None:
             for i in sorted(colormap.keys()):
                 c = (tuple(colormap[i]) + (255,))[:4]
                 entry_attrs = {f'c{j}': str(v) for j, v in enumerate(c, 1)}
-                ET.SubElement(ct_el, 'Entry', **entry_attrs)
+                ET.SubElement(ct_el, 'Entry', attrib=entry_attrs)
         for src, src_rect, dst_rect in rects:
             src_nodata = src.nodatavals[bidx - 1]
             _add_vrt_source(
@@ -599,7 +601,7 @@ def download_and_build_vrt(
 
 def read_window(
     dataset: 'DatasetReader',
-    bands: int | Sequence[int] | None = None,
+    bands: Sequence[int] | np.ndarray | None = None,
     window: tuple[tuple[int, int], tuple[int, int]] | None = None,
     is_masked: bool = False,
     out_shape: tuple[int, ...] | None = None,
@@ -609,7 +611,7 @@ def read_window(
 
     Args:
         dataset: a Rasterio dataset.
-        bands: Band index or indices to read. Must be 1-indexed.
+        bands: Band indices to read. Must be 1-indexed.
         window: ``((row_start, row_stop), (col_start, col_stop))`` or
             ``((y_min, y_max), (x_min, x_max))``. If ``None``, reads the entire
             raster. Defaults to ``None``.

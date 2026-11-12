@@ -3,7 +3,6 @@ from collections.abc import Callable
 from enum import Enum
 import logging
 
-import albumentations as A
 from torch import nn
 from torchvision import models
 
@@ -16,6 +15,7 @@ from rastervision.pipeline.config import (
     ConfigError,
 )
 from rastervision.pytorch_learner.learner_config import (
+    AlbTransform,
     LearnerConfig,
     ModelConfig,
     PlotOptions,
@@ -76,11 +76,11 @@ class RegressionImageDataConfig(RegressionDataConfig, ImageDataConfig):
     )
 
     def dir_to_dataset(
-        self, data_dir: str, transform: A.BasicTransform
+        self, data_dir: str, transform: AlbTransform | None
     ) -> RegressionImageDataset:
-        ds = RegressionImageDataset(
-            data_dir, self.class_names, transform=transform
-        )
+        class_names = self.class_names
+        assert class_names is not None
+        ds = RegressionImageDataset(data_dir, class_names, transform=transform)
         return ds
 
 
@@ -99,7 +99,7 @@ class RegressionGeoDataConfig(RegressionDataConfig, GeoDataConfig):
     def scene_to_dataset(
         self,
         scene: Scene,
-        transform: A.BasicTransform | None = None,
+        transform: AlbTransform | None = None,
         for_chipping: bool = False,
     ) -> RegressionSlidingWindowGeoDataset | RegressionRandomWindowGeoDataset:
         if isinstance(self.sampling, dict):
@@ -195,11 +195,13 @@ class RegressionModelConfig(ModelConfig):
 
         pos_out_inds = None
         if pos_class_names is not None:
+            assert class_names is not None
             pos_out_inds = [
                 class_names.index(class_name) for class_name in pos_class_names
             ]
         prob_out_inds = None
         if prob_class_names is not None:
+            assert class_names is not None
             prob_out_inds = [
                 class_names.index(class_name)
                 for class_name in prob_class_names
@@ -234,7 +236,7 @@ class RegressionModelConfig(ModelConfig):
                     'override this function.'
                 )
             model.backbone.conv1 = adjust_conv_channels(
-                old_conv=model.backbone.conv1,
+                old_conv=cast(nn.Conv2d, model.backbone.conv1),
                 in_channels=in_channels,
                 pretrained=pretrained,
             )

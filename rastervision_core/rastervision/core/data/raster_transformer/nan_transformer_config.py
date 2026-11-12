@@ -11,7 +11,7 @@ from rastervision.core.data.raster_transformer.nan_transformer import (  # noqa
 class NanTransformerConfig(RasterTransformerConfig):
     """Configure a :class:`.NanTransformer`."""
 
-    to_value: float | None = Field(
+    to_value: float = Field(
         default=0.0, description=('Turn all NaN values into this value.')
     )
 

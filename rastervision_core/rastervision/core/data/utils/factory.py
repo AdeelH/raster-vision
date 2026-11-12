@@ -99,6 +99,7 @@ def make_ss_scene(
             uris=label_raster_uri, **label_raster_source_kw
         )
     elif label_vector_uri is not None:
+        assert class_config is not None
         if label_vector_default_class_id is not None:
             # add a ClassInferenceTransformer to the VectorSource
             class_inf_tf = ClassInferenceTransformer(
@@ -124,13 +125,14 @@ def make_ss_scene(
 
     label_source = None
     if label_raster_source is not None:
+        assert class_config is not None
         label_source = SemanticSegmentationLabelSource(
             raster_source=label_raster_source, class_config=class_config
         )
 
     aoi_polygons = get_polygons_from_uris(aoi_uri, crs_transformer)
     scene = Scene(
-        id=uuid4() if scene_id is None else scene_id,
+        id=str(uuid4()) if scene_id is None else scene_id,
         raster_source=raster_source,
         label_source=label_source,
         aoi_polygons=aoi_polygons,
@@ -230,7 +232,7 @@ def make_cc_scene(
 
     aoi_polygons = get_polygons_from_uris(aoi_uri, crs_transformer)
     scene = Scene(
-        id=uuid4() if scene_id is None else scene_id,
+        id=str(uuid4()) if scene_id is None else scene_id,
         raster_source=raster_source,
         label_source=label_source,
         aoi_polygons=aoi_polygons,
@@ -331,7 +333,7 @@ def make_od_scene(
 
     aoi_polygons = get_polygons_from_uris(aoi_uri, crs_transformer)
     scene = Scene(
-        id=uuid4() if scene_id is None else scene_id,
+        id=str(uuid4()) if scene_id is None else scene_id,
         raster_source=raster_source,
         label_source=label_source,
         aoi_polygons=aoi_polygons,

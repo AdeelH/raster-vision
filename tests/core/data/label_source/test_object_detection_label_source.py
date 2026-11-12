@@ -1,3 +1,4 @@
+from typing import cast
 import unittest
 import os
 
@@ -123,7 +124,8 @@ class TestObjectDetectionLabelSource(unittest.TestCase):
         labels.assert_equal(expected_labels)
 
         # Extent includes both boxes, but clips the second.
-        extent = Box.make_square(0, 0, 3.9)
+        # A sub-pixel extent, to test clipping.
+        extent = cast(Box, Box.make_square(0, 0, 3.9))
         config = ObjectDetectionLabelSourceConfig(
             vector_source=GeoJSONVectorSourceConfig(uris=self.file_path)
         )

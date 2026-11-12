@@ -170,7 +170,10 @@ class TestConfig(unittest.TestCase):
             cfg_deserialized = CConfig2.deserialize(uri)
             self.assertDictEqual(cfg_deserialized.dict(), cfg_dict)
 
-        self.assertRaises(TypeError, lambda: CConfig2.deserialize(0))
+        self.assertRaises(
+            TypeError,
+            lambda: CConfig2.deserialize(0),  # pyright: ignore[reportArgumentType]
+        )
 
 
 if __name__ == '__main__':

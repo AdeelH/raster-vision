@@ -69,7 +69,7 @@ CLASS_NAMES = [
     'Impervious',
     'Clutter',
 ]
-CLASS_COLORS = [
+CLASS_COLORS: list[str | tuple] = [
     '#ffff00',
     '#0000ff',
     '#00ffff',

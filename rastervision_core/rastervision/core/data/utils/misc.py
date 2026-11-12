@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
-def color_to_triple(color: str | None = None) -> tuple[int, int, int]:
+def color_to_triple(color: str | None = None) -> tuple[int, ...]:
     """Given a PIL ImageColor string, return a triple of integers
     representing the red, green, and blue values.
 
@@ -33,11 +33,11 @@ def color_to_triple(color: str | None = None) -> tuple[int, int, int]:
     return ImageColor.getrgb(color)
 
 
-def color_to_integer(color: str) -> int:
-    """Given a PIL ImageColor string, return a packed integer.
+def color_to_integer(color: str | tuple[int, ...]) -> int:
+    """Given a PIL ImageColor string or an RGB triple, return a packed integer.
 
     Args:
-         color: A PIL ImageColor string
+         color: A PIL ImageColor string or an RGB triple.
 
     Returns:
          An integer containing the packed RGB values.
@@ -160,7 +160,7 @@ def match_bboxes(
 
 def parse_array_slices_2d(
     key: tuple | slice, extent: Box
-) -> tuple[Box, list[Any | None]]:
+) -> tuple[Box, list[Any]]:
     """Parse 2D array-indexing inputs into a Box and slices."""
     return parse_array_slices_Nd(key, extent, dims=2, h_dim=0, w_dim=1)
 
@@ -171,7 +171,7 @@ def parse_array_slices_Nd(
     dims: int = 3,
     h_dim: int = -3,
     w_dim: int = -2,
-) -> tuple[Box, list[Any | None]]:
+) -> tuple[Box, list[Any]]:
     """Parse multi-dim array-indexing inputs into a Box and slices.
 
     Args:
@@ -195,13 +195,11 @@ def parse_array_slices_Nd(
             containing slices/index-values for all the dims.
     """
     if isinstance(key, slice):
-        key = [key]
+        input_slices: list[Any] = [key]
     elif isinstance(key, tuple):
-        pass
+        input_slices = list(key)
     else:
         raise TypeError('Unsupported key type.')
-
-    input_slices = list(key)
 
     if not (1 <= len(input_slices) <= dims):
         raise IndexError(f'Too many indices for {dims}-dimensional source.')
@@ -261,7 +259,7 @@ def parse_array_slices_Nd(
     return window, dim_slices
 
 
-def ensure_json_serializable(obj: Any) -> dict:
+def ensure_json_serializable(obj: Any) -> Any:
     """Convert numpy types to JSON serializable equivalents."""
     if obj is None or isinstance(obj, (str, int, bool)):
         return obj

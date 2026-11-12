@@ -52,7 +52,7 @@ def compute_metrics(
     gt_df.loc[:, '_geometry'] = gt_df.geometry
     pred_df.loc[:, '_geometry'] = pred_df.geometry
 
-    match_df: gpd.GeoDataFrame = gt_df.sjoin(
+    match_df = gt_df.sjoin(
         pred_df,
         how='inner',
         predicate='intersects',

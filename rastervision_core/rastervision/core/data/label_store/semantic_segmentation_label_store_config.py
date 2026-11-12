@@ -177,9 +177,10 @@ class SemanticSegmentationLabelStoreConfig(LabelStoreConfig):
         self,
         class_config: 'ClassConfig',
         crs_transformer: 'CRSTransformer',
-        bbox: 'Box',
+        bbox: 'Box | None' = None,
         tmp_dir: str | None = None,
     ) -> SemanticSegmentationLabelStore:
+        assert self.uri is not None
         class_config.ensure_null_class()
 
         label_store = SemanticSegmentationLabelStore(

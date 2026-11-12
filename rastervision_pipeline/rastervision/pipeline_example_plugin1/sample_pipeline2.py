@@ -52,6 +52,7 @@ class SamplePipeline2(Pipeline):
     def save_messages(self, split_ind=0, num_splits=1):
         message_maker = self.config.message_maker.build()
 
+        assert self.config.message_uris is not None
         split_groups = split_into_groups(
             list(zip(self.config.names, self.config.message_uris)), num_splits
         )
@@ -64,6 +65,7 @@ class SamplePipeline2(Pipeline):
             print('Saved message to {}'.format(message_uri))
 
     def print_messages(self):
+        assert self.config.message_uris is not None
         for message_uri in self.config.message_uris:
             message = file_to_str(message_uri)
             print(message)

@@ -15,7 +15,7 @@ from rastervision.core.data.label.tfod_utils.np_box_list_ops import (
 if TYPE_CHECKING:
     from typing import Self
     from rastervision.core.data import ClassConfig, CRSTransformer
-    from shapely.geometry import Polygon
+    from shapely.geometry.base import BaseGeometry
 
 
 class ObjectDetectionLabels(Labels):
@@ -28,7 +28,7 @@ class ObjectDetectionLabels(Labels):
         self,
         npboxes: np.ndarray,
         class_ids: np.ndarray,
-        scores: np.ndarray = None,
+        scores: np.ndarray | None = None,
     ):
         """Construct a set of object detection labels.
 
@@ -49,7 +49,7 @@ class ObjectDetectionLabels(Labels):
             scores = np.ones(class_ids.shape)
         self.boxlist.add_field('scores', scores)
 
-    def __add__(self, other: 'Self') -> 'Self':
+    def __add__(self, other: 'Self') -> 'ObjectDetectionLabels':
         return ObjectDetectionLabels.concatenate(self, other)
 
     def __eq__(self, other: 'Self') -> bool:
@@ -68,7 +68,7 @@ class ObjectDetectionLabels(Labels):
         concatenated_labels = self + new_labels
         self.boxlist = concatenated_labels.boxlist
 
-    def __getitem__(self, window: Box) -> 'Self':
+    def __getitem__(self, window: Box) -> 'ObjectDetectionLabels':
         return ObjectDetectionLabels.get_overlapping(self, window)
 
     def assert_equal(self, expected_labels: 'Self'):
@@ -82,7 +82,7 @@ class ObjectDetectionLabels(Labels):
             self.get_scores(), expected_labels.get_scores()
         )
 
-    def filter_by_aoi(self, aoi_polygons: Iterable['Polygon']):
+    def filter_by_aoi(self, aoi_polygons: Iterable['BaseGeometry']):
         boxes = self.get_boxes()
         class_ids = self.get_class_ids()
         scores = self.get_scores()
@@ -163,7 +163,7 @@ class ObjectDetectionLabels(Labels):
             )
         return labels
 
-    def get_boxes(self) -> list[Box]:
+    def get_boxes(self) -> list[Box[float]]:
         """Return list of Boxes."""
         return [Box.from_npbox(npbox) for npbox in self.boxlist.get()]
 
@@ -171,9 +171,7 @@ class ObjectDetectionLabels(Labels):
         return self.boxlist.get()
 
     def get_scores(self) -> np.ndarray:
-        if self.boxlist.has_field('scores'):
-            return self.boxlist.get_field('scores')
-        return None
+        return self.boxlist.get_field('scores')
 
     def get_class_ids(self) -> np.ndarray:
         return self.boxlist.get_field('classes')
@@ -249,7 +247,7 @@ class ObjectDetectionLabels(Labels):
     @staticmethod
     def get_overlapping(
         labels: 'ObjectDetectionLabels',
-        window: Box,
+        window: 'Box[int] | Box[float]',
         ioa_thresh: float = 0.5,
         clip: bool = False,
     ) -> 'ObjectDetectionLabels':

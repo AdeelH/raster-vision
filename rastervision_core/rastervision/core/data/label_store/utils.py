@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Sequence
+from typing import TYPE_CHECKING, Any, Sequence
 
 from tqdm.auto import tqdm
 
@@ -12,11 +12,11 @@ PROGRESSBAR_DELAY_SEC = 5
 
 
 def boxes_to_geojson(
-    boxes: Sequence['Box'],
+    boxes: Sequence['Box[int] | Box[float]'],
     class_ids: Sequence[int],
     crs_transformer: 'CRSTransformer',
     class_config: 'ClassConfig',
-    scores: Sequence[float | Sequence[float]] | None = None,
+    scores: Sequence[float | Sequence[float] | None] | None = None,
     bbox: 'Box | None' = None,
 ) -> dict:
     """Convert boxes and associated data into a GeoJSON dict.
@@ -62,7 +62,7 @@ def boxes_to_geojson(
         desc='Attaching class IDs and names to boxes',
         delay=PROGRESSBAR_DELAY_SEC,
     ) as bar:
-        properties = [
+        properties: list[dict[str, Any]] = [
             dict(class_id=id, class_name=class_config.get_name(id))
             for id in bar
         ]

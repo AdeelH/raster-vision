@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING, Literal
 from pydantic.types import PositiveInt as PosInt
 
 import numpy as np
+import numpy.typing as npt
 
 from rastervision.core.data.raster_transformer import (
     RasterTransformer,
@@ -70,5 +71,5 @@ class RGBClassTransformer(RasterTransformer):
             )
         return 1
 
-    def get_out_dtype(self, in_dtype: np.dtype) -> np.dtype:
+    def get_out_dtype(self, in_dtype: npt.DTypeLike) -> np.dtype:
         return np.dtype(np.uint8)

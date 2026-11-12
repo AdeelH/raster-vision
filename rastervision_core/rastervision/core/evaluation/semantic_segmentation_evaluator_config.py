@@ -9,7 +9,7 @@ from rastervision.core.evaluation.semantic_segmentation_evaluator import (
 )
 
 if TYPE_CHECKING:
-    from rastervision.core.data import ClassConfig
+    from rastervision.core.data import ClassConfig, Scene
 
 
 def ss_evaluator_config_upgrader(
@@ -30,7 +30,7 @@ class SemanticSegmentationEvaluatorConfig(ClassificationEvaluatorConfig):
     def build(
         self,
         class_config: 'ClassConfig',
-        scene_group: tuple[str, Iterable[str]] | None = None,
+        scene_group: tuple[str, Iterable['Scene']] | None = None,
     ) -> SemanticSegmentationEvaluator:
         if scene_group is None:
             output_uri = self.get_output_uri()

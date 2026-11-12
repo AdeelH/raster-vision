@@ -83,7 +83,7 @@ class RVConfig:
             return ''
         return f'-{"v" * num_vs}'
 
-    def get_tmp_dir(self) -> TemporaryDirectory:
+    def get_tmp_dir(self) -> TemporaryDirectory[str]:
         """Return a new TemporaryDirectory object."""
         return TemporaryDirectory(dir=self.tmp_dir_root)
 
@@ -140,7 +140,7 @@ class RVConfig:
                 'Temporary directory root is: {}'.format(self.tmp_dir_root)
             )
 
-    def get_cache_dir(self) -> TemporaryDirectory:
+    def get_cache_dir(self) -> str:
         """Return the cache directory."""
         cache_dir = os.path.join(self.tmp_dir_root, 'cache')
         os.makedirs(cache_dir, exist_ok=True)
@@ -240,7 +240,7 @@ class RVConfig:
         try:
             val: str = namespace_options(key)
             if as_bool:
-                val = val.lower() in ('1', 'true', 'y', 'yes')
+                return val.lower() in ('1', 'true', 'y', 'yes')
             return val
         except ConfigurationMissingError:
             if as_bool:

@@ -1,4 +1,5 @@
-from typing import Literal
+from collections.abc import Sequence
+from typing import Any, Literal
 import unittest
 
 from shapely.ops import unary_union
@@ -10,7 +11,7 @@ from rastervision.core.utils.misc import (
 )
 
 
-def windows_cover_extent(extent: Box, windows: list[Box]) -> bool:
+def windows_cover_extent(extent: Box, windows: Sequence[Box]) -> bool:
     windows_union = unary_union([w.to_shapely() for w in windows])
     return Box.within_aoi(extent, windows_union)
 
@@ -38,7 +39,12 @@ class TestCalculateRequiredPadding(unittest.TestCase):
         self.assertTrue(windows_cover_extent(extent, windows))
 
     def test_without_crop_sz(self):
-        for pad_direction in ['start', 'end', 'both']:
+        pad_directions: list[Literal['start', 'end', 'both']] = [
+            'start',
+            'end',
+            'both',
+        ]
+        for pad_direction in pad_directions:
             self._test_box_get_windows_with_padding(
                 extent_sz=(100, 100),
                 chip_sz=(20, 40),
@@ -85,7 +91,7 @@ class TestCalculateRequiredPadding(unittest.TestCase):
         )
 
     def test_error_if_chip_sz_lt_stride(self):
-        args = dict(
+        args: dict[str, Any] = dict(
             extent_sz=(100, 100),
             chip_sz=(10, 10),
             stride=(20, 20),
@@ -96,7 +102,7 @@ class TestCalculateRequiredPadding(unittest.TestCase):
         )
 
     def test_error_if_cropped_chip_sz_lt_stride(self):
-        args = dict(
+        args: dict[str, Any] = dict(
             extent_sz=(100, 100),
             chip_sz=(20, 20),
             stride=(20, 20),
@@ -108,7 +114,7 @@ class TestCalculateRequiredPadding(unittest.TestCase):
         )
 
     def test_error_if_crop_sz_with_wrong_pad_dir(self):
-        args = dict(
+        args: dict[str, Any] = dict(
             extent_sz=(100, 100),
             chip_sz=(50, 50),
             stride=(20, 20),

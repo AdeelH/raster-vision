@@ -106,11 +106,10 @@ class TestRasterioCRSTransformer(unittest.TestCase):
         self.assertEqual(pix_geom, pix_geom_expected)
 
     def test_map_to_pixel_invalid_input(self):
+        invalid_input = (1, 2, 3)
         self.assertRaises(
             TypeError,
-            lambda: self.crs_tf.map_to_pixel(  # pyright: ignore[reportCallIssue]
-                (1, 2, 3)
-            ),
+            lambda: self.crs_tf.map_to_pixel(invalid_input),  # pyright: ignore[reportCallIssue, reportArgumentType]
         )
 
     def test_pixel_to_map_point(self):
@@ -231,22 +230,23 @@ class TestRasterioCRSTransformer(unittest.TestCase):
         )
 
     def test_pixel_to_map_invalid_input(self):
+        invalid_input = (1, 2, 3)
         self.assertRaises(
             TypeError,
-            lambda: self.crs_tf.pixel_to_map(  # pyright: ignore[reportCallIssue]
-                (1, 2, 3)
-            ),
+            lambda: self.crs_tf.pixel_to_map(invalid_input),  # pyright: ignore[reportCallIssue, reportArgumentType]
         )
 
     def test_from_dataset(self):
         # default map_crs
         tf = RasterioCRSTransformer.from_dataset(self.im_dataset)
+        assert tf.map_crs is not None and tf.image_crs is not None
         im_crs = self.im_dataset.crs.wkt.lower()
         self.assertEqual(tf.map_crs.lower(), 'epsg:4326')
         self.assertEqual(tf.image_crs.lower(), self.im_dataset.crs.wkt.lower())
 
         # map_crs = None
         tf = RasterioCRSTransformer.from_dataset(self.im_dataset, map_crs=None)
+        assert tf.map_crs is not None and tf.image_crs is not None
         im_crs = self.im_dataset.crs.wkt.lower()
         self.assertEqual(tf.map_crs.lower(), im_crs)
         self.assertEqual(tf.image_crs.lower(), im_crs)
@@ -254,12 +254,14 @@ class TestRasterioCRSTransformer(unittest.TestCase):
     def test_from_uri(self):
         # default map_crs
         tf = RasterioCRSTransformer.from_uri(self.im_path)
+        assert tf.map_crs is not None and tf.image_crs is not None
         im_crs = self.im_dataset.crs.wkt.lower()
         self.assertEqual(tf.map_crs.lower(), 'epsg:4326')
         self.assertEqual(tf.image_crs.lower(), self.im_dataset.crs.wkt.lower())
 
         # map_crs = None
         tf = RasterioCRSTransformer.from_uri(self.im_path, map_crs=None)
+        assert tf.map_crs is not None and tf.image_crs is not None
         im_crs = self.im_dataset.crs.wkt.lower()
         self.assertEqual(tf.map_crs.lower(), im_crs)
         self.assertEqual(tf.image_crs.lower(), im_crs)

@@ -66,11 +66,13 @@ class ClassInferenceTransformer(VectorTransformer):
             )
 
         self.class_config = class_config
-        self.class_id_to_filter = class_id_to_filter
         self.default_class_id = default_class_id
         self.class_name_mapping = class_name_mapping
 
-        if self.class_id_to_filter is not None:
+        self.class_id_to_filter: dict[int, Callable[[dict], bool]] | None = (
+            None
+        )
+        if class_id_to_filter is not None:
             self.class_id_to_filter = {}
             for class_id, filter_exp in class_id_to_filter.items():
                 self.class_id_to_filter[int(class_id)] = create_filter(

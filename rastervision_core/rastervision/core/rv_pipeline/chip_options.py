@@ -149,7 +149,9 @@ class ChipOptions(Config):
         'Defaults to 1.0.',
     )
 
-    def get_chip_sz(self, scene_id: str | None = None) -> int:
+    def get_chip_sz(
+        self, scene_id: str | None = None
+    ) -> int | tuple[int, int]:
         if isinstance(self.sampling, dict):
             if scene_id is None:
                 raise KeyError(

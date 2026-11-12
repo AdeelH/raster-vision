@@ -118,7 +118,8 @@ def compute_coco_eval(outputs, targets, num_class_ids):
         json_to_file(gt, gt_path)
         coco_gt = COCO(gt_path)
 
-        coco_preds = coco_gt.loadRes(preds)
+        # pycocotools accepts a list of result dicts, but its stub declares str.
+        coco_preds = coco_gt.loadRes(preds)  # pyright: ignore[reportArgumentType]
 
         coco_eval = COCOeval(cocoGt=coco_gt, cocoDt=coco_preds, iouType='bbox')
 
@@ -174,7 +175,7 @@ class BoxList:
 
         return new_extras
 
-    def copy(self) -> 'Self':
+    def copy(self) -> 'BoxList':
         return BoxList(
             self.boxes.clone(),
             **self._map_extras(
@@ -182,7 +183,7 @@ class BoxList:
             ),
         )
 
-    def to(self, *args, **kwargs) -> 'Self':
+    def to(self, *args, **kwargs) -> 'BoxList':
         """Recursively apply :meth:`torch.Tensor.to` to Tensors.
 
         Args:
@@ -212,15 +213,14 @@ class BoxList:
     @staticmethod
     def cat(box_lists: Iterable['BoxList']) -> 'BoxList':
         boxes = []
-        extras = defaultdict(list)
+        extras_lists: defaultdict[str, list[torch.Tensor]] = defaultdict(list)
         for bl in box_lists:
             boxes.append(bl.boxes)
             for k, v in bl.extras.items():
-                extras[k].append(v)
+                extras_lists[k].append(v)
         boxes = torch.cat(boxes)
-        for k, v in extras.items():
-            extras[k] = torch.cat(v)
-        return BoxList(boxes, **extras)
+        extras = {k: torch.cat(v) for k, v in extras_lists.items()}
+        return BoxList(boxes, 'xyxy', **extras)
 
     def equal(self, other: 'Self') -> bool:
         if len(other) != len(self):
@@ -242,25 +242,25 @@ class BoxList:
         other_tups = set([tuple([x.item() for x in row]) for row in cat_arr])
         return self_tups == other_tups
 
-    def ind_filter(self, inds: Sequence[int]) -> 'Self':
+    def ind_filter(self, inds: Sequence[int] | torch.Tensor) -> 'BoxList':
         boxes = self.boxes[inds]
         extras = self._map_extras(
             func=lambda k, v: v[inds], cond=lambda k, v: torch.is_tensor(v)
         )
         return BoxList(boxes, **extras)
 
-    def score_filter(self, score_thresh: float = 0.25) -> 'Self':
+    def score_filter(self, score_thresh: float = 0.25) -> 'BoxList':
         scores = self.extras.get('scores')
         if scores is not None:
             return self.ind_filter(scores > score_thresh)
         else:
             raise ValueError('must have scores as key in extras')
 
-    def clip_boxes(self, img_height: int, img_width: int) -> 'Self':
+    def clip_boxes(self, img_height: int, img_width: int) -> 'BoxList':
         boxes = clip_boxes_to_image(self.boxes, (img_height, img_width))
         return BoxList(boxes, **self.extras)
 
-    def nms(self, iou_thresh: float = 0.5) -> torch.Tensor:
+    def nms(self, iou_thresh: float = 0.5) -> 'BoxList':
         if len(self) == 0:
             return self
 
@@ -303,7 +303,7 @@ def draw_boxes(
     x: torch.Tensor,
     y: BoxList,
     class_names: Sequence[str],
-    class_colors: Sequence[str],
+    class_colors: Sequence[str | tuple],
 ) -> torch.Tensor:
     """Given an image and a BoxList, draw the boxes in the BoxList on the
     image."""
@@ -318,7 +318,7 @@ def draw_boxes(
                 f'{ann} | {score:.2f}'
                 for ann, score in zip(box_annotations, scores)
             ]
-        box_colors: list[str | tuple[int, ...]] = [
+        box_colors: list[str | tuple[int, int, int]] = [
             tuple(c) if not isinstance(c, str) else c
             for c in np.array(class_colors)[class_ids]
         ]
@@ -351,12 +351,15 @@ class TorchVisionODAdapter(nn.Module):
     """
 
     def __init__(
-        self, model: nn.Module, ignored_output_inds: Sequence[int] = [0]
+        self,
+        model: 'nn.Module | ONNXRuntimeAdapterForFasterRCNN',
+        ignored_output_inds: Sequence[int] = [0],
     ) -> None:
         """Constructor.
 
         Args:
-            model (nn.Module): A torchvision object detection model.
+            model (nn.Module | ONNXRuntimeAdapterForFasterRCNN): A torchvision
+                object detection model, or an ONNX-exported one.
             ignored_output_inds (Iterable[int]): Class labels to exclude.
                 Defaults to [0].
         """
@@ -386,6 +389,9 @@ class TorchVisionODAdapter(nn.Module):
             # models: a dict with keys, 'boxes' and 'labels'.
             # Note: labels (class IDs) must start at 1.
             _targets = [self.boxlist_to_model_input_dict(bl) for bl in targets]
+            assert isinstance(self.model, nn.Module), (
+                'Training is not supported for ONNX models.'
+            )
             loss_dict = self.model(input, _targets)
             return loss_dict
 
@@ -438,16 +444,18 @@ class TorchVisionODAdapter(nn.Module):
 class ONNXRuntimeAdapterForFasterRCNN(ONNXRuntimeAdapter):
     """TorchVision Faster RCNN model exported as ONNX"""
 
-    def __call__(self, x: torch.Tensor | np.ndarray) -> torch.Tensor:
+    def __call__(
+        self, x: torch.Tensor | np.ndarray
+    ) -> list[dict[str, torch.Tensor]]:
         N, *_ = x.shape
         if isinstance(x, torch.Tensor):
             x = x.numpy()
         outputs = self.ort_session.run(None, dict(x=x))
-        out_dicts: list[dict[str, torch.Tensor] | None] = [None] * N
+        out_dicts: list[dict[str, torch.Tensor]] = []
         for i in range(N):
             boxes, labels, scores = outputs[i * 3 : i * 3 + 3]
             boxes = torch.from_numpy(boxes)
             labels = torch.from_numpy(labels)
             scores = torch.from_numpy(scores)
-            out_dicts[i] = dict(boxes=boxes, labels=labels, scores=scores)
+            out_dicts.append(dict(boxes=boxes, labels=labels, scores=scores))
         return out_dicts

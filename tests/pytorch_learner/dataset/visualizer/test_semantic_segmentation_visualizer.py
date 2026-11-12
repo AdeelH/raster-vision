@@ -77,6 +77,5 @@ class TestClassificationVisualizer(unittest.TestCase):
         )
         num_classes = 2
         x = torch.randn(size=(2, 3, 4, 256, 256))
-        y = None
         z = torch.randn(size=(2, num_classes, 256, 256)).softmax(dim=-3)
-        self.assertNoError(lambda: viz.plot_batch(x, y, z=z))
+        self.assertNoError(lambda: viz.plot_batch(x, None, z=z))

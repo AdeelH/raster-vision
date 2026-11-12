@@ -82,12 +82,14 @@ class TestTransforms(unittest.TestCase):
         # w/ y, w/o transform
         x_in, y_in = np.zeros((10, 10, 3), dtype=np.uint8), np.zeros((10, 10))
         x_out, y_out = semantic_segmentation_transformer((x_in, y_in), None)
+        assert y_out is not None
         np.issubdtype(y_out.dtype, int)
 
         # w/ y, w/ transform
         x_out, y_out = semantic_segmentation_transformer(
             (x_in, y_in), A.Resize(20, 20)
         )
+        assert y_out is not None
         self.assertEqual(x_out.shape, (20, 20, 3))
         self.assertEqual(y_out.shape, (20, 20))
         np.issubdtype(y_out.dtype, int)

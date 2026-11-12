@@ -47,7 +47,9 @@ class ClassificationEvaluation(ABC):
             dict | list: Class-wise and (if available) scene-wise
             evaluations.
         """
-        out = [item.to_json() for item in self.class_to_eval_item.values()]
+        out: dict | list = [
+            item.to_json() for item in self.class_to_eval_item.values()
+        ]
         if self.avg_item:
             out.append(self.avg_item)
 

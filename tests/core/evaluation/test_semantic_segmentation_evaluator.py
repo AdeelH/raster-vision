@@ -1,3 +1,4 @@
+from typing import cast
 import unittest
 from os.path import join
 
@@ -5,7 +6,11 @@ import numpy as np
 
 from rastervision.pipeline.file_system import file_to_json, get_tmp_dir
 from rastervision.core.data import ClassConfig
-from rastervision.core.data import Scene, SemanticSegmentationLabelSource
+from rastervision.core.data import (
+    LabelStore,
+    Scene,
+    SemanticSegmentationLabelSource,
+)
 from rastervision.core.evaluation import SemanticSegmentationEvaluator
 
 from tests.core.data.mock_raster_source import MockRasterSource
@@ -45,7 +50,7 @@ class TestSemanticSegmentationEvaluator(unittest.TestCase):
         pred_rs.set_raster(pred_arr)
         pred_ls = SemanticSegmentationLabelSource(pred_rs, self.class_config)
 
-        return Scene(scene_id, rs, gt_ls, pred_ls)
+        return Scene(scene_id, rs, gt_ls, cast(LabelStore, pred_ls))
 
     def test_evaluator(self):
         output_uri = join(self.tmp_dir.name, 'out.json')
