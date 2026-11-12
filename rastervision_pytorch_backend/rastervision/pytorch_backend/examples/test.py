@@ -1,4 +1,3 @@
-from typing import Any
 from genericpath import exists
 from pprint import pformat
 import subprocess
@@ -416,7 +415,7 @@ def _predict(exp_cfg: dict, collect_dir: str) -> None:
 
 def _compare_runs(root_uri_old: str,
                   root_uri_new: str,
-                  download_dir: str | None,
+                  download_dir: str,
                   commands=['eval']) -> None:
     """Compare outputs of commands for two runs of an example.
     Currently only supports eval, but can be extended to include others.
@@ -557,7 +556,7 @@ def _compare_dicts(dict_old: dict,
             comparing values. Defaults to [].
     """
     dict_old = flatten_dict(dict_old)
-    dict_new: dict[str, Any] = flatten_dict(dict_new)
+    dict_new = flatten_dict(dict_new)
     keys_old, keys_new = set(dict_old.keys()), set(dict_new.keys())
     diff1, diff2 = keys_new - keys_old, keys_old - keys_new
     if len(diff1) > 0:
@@ -565,7 +564,7 @@ def _compare_dicts(dict_old: dict,
     if len(diff2) > 0:
         console_failure(f'Missing keys in new: {keys_old - keys_new}')
     if len(diff1) + len(diff2) == 0:
-        console_success(f'All keys match')
+        console_success('All keys match')
     intersection = keys_old.intersection(keys_new)
     if len(intersection) == 0:
         console_failure('No matching keys found:')
@@ -601,7 +600,7 @@ def _compare_dicts(dict_old: dict,
     if diff_count > 0:
         console_failure(f'Number of non-matching values: {diff_count}')
     else:
-        console_success(f'All values within tolerance')
+        console_success('All values within tolerance')
 
 
 def console_info(msg: str, **kwargs) -> None:

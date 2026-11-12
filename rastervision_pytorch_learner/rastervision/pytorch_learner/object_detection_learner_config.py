@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from enum import Enum
 from os.path import join
 import logging
@@ -20,6 +20,9 @@ from rastervision.pytorch_learner.dataset import (
 from rastervision.pytorch_learner.utils import adjust_conv_channels
 
 if TYPE_CHECKING:
+    from torch import nn
+    from rastervision.core.rv_pipeline import (
+        ObjectDetectionWindowSamplingConfig)
     from rastervision.pytorch_learner.learner_config import SolverConfig
 
 log = logging.getLogger(__name__)
@@ -96,6 +99,7 @@ class ObjectDetectionGeoDataConfig(ObjectDetectionDataConfig, GeoDataConfig):
                 **extra_args,
             )
         elif opts.method == WindowSamplingMethod.random:
+            opts = cast('ObjectDetectionWindowSamplingConfig', opts)
             ds = ObjectDetectionRandomWindowGeoDataset(
                 scene,
                 size_lims=opts.size_lims,
@@ -165,7 +169,8 @@ class ObjectDetectionModelConfig(ModelConfig):
         image_std = [0.229, 0.224, 0.225]
 
         if in_channels != 3:
-            extra_channels = in_channels - backbone.body['conv1'].in_channels
+            old_conv = cast('nn.Conv2d', backbone.body['conv1'])
+            extra_channels = in_channels - old_conv.in_channels
 
             # adjust channels
             backbone.body['conv1'] = adjust_conv_channels(

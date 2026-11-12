@@ -10,6 +10,7 @@ from rastervision.pipeline.file_system import (
     get_local_path, file_exists, sync_from_dir, sync_to_dir, list_paths,
     get_tmp_dir, uri_to_vsi_path, NotReadableError, NotWritableError,
     FileSystem)
+from rastervision.aws_s3 import S3FileSystem
 
 LOREM = """ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
         eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
@@ -241,6 +242,7 @@ class TestS3Misc(unittest.TestCase):
     def test_parse_uri(self):
         s3_path = f's3://{self.bucket_name}/lorem1.txt'
         fs = FileSystem.get_file_system(s3_path, 'r')
+        assert issubclass(fs, S3FileSystem)
         bucket, key = fs.parse_uri(s3_path)
         self.assertEqual((bucket, key), (self.bucket_name, 'lorem1.txt'))
 

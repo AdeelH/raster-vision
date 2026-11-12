@@ -1,3 +1,4 @@
+from typing import cast
 from collections.abc import Callable
 from os.path import join
 from enum import Enum
@@ -201,8 +202,9 @@ class SemanticSegmentationModelConfig(ModelConfig):
                     'into Raster Vision. See isprs_potsdam.py for an example '
                     'of how to import external models. Alternatively, you can '
                     'override this function.')
-            model.backbone.conv1 = adjust_conv_channels(
-                old_conv=model.backbone.conv1,
+            backbone = cast(nn.Module, model.backbone)
+            backbone.conv1 = adjust_conv_channels(
+                old_conv=backbone.conv1,
                 in_channels=in_channels,
                 pretrained=pretrained)
         return model

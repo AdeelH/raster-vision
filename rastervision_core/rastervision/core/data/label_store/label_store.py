@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 
 if TYPE_CHECKING:
     from rastervision.core.box import Box
-    from rastervision.core.data import CRSTransformer
+    from rastervision.core.data import CRSTransformer, Labels
 
 
 class LabelStore(ABC):
@@ -19,7 +19,7 @@ class LabelStore(ABC):
         """
 
     @abstractmethod
-    def get_labels(self):
+    def get_labels(self) -> 'Labels':
         """Loads Labels from this label store."""
 
     @property

@@ -101,6 +101,10 @@ class WindowSamplingConfig(Config):
             has_h_lims = self.h_lims is not None
             has_w_lims = self.w_lims is not None
             if not (has_size_lims or has_h_lims or has_w_lims):
+                if isinstance(size, tuple):
+                    raise ConfigError(
+                        'If size is a tuple, size_lims or h_lims and w_lims '
+                        'must be specified.')
                 self.size_lims = (size, size + 1)
                 has_size_lims = True
             if has_size_lims == (has_w_lims or has_h_lims):

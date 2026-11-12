@@ -54,6 +54,6 @@ def get_env_var(key: str,
                 out_type: type | Callable | None = None) -> Any | None:
     val = os.environ.get(key, default)
     if val is not None and out_type is not None:
-        if out_type == bool:
+        if out_type is bool:
             return val.lower() in ('1', 'true', 'y', 'yes')
         return out_type(val)

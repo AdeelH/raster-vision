@@ -145,7 +145,8 @@ class RasterioCRSTransformer(CRSTransformer):
         return map_point
 
     def _pixel_to_map_box(self, box: Box) -> Box:
-        rio_window = Window(*box.to_xywh())
+        # Window is an attrs class whose fields pyright can't see
+        rio_window = Window(*box.to_xywh())  # pyright: ignore[reportCallIssue]
         xmin, ymin, xmax, ymax = bounds(rio_window, transform=self.transform)
         xmin, ymin, xmax, ymax = (
             round(xmin, PIXEL_PRECISION),

@@ -8,7 +8,7 @@ from rastervision.pytorch_learner.utils import (plot_channel_groups,
                                                 channel_groups_to_imgs)
 
 if TYPE_CHECKING:
-    from matplotlib.pyplot import Axes
+    from matplotlib.axes import Axes
 
 
 class ClassificationVisualizer(Visualizer):
@@ -42,7 +42,7 @@ class ClassificationVisualizer(Visualizer):
 
     def plot_gt(self, ax: 'Axes', class_names: Sequence[str], y: torch.Tensor):
         """Display ground truth class names as text."""
-        class_name = class_names[y]
+        class_name = class_names[int(y)]
         ax.text(
             x=.5,
             y=.5,

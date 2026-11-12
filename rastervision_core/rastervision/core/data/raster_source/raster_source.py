@@ -191,9 +191,8 @@ class RasterSource(ABC):
         """
         return self._get_chip(window, out_shape=out_shape)
 
-    def resize(self,
-               chip: 'np.ndarray',
-               out_shape: tuple[int, int] | None = None) -> 'np.ndarray':
+    def resize(self, chip: 'np.ndarray',
+               out_shape: tuple[int, int]) -> 'np.ndarray':
         out_shape = chip.shape[:-3] + out_shape
         out = resize(chip, out_shape, preserve_range=True, anti_aliasing=True)
         out = out.round(6).astype(chip.dtype)

@@ -89,8 +89,10 @@ class TestUtils(unittest.TestCase):
             cfg.to_file(cfg_path)
             cfgs = get_configs(cfg_path)
         self.assertEqual(len(cfgs), 1)
-        self.assertEqual(cfgs[0].root_uri, cfg.root_uri)
-        self.assertListEqual(cfgs[0].names, cfg.names)
+        cfg_out = cfgs[0]
+        assert isinstance(cfg_out, SamplePipelineConfig)
+        self.assertEqual(cfg_out.root_uri, cfg.root_uri)
+        self.assertListEqual(cfg_out.names, cfg.names)
 
     def test_get_configs_no_func(self):
         with get_tmp_dir() as tmp_dir:

@@ -23,6 +23,7 @@ class TestTinySpacenet(unittest.TestCase):
             'rastervision.pytorch_backend.examples.tiny_spacenet'
         ])
         if result.exit_code != 0:
+            assert result.exception is not None
             raise result.exception
 
         # test predict command
@@ -34,6 +35,7 @@ class TestTinySpacenet(unittest.TestCase):
                 '2'
             ])
         if result.exit_code != 0:
+            assert result.exception is not None
             raise result.exception
 
         # test predict_scene command
@@ -55,6 +57,7 @@ class TestTinySpacenet(unittest.TestCase):
                 pred_opts_uri
             ])
         if result.exit_code != 0:
+            assert result.exception is not None
             raise result.exception
 
 

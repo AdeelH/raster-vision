@@ -374,7 +374,7 @@ def extract(uri: str,
     return target_dir
 
 
-def get_tmp_dir() -> 'TemporaryDirectory':
+def get_tmp_dir() -> 'TemporaryDirectory[str]':
     """Return temporary directory given by the :class:`RVConfig`.
 
     Returns:

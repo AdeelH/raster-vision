@@ -49,6 +49,7 @@ class StatsTransformerConfig(RasterTransformerConfig):
                pipeline: 'RVPipelineConfig | None' = None,
                scene: 'SceneConfig | None' = None) -> None:
         if pipeline is not None and self.stats_uri is None:
+            assert pipeline.analyze_uri is not None
             self.stats_uri = join(pipeline.analyze_uri, 'stats',
                                   self.scene_group, 'stats.json')
 

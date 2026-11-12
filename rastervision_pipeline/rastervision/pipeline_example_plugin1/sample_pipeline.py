@@ -25,6 +25,8 @@ class SamplePipelineConfig(PipelineConfig):
         # The update method is used to set default values as a function of
         # other values.
         if self.message_uris is None:
+            if self.root_uri is None:
+                raise ValueError('root_uri must be set.')
             self.message_uris = [
                 join(self.root_uri, '{}.txt'.format(name))
                 for name in self.names
@@ -32,6 +34,8 @@ class SamplePipelineConfig(PipelineConfig):
 
 
 class SamplePipeline(Pipeline):
+    config: SamplePipelineConfig
+
     # The order in which commands run. Each command correspond to a method.
     commands: list[str] = ['save_messages', 'print_messages']
 

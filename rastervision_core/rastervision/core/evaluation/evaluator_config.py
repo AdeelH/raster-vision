@@ -27,6 +27,7 @@ class EvaluatorConfig(Config):
         pass
 
     def get_output_uri(self, scene_group_name: str | None = None) -> str:
+        assert self.output_uri is not None
         if scene_group_name is None:
             return join(self.output_uri, 'eval.json')
         return join(self.output_uri, scene_group_name, 'eval.json')

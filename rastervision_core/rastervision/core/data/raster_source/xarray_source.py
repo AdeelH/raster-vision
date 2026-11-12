@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Sequence
+from typing import TYPE_CHECKING, Any, Sequence, cast
 import logging
 
 import numpy as np
@@ -226,7 +226,7 @@ class XarraySource(RasterSource):
         if bands is None or bands == slice(None):
             bands = self.channel_order
         else:
-            bands = self.channel_order[bands]
+            bands = cast(np.ndarray, self.channel_order)[bands]
         chip = self._get_chip(
             window, bands=bands, time=time, out_shape=out_shape)
         for transformer in self.raster_transformers:

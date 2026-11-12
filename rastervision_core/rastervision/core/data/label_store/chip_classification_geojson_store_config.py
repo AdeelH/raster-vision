@@ -22,4 +22,5 @@ class ChipClassificationGeoJSONStoreConfig(LabelStoreConfig):
 
     def update(self, pipeline=None, scene=None):
         if self.uri is None and pipeline is not None and scene is not None:
+            assert pipeline.predict_uri is not None
             self.uri = join(pipeline.predict_uri, '{}.json'.format(scene.id))

@@ -72,12 +72,13 @@ def predict(model_bundle: str,
     """Make predictions on the images at IMAGE_URI
     using MODEL_BUNDLE and store the prediction output at LABEL_URI.
     """
+    channel_order_ints = None
     if channel_order is not None:
-        channel_order: list[int] = [int(i) for i in channel_order]
+        channel_order_ints = [int(i) for i in channel_order]
 
     with get_tmp_dir() as tmp_dir:
         predictor = Predictor(model_bundle, tmp_dir, update_stats,
-                              channel_order, scene_group)
+                              channel_order_ints, scene_group)
         predictor.predict([image_uri], label_uri)
 
 

@@ -1,4 +1,4 @@
-from typing import (TYPE_CHECKING, Any, Iterator, Literal)
+from typing import (TYPE_CHECKING, Any, Iterator, Literal, cast)
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from os.path import join, isfile, basename, isdir
@@ -18,11 +18,11 @@ from tqdm.auto import tqdm
 import torch
 from torch import Tensor
 import torch.nn as nn
-from torch.utils.tensorboard import SummaryWriter
+from torch.utils.tensorboard.writer import SummaryWriter
 from torch.utils.data import DataLoader, DistributedSampler
 from torch.nn.parallel import DistributedDataParallel as DDP
 import torch.distributed as dist
-import torch.multiprocessing as mp
+from torch.multiprocessing.spawn import start_processes
 
 from rastervision.pipeline import rv_config_ as rv_config
 from rastervision.pipeline.utils import get_env_var
@@ -170,7 +170,7 @@ class Learner(ABC):
         self.valid_dl = None
         self.test_dl = None
 
-        self.model = model
+        self.model: nn.Module | None = model
         self.loss = loss
         self.opt = optimizer
         self.epoch_scheduler = epoch_scheduler
@@ -260,7 +260,7 @@ class Learner(ABC):
             cfg.data.plot_options.channel_display_groups)
 
     @classmethod
-    def from_model_bundle(cls: type,
+    def from_model_bundle(cls,
                           model_bundle_uri: str,
                           tmp_dir: str | None = None,
                           cfg: 'LearnerConfig | None' = None,
@@ -367,7 +367,7 @@ class Learner(ABC):
                 raise ValueError('kwargs are only supported if calling '
                                  '.from_model_bundle() on a Learner subclass '
                                  '-- not Learner itself.')
-            learner: cls = cfg.build(
+            learner = cfg.build(
                 tmp_dir=tmp_dir,
                 model_weights_path=model_weights_path,
                 model_def_path=model_def_path,
@@ -438,7 +438,7 @@ class Learner(ABC):
                                         start_epoch, end_epoch)
         elif self.distributed:  # pragma: no cover
             log.info('Spawning %d DDP processes', self.ddp_world_size)
-            mp.start_processes(
+            start_processes(
                 self._run_train_distributed,
                 args=(self.ddp_world_size, start_epoch, end_epoch),
                 nprocs=self.ddp_world_size,
@@ -477,7 +477,7 @@ class Learner(ABC):
         for epoch in range(start_epoch, end_epoch):
             log.info(f'epoch: {epoch}')
 
-            train_dl.sampler.set_epoch(epoch)
+            cast(DistributedSampler, train_dl.sampler).set_epoch(epoch)
 
             train_metrics = self.train_epoch(
                 optimizer=self.opt,
@@ -515,13 +515,14 @@ class Learner(ABC):
         self.model.train()
         if dataloader is None:
             dataloader = self.train_dl
+        assert dataloader is not None
         start = perf_counter()
         outputs = []
         if self.ddp_rank is not None:
             desc = f'Training (GPU={self.ddp_rank})'
         else:
             desc = 'Training'
-        with tqdm(self.train_dl, desc=desc) as bar:
+        with tqdm(dataloader, desc=desc) as bar:
             for batch_ind, (x, y) in enumerate(bar):
                 x = self.to_device(x, self.device)
                 y = self.to_device(y, self.device)
@@ -545,7 +546,7 @@ class Learner(ABC):
         return metrics
 
     @abstractmethod
-    def train_step(self, batch: Any, batch_ind: int) -> MetricDict:
+    def train_step(self, batch: Any, batch_ind: int) -> dict[str, Tensor]:
         """Compute loss for a single training batch.
 
         Args:
@@ -580,7 +581,7 @@ class Learner(ABC):
                                            split)
         elif self.distributed:  # pragma: no cover
             log.info('Spawning DDP processes')
-            mp.start_processes(
+            start_processes(
                 self._run_validate_distributed,
                 args=(self.ddp_world_size, split),
                 nprocs=self.ddp_world_size,
@@ -607,6 +608,7 @@ class Learner(ABC):
         if self.is_ddp_process and not self.is_ddp_master:
             return
         log.info(f'metrics: {metrics}')
+        assert self.output_dir_local is not None
         json_to_file(metrics,
                      join(self.output_dir_local, f'{split}_metrics.json'))
         self.plot_predictions(split, self.cfg.data.preview_batch_limit)
@@ -683,6 +685,7 @@ class Learner(ABC):
             self.tb_writer.flush()
 
         if self.cfg.save_all_checkpoints and curr_epoch > 0:
+            assert self.checkpoints_dir_local is not None
             checkpoint_name = f'model-ckpt-epoch-{curr_epoch - 1}.pth'
             checkpoint_path = join(self.checkpoints_dir_local, checkpoint_name)
             shutil.move(self.last_model_weights_path, checkpoint_path)
@@ -800,7 +803,7 @@ class Learner(ABC):
                 preds = ((*p[:-1], self.output_to_numpy(p[-1])) for p in preds)
 
         if progress_bar:
-            pb_kw = dict(desc='Predicting', total=len(dataset))
+            pb_kw: dict[str, Any] = dict(desc='Predicting', total=len(dataset))
             pb_kw.update(progress_bar_kw)
             preds = tqdm(preds, **pb_kw)
 
@@ -1021,6 +1024,7 @@ class Learner(ABC):
         """
         cfg = self.cfg
 
+        assert self.output_dir_local is not None
         self.config_path = join(self.output_dir_local, 'learner-config.json')
         cfg.to_file(self.config_path)
         self.log_path = join(self.output_dir_local, 'log.csv')
@@ -1107,7 +1111,9 @@ class Learner(ABC):
                 Will be available when loading from a bundle. Defaults to None.
         """
         if self.onnx_mode:
-            self.model = self.load_onnx_model(model_weights_path)
+            model = self.load_onnx_model(model_weights_path)
+            # ONNXRuntimeAdapter is used as a stand-in for an nn.Module
+            self.model = model  # pyright: ignore[reportAttributeAccessIssue]
             return
         if self.model is None:
             self.model = self.build_model(model_def_path=model_def_path)
@@ -1171,7 +1177,7 @@ class Learner(ABC):
 
     def build_datasets(self) -> tuple['Dataset', 'Dataset', 'Dataset']:
         """Build Datasets for train, validation, and test splits."""
-        log.info(f'Building datasets ...')
+        log.info('Building datasets ...')
         train_ds, val_ds, test_ds = self.cfg.data.build(tmp_dir=self.tmp_dir)
         return train_ds, val_ds, test_ds
 
@@ -1341,6 +1347,7 @@ class Learner(ABC):
         log.info(
             f'Making and plotting sample predictions on the {split} set...')
         dl = self.get_dataloader(split)
+        assert self.output_dir_local is not None
         output_path = join(self.output_dir_local, f'{split}_preds.png')
         preds = self.predict_dataloader(
             dl, return_format='xyz', batched_output=True, raw_out=True)
@@ -1364,6 +1371,7 @@ class Learner(ABC):
                          show: bool = False):
         """Plot images and ground truth labels for all DataLoaders."""
         if self.train_dl:
+            assert self.output_dir_local is not None
             log.info('Plotting sample training batch.')
             self.plot_dataloader(
                 self.train_dl,
@@ -1372,6 +1380,7 @@ class Learner(ABC):
                 batch_limit=batch_limit,
                 show=show)
         if self.valid_dl:
+            assert self.output_dir_local is not None
             log.info('Plotting sample validation batch.')
             self.plot_dataloader(
                 self.valid_dl,
@@ -1380,6 +1389,7 @@ class Learner(ABC):
                 batch_limit=batch_limit,
                 show=show)
         if self.test_dl:
+            assert self.output_dir_local is not None
             log.info('Plotting sample test batch.')
             self.plot_dataloader(
                 self.test_dl,
@@ -1415,6 +1425,8 @@ class Learner(ABC):
         cfg_uri = join(model_bundle_dir, 'learner-config.json')
         shutil.copy(self.config_path, cfg_uri)
 
+        assert self.output_dir_local is not None
+        assert self.model_bundle_uri is not None
         zip_path = join(self.output_dir_local, basename(self.model_bundle_uri))
         log.info(f'Saving bundle to {zip_path}.')
         zipdir(model_bundle_dir, zip_path)
@@ -1577,6 +1589,7 @@ class Learner(ABC):
 
     def reduce_distributed_metrics(self, metrics: dict):  # pragma: no cover
         """Average numeric metrics across processes."""
+        assert self.ddp_world_size is not None
         for k in metrics.keys():
             v = metrics[k]
             if isinstance(v, (float, int)):
@@ -1746,6 +1759,7 @@ class Learner(ABC):
         """Setup for logging stats to TB."""
         self.tb_writer = None
         if self.cfg.log_tensorboard:
+            assert self.output_dir_local is not None
             self.tb_log_dir = join(self.output_dir_local, 'tb-logs')
             make_dir(self.tb_log_dir)
             self.tb_writer = SummaryWriter(log_dir=self.tb_log_dir)

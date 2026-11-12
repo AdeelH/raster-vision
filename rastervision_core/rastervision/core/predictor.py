@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from os.path import join
 import logging
 
@@ -55,7 +55,7 @@ class Predictor():
         rv_config.set_everett_config(
             config_overrides=config_dict.get('rv_config'))
         config_dict = upgrade_config(config_dict)
-        self.config: 'RVPipelineConfig' = build_config(config_dict)
+        self.config = cast('RVPipelineConfig', build_config(config_dict))
         self.scene: 'SceneConfig' = self.config.dataset.validation_scenes[0]
 
         if not hasattr(self.scene.raster_source, 'uris'):
@@ -93,7 +93,7 @@ class Predictor():
         if channel_order is not None:
             self.scene.raster_source.channel_order = channel_order
 
-        self.pipeline = None
+        self.pipeline: 'RVPipeline | None' = None
 
     def predict(self, image_uris: list[str], label_uri: str) -> None:
         """Generate predictions for the given image.
@@ -104,17 +104,21 @@ class Predictor():
                 FileSystems.
             label_uri: URI to save labels off into
         """
+        # existence of the uris and uri fields is checked in __init__
         if self.pipeline is None:
-            self.scene.raster_source.uris = image_uris
-            self.pipeline = self.config.build(self.tmp_dir)
+            raster_source = self.scene.raster_source
+            raster_source.uris = image_uris  # pyright: ignore[reportAttributeAccessIssue]
+            self.pipeline = cast('RVPipeline', self.config.build(self.tmp_dir))
             if not hasattr(self.pipeline, 'predict'):
                 raise Exception(
                     'pipeline in model bundle must have predict method')
             self.pipeline.build_backend(
                 join(self.bundle_dir, 'model-bundle.zip'))
 
-        self.scene.raster_source.uris = image_uris
-        self.scene.label_store.uri = label_uri
+        raster_source = self.scene.raster_source
+        label_store = self.scene.label_store
+        raster_source.uris = image_uris  # pyright: ignore[reportAttributeAccessIssue]
+        label_store.uri = label_uri  # pyright: ignore[reportAttributeAccessIssue]
 
         if isinstance(self.scene.label_store,
                       SemanticSegmentationLabelStoreConfig):
@@ -170,14 +174,15 @@ class ScenePredictor:
         rv_config.set_everett_config(
             config_overrides=pipeline_config_dict.get('rv_config'))
         pipeline_config_dict = upgrade_config(pipeline_config_dict)
-        self.pipeline_config: 'RVPipelineConfig' = build_config(
-            pipeline_config_dict)
+        self.pipeline_config = cast('RVPipelineConfig',
+                                    build_config(pipeline_config_dict))
 
         if predict_options is not None:
             self.pipeline_config.predict_options = PredictOptions.deserialize(
                 predict_options)
 
-        self.pipeline: 'RVPipeline' = self.pipeline_config.build(self.tmp_dir)
+        self.pipeline = cast('RVPipeline',
+                             self.pipeline_config.build(self.tmp_dir))
         self.pipeline.build_backend(join(bundle_dir, 'model-bundle.zip'))
         self.class_config = self.pipeline_config.dataset.class_config
 

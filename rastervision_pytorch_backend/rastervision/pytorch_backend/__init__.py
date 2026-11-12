@@ -15,10 +15,10 @@ from rastervision.pytorch_backend.pytorch_object_detection import *
 from rastervision.pytorch_backend.utils import *
 
 __all__ = [
-    PyTorchChipClassification.__name__,
-    PyTorchChipClassificationConfig.__name__,
-    PyTorchSemanticSegmentation.__name__,
-    PyTorchSemanticSegmentationConfig.__name__,
-    PyTorchObjectDetection.__name__,
-    PyTorchObjectDetectionConfig.__name__,
+    'PyTorchChipClassification',
+    'PyTorchChipClassificationConfig',
+    'PyTorchSemanticSegmentation',
+    'PyTorchSemanticSegmentationConfig',
+    'PyTorchObjectDetection',
+    'PyTorchObjectDetectionConfig',
 ]

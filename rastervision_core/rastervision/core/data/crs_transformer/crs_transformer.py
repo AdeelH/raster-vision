@@ -44,7 +44,9 @@ class CRSTransformer(ABC):
                      bbox: Box | None = None) -> BaseGeometry:
         ...
 
-    def map_to_pixel(self, inp, bbox: Box | None = None):
+    def map_to_pixel(
+            self, inp, bbox: Box | None = None
+    ) -> 'tuple[int, int] | tuple[np.ndarray, np.ndarray] | Box | BaseGeometry':
         """Transform input from map to pixel coords.
 
         Args:
@@ -103,7 +105,9 @@ class CRSTransformer(ABC):
                      bbox: Box | None = None) -> BaseGeometry:
         ...
 
-    def pixel_to_map(self, inp, bbox: Box | None = None):
+    def pixel_to_map(
+            self, inp, bbox: Box | None = None
+    ) -> 'tuple[float, float] | tuple[np.ndarray, np.ndarray] | Box | BaseGeometry':
         """Transform input from pixel to map coords.
 
         Args:
@@ -172,7 +176,7 @@ class CRSTransformer(ABC):
         pixel_box = Box(ymin_tf, xmin_tf, ymax_tf, xmax_tf)
         return pixel_box
 
-    def _map_to_pixel_geom(self, geom: Box) -> Box:
+    def _map_to_pixel_geom(self, geom: BaseGeometry) -> BaseGeometry:
         """Transform a shapely geom from map to pixel coordinates.
 
         Args:
@@ -215,7 +219,7 @@ class CRSTransformer(ABC):
         map_box = Box(ymin_tf, xmin_tf, ymax_tf, xmax_tf)
         return map_box
 
-    def _pixel_to_map_geom(self, geom: Box) -> Box:
+    def _pixel_to_map_geom(self, geom: BaseGeometry) -> BaseGeometry:
         """Transform a shapely geom from pixel to map coordinates.
 
         Args:

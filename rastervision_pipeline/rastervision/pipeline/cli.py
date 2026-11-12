@@ -219,12 +219,12 @@ def _run_command(cfg_json_uri: str,
     tmp_dir_obj = get_tmp_dir()
     tmp_dir = tmp_dir_obj.name
 
-    cfg = build_config(pipeline_cfg_dict)
+    cfg: PipelineConfig = build_config(pipeline_cfg_dict)
     pipeline = cfg.build(tmp_dir)
 
     if num_splits is not None and split_ind is None and runner is not None:
-        runner = registry.get_runner(runner)()
-        split_ind = runner.get_split_ind()
+        runner_obj = registry.get_runner(runner)()
+        split_ind = runner_obj.get_split_ind()
 
     command_fn = getattr(pipeline, command)
 

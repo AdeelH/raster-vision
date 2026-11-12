@@ -11,7 +11,6 @@ import torch.nn as nn
 from torchvision.ops import (box_area, box_convert, batched_nms,
                              clip_boxes_to_image)
 from torchvision.utils import draw_bounding_boxes
-import pycocotools
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
 import numpy as np
@@ -105,7 +104,6 @@ def compute_coco_eval(outputs, targets, num_class_ids):
         json_to_file(gt, gt_path)
         coco_gt = COCO(gt_path)
 
-        pycocotools.coco.unicode = None
         coco_preds = coco_gt.loadRes(preds)
 
         coco_eval = COCOeval(cocoGt=coco_gt, cocoDt=coco_preds, iouType='bbox')
@@ -162,9 +160,9 @@ class BoxList():
 
     def copy(self) -> 'Self':
         return BoxList(
-            self.boxes.copy(),
-            **self._map_extras(lambda k, v: v.copy()),
-            cond=lambda k, v: torch.is_tensor(v))
+            self.boxes.clone(),
+            **self._map_extras(
+                lambda k, v: v.clone(), cond=lambda k, v: torch.is_tensor(v)))
 
     def to(self, *args, **kwargs) -> 'Self':
         """Recursively apply :meth:`torch.Tensor.to` to Tensors.
@@ -409,9 +407,10 @@ class ONNXRuntimeAdapterForFasterRCNN(ONNXRuntimeAdapter):
 
     def __call__(self, x: torch.Tensor | np.ndarray) -> torch.Tensor:
         N, *_ = x.shape
-        x = x.numpy()
+        if isinstance(x, torch.Tensor):
+            x = x.numpy()
         outputs = self.ort_session.run(None, dict(x=x))
-        out_dicts = [None] * N
+        out_dicts: list[dict[str, torch.Tensor] | None] = [None] * N
         for i in range(N):
             boxes, labels, scores = outputs[i * 3:i * 3 + 3]
             boxes = torch.from_numpy(boxes)

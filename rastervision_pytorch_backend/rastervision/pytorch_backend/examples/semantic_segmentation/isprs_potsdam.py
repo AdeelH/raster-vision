@@ -132,6 +132,8 @@ def get_config(runner,
             raw_uri, f'5_Labels_for_participants/top_potsdam_{id}_label.tif')
 
         if test:
+            if processed_uri is None:
+                raise ValueError('processed_uri is required if test=True.')
             crop_uri = join(processed_uri, 'crops', basename(raster_uri))
             label_crop_uri = join(processed_uri, 'crops', basename(label_uri))
             save_image_crop(

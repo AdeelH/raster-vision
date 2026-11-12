@@ -10,12 +10,12 @@ from rastervision.core.data.label_source.object_detection_label_source import *
 from rastervision.core.data.label_source.object_detection_label_source_config import *
 
 __all__ = [
-    LabelSource.__name__,
-    LabelSourceConfig.__name__,
-    SemanticSegmentationLabelSource.__name__,
-    SemanticSegmentationLabelSourceConfig.__name__,
-    ChipClassificationLabelSource.__name__,
-    ChipClassificationLabelSourceConfig.__name__,
-    ObjectDetectionLabelSource.__name__,
-    ObjectDetectionLabelSourceConfig.__name__,
+    'LabelSource',
+    'LabelSourceConfig',
+    'SemanticSegmentationLabelSource',
+    'SemanticSegmentationLabelSourceConfig',
+    'ChipClassificationLabelSource',
+    'ChipClassificationLabelSourceConfig',
+    'ObjectDetectionLabelSource',
+    'ObjectDetectionLabelSourceConfig',
 ]

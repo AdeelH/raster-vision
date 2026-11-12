@@ -7,9 +7,9 @@ from rastervision.pytorch_learner.dataset.visualizer.semantic_segmentation_visua
 from rastervision.pytorch_learner.dataset.visualizer.regression_visualizer import *
 
 __all__ = [
-    Visualizer.__name__,
-    SemanticSegmentationVisualizer.__name__,
-    ClassificationVisualizer.__name__,
-    ObjectDetectionVisualizer.__name__,
-    RegressionVisualizer.__name__,
+    'Visualizer',
+    'SemanticSegmentationVisualizer',
+    'ClassificationVisualizer',
+    'ObjectDetectionVisualizer',
+    'RegressionVisualizer',
 ]

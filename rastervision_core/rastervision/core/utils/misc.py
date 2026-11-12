@@ -1,4 +1,4 @@
-from typing import Literal, TypeVar
+from typing import Literal, TypeVar, overload
 import math
 
 from pydantic.types import NonNegativeInt as NonNegInt, PositiveInt as PosInt
@@ -6,7 +6,17 @@ from pydantic.types import NonNegativeInt as NonNegInt, PositiveInt as PosInt
 T = TypeVar('T')
 
 
-def ensure_tuple(x: T, n: int = 2) -> tuple[T, ...]:
+@overload
+def ensure_tuple(x: T | tuple[T, T], n: Literal[2] = 2) -> tuple[T, T]:
+    ...
+
+
+@overload
+def ensure_tuple(x: T | tuple[T, ...], n: int) -> tuple[T, ...]:
+    ...
+
+
+def ensure_tuple(x: T | tuple[T, ...], n: int = 2) -> tuple[T, ...]:
     """Convert to n-tuple if not already an n-tuple."""
     if isinstance(x, tuple):
         if len(x) != n:
@@ -37,9 +47,9 @@ def calculate_required_padding(
     Returns:
         Padding as (h_pad, w_pad) tuple.
     """
-    extent_sz: tuple[PosInt, PosInt] = ensure_tuple(extent_sz)
-    chip_sz: tuple[PosInt, PosInt] = ensure_tuple(chip_sz)
-    stride: tuple[PosInt, PosInt] = ensure_tuple(stride)
+    extent_sz = ensure_tuple(extent_sz)
+    chip_sz = ensure_tuple(chip_sz)
+    stride = ensure_tuple(stride)
 
     img_h, img_w = extent_sz
     chip_h, chip_w = chip_sz

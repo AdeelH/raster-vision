@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Iterable
+from typing import TYPE_CHECKING, Iterable, cast
 from collections.abc import Callable
 from enum import Enum
 import logging
@@ -17,7 +17,8 @@ from rastervision.pytorch_learner.dataset import (
 from rastervision.pytorch_learner.utils import adjust_conv_channels
 
 if TYPE_CHECKING:
-    from rastervision.core.data import SceneConfig
+    from rastervision.core.data import (ChipClassificationLabelSourceConfig,
+                                        SceneConfig)
 
 log = logging.getLogger(__name__)
 
@@ -62,7 +63,9 @@ class ClassificationGeoDataConfig(ClassificationDataConfig, GeoDataConfig):
                      tmp_dir: str | None = None):
         for s in scene_configs:
             if s.label_source is not None:
-                s.label_source.lazy = True
+                label_source = cast('ChipClassificationLabelSourceConfig',
+                                    s.label_source)
+                label_source.lazy = True
         return super().build_scenes(scene_configs, tmp_dir=tmp_dir)
 
     def scene_to_dataset(
@@ -146,7 +149,7 @@ class ClassificationModelConfig(ModelConfig):
                 in_channels=in_channels,
                 pretrained=pretrained)
 
-        in_features = model.fc.in_features
+        in_features = cast(nn.Linear, model.fc).in_features
         model.fc = nn.Linear(in_features, num_classes)
 
         return model

@@ -1,4 +1,4 @@
-from typing import (TYPE_CHECKING, Iterable, Iterator)
+from typing import (TYPE_CHECKING, Iterable, Iterator, cast)
 from collections.abc import Callable
 from copy import deepcopy
 
@@ -11,7 +11,7 @@ from rastervision.core.box import Box
 
 if TYPE_CHECKING:
     from rastervision.core.data.crs_transformer import CRSTransformer
-    from shapely.geometry.base import BaseGeometry
+    from shapely.geometry.base import BaseGeometry, BaseMultipartGeometry
 
 MULTI_GEOM_TYPES = {'MultiPolygon', 'MultiPoint', 'MultiLineString'}
 PROGRESSBAR_DELAY_SEC = 5
@@ -67,7 +67,7 @@ def map_features(func: Callable[[dict], dict],
     return features_to_geojson(features_out)
 
 
-def map_geoms(func: Callable[['BaseGeometry', dict], dict],
+def map_geoms(func: Callable[..., 'BaseGeometry'],
               geojson: dict,
               include_geom_types: Iterable[str] = [],
               progressbar_kw: dict | None = None) -> dict:
@@ -204,14 +204,14 @@ def split_multi_geometries(geojson: dict) -> dict:
     def split_geom(geom: 'BaseGeometry') -> list['BaseGeometry']:
         # Split GeometryCollection into list of geoms.
         if geom.geom_type == 'GeometryCollection':
-            geoms = list(geom.geoms)
+            geoms = list(cast('BaseMultipartGeometry', geom).geoms)
         else:
             geoms = [geom]
         # Split any MultiX to list of X.
         new_geoms = []
         for g in geoms:
             if g.geom_type in MULTI_GEOM_TYPES:
-                new_geoms.extend(list(g.geoms))
+                new_geoms.extend(list(cast('BaseMultipartGeometry', g).geoms))
             else:
                 new_geoms.append(g)
         return new_geoms
@@ -311,7 +311,7 @@ def buffer_geoms(geojson: dict,
     """
 
     def buffer_geom(geom: 'BaseGeometry',
-                    feature: dict | None = None) -> 'BaseGeometry':
+                    feature: dict) -> 'BaseGeometry':
         has_class_id = (('properties' in feature)
                         and ('class_id' in feature['properties']))
         if has_class_id:

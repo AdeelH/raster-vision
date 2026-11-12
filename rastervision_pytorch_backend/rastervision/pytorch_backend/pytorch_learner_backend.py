@@ -191,7 +191,7 @@ class PyTorchLearnerBackend(Backend):
         if split is not None:
             desc = f'Chipping {split} scenes.'
         else:
-            desc = f'Chipping dataset.'
+            desc = 'Chipping dataset.'
         with tqdm(total=len(dataset), desc=desc) as bar:
             for (xs, ys), ws in dl:
                 for x, y, w in zip(xs, ys, ws):

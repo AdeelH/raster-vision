@@ -9,8 +9,8 @@ from rastervision.core.backend import BackendConfig
 from rastervision.core.evaluation import EvaluatorConfig
 from rastervision.core.analyzer import AnalyzerConfig
 from rastervision.core.rv_pipeline.chip_options import ChipOptions
-from rastervision.pipeline.config import (Config, Field, register_config,
-                                          model_validator)
+from rastervision.pipeline.config import (Config, ConfigError, Field,
+                                          register_config, model_validator)
 
 if TYPE_CHECKING:
     from typing import Self
@@ -112,18 +112,24 @@ class RVPipelineConfig(PipelineConfig):
     def update(self):
         super().update()
 
+        def default_uri(subdir: str) -> str:
+            if self.root_uri is None:
+                raise ConfigError(
+                    f'root_uri must be set if {subdir}_uri is not specified.')
+            return join(self.root_uri, subdir)
+
         if self.analyze_uri is None:
-            self.analyze_uri = join(self.root_uri, 'analyze')
+            self.analyze_uri = default_uri('analyze')
         if self.chip_uri is None:
-            self.chip_uri = join(self.root_uri, 'chip')
+            self.chip_uri = default_uri('chip')
         if self.train_uri is None:
-            self.train_uri = join(self.root_uri, 'train')
+            self.train_uri = default_uri('train')
         if self.predict_uri is None:
-            self.predict_uri = join(self.root_uri, 'predict')
+            self.predict_uri = default_uri('predict')
         if self.eval_uri is None:
-            self.eval_uri = join(self.root_uri, 'eval')
+            self.eval_uri = default_uri('eval')
         if self.bundle_uri is None:
-            self.bundle_uri = join(self.root_uri, 'bundle')
+            self.bundle_uri = default_uri('bundle')
 
         self.dataset.update(pipeline=self)
         self.backend.update(pipeline=self)
@@ -137,6 +143,7 @@ class RVPipelineConfig(PipelineConfig):
             analyzer.update(pipeline=self)
 
     def get_model_bundle_uri(self):
+        assert self.bundle_uri is not None
         return join(self.bundle_uri, 'model-bundle.zip')
 
     def _insert_analyzers(self):

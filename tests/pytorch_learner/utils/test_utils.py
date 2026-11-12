@@ -233,7 +233,7 @@ class TestAdjustConvChannels(unittest.TestCase):
         self._test_attribs_equal(old_conv, new_conv_1)
         # test pretrained=True
         new_conv_2 = adjust_conv_channels(old_conv, 8, pretrained=True)
-        self.assertIsInstance(new_conv_2, nn.Sequential)
+        assert isinstance(new_conv_2, nn.Sequential)
         self.assertIsInstance(new_conv_2[0], SplitTensor)
         self.assertIsInstance(new_conv_2[1], Parallel)
         self.assertIsInstance(new_conv_2[1][0], nn.Conv2d)

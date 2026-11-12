@@ -513,7 +513,7 @@ class TestPlotOptions(unittest.TestCase):
             plot_options=PlotOptions(channel_display_groups=[(0, 1, 2), (4, 3,
                                                                          5)]))
         opts = data_cfg.plot_options
-        self.assertIsInstance(opts.channel_display_groups, dict)
+        assert isinstance(opts.channel_display_groups, dict)
         self.assertIn('Channels: [0, 1, 2]', opts.channel_display_groups)
         self.assertIn('Channels: [4, 3, 5]', opts.channel_display_groups)
         self.assertListEqual(

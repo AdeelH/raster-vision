@@ -10,7 +10,7 @@ from rastervision.pytorch_learner.utils import (plot_channel_groups,
                                                 channel_groups_to_imgs)
 
 if TYPE_CHECKING:
-    from matplotlib.pyplot import Axes
+    from matplotlib.axes import Axes
 
 
 class RegressionVisualizer(Visualizer):

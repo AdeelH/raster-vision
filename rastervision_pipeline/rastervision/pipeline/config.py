@@ -294,18 +294,18 @@ def upgrade_plugin_versions(plugin_versions: dict[str, int]) -> dict[str, int]:
     return new_plugin_versions
 
 
-def upgrade_config(config_dict: dict | list[dict]) -> dict | list[dict]:
-    """Upgrade serialized Config(s) to the latest version.
+def upgrade_config(config_dict: dict) -> dict:
+    """Upgrade a serialized PipelineConfig to the latest version.
 
     Used to implement backward compatibility of Configs using upgraders stored
     in the registry.
 
     Args:
-        config_dict: serialized PipelineConfig(s) which are potentially of a
+        config_dict: serialized PipelineConfig which is potentially of a
             non-current version
 
     Returns:
-        The corresponding serialized PipelineConfig(s) that have been upgraded
+        The corresponding serialized PipelineConfig that has been upgraded
         to the current version.
     """
     plugin_versions = config_dict.get('plugin_versions')

@@ -3,6 +3,7 @@ import os
 import io
 import shutil
 import urllib
+import urllib.error
 import urllib.request
 from urllib.parse import urlparse
 import requests

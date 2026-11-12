@@ -142,7 +142,7 @@ class S3FileSystem(FileSystem):
     @staticmethod
     def file_exists(uri: str, include_dir: bool = True) -> bool:
         # Lazily load boto
-        import botocore
+        import botocore.exceptions
 
         parsed_uri = urlparse(uri)
         bucket = parsed_uri.netloc
@@ -168,7 +168,7 @@ class S3FileSystem(FileSystem):
             except botocore.exceptions.ClientError:
                 return False
         else:
-            s3r = S3FileSystem.get_session().resource('s3')
+            s3r: Any = S3FileSystem.get_session().resource('s3')
             try:
                 s3r.Object(bucket, key).load(RequestPayer=request_payer)
                 return True
@@ -181,7 +181,7 @@ class S3FileSystem(FileSystem):
 
     @staticmethod
     def read_bytes(uri: str) -> bytes:
-        import botocore
+        import botocore.exceptions
 
         s3 = S3FileSystem.get_client()
         request_payer = S3FileSystem.get_request_payer()
@@ -259,7 +259,7 @@ class S3FileSystem(FileSystem):
 
     @staticmethod
     def copy_from(src_uri: str, dst_path: str) -> None:
-        import botocore
+        import botocore.exceptions
 
         s3 = S3FileSystem.get_client()
         request_payer = S3FileSystem.get_request_payer()
@@ -268,7 +268,7 @@ class S3FileSystem(FileSystem):
             obj = s3.head_object(
                 Bucket=bucket, Key=key, RequestPayer=request_payer)
             file_size = obj['ContentLength']
-            with progressbar(file_size, desc=f'Downloading') as bar:
+            with progressbar(file_size, desc='Downloading') as bar:
                 s3.download_file(
                     Bucket=bucket,
                     Key=key,

@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Iterable
+from typing import TYPE_CHECKING, Any, Iterable
 import warnings
 
 import logging
@@ -93,8 +93,9 @@ class ObjectDetectionLearner(Learner):
 
         if self.is_ddp_process:
             is_master = self.is_ddp_master
-            all_outs = [None] * self.ddp_world_size
-            all_ys = [None] * self.ddp_world_size
+            assert self.ddp_world_size is not None
+            all_outs: list[Any] = [None] * self.ddp_world_size
+            all_ys: list[Any] = [None] * self.ddp_world_size
             dist.gather_object(
                 outs,
                 object_gather_list=(all_outs if is_master else None),
@@ -145,8 +146,8 @@ class ObjectDetectionLearner(Learner):
         out = self.postprocess_model_output(x, out, out_shape=out_shape)
         return out
 
-    def postprocess_model_output(self, x: 'Tensor', out_batch: torch.Tensor,
-                                 out_shape: tuple[int, int]):
+    def postprocess_model_output(self, x: 'Tensor', out_batch: list[BoxList],
+                                 out_shape: tuple[int, int] | None):
         if out_shape is None:
             return out_batch
         h_in, w_in = x.shape[-2:]

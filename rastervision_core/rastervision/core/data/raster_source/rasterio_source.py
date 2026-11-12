@@ -258,7 +258,9 @@ class RasterioSource(RasterSource):
                        out_shape: tuple[int, int]) -> np.ndarray:
         """Boolean mask of pixels in the given grid that lie within bbox."""
         ymin, xmin, ymax, xmax = self.bbox
-        bbox_window = Window(xmin, ymin, xmax - xmin, ymax - ymin)
+        # Window is an attrs class whose fields pyright can't see
+        bbox_window = Window(
+            xmin, ymin, xmax - xmin, ymax - ymin)  # pyright: ignore[reportCallIssue]
         bbox_geom = shapely_box(
             *window_bounds(bbox_window, self.image_dataset.transform))
         # densify so that the shape is preserved under reprojection

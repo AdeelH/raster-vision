@@ -8,6 +8,7 @@ from itertools import chain
 import numpy as np
 import cv2
 import rasterio as rio
+import rasterio.features
 from shapely.geometry import shape
 
 if TYPE_CHECKING:
@@ -30,7 +31,7 @@ def mask_to_polygons(mask: np.ndarray, transform: rio.Affine | None = None
     """
     if transform is None:
         transform = rio.Affine.identity()
-    shapes = rio.features.shapes(mask, mask=(mask == 1), transform=transform)
+    shapes = rasterio.features.shapes(mask, mask=(mask == 1), transform=transform)
     polygons = (shape(s) for s, v in shapes if v == 1)
     return polygons
 
@@ -134,7 +135,7 @@ def get_kernel(rectangle: RotatedRectange,
     element_rect: RotatedRectange = (pos, dim, angle)
     element_contour = cv2.boxPoints(box=element_rect)
     # https://stackoverflow.com/questions/48350693/what-is-numpy-method-int0
-    element_contour = np.intp(element_contour)
+    element_contour = element_contour.astype(np.intp)
 
     cv2.drawContours(
         image=kernel,

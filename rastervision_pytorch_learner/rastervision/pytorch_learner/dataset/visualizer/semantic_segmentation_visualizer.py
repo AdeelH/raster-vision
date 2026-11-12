@@ -11,7 +11,7 @@ from rastervision.pytorch_learner.utils import (plot_channel_groups,
                                                 channel_groups_to_imgs)
 
 if TYPE_CHECKING:
-    from matplotlib.pyplot import Axes
+    from matplotlib.axes import Axes
     from matplotlib.colors import Colormap
 
 
@@ -84,7 +84,7 @@ class SemanticSegmentationVisualizer(Visualizer):
     def plot_pred(self, ax: 'Axes', z: torch.Tensor | np.ndarray,
                   num_classes: int, cmap: 'Colormap', **kwargs):
         if z.ndim == 3:
-            z = z.argmax(dim=0)
+            z = z.argmax(0)
         self.plot_gt(ax, y=z, num_classes=num_classes, cmap=cmap, **kwargs)
 
     def get_plot_ncols(self, **kwargs) -> int:

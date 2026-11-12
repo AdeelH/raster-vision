@@ -36,10 +36,10 @@ class TestStatsAnalyzer(unittest.TestCase):
     def _test(self, is_random=False):
         sample_prob = 0.5
 
-        scenes, raster_sources, imgs = zip(
+        scenes, raster_sources, img_list = zip(
             *[make_scene(i, is_random=is_random) for i in range(3)])
 
-        imgs: np.ndarray = np.stack(imgs)
+        imgs = np.stack(img_list)
         pixels = imgs.reshape(-1, 3)
         exp_means = np.nanmean(pixels, axis=0)
         exp_stds = np.nanstd(pixels, axis=0)

@@ -156,7 +156,7 @@ class AWSSageMakerRunner(Runner):
                 # If the step can be split, then split it into parts
                 # that do not depend on each other (can run in
                 # parallel).
-                step_splits = [None] * num_splits
+                step_splits: list['TrainingStep | ProcessingStep'] = []
                 for i in range(num_splits):
                     split_cmd = cmd + [
                         '--split-ind',
@@ -179,7 +179,7 @@ class AWSSageMakerRunner(Runner):
                         max_run=max_run_time,
                     )
                     step_split.add_depends_on(steps)
-                    step_splits[i] = step_split
+                    step_splits.append(step_split)
                 steps.extend(step_splits)
             else:
                 # If the step can not be split, then submit it as-is.
@@ -340,6 +340,7 @@ class AWSSageMakerRunner(Runner):
             distribution = dict(torch_distributed=dict(enabled=True))
 
         train_uri = pipeline_cfg.train_uri
+        assert train_uri is not None
         if FileSystem.get_file_system(train_uri) != S3FileSystem:
             raise ValueError('Pipeline\'s train_uri must be an S3 URI.')
 

@@ -22,6 +22,19 @@ Raster Vision 0.31.2 (unreleased)
   * Fix :class:`.RasterioSource` zeroing the wrong number of rows/columns when reading a resized chip (i.e. with ``out_shape``) whose window extends beyond the raster source's ``bbox``.
   * Remove the ``triangle`` dependency: :class:`~rastervision.core.data.utils.aoi_sampler.AoiSampler` now uses ``shapely.constrained_delaunay_triangles`` to triangulate AOIs, and ``rastervision_core`` now requires ``shapely>=2.1``. This makes ``efficient_aoi_sampling`` work without ``triangle`` being installed (previously, it was silently disabled), and also fixes incorrect sampling for AOIs with holes whose centroid lies outside the hole.
   * Fix the docstring of :class:`.SemanticSegmentationLabelSource`: remove the nonexistent ``null_class_id`` argument and document ``class_config``.
+  * Fix bugs found by type checking:
+
+    * :meth:`.ImageDataConfig.build_dataset` raised a ``TypeError`` when ``group_uris`` was set.
+    * ``setup_stac_io()`` used an API removed in pystac 1.0, so reading STAC catalogs from S3 did not work. It now installs a :class:`pystac.StacIO` subclass that can read from and write to S3.
+    * ``parse_stac()`` raised a ``TypeError`` for assets without a media type.
+    * ``RegressionDataReader.__len__()`` raised an ``AttributeError``.
+    * Validation in :class:`.RegressionLearner` failed (predictions were unpacked incorrectly and plots were saved to the remote output directory instead of the local one).
+    * :meth:`.BoxList.copy` raised an ``AttributeError``.
+    * :meth:`.Learner.train_epoch` ignored its ``dataloader`` argument.
+    * :class:`.ONNXRuntimeAdapter` did not raise an error for models with more than one input.
+    * :class:`.WindowSamplingConfig` raised a ``TypeError`` instead of a validation error for ``method='random'`` with a tuple ``size`` and no size limits.
+    * The ``collect`` step of the examples' test script passed an argument that ``download_or_copy()`` no longer accepts.
+    * The semantic segmentation examples passed albumentations 1.x arguments to ``CoarseDropout``, which albumentations 2.x silently ignores.
 
 
 Raster Vision 0.31.1

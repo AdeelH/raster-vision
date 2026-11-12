@@ -13,14 +13,14 @@ try:
     # Doing these imports first only appears to fixes the problem if it's in this
     # package, and not the `pytorch_learner` or `pytorch_core`.
     # Without sklearn:
-    # ImportError: /opt/conda/lib/python3.9/site-packages/sklearn/__check_build/../../scikit_learn.libs/libgomp-d22c30c5.so.1.0.0: cannot allocate memory in static TLS block
+    # ImportError: /opt/conda/lib/python3.9/site-packages/sklearn/__check_build/../../scikit_learn.libs/libgomp-d22c30c5.so.1.0.0: cannot allocate memory in static TLS block  # noqa: E501
     # Without cv2:
-    # ImportError: /lib/aarch64-linux-gnu/libGLdispatch.so.0: cannot allocate memory in static TLS block
+    # ImportError: /lib/aarch64-linux-gnu/libGLdispatch.so.0: cannot allocate memory in static TLS block  # noqa: E501
     # See https://github.com/opencv/opencv/issues/14884
     import torch
     import sklearn
     import cv2
-except:  # pragma: no cover
+except Exception:  # pragma: no cover
     pass
 
 from rastervision.pipeline.rv_config import RVConfig
