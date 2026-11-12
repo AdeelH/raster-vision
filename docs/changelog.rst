@@ -46,6 +46,7 @@ Raster Vision 0.31.2 (unreleased)
     * ``DataConfig.get_custom_albumentations_transforms()`` crashed when ``plot_options`` was ``None``.
     * :func:`~rastervision.pipeline.cli.get_configs` raised a ``TypeError`` when called without ``args``.
     * ``get_local_path()`` now raises a ``ValueError`` (instead of a ``TypeError``) if ``download_dir`` is not specified for a remote URI.
+  * Fix crashes (``Tcl_AsyncDelete: async handler deleted by the wrong thread``) when training on a machine with a display. Plots that are only saved to file now use figures that are not managed by ``pyplot`` and therefore do not use matplotlib's GUI backend. This also fixes a memory leak in :class:`.RegressionLearner`, which never closed its plots.
 
 
 Raster Vision 0.31.1
