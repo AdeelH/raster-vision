@@ -3,3 +3,6 @@
 
 # Reformat code with ruff format
 c395700d73b78486d0ec079ffa28828e50c7a0a3
+
+# Reformat rastervision.core.data with ruff
+12a53dddae2c8aeec527b716c4a8c06e2bb71c76
