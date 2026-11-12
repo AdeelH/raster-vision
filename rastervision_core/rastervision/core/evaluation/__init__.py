@@ -1,4 +1,3 @@
-
 from rastervision.core.evaluation.evaluation_item import *
 from rastervision.core.evaluation.class_evaluation_item import *
 from rastervision.core.evaluation.evaluator import *

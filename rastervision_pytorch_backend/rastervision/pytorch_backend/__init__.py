@@ -1,5 +1,3 @@
-
-
 def register_plugin(registry):
     registry.set_plugin_version('rastervision.pytorch_backend', 2)
 

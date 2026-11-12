@@ -11,12 +11,15 @@ import torch.nn.functional as F
 
 from rastervision.pytorch_learner.learner import Learner
 from rastervision.pytorch_learner.dataset.visualizer import (
-    RegressionVisualizer)
+    RegressionVisualizer,
+)
 
 if TYPE_CHECKING:
     import torch.nn as nn
-    from rastervision.pytorch_learner import (RegressionGeoDataConfig,
-                                              RegressionImageDataConfig)
+    from rastervision.pytorch_learner import (
+        RegressionGeoDataConfig,
+        RegressionImageDataConfig,
+    )
 
 warnings.filterwarnings('ignore')
 
@@ -28,11 +31,11 @@ class RegressionLearner(Learner):
         return RegressionVisualizer
 
     def build_model(self, model_def_path: str | None = None) -> 'nn.Module':
-        """Override to pass class_names, pos_class_names, and prob_class_names.
-        """
+        """Override to pass class_names, pos_class_names, and prob_class_names."""
         cfg = self.cfg
-        data_cfg = cast('RegressionImageDataConfig | RegressionGeoDataConfig',
-                        cfg.data)
+        data_cfg = cast(
+            'RegressionImageDataConfig | RegressionGeoDataConfig', cfg.data
+        )
         class_names = cfg.data.class_names
         pos_class_names = data_cfg.pos_class_names
         prob_class_names = data_cfg.prob_class_names
@@ -44,7 +47,8 @@ class RegressionLearner(Learner):
             class_names=class_names,
             pos_class_names=pos_class_names,
             prob_class_names=prob_class_names,
-            ddp_rank=self.ddp_local_rank)
+            ddp_rank=self.ddp_local_rank,
+        )
         return model
 
     def on_train_start(self):
@@ -64,8 +68,9 @@ class RegressionLearner(Learner):
         out = self.post_forward(self.model(x))
         val_loss = F.l1_loss(out, y, reduction='sum')
         abs_error = torch.abs(out - y).sum(dim=0)
-        scaled_abs_error = (
-            torch.abs(out - y) / self.target_medians).sum(dim=0)
+        scaled_abs_error = (torch.abs(out - y) / self.target_medians).sum(
+            dim=0
+        )
 
         metrics = {'val_loss': val_loss}
         for i, label in enumerate(self.cfg.data.class_names):
@@ -81,18 +86,22 @@ class RegressionLearner(Learner):
         super()._validate(split)
 
         preds = self.predict_dataloader(
-            self.get_dataloader(split), return_format='yz', raw_out=False)
+            self.get_dataloader(split), return_format='yz', raw_out=False
+        )
         ys, outs = zip(*preds)
         y, out = torch.cat(ys), torch.cat(outs)
 
         assert self.output_dir_local is not None
-        data_cfg = cast('RegressionImageDataConfig | RegressionGeoDataConfig',
-                        self.cfg.data)
+        data_cfg = cast(
+            'RegressionImageDataConfig | RegressionGeoDataConfig',
+            self.cfg.data,
+        )
         plot_options = data_cfg.plot_options
         max_scatter_points = plot_options.max_scatter_points
         if y.shape[0] > max_scatter_points:
-            scatter_inds = torch.randperm(
-                y.shape[0], dtype=torch.long)[0:max_scatter_points]
+            scatter_inds = torch.randperm(y.shape[0], dtype=torch.long)[
+                0:max_scatter_points
+            ]
         else:
             scatter_inds = torch.arange(0, y.shape[0], dtype=torch.long)
 
@@ -101,7 +110,8 @@ class RegressionLearner(Learner):
         ncols = num_labels
         nrows = 1
         fig = plt.figure(
-            constrained_layout=True, figsize=(5 * ncols, 5 * nrows))
+            constrained_layout=True, figsize=(5 * ncols, 5 * nrows)
+        )
         grid = gridspec.GridSpec(ncols=ncols, nrows=nrows, figure=fig)
 
         for label_ind, label in enumerate(self.cfg.data.class_names):
@@ -110,17 +120,20 @@ class RegressionLearner(Learner):
                 y[scatter_inds, label_ind],
                 out[scatter_inds, label_ind],
                 c='blue',
-                alpha=0.1)
+                alpha=0.1,
+            )
             ax.set_title('{} on {} set'.format(label, split))
             ax.set_xlabel('ground truth')
             ax.set_ylabel('predictions')
-        scatter_path = join(self.output_dir_local,
-                            '{}_scatter.png'.format(split))
+        scatter_path = join(
+            self.output_dir_local, '{}_scatter.png'.format(split)
+        )
         plt.savefig(scatter_path)
 
         # make histogram of errors
         fig = plt.figure(
-            constrained_layout=True, figsize=(5 * ncols, 5 * nrows))
+            constrained_layout=True, figsize=(5 * ncols, 5 * nrows)
+        )
         grid = gridspec.GridSpec(ncols=ncols, nrows=nrows, figure=fig)
 
         hist_bins = plot_options.hist_bins
@@ -130,6 +143,7 @@ class RegressionLearner(Learner):
             ax.hist(errs, bins=hist_bins)
             ax.set_title('{} on {} set'.format(label, split))
             ax.set_xlabel('prediction error')
-        hist_path = join(self.output_dir_local,
-                         '{}_err_hist.png'.format(split))
+        hist_path = join(
+            self.output_dir_local, '{}_err_hist.png'.format(split)
+        )
         plt.savefig(hist_path)

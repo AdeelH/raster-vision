@@ -8,7 +8,7 @@ from rastervision.core.data import ClassConfig
 from rastervision.core.data import Scene, SemanticSegmentationLabelSource
 from rastervision.core.evaluation import SemanticSegmentationEvaluator
 
-from tests.core.data.mock_raster_source import (MockRasterSource)
+from tests.core.data.mock_raster_source import MockRasterSource
 from tests import data_file_path
 
 
@@ -51,8 +51,9 @@ class TestSemanticSegmentationEvaluator(unittest.TestCase):
         output_uri = join(self.tmp_dir.name, 'out.json')
         scenes = [self.get_scene(0), self.get_scene(1)]
 
-        evaluator = SemanticSegmentationEvaluator(self.class_config,
-                                                  output_uri)
+        evaluator = SemanticSegmentationEvaluator(
+            self.class_config, output_uri
+        )
         evaluator.process(scenes, self.tmp_dir.name)
         eval_json = file_to_json(output_uri)
         exp_eval_json = file_to_json(data_file_path('expected-eval.json'))

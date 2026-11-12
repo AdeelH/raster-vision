@@ -1,5 +1,5 @@
 from typing import TYPE_CHECKING, Iterable
-from abc import (abstractmethod)
+from abc import abstractmethod
 import logging
 
 from rastervision.core.evaluation import Evaluator
@@ -15,9 +15,9 @@ if TYPE_CHECKING:
 class ClassificationEvaluator(Evaluator):
     """Evaluates predictions for a set of scenes."""
 
-    def __init__(self,
-                 class_config: 'ClassConfig',
-                 output_uri: str | None = None):
+    def __init__(
+        self, class_config: 'ClassConfig', output_uri: str | None = None
+    ):
         self.class_config = class_config
         self.output_uri = output_uri
 
@@ -25,8 +25,9 @@ class ClassificationEvaluator(Evaluator):
     def create_evaluation(self) -> 'ClassificationEvaluation':
         pass
 
-    def process(self, scenes: Iterable['Scene'],
-                tmp_dir: str | None = None) -> None:
+    def process(
+        self, scenes: Iterable['Scene'], tmp_dir: str | None = None
+    ) -> None:
         if self.output_uri is not None:
             evaluation_global = self.create_evaluation()
             for scene in scenes:
@@ -47,8 +48,8 @@ class ClassificationEvaluator(Evaluator):
         return evaluation
 
     def evaluate_predictions(
-            self, ground_truth: 'Labels',
-            predictions: 'Labels') -> 'ClassificationEvaluation':
+        self, ground_truth: 'Labels', predictions: 'Labels'
+    ) -> 'ClassificationEvaluation':
         evaluation = self.create_evaluation()
         evaluation.compute(ground_truth, predictions)
         return evaluation

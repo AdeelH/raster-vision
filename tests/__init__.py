@@ -7,9 +7,12 @@ def data_file_path(rel_path: str) -> str:
     return os.path.join(data_dir, rel_path)
 
 
-def test_config_upgrader(cfg_class: type, old_cfg_dict: dict,
-                         upgrader: Callable[[dict, int], dict],
-                         curr_version: int) -> None:
+def test_config_upgrader(
+    cfg_class: type,
+    old_cfg_dict: dict,
+    upgrader: Callable[[dict, int], dict],
+    curr_version: int,
+) -> None:
     """Try to use upgrader to update cfg dict to curr_version."""
     from rastervision.pipeline.config import build_config
 

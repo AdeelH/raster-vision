@@ -8,17 +8,25 @@ from torch import nn
 
 from rastervision.core.data import Scene
 from rastervision.core.rv_pipeline import WindowSamplingMethod
-from rastervision.pipeline.config import (Config, register_config, ConfigError)
+from rastervision.pipeline.config import Config, register_config, ConfigError
 from rastervision.pytorch_learner.learner_config import (
-    LearnerConfig, ModelConfig, ImageDataConfig, GeoDataConfig)
+    LearnerConfig,
+    ModelConfig,
+    ImageDataConfig,
+    GeoDataConfig,
+)
 from rastervision.pytorch_learner.dataset import (
-    ClassificationImageDataset, ClassificationSlidingWindowGeoDataset,
-    ClassificationRandomWindowGeoDataset)
+    ClassificationImageDataset,
+    ClassificationSlidingWindowGeoDataset,
+    ClassificationRandomWindowGeoDataset,
+)
 from rastervision.pytorch_learner.utils import adjust_conv_channels
 
 if TYPE_CHECKING:
-    from rastervision.core.data import (ChipClassificationLabelSourceConfig,
-                                        SceneConfig)
+    from rastervision.core.data import (
+        ChipClassificationLabelSourceConfig,
+        SceneConfig,
+    )
 
 log = logging.getLogger(__name__)
 
@@ -42,12 +50,16 @@ class ClassificationDataConfig(Config):
 class ClassificationImageDataConfig(ClassificationDataConfig, ImageDataConfig):
     """Configure :class:`ClassificationImageDatasets <.ClassificationImageDataset>`."""
 
-    data_format: ClassificationDataFormat = ClassificationDataFormat.image_folder
+    data_format: ClassificationDataFormat = (
+        ClassificationDataFormat.image_folder
+    )
 
-    def dir_to_dataset(self, data_dir: str, transform: A.BasicTransform
-                       ) -> ClassificationImageDataset:
+    def dir_to_dataset(
+        self, data_dir: str, transform: A.BasicTransform
+    ) -> ClassificationImageDataset:
         ds = ClassificationImageDataset(
-            data_dir, class_names=self.class_names, transform=transform)
+            data_dir, class_names=self.class_names, transform=transform
+        )
         return ds
 
 
@@ -58,22 +70,28 @@ class ClassificationGeoDataConfig(ClassificationDataConfig, GeoDataConfig):
     See :mod:`rastervision.pytorch_learner.dataset.classification_dataset`.
     """
 
-    def build_scenes(self,
-                     scene_configs: Iterable['SceneConfig'],
-                     tmp_dir: str | None = None):
+    def build_scenes(
+        self,
+        scene_configs: Iterable['SceneConfig'],
+        tmp_dir: str | None = None,
+    ):
         for s in scene_configs:
             if s.label_source is not None:
-                label_source = cast('ChipClassificationLabelSourceConfig',
-                                    s.label_source)
+                label_source = cast(
+                    'ChipClassificationLabelSourceConfig', s.label_source
+                )
                 label_source.lazy = True
         return super().build_scenes(scene_configs, tmp_dir=tmp_dir)
 
     def scene_to_dataset(
-            self,
-            scene: Scene,
-            transform: A.BasicTransform | None = None,
-            for_chipping: bool = False
-    ) -> ClassificationSlidingWindowGeoDataset | ClassificationRandomWindowGeoDataset:
+        self,
+        scene: Scene,
+        transform: A.BasicTransform | None = None,
+        for_chipping: bool = False,
+    ) -> (
+        ClassificationSlidingWindowGeoDataset
+        | ClassificationRandomWindowGeoDataset
+    ):
         if isinstance(self.sampling, dict):
             opts = self.sampling[scene.id]
         else:
@@ -82,7 +100,8 @@ class ClassificationGeoDataConfig(ClassificationDataConfig, GeoDataConfig):
         extra_args = {}
         if for_chipping:
             extra_args = dict(
-                normalize=False, to_pytorch=False, return_window=True)
+                normalize=False, to_pytorch=False, return_window=True
+            )
 
         if opts.method == WindowSamplingMethod.sliding:
             ds = ClassificationSlidingWindowGeoDataset(
@@ -119,15 +138,17 @@ class ClassificationGeoDataConfig(ClassificationDataConfig, GeoDataConfig):
 class ClassificationModelConfig(ModelConfig):
     """Configure a classification model."""
 
-    def build_default_model(self, num_classes: int,
-                            in_channels: int) -> nn.Module:
+    def build_default_model(
+        self, num_classes: int, in_channels: int
+    ) -> nn.Module:
         from torchvision import models
 
         backbone_name = self.get_backbone_str()
         pretrained = self.pretrained
         weights = 'DEFAULT' if pretrained else None
         model_factory_func: Callable[..., nn.Module] = getattr(
-            models, backbone_name)
+            models, backbone_name
+        )
         model = model_factory_func(weights=weights, **self.extra_args)
 
         if in_channels != 3:
@@ -143,11 +164,13 @@ class ClassificationModelConfig(ModelConfig):
                     'then use the external model functionality to import it '
                     'into Raster Vision. See spacenet_rio.py for an example '
                     'of how to import external models. Alternatively, you can '
-                    'override this function.')
+                    'override this function.'
+                )
             model.conv1 = adjust_conv_channels(
                 old_conv=model.conv1,
                 in_channels=in_channels,
-                pretrained=pretrained)
+                pretrained=pretrained,
+            )
 
         in_features = cast(nn.Linear, model.fc).in_features
         model.fc = nn.Linear(in_features, num_classes)
@@ -161,18 +184,23 @@ class ClassificationLearnerConfig(LearnerConfig):
 
     model: ClassificationModelConfig | None = None
 
-    def build(self,
-              tmp_dir=None,
-              model_weights_path=None,
-              model_def_path=None,
-              loss_def_path=None,
-              training=True):
+    def build(
+        self,
+        tmp_dir=None,
+        model_weights_path=None,
+        model_def_path=None,
+        loss_def_path=None,
+        training=True,
+    ):
         from rastervision.pytorch_learner.classification_learner import (
-            ClassificationLearner)
+            ClassificationLearner,
+        )
+
         return ClassificationLearner(
             self,
             tmp_dir=tmp_dir,
             model_weights_path=model_weights_path,
             model_def_path=model_def_path,
             loss_def_path=loss_def_path,
-            training=training)
+            training=training,
+        )

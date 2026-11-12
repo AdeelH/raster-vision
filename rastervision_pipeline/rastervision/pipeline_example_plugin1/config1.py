@@ -1,5 +1,6 @@
 from rastervision.pipeline_example_plugin1.sample_pipeline import (
-    SamplePipelineConfig)
+    SamplePipelineConfig,
+)
 
 
 def get_config(runner, root_uri):

@@ -1,4 +1,5 @@
 """Defines ``ClassEvaluationItem``."""
+
 from typing import TYPE_CHECKING
 import numpy as np
 
@@ -28,14 +29,16 @@ class ClassEvaluationItem(EvaluationItem):
             included in the dict returned by ``to_json()``.
     """
 
-    def __init__(self,
-                 class_id: int,
-                 class_name: str,
-                 tp: int,
-                 fp: int,
-                 fn: int,
-                 tn: int | None = None,
-                 **kwargs):
+    def __init__(
+        self,
+        class_id: int,
+        class_name: str,
+        tp: int,
+        fp: int,
+        fn: int,
+        tn: int | None = None,
+        **kwargs,
+    ):
         """Constructor.
 
         Args:
@@ -57,8 +60,9 @@ class ClassEvaluationItem(EvaluationItem):
         self.extra_info = kwargs
 
     @classmethod
-    def from_multiclass_conf_mat(cls, conf_mat: np.ndarray, class_id: int,
-                                 class_name: str, **kwargs) -> 'Self':
+    def from_multiclass_conf_mat(
+        cls, conf_mat: np.ndarray, class_id: int, class_name: str, **kwargs
+    ) -> 'Self':
         """Construct from a multi-class confusion matrix and a target class ID.
 
         Args:
@@ -81,7 +85,8 @@ class ClassEvaluationItem(EvaluationItem):
             fp=fp,
             fn=fn,
             tn=tn,
-            **kwargs)
+            **kwargs,
+        )
         return item
 
     def merge(self, other: 'ClassEvaluationItem') -> None:
@@ -91,7 +96,8 @@ class ClassEvaluationItem(EvaluationItem):
         """
         if self.class_id != other.class_id:
             raise ValueError(
-                'Cannot merge evaluation items for different classes.')
+                'Cannot merge evaluation items for different classes.'
+            )
         self.conf_mat += other.conf_mat
 
     @property
@@ -181,7 +187,7 @@ class ClassEvaluationItem(EvaluationItem):
                 'f1': self.f1,
                 'sensitivity': self.sensitivity,
                 'specificity': self.specificity,
-            }
+            },
         }
         if self.true_neg is None:
             del out['relative_frequency']

@@ -1,5 +1,3 @@
-
-
 def register_plugin(registry):
     """Each plugin must register itself and FileSystems, Runners it defines.
 

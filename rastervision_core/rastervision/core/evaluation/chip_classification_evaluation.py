@@ -3,10 +3,13 @@ from typing import TYPE_CHECKING
 import numpy as np
 from sklearn.metrics import confusion_matrix
 
-from rastervision.core.evaluation import (ClassificationEvaluation,
-                                          ClassEvaluationItem)
+from rastervision.core.evaluation import (
+    ClassificationEvaluation,
+    ClassEvaluationItem,
+)
+
 if TYPE_CHECKING:
-    from rastervision.core.data import (ChipClassificationLabels, ClassConfig)
+    from rastervision.core.data import ChipClassificationLabels, ClassConfig
 
 
 class ChipClassificationEvaluation(ClassificationEvaluation):
@@ -14,8 +17,11 @@ class ChipClassificationEvaluation(ClassificationEvaluation):
         super().__init__()
         self.class_config = class_config
 
-    def compute(self, gt_labels: 'ChipClassificationLabels',
-                pred_labels: 'ChipClassificationLabels') -> None:
+    def compute(
+        self,
+        gt_labels: 'ChipClassificationLabels',
+        pred_labels: 'ChipClassificationLabels',
+    ) -> None:
         self.reset()
         self.class_to_eval_item = {}
 
@@ -31,13 +37,15 @@ class ChipClassificationEvaluation(ClassificationEvaluation):
 
         labels = np.arange(len(self.class_config))
         self.conf_mat = confusion_matrix(
-            gt_class_ids, pred_class_ids, labels=labels)
+            gt_class_ids, pred_class_ids, labels=labels
+        )
 
         for class_id, class_name in enumerate(self.class_config.names):
             eval_item = ClassEvaluationItem.from_multiclass_conf_mat(
                 conf_mat=self.conf_mat,
                 class_id=class_id,
-                class_name=class_name)
+                class_name=class_name,
+            )
             self.class_to_eval_item[class_id] = eval_item
 
         self.compute_avg()

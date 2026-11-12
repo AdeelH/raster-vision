@@ -5,8 +5,7 @@ import rasterio
 from rasterio.enums import Resampling
 import rasterio.shutil
 
-from rastervision.pipeline.file_system import (download_or_copy,
-                                               upload_or_copy)
+from rastervision.pipeline.file_system import download_or_copy, upload_or_copy
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -40,16 +39,19 @@ def _get_resampling(resample_method: str) -> Resampling:
     except KeyError:
         raise ValueError(
             f'Unsupported resample_method: "{resample_method}". '
-            f'Must be one of: {list(RESAMPLE_METHODS.keys())}.') from None
+            f'Must be one of: {list(RESAMPLE_METHODS.keys())}.'
+        ) from None
 
 
-def create_cog(source_uri: str,
-               dest_uri: str,
-               local_dir: str,
-               block_size: int = DEFAULT_BLOCK_SIZE,
-               resample_method: str = DEFAULT_RESAMPLE_METHOD,
-               compression: str = DEFAULT_COMPRESSION,
-               overviews: 'Sequence[int] | None' = None) -> None:
+def create_cog(
+    source_uri: str,
+    dest_uri: str,
+    local_dir: str,
+    block_size: int = DEFAULT_BLOCK_SIZE,
+    resample_method: str = DEFAULT_RESAMPLE_METHOD,
+    compression: str = DEFAULT_COMPRESSION,
+    overviews: 'Sequence[int] | None' = None,
+) -> None:
     """Convert a raster to a Cloud Optimized GeoTIFF (COG).
 
     The source raster is first copied to a tiled GeoTIFF to which overviews
@@ -93,7 +95,8 @@ def create_cog(source_uri: str,
         driver='GTiff',
         TILED='YES',
         BIGTIFF='IF_SAFER',
-        COMPRESS='NONE' if compression == 'NONE' else 'DEFLATE')
+        COMPRESS='NONE' if compression == 'NONE' else 'DEFLATE',
+    )
 
     # Step 2: Add overviews.
     with rasterio.open(translate_path, 'r+') as ds:
@@ -107,7 +110,8 @@ def create_cog(source_uri: str,
         BLOCKSIZE=block_size,
         OVERVIEWS='FORCE_USE_EXISTING',
         BIGTIFF='IF_SAFER',
-        COMPRESS=compression)
+        COMPRESS=compression,
+    )
     os.remove(translate_path)
 
     upload_or_copy(output_path, dest_uri)

@@ -6,9 +6,14 @@ from os import makedirs
 from torch import nn
 
 from rastervision.pytorch_learner.utils.torch_hub import (
-    _remove_dir, _repo_name_to_dir_name, _uri_to_dir_name,
-    get_hubconf_dir_from_cfg, torch_hub_load_github, torch_hub_load_local,
-    torch_hub_load_uri)
+    _remove_dir,
+    _repo_name_to_dir_name,
+    _uri_to_dir_name,
+    get_hubconf_dir_from_cfg,
+    torch_hub_load_github,
+    torch_hub_load_local,
+    torch_hub_load_uri,
+)
 from rastervision.pipeline.file_system import get_tmp_dir
 from rastervision.pytorch_learner import ExternalModuleConfig
 
@@ -42,13 +47,15 @@ class TestTorchHubUtils(unittest.TestCase):
         cfg_repo_w_name = ExternalModuleConfig(
             github_repo='AdeelH/pytorch-fpn:0.3',
             name='fpn',
-            entrypoint='make_fpn_resnet')
+            entrypoint='make_fpn_resnet',
+        )
         dir_name = get_hubconf_dir_from_cfg(cfg_repo_w_name)
         self.assertEqual(dir_name, 'fpn')
 
         # config using a uri, without a name
         cfg_repo_wo_name = ExternalModuleConfig(
-            github_repo='AdeelH/pytorch-fpn:0.3', entrypoint='make_fpn_resnet')
+            github_repo='AdeelH/pytorch-fpn:0.3', entrypoint='make_fpn_resnet'
+        )
         dir_name = get_hubconf_dir_from_cfg(cfg_repo_wo_name)
         self.assertEqual(dir_name, 'AdeelH_pytorch-fpn_0.3')
 
@@ -56,13 +63,15 @@ class TestTorchHubUtils(unittest.TestCase):
         cfg_uri_w_name = ExternalModuleConfig(
             uri='s3://some/path/to/repo.zip',
             name='fpn',
-            entrypoint='make_fpn_resnet')
+            entrypoint='make_fpn_resnet',
+        )
         dir_name = get_hubconf_dir_from_cfg(cfg_uri_w_name)
         self.assertEqual(dir_name, 'fpn')
 
         # config using a uri, without a name
         cfg_uri_wo_name = ExternalModuleConfig(
-            uri='s3://some/path/to/repo.zip', entrypoint='make_fpn_resnet')
+            uri='s3://some/path/to/repo.zip', entrypoint='make_fpn_resnet'
+        )
         dir_name = get_hubconf_dir_from_cfg(cfg_uri_wo_name)
         self.assertEqual(dir_name, 'repo')
 
@@ -74,10 +83,11 @@ class TestTorchHubUtils(unittest.TestCase):
                 repo='AdeelH/pytorch-multi-class-focal-loss:1.1',
                 entrypoint='focal_loss',
                 dst_dir=hubconf_dir,
-                alpha=[.75, .25],
-                gamma=2)
+                alpha=[0.75, 0.25],
+                gamma=2,
+            )
             self.assertIsInstance(loss, nn.Module)
-            self.assertEqual(loss.alpha.tolist(), [.75, .25])
+            self.assertEqual(loss.alpha.tolist(), [0.75, 0.25])
             self.assertEqual(loss.gamma, 2)
             del loss
 
@@ -85,10 +95,11 @@ class TestTorchHubUtils(unittest.TestCase):
             loss = torch_hub_load_local(
                 hubconf_dir=hubconf_dir,
                 entrypoint='focal_loss',
-                alpha=[.75, .25],
-                gamma=2)
+                alpha=[0.75, 0.25],
+                gamma=2,
+            )
             self.assertIsInstance(loss, nn.Module)
-            self.assertEqual(loss.alpha.tolist(), [.75, .25])
+            self.assertEqual(loss.alpha.tolist(), [0.75, 0.25])
             self.assertEqual(loss.gamma, 2)
             del loss
 
@@ -97,10 +108,11 @@ class TestTorchHubUtils(unittest.TestCase):
                 uri=hubconf_dir,
                 entrypoint='focal_loss',
                 dst_dir=hubconf_dir,
-                alpha=[.75, .25],
-                gamma=2)
+                alpha=[0.75, 0.25],
+                gamma=2,
+            )
             self.assertIsInstance(loss, nn.Module)
-            self.assertEqual(loss.alpha.tolist(), [.75, .25])
+            self.assertEqual(loss.alpha.tolist(), [0.75, 0.25])
             self.assertEqual(loss.gamma, 2)
             del loss
 
@@ -108,14 +120,14 @@ class TestTorchHubUtils(unittest.TestCase):
         with get_tmp_dir() as tmp_dir:
             hubconf_dir = join(tmp_dir, 'focal_loss')
             loss = torch_hub_load_uri(
-                uri=
-                'https://github.com/AdeelH/pytorch-multi-class-focal-loss/archive/refs/tags/1.1.zip',  # noqa
+                uri='https://github.com/AdeelH/pytorch-multi-class-focal-loss/archive/refs/tags/1.1.zip',  # noqa
                 entrypoint='focal_loss',
                 dst_dir=hubconf_dir,
-                alpha=[.75, .25],
-                gamma=2)
+                alpha=[0.75, 0.25],
+                gamma=2,
+            )
             self.assertIsInstance(loss, nn.Module)
-            self.assertEqual(loss.alpha.tolist(), [.75, .25])
+            self.assertEqual(loss.alpha.tolist(), [0.75, 0.25])
             self.assertEqual(loss.gamma, 2)
 
 

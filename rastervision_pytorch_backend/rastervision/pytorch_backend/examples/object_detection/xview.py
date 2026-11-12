@@ -2,27 +2,43 @@ import os
 from os.path import join
 
 from rastervision.core.rv_pipeline import (
-    ObjectDetectionConfig, ObjectDetectionChipOptions,
-    ObjectDetectionPredictOptions, ObjectDetectionWindowSamplingConfig,
-    WindowSamplingMethod)
+    ObjectDetectionConfig,
+    ObjectDetectionChipOptions,
+    ObjectDetectionPredictOptions,
+    ObjectDetectionWindowSamplingConfig,
+    WindowSamplingMethod,
+)
 from rastervision.core.data import (
-    ClassConfig, ClassInferenceTransformerConfig, DatasetConfig,
-    GeoJSONVectorSourceConfig, ObjectDetectionLabelSourceConfig,
-    RasterioSourceConfig, SceneConfig)
+    ClassConfig,
+    ClassInferenceTransformerConfig,
+    DatasetConfig,
+    GeoJSONVectorSourceConfig,
+    ObjectDetectionLabelSourceConfig,
+    RasterioSourceConfig,
+    SceneConfig,
+)
 from rastervision.pytorch_backend import PyTorchObjectDetectionConfig
 from rastervision.pytorch_learner import (
-    Backbone, ObjectDetectionGeoDataConfig, ObjectDetectionImageDataConfig,
-    ObjectDetectionModelConfig, SolverConfig)
-from rastervision.pytorch_backend.examples.utils import (get_scene_info,
-                                                         save_image_crop)
+    Backbone,
+    ObjectDetectionGeoDataConfig,
+    ObjectDetectionImageDataConfig,
+    ObjectDetectionModelConfig,
+    SolverConfig,
+)
+from rastervision.pytorch_backend.examples.utils import (
+    get_scene_info,
+    save_image_crop,
+)
 
 
-def get_config(runner,
-               raw_uri: str,
-               processed_uri: str,
-               root_uri: str,
-               nochip: bool = True,
-               test: bool = False) -> ObjectDetectionConfig:
+def get_config(
+    runner,
+    raw_uri: str,
+    processed_uri: str,
+    root_uri: str,
+    nochip: bool = True,
+    test: bool = False,
+) -> ObjectDetectionConfig:
     """Generate the pipeline config for this task. This function will be called
     by RV, with arguments from the command line, when this example is run.
 
@@ -57,25 +73,30 @@ def get_config(runner,
         label_uri = join(processed_uri, label_uri)
 
         if test:
-            crop_uri = join(processed_uri, 'crops',
-                            os.path.basename(raster_uri))
+            crop_uri = join(
+                processed_uri, 'crops', os.path.basename(raster_uri)
+            )
             save_image_crop(raster_uri, crop_uri, size=2000, min_features=5)
             raster_uri = crop_uri
 
         id = os.path.splitext(os.path.basename(raster_uri))[0]
 
         raster_source = RasterioSourceConfig(
-            uris=[raster_uri], channel_order=[0, 1, 2])
+            uris=[raster_uri], channel_order=[0, 1, 2]
+        )
 
         label_source = ObjectDetectionLabelSourceConfig(
             vector_source=GeoJSONVectorSourceConfig(
                 uris=label_uri,
                 transformers=[
                     ClassInferenceTransformerConfig(default_class_id=0)
-                ]))
+                ],
+            )
+        )
 
         return SceneConfig(
-            id=id, raster_source=raster_source, label_source=label_source)
+            id=id, raster_source=raster_source, label_source=label_source
+        )
 
     train_scenes = [make_scene(info) for info in train_scene_info]
     val_scenes = [make_scene(info) for info in val_scene_info]
@@ -83,7 +104,8 @@ def get_config(runner,
     scene_dataset = DatasetConfig(
         class_config=class_config,
         train_scenes=train_scenes,
-        validation_scenes=val_scenes)
+        validation_scenes=val_scenes,
+    )
 
     chip_sz = 300
     img_sz = chip_sz
@@ -96,14 +118,17 @@ def get_config(runner,
             max_windows=200,
             clip=True,
             neg_ratio=1.0,
-            ioa_thresh=0.8))
+            ioa_thresh=0.8,
+        )
+    )
 
     if nochip:
         data = ObjectDetectionGeoDataConfig(
             scene_dataset=scene_dataset,
             sampling=chip_options.sampling,
             img_sz=img_sz,
-            augmentors=[])
+            augmentors=[],
+        )
     else:
         data = ObjectDetectionImageDataConfig(img_sz=img_sz, num_workers=4)
 
@@ -121,11 +146,13 @@ def get_config(runner,
     )
 
     predict_options = ObjectDetectionPredictOptions(
-        chip_sz=chip_sz, merge_thresh=0.1, score_thresh=0.5)
+        chip_sz=chip_sz, merge_thresh=0.1, score_thresh=0.5
+    )
 
     return ObjectDetectionConfig(
         root_uri=root_uri,
         dataset=scene_dataset,
         backend=backend,
         chip_options=chip_options,
-        predict_options=predict_options)
+        predict_options=predict_options,
+    )

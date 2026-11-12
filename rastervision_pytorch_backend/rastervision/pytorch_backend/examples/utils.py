@@ -4,10 +4,13 @@ import csv
 from io import StringIO
 
 from rastervision.pipeline.file_system.utils import file_exists
-from rastervision.core.data import (RasterioSource, GeoJSONVectorSource,
-                                    ClassInferenceTransformer)
+from rastervision.core.data import (
+    RasterioSource,
+    GeoJSONVectorSource,
+    ClassInferenceTransformer,
+)
 from rastervision.core.data.utils import geoms_to_geojson, crop_geotiff
-from rastervision.pipeline.file_system import (file_to_str, json_to_file)
+from rastervision.pipeline.file_system import file_to_str, json_to_file
 
 if TYPE_CHECKING:
     from rastervision.core.data import ClassConfig
@@ -20,15 +23,16 @@ def get_scene_info(csv_uri: str) -> list:  # pragma: no cover
 
 
 def save_image_crop(
-        image_uri: str,
-        image_crop_uri: str,
-        label_uri: str | None = None,
-        label_crop_uri: str | None = None,
-        size: int = 600,
-        min_features: int = 10,
-        vector_labels: bool = True,
-        default_class_id: int = 0,
-        class_config: 'ClassConfig | None' = None):  # pragma: no cover
+    image_uri: str,
+    image_crop_uri: str,
+    label_uri: str | None = None,
+    label_crop_uri: str | None = None,
+    size: int = 600,
+    min_features: int = 10,
+    vector_labels: bool = True,
+    default_class_id: int = 0,
+    class_config: 'ClassConfig | None' = None,
+):  # pragma: no cover
     """Save a crop of an image to use for testing.
 
     If label_uri is set, the crop needs to cover >= min_features.
@@ -62,8 +66,10 @@ def save_image_crop(
                 vector_transformers=[
                     ClassInferenceTransformer(
                         default_class_id=default_class_id,
-                        class_config=class_config)
-                ])
+                        class_config=class_config,
+                    )
+                ],
+            )
             labels_df = vs.get_dataframe()
 
         windows = rs.extent.get_windows(size, size)

@@ -3,8 +3,11 @@ import unittest
 
 from torch import nn
 
-from rastervision.pytorch_learner import (SolverConfig, solver_config_upgrader,
-                                          ExternalModuleConfig)
+from rastervision.pytorch_learner import (
+    SolverConfig,
+    solver_config_upgrader,
+    ExternalModuleConfig,
+)
 from rastervision.pipeline.config import ValidationError, build_config
 
 
@@ -57,19 +60,25 @@ class TestSolverConfig(unittest.TestCase):
     def test_disallow_loss_opts_if_external(self):
         args = dict(
             external_loss_def=ExternalModuleConfig(
-                uri='abc/def', entrypoint='foo'),
-            class_loss_weights=[1, 2])
+                uri='abc/def', entrypoint='foo'
+            ),
+            class_loss_weights=[1, 2],
+        )
         self.assertRaises(ValidationError, lambda: SolverConfig(**args))
 
         args = dict(
             external_loss_def=ExternalModuleConfig(
-                uri='abc/def', entrypoint='foo'),
-            ignore_class_index=1)
+                uri='abc/def', entrypoint='foo'
+            ),
+            ignore_class_index=1,
+        )
         self.assertRaises(ValidationError, lambda: SolverConfig(**args))
 
         args = dict(
             external_loss_def=ExternalModuleConfig(
-                uri='abc/def', entrypoint='foo'))
+                uri='abc/def', entrypoint='foo'
+            )
+        )
         self.assertNoError(lambda: SolverConfig(**args))
 
     def test_build_loss(self):

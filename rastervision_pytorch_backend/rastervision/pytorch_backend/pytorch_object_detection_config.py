@@ -1,16 +1,21 @@
 from rastervision.pipeline.config import register_config
 from rastervision.pytorch_backend.pytorch_learner_backend_config import (
-    PyTorchLearnerBackendConfig)
+    PyTorchLearnerBackendConfig,
+)
 from rastervision.pytorch_learner.learner_config import default_augmentors
 from rastervision.pytorch_learner.object_detection_learner_config import (
-    ObjectDetectionModelConfig, ObjectDetectionLearnerConfig,
-    ObjectDetectionImageDataConfig)
+    ObjectDetectionModelConfig,
+    ObjectDetectionLearnerConfig,
+    ObjectDetectionImageDataConfig,
+)
 from rastervision.pytorch_backend.pytorch_object_detection import (
-    PyTorchObjectDetection)
+    PyTorchObjectDetection,
+)
 
 
-def objdet_learner_backend_config_upgrader(cfg_dict,
-                                           version):  # pragma: no cover
+def objdet_learner_backend_config_upgrader(
+    cfg_dict, version
+):  # pragma: no cover
     if version == 0:
         fields = {
             'augmentors': default_augmentors,
@@ -22,11 +27,12 @@ def objdet_learner_backend_config_upgrader(cfg_dict,
             'base_transform': None,
             'aug_transform': None,
             'plot_options': None,
-            'preview_batch_limit': None
+            'preview_batch_limit': None,
         }
         data_cfg_dict = {
             key: cfg_dict.pop(key, default_val)
-            for key, default_val in fields.items() if key in cfg_dict
+            for key, default_val in fields.items()
+            if key in cfg_dict
         }
         if data_cfg_dict['img_sz'] is None:
             data_cfg_dict['img_sz'] = 256
@@ -40,7 +46,8 @@ def objdet_learner_backend_config_upgrader(cfg_dict,
 
 @register_config(
     'pytorch_object_detection_backend',
-    upgrader=objdet_learner_backend_config_upgrader)
+    upgrader=objdet_learner_backend_config_upgrader,
+)
 class PyTorchObjectDetectionConfig(PyTorchLearnerBackendConfig):
     """Configure a :class:`.PyTorchObjectDetection` backend."""
 
@@ -54,7 +61,8 @@ class PyTorchObjectDetectionConfig(PyTorchLearnerBackendConfig):
             output_uri=pipeline.train_uri,
             log_tensorboard=self.log_tensorboard,
             run_tensorboard=self.run_tensorboard,
-            save_all_checkpoints=self.save_all_checkpoints)
+            save_all_checkpoints=self.save_all_checkpoints,
+        )
         learner.update()
         return learner
 

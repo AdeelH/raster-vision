@@ -12,15 +12,30 @@ import pandas as pd
 
 from rastervision.pipeline.file_system.utils import get_tmp_dir
 from rastervision.pipeline.pipeline_config import PipelineConfig
-from rastervision.pytorch_learner import (DataConfig, LearnerConfig,
-                                          SolverConfig)
+from rastervision.pytorch_learner import (
+    DataConfig,
+    LearnerConfig,
+    SolverConfig,
+)
 from rastervision.pytorch_learner.utils import (
-    compute_conf_mat, compute_conf_mat_metrics, MinMaxNormalize,
-    adjust_conv_channels, Parallel, SplitTensor, AddTensors,
-    validate_albumentation_transform, A, channel_groups_to_imgs,
-    plot_channel_groups, serialize_albumentation_transform,
-    deserialize_albumentation_transform, aggregate_metrics, log_metrics_to_csv,
-    log_system_details, get_learner_config_from_bundle_dir)
+    compute_conf_mat,
+    compute_conf_mat_metrics,
+    MinMaxNormalize,
+    adjust_conv_channels,
+    Parallel,
+    SplitTensor,
+    AddTensors,
+    validate_albumentation_transform,
+    A,
+    channel_groups_to_imgs,
+    plot_channel_groups,
+    serialize_albumentation_transform,
+    deserialize_albumentation_transform,
+    aggregate_metrics,
+    log_metrics_to_csv,
+    log_system_details,
+    get_learner_config_from_bundle_dir,
+)
 from tests.data_files.lambda_transforms import lambda_transforms
 from tests import data_file_path
 
@@ -31,7 +46,7 @@ class TestComputeConfMat(unittest.TestCase):
         out = torch.tensor([0, 1, 0, 1])
         num_labels = 2
         conf_mat = compute_conf_mat(out, y, num_labels)
-        exp_conf_mat = torch.tensor([[2., 0], [0, 2]])
+        exp_conf_mat = torch.tensor([[2.0, 0], [0, 2]])
         self.assertTrue(conf_mat.equal(exp_conf_mat))
 
     def test2(self):
@@ -39,14 +54,14 @@ class TestComputeConfMat(unittest.TestCase):
         out = torch.tensor([1, 1, 1, 1])
         num_labels = 2
         conf_mat = compute_conf_mat(out, y, num_labels)
-        exp_conf_mat = torch.tensor([[0., 2], [0, 2]])
+        exp_conf_mat = torch.tensor([[0.0, 2], [0, 2]])
         self.assertTrue(conf_mat.equal(exp_conf_mat))
 
 
 class TestComputeConfMatMetrics(unittest.TestCase):
     def test1(self):
         label_names = ['a', 'b']
-        conf_mat = torch.tensor([[2., 0], [0, 2]])
+        conf_mat = torch.tensor([[2.0, 0], [0, 2]])
         metrics = compute_conf_mat_metrics(conf_mat, label_names)
         exp_metrics = {
             'avg_precision': 1.0,
@@ -57,13 +72,13 @@ class TestComputeConfMatMetrics(unittest.TestCase):
             'a_f1': 1.0,
             'b_precision': 1.0,
             'b_recall': 1.0,
-            'b_f1': 1.0
+            'b_f1': 1.0,
         }
         self.assertDictEqual(metrics, exp_metrics)
 
     def test2(self):
         label_names = ['a', 'b']
-        conf_mat = torch.tensor([[0, 2.], [2, 0]])
+        conf_mat = torch.tensor([[0, 2.0], [2, 0]])
         metrics = compute_conf_mat_metrics(conf_mat, label_names)
         exp_metrics = {
             'avg_precision': 0.0,
@@ -74,13 +89,13 @@ class TestComputeConfMatMetrics(unittest.TestCase):
             'a_f1': 0.0,
             'b_precision': 0.0,
             'b_recall': 0.0,
-            'b_f1': 0.0
+            'b_f1': 0.0,
         }
         self.assertDictEqual(metrics, exp_metrics)
 
     def test3(self):
         label_names = ['a', 'b']
-        conf_mat = torch.tensor([[1, 2], [1, 2.]])
+        conf_mat = torch.tensor([[1, 2], [1, 2.0]])
         metrics = compute_conf_mat_metrics(conf_mat, label_names, eps=0.0)
 
         def f1(prec, rec):
@@ -111,13 +126,13 @@ class TestComputeConfMatMetrics(unittest.TestCase):
             'a_f1': a_f1,
             'b_precision': b_prec,
             'b_recall': b_rec,
-            'b_f1': b_f1
+            'b_f1': b_f1,
         }
         self.assertDictEqual(round_dict(metrics), round_dict(exp_metrics))
 
     def test_ignored_class(self):
         label_names = ['a', 'b', 'c']
-        conf_mat = torch.tensor([[2., 0, 0], [0, 2, 0], [1, 1, 0]])
+        conf_mat = torch.tensor([[2.0, 0, 0], [0, 2, 0], [1, 1, 0]])
         metrics = compute_conf_mat_metrics(conf_mat, label_names, ignore_idx=2)
         exp_metrics = {
             'avg_precision': 1.0,
@@ -128,7 +143,7 @@ class TestComputeConfMatMetrics(unittest.TestCase):
             'a_f1': 1.0,
             'b_precision': 1.0,
             'b_recall': 1.0,
-            'b_f1': 1.0
+            'b_f1': 1.0,
         }
         self.assertDictEqual(metrics, exp_metrics)
 
@@ -198,8 +213,13 @@ class TestCustomModules(unittest.TestCase):
 class TestAdjustConvChannels(unittest.TestCase):
     def _test_attribs_equal(self, old_conv: nn.Conv2d, new_conv: nn.Conv2d):
         attribs = [
-            'out_channels', 'kernel_size', 'stride', 'padding', 'dilation',
-            'groups', 'padding_mode'
+            'out_channels',
+            'kernel_size',
+            'stride',
+            'padding',
+            'dilation',
+            'groups',
+            'padding_mode',
         ]
         for a in attribs:
             self.assertEqual(getattr(new_conv, a), getattr(old_conv, a))
@@ -221,7 +241,8 @@ class TestAdjustConvChannels(unittest.TestCase):
         new_conv = adjust_conv_channels(old_conv, 1, pretrained=True)
         self.assertEqual(new_conv.in_channels, 1)
         self.assertTrue(
-            torch.equal(new_conv.weight.data, old_conv.weight.data[:, :1]))
+            torch.equal(new_conv.weight.data, old_conv.weight.data[:, :1])
+        )
         self._test_attribs_equal(old_conv, new_conv)
 
     @torch.inference_mode()
@@ -256,8 +277,8 @@ class TestAggregateMetrics(unittest.TestCase):
 
     def test_scalars(self):
         outputs = [
-            dict(train_loss=0.),
-            dict(train_loss=1.),
+            dict(train_loss=0.0),
+            dict(train_loss=1.0),
         ]
         metrics = aggregate_metrics(outputs)
         self.assertIn('train_loss', metrics)
@@ -304,13 +325,15 @@ class TestOtherUtils(unittest.TestCase):
         # test if serizlization passes validation check
         tf_serialized = serialize_albumentation_transform(tf_original)
         self.assertEqual(
-            validate_albumentation_transform(tf_serialized), tf_serialized)
+            validate_albumentation_transform(tf_serialized), tf_serialized
+        )
 
         # test if the de-serizlized transform's output matches that of the
         # original transform
         tf_deserialized = deserialize_albumentation_transform(tf_serialized)
         np.testing.assert_array_equal(
-            tf_original(image=x)['image'], tf_deserialized(image=x)['image'])
+            tf_original(image=x)['image'], tf_deserialized(image=x)['image']
+        )
 
     @mock_aws
     def test_albu_serialization_and_deserialization_lambda(self):
@@ -327,53 +350,59 @@ class TestOtherUtils(unittest.TestCase):
         tf_serialized = serialize_albumentation_transform(
             tf_original,
             lambda_transforms_path=data_file_path('lambda_transforms.py'),
-            dst_dir=s3_dir)
+            dst_dir=s3_dir,
+        )
         self.assertEqual(
-            validate_albumentation_transform(tf_serialized), tf_serialized)
+            validate_albumentation_transform(tf_serialized), tf_serialized
+        )
 
         # test if the de-serizlized transform's output matches that of the
         # original transform
         tf_deserialized = deserialize_albumentation_transform(tf_serialized)
         np.testing.assert_array_equal(
-            tf_original(image=x)['image'], tf_deserialized(image=x)['image'])
+            tf_original(image=x)['image'], tf_deserialized(image=x)['image']
+        )
 
     def test_channel_groups_to_imgs(self):
         imgs = channel_groups_to_imgs(
-            torch.rand((100, 100, 3)), {'RGB': (0, 1, 2)})
+            torch.rand((100, 100, 3)), {'RGB': (0, 1, 2)}
+        )
         self.assertEqual(len(imgs), 1)
         self.assertEqual(imgs[0].shape, (100, 100, 3))
 
         imgs = channel_groups_to_imgs(
-            torch.rand((100, 100, 6)), {
-                'RGB': (0, 1, 2),
-                'HSV': (3, 4, 5),
-                'RBV': (0, 2, 5)
-            })
+            torch.rand((100, 100, 6)),
+            {'RGB': (0, 1, 2), 'HSV': (3, 4, 5), 'RBV': (0, 2, 5)},
+        )
         self.assertEqual(len(imgs), 3)
         self.assertTrue(all(img.shape == (100, 100, 3) for img in imgs))
 
     def test_plot_channel_groups(self):
         channel_groups = {'RGB': (0, 1, 2)}
         imgs = channel_groups_to_imgs(
-            torch.rand((100, 100, 3)), channel_groups)
+            torch.rand((100, 100, 3)), channel_groups
+        )
         _, axs = plt.subplots(1, 1, squeeze=False)
         self.assertNoError(
-            lambda: plot_channel_groups(axs[0], imgs, channel_groups))
+            lambda: plot_channel_groups(axs[0], imgs, channel_groups)
+        )
         plt.close('all')
 
         channel_groups = {'RGB': (0, 1, 2), 'HSV': (3, 4, 5), 'RBV': (0, 2, 5)}
         imgs = channel_groups_to_imgs(
-            torch.rand((100, 100, 6)), channel_groups)
+            torch.rand((100, 100, 6)), channel_groups
+        )
         _, axs = plt.subplots(1, 3, squeeze=False)
         self.assertNoError(
-            lambda: plot_channel_groups(axs[0], imgs, channel_groups))
+            lambda: plot_channel_groups(axs[0], imgs, channel_groups)
+        )
         plt.close('all')
 
     def test_log_metrics_to_csv(self):
         epoch_metrics = [
-            dict(epoch=0, val1=0., val2=0.),
-            dict(epoch=1, val1=-1., val2=1.),
-            dict(epoch=2, val1=-2., val2=2.),
+            dict(epoch=0, val1=0.0, val2=0.0),
+            dict(epoch=1, val1=-1.0, val2=1.0),
+            dict(epoch=2, val1=-2.0, val2=2.0),
         ]
 
         with get_tmp_dir() as tmp_dir:
@@ -387,8 +416,8 @@ class TestOtherUtils(unittest.TestCase):
         self.assertIn('val1', df.columns)
         self.assertIn('val2', df.columns)
         self.assertListEqual(df.epoch.tolist(), [0, 1, 2])
-        self.assertListEqual(df.val1.tolist(), [0., -1., -2.])
-        self.assertListEqual(df.val2.tolist(), [0., 1., 2.])
+        self.assertListEqual(df.val1.tolist(), [0.0, -1.0, -2.0])
+        self.assertListEqual(df.val2.tolist(), [0.0, 1.0, 2.0])
 
     def test_log_system_details(self):
         self.assertNoError(log_system_details)
@@ -409,7 +438,8 @@ class TestOtherUtils(unittest.TestCase):
         with get_tmp_dir() as tmp_dir:
             self.assertRaises(
                 FileNotFoundError,
-                lambda: get_learner_config_from_bundle_dir(tmp_dir))
+                lambda: get_learner_config_from_bundle_dir(tmp_dir),
+            )
             learner_pipeline_cfg.to_file(join(tmp_dir, 'pipeline-config.json'))
             cfg = get_learner_config_from_bundle_dir(tmp_dir)
         self.assertIsInstance(cfg, LearnerConfig)

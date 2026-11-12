@@ -14,8 +14,9 @@ if TYPE_CHECKING:
 
 log = logging.getLogger(__name__)
 
-DDP_BACKEND = rv_config.get_namespace_option('rastervision', 'DDP_BACKEND',
-                                             'nccl')
+DDP_BACKEND = rv_config.get_namespace_option(
+    'rastervision', 'DDP_BACKEND', 'nccl'
+)
 
 
 class DDPContextManager(AbstractContextManager):  # pragma: no cover
@@ -30,10 +31,12 @@ class DDPContextManager(AbstractContextManager):  # pragma: no cover
     nothing on either entry or exit.
     """
 
-    def __init__(self,
-                 learner: 'Learner',
-                 rank: int | None = None,
-                 world_size: int | None = None) -> None:
+    def __init__(
+        self,
+        learner: 'Learner',
+        rank: int | None = None,
+        world_size: int | None = None,
+    ) -> None:
         """Constructor.
 
         Args:
@@ -49,8 +52,9 @@ class DDPContextManager(AbstractContextManager):  # pragma: no cover
         """
         self.learner = learner
         self.rank = learner.ddp_rank if rank is None else rank
-        self.world_size = (learner.ddp_world_size
-                           if world_size is None else world_size)
+        self.world_size = (
+            learner.ddp_world_size if world_size is None else world_size
+        )
         if self.rank is None or self.world_size is None:
             raise ValueError('Could not determine rank and world_size.')
         self.noop = dist.is_initialized()
@@ -79,15 +83,19 @@ class DDPContextManager(AbstractContextManager):  # pragma: no cover
         if learner.ddp_world_size is None:
             learner.ddp_world_size = world_size
 
-        log.info('DDP rank: %d, DDP local rank: %d', learner.ddp_rank,
-                 learner.ddp_local_rank)
+        log.info(
+            'DDP rank: %d, DDP local rank: %d',
+            learner.ddp_rank,
+            learner.ddp_local_rank,
+        )
 
         learner.is_ddp_process = True
         learner.is_ddp_master = learner.ddp_rank == 0
         learner.is_ddp_local_master = learner.ddp_local_rank == 0
 
-        learner.device = torch.device(learner.device.type,
-                                      learner.ddp_local_rank)
+        learner.device = torch.device(
+            learner.device.type, learner.ddp_local_rank
+        )
         torch.cuda.set_device(learner.device)
 
     def __exit__(self, exc_type, exc_value, traceback):

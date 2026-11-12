@@ -3,15 +3,20 @@ import unittest
 
 import numpy as np
 
-from rastervision.core.data import (ClassConfig, DatasetConfig)
+from rastervision.core.data import ClassConfig, DatasetConfig
 from rastervision.pipeline.config import build_config
 from rastervision.core.rv_pipeline.semantic_segmentation_config import (
-    SemanticSegmentationConfig, SemanticSegmentationPredictOptions,
-    SemanticSegmentationChipOptions, ss_config_upgrader)
+    SemanticSegmentationConfig,
+    SemanticSegmentationPredictOptions,
+    SemanticSegmentationChipOptions,
+    ss_config_upgrader,
+)
 from rastervision.pytorch_backend import PyTorchSemanticSegmentationConfig
-from rastervision.pytorch_learner import (SemanticSegmentationModelConfig,
-                                          SolverConfig,
-                                          SemanticSegmentationImageDataConfig)
+from rastervision.pytorch_learner import (
+    SemanticSegmentationModelConfig,
+    SolverConfig,
+    SemanticSegmentationImageDataConfig,
+)
 
 
 class TestSemanticSegmentationConfig(unittest.TestCase):
@@ -23,18 +28,22 @@ class TestSemanticSegmentationConfig(unittest.TestCase):
 
     def test_upgrader(self):
         class_config = ClassConfig(
-            names=['red', 'green'], colors=['red', 'green'])
+            names=['red', 'green'], colors=['red', 'green']
+        )
         dataset_cfg = DatasetConfig(
             class_config=class_config,
             train_scenes=[],
             validation_scenes=[],
-            test_scenes=[])
+            test_scenes=[],
+        )
         backend_cfg = PyTorchSemanticSegmentationConfig(
             data=SemanticSegmentationImageDataConfig(),
             model=SemanticSegmentationModelConfig(),
-            solver=SolverConfig())
+            solver=SolverConfig(),
+        )
         cfg = SemanticSegmentationConfig(
-            dataset=dataset_cfg, backend=backend_cfg)
+            dataset=dataset_cfg, backend=backend_cfg
+        )
         old_cfg_dict = cfg.dict()
         old_cfg_dict['channel_display_groups'] = None
         old_cfg_dict['img_format'] = 'npy'
@@ -62,14 +71,16 @@ class TestSemanticSegmentationChipOptions(unittest.TestCase):
         chip = np.zeros((10, 10, 1), dtype=np.uint8)
         chip[4:, 4:, :] = 1
         chip_options = SemanticSegmentationChipOptions(
-            sampling={}, target_class_ids=[1], target_count_threshold=30)
+            sampling={}, target_class_ids=[1], target_count_threshold=30
+        )
         self.assertTrue(chip_options.enough_target_pixels(chip))
 
     def test_enough_target_pixels_false(self):
         chip = np.zeros((10, 10, 1), dtype=np.uint8)
         chip[7:, 7:, :] = 1
         chip_options = SemanticSegmentationChipOptions(
-            sampling={}, target_class_ids=[1], target_count_threshold=30)
+            sampling={}, target_class_ids=[1], target_count_threshold=30
+        )
         self.assertFalse(chip_options.enough_target_pixels(chip))
 
 
