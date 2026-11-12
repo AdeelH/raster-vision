@@ -3,7 +3,7 @@ import warnings
 from os.path import join
 import logging
 
-import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
 import matplotlib.gridspec as gridspec
 
 import torch
@@ -119,9 +119,7 @@ class RegressionLearner(Learner):
         num_labels = len(class_names)
         ncols = num_labels
         nrows = 1
-        fig = plt.figure(
-            constrained_layout=True, figsize=(5 * ncols, 5 * nrows)
-        )
+        fig = Figure(constrained_layout=True, figsize=(5 * ncols, 5 * nrows))
         grid = gridspec.GridSpec(ncols=ncols, nrows=nrows, figure=fig)
 
         for label_ind, label in enumerate(class_names):
@@ -138,12 +136,10 @@ class RegressionLearner(Learner):
         scatter_path = join(
             self.output_dir_local, '{}_scatter.png'.format(split)
         )
-        plt.savefig(scatter_path)
+        fig.savefig(scatter_path)
 
         # make histogram of errors
-        fig = plt.figure(
-            constrained_layout=True, figsize=(5 * ncols, 5 * nrows)
-        )
+        fig = Figure(constrained_layout=True, figsize=(5 * ncols, 5 * nrows))
         grid = gridspec.GridSpec(ncols=ncols, nrows=nrows, figure=fig)
 
         hist_bins = plot_options.hist_bins
@@ -156,4 +152,4 @@ class RegressionLearner(Learner):
         hist_path = join(
             self.output_dir_local, '{}_err_hist.png'.format(split)
         )
-        plt.savefig(hist_path)
+        fig.savefig(hist_path)

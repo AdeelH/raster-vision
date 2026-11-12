@@ -8,6 +8,7 @@ from torch import Tensor
 from torch.utils.data import DataLoader
 import albumentations as A
 import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
 
 from rastervision.pipeline.file_system import make_dir
 from rastervision.core.data import ClassConfig
@@ -26,7 +27,6 @@ from rastervision.pytorch_learner.object_detection_utils import BoxList
 
 if TYPE_CHECKING:
     from torch.utils.data import Dataset
-    from matplotlib.figure import Figure
 
 
 class Visualizer(ABC):
@@ -126,10 +126,12 @@ class Visualizer(ABC):
         if params['subplot_args']['nrows'] == 0:
             return
 
+        # Figures not managed by pyplot don't use the (possibly GUI) backend,
+        # which isn't needed unless the plot is to be shown.
+        fig_cls = plt.figure if show else Figure
         if x.ndim == 4:
-            fig, axs = plt.subplots(
-                **params['fig_args'], **params['subplot_args']
-            )
+            fig = fig_cls(**params['fig_args'])
+            axs = fig.subplots(**params['subplot_args'])
             plot_xyz_args = params['plot_xyz_args']
             self._plot_batch(fig, axs, plot_xyz_args, x, y=y, z=z)
         elif x.ndim == 5:
@@ -141,7 +143,7 @@ class Visualizer(ABC):
             # row in each batch).
             batch_sz, T, *_ = x.shape
             params['fig_args']['figsize'][1] *= T
-            fig = plt.figure(**params['fig_args'])
+            fig = fig_cls(**params['fig_args'])
             subfigs = fig.subfigures(
                 nrows=batch_sz, ncols=1, hspace=0.0, squeeze=False
             )
@@ -171,7 +173,8 @@ class Visualizer(ABC):
             make_dir(output_path, use_dirname=True)
             fig.savefig(output_path, bbox_inches='tight', pad_inches=0.2)
 
-        plt.close(fig)
+        if show:
+            plt.close(fig)
 
     def _plot_batch(
         self,
