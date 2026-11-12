@@ -1,7 +1,6 @@
 import os
-from os.path import join
+from os.path import dirname, join
 import unittest
-import shutil
 
 from rastervision.pipeline.file_system.utils import get_tmp_dir
 from rastervision.pipeline.config import Config
@@ -11,6 +10,7 @@ from rastervision.pipeline.cli import (
     main,
     print_error,
 )
+from rastervision.pipeline_example_plugin1 import config1
 from rastervision.pipeline_example_plugin1.sample_pipeline import (
     SamplePipelineConfig,
 )
@@ -19,6 +19,13 @@ from click.testing import CliRunner
 
 
 class TestCli(unittest.TestCase):
+    def setUp(self):
+        self.tmp_dir_obj = get_tmp_dir()
+        self.root_uri = self.tmp_dir_obj.name
+
+    def tearDown(self):
+        self.tmp_dir_obj.cleanup()
+
     def test_rastervision_help(self):
         runner = CliRunner()
         result = runner.invoke(main, ['--help'])
@@ -31,7 +38,6 @@ class TestCli(unittest.TestCase):
 
     def test_rastervision_run_local(self):
         runner = CliRunner()
-        shutil.rmtree('/opt/data/pipeline-example/1/', ignore_errors=True)
         result = runner.invoke(
             main,
             [
@@ -40,7 +46,7 @@ class TestCli(unittest.TestCase):
                 'rastervision.pipeline_example_plugin1.config1',
                 '-a',
                 'root_uri',
-                '/opt/data/pipeline-example/1/',
+                self.root_uri,
                 '--splits',
                 '2',
             ],
@@ -48,10 +54,7 @@ class TestCli(unittest.TestCase):
         self.assertEqual(result.exit_code, 0)
 
         # from config path
-        cfg_path = (
-            'rastervision_pipeline/rastervision/'
-            'pipeline_example_plugin1/config1.py'
-        )
+        cfg_path = join(dirname(config1.__file__), 'config1.py')
         result = runner.invoke(
             main,
             [
@@ -60,7 +63,7 @@ class TestCli(unittest.TestCase):
                 cfg_path,
                 '-a',
                 'root_uri',
-                '/opt/data/pipeline-example/1/',
+                self.root_uri,
                 '--splits',
                 '2',
             ],
@@ -69,7 +72,6 @@ class TestCli(unittest.TestCase):
 
     def test_rastervision_run_inprocess1(self):
         runner = CliRunner()
-        shutil.rmtree('/opt/data/pipeline-example/1/', ignore_errors=True)
         result = runner.invoke(
             main,
             [
@@ -78,7 +80,7 @@ class TestCli(unittest.TestCase):
                 'rastervision.pipeline_example_plugin1.config1',
                 '-a',
                 'root_uri',
-                '/opt/data/pipeline-example/1/',
+                self.root_uri,
                 '--splits',
                 '2',
             ],
@@ -87,7 +89,6 @@ class TestCli(unittest.TestCase):
 
     def test_rastervision_run_inprocess2(self):
         runner = CliRunner()
-        shutil.rmtree('/opt/data/pipeline-example/2/', ignore_errors=True)
         result = runner.invoke(
             main,
             [
@@ -96,7 +97,7 @@ class TestCli(unittest.TestCase):
                 'rastervision.pipeline_example_plugin1.config2',
                 '-a',
                 'root_uri',
-                '/opt/data/pipeline-example/2/',
+                self.root_uri,
                 '--splits',
                 '2',
             ],
@@ -105,7 +106,6 @@ class TestCli(unittest.TestCase):
 
     def test_rastervision_run_inprocess3(self):
         runner = CliRunner()
-        shutil.rmtree('/opt/data/pipeline-example/3/', ignore_errors=True)
         result = runner.invoke(
             main,
             [
@@ -114,7 +114,7 @@ class TestCli(unittest.TestCase):
                 'rastervision.pipeline_example_plugin2.config3',
                 '-a',
                 'root_uri',
-                '/opt/data/pipeline-example/3/',
+                self.root_uri,
                 '--splits',
                 '2',
             ],

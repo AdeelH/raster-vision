@@ -20,7 +20,7 @@ from rastervision.core.data.vector_source.geojson_vector_source_config import (
 )
 from rastervision.core.data.utils import geometries_to_geojson
 
-from tests import test_config_upgrader
+from tests import check_config_upgrader
 from tests.core.data.mock_crs_transformer import DoubleCRSTransformer
 
 
@@ -30,7 +30,7 @@ class TestGeoJSONVectorSourceConfig(unittest.TestCase):
         old_cfg_dict = cfg.dict()
         old_cfg_dict['uri'] = old_cfg_dict['uris']
         del old_cfg_dict['uris']
-        test_config_upgrader(
+        check_config_upgrader(
             cfg_class=GeoJSONVectorSourceConfig,
             old_cfg_dict=old_cfg_dict,
             upgrader=geojson_vector_source_config_upgrader,
@@ -41,7 +41,7 @@ class TestGeoJSONVectorSourceConfig(unittest.TestCase):
         cfg = GeoJSONVectorSourceConfig(uris=['a', 'b'])
         old_cfg_dict = cfg.dict()
         old_cfg_dict['ignore_crs_field'] = True
-        test_config_upgrader(
+        check_config_upgrader(
             cfg_class=GeoJSONVectorSourceConfig,
             old_cfg_dict=old_cfg_dict,
             upgrader=geojson_vector_source_config_upgrader,

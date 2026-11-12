@@ -8,8 +8,9 @@ from rastervision.pytorch_backend import *
 from rastervision.pytorch_learner import *
 
 
-def get_config(runner) -> SemanticSegmentationConfig:
-    output_root_uri = '/opt/data/output/tiny_spacenet'
+def get_config(
+    runner, root_uri: str = '/opt/data/output/tiny_spacenet'
+) -> SemanticSegmentationConfig:
     class_config = ClassConfig(
         names=['building', 'background'], colors=['red', 'black']
     )
@@ -55,7 +56,7 @@ def get_config(runner) -> SemanticSegmentationConfig:
     )
 
     return SemanticSegmentationConfig(
-        root_uri=output_root_uri,
+        root_uri=root_uri,
         dataset=scene_dataset,
         backend=backend,
         predict_options=SemanticSegmentationPredictOptions(chip_sz=chip_sz),

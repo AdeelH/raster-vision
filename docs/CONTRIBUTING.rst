@@ -28,6 +28,11 @@ Raster Vision uses `ruff <https://docs.astral.sh/ruff/>`__ for formatting and li
 - Format the code with ``scripts/format_code`` (``ruff format``).
 - Check the code with ``scripts/style_tests``, which runs ``ruff check``, ``ruff format --check`` and ``pyright``. CI runs the same checks.
 
+Tests
+-----
+
+Run the unit tests with ``scripts/unit_tests`` (or ``python -m unittest discover -t . tests``; ``pytest tests`` also works) and the integration tests with ``scripts/integration_tests``. Neither requires the Docker image.
+
 
 .. toctree::
     :maxdepth: 2
