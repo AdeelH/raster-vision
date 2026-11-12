@@ -25,7 +25,7 @@ Code style
 
 Raster Vision uses `ruff <https://docs.astral.sh/ruff/>`__ for formatting and linting, and `pyright <https://microsoft.github.io/pyright/>`__ for type checking. Their configuration is in the root ``pyproject.toml``. Both are installed by ``scripts/setup_dev_env``.
 
-- Format the code with ``scripts/format_code`` (``ruff format``).
+- Format the code and sort imports with ``scripts/format_code`` (``ruff check --select I --fix`` and ``ruff format``). Files whose import order matters are marked with ``# isort: skip_file`` (or ``# isort: off``/``# isort: on`` around the relevant imports).
 - Check the code with ``scripts/style_tests``, which runs ``ruff check``, ``ruff format --check`` and ``pyright``. CI runs the same checks.
 
 Tests
