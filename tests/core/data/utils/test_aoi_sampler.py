@@ -26,8 +26,18 @@ class TestAoiSampler(unittest.TestCase):
     def test_polygon_with_non_convex_hole(self):
         # The hole's centroid lies outside the hole.
         outer = Polygon.from_bounds(0, 0, 20, 20)
-        c_shaped_hole = Polygon([(4, 4), (16, 4), (16, 7), (7, 7), (7, 13),
-                                 (16, 13), (16, 16), (4, 16)])
+        c_shaped_hole = Polygon(
+            [
+                (4, 4),
+                (16, 4),
+                (16, 7),
+                (7, 7),
+                (7, 13),
+                (16, 13),
+                (16, 16),
+                (4, 16),
+            ]
+        )
         aoi = outer - c_shaped_hole
         aoi_sampler = AoiSampler([aoi])
         total_area = sum(t['areas'].sum() for t in aoi_sampler.triangulations)
@@ -81,10 +91,12 @@ class TestAoiSampler(unittest.TestCase):
 
         points = MultiPoint(aoi_sampler.sample(n=nsamples))
         # number of points in each block
-        counts = np.array([
-            len(cast(MultiPoint, block.intersection(points)).geoms)
-            for block in blocks.geoms
-        ])
+        counts = np.array(
+            [
+                len(cast(MultiPoint, block.intersection(points)).geoms)
+                for block in blocks.geoms
+            ]
+        )
 
         p_value = chisquare(counts).pvalue
 

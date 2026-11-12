@@ -2,7 +2,10 @@ from collections.abc import Callable
 import unittest
 
 from rastervision.core.data.class_config import (
-    ClassConfig, DEFAULT_NULL_CLASS_NAME, DEFAULT_NULL_CLASS_COLOR)
+    ClassConfig,
+    DEFAULT_NULL_CLASS_NAME,
+    DEFAULT_NULL_CLASS_COLOR,
+)
 from rastervision.pipeline.config import ValidationError
 
 
@@ -35,7 +38,8 @@ class TestClassConfig(unittest.TestCase):
         self.assertRaises(ValidationError, lambda: ClassConfig(**args))
 
         cfg = ClassConfig(
-            names=['a', 'b', DEFAULT_NULL_CLASS_NAME], null_class=None)
+            names=['a', 'b', DEFAULT_NULL_CLASS_NAME], null_class=None
+        )
         self.assertEqual(cfg.null_class, DEFAULT_NULL_CLASS_NAME)
 
         args = dict(names=['a', 'b', DEFAULT_NULL_CLASS_NAME], null_class='a')
@@ -64,7 +68,8 @@ class TestClassConfig(unittest.TestCase):
         self.assertEqual(len(cfg.colors), 2)
 
         cfg = ClassConfig(
-            names=['a', 'b'], colors=['red', DEFAULT_NULL_CLASS_COLOR])
+            names=['a', 'b'], colors=['red', DEFAULT_NULL_CLASS_COLOR]
+        )
         cfg.ensure_null_class()
         self.assertEqual(len(cfg.names), 3)
         self.assertEqual(len(cfg.colors), 3)

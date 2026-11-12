@@ -5,18 +5,20 @@ from rastervision.core.data.utils import match_bboxes, geoms_to_bbox_coords
 if TYPE_CHECKING:
     from shapely.geometry.base import BaseGeometry
     from rastervision.core.box import Box
-    from rastervision.core.data import (RasterSource, LabelSource, LabelStore)
+    from rastervision.core.data import RasterSource, LabelSource, LabelStore
 
 
 class Scene:
     """The raster data and labels associated with an area of interest."""
 
-    def __init__(self,
-                 id: str,
-                 raster_source: 'RasterSource',
-                 label_source: 'LabelSource | None' = None,
-                 label_store: 'LabelStore | None' = None,
-                 aoi_polygons: list['BaseGeometry'] | None = None):
+    def __init__(
+        self,
+        id: str,
+        raster_source: 'RasterSource',
+        label_source: 'LabelSource | None' = None,
+        label_store: 'LabelStore | None' = None,
+        aoi_polygons: list['BaseGeometry'] | None = None,
+    ):
         """Constructor.
 
         During initialization, ``Scene`` attempts to set the extents of the
@@ -49,14 +51,16 @@ class Scene:
                 if p.geom_type not in ['Polygon', 'MultiPolygon']:
                     raise ValueError(
                         'Expected all AOI geometries to be Polygons or '
-                        f'MultiPolygons. Found: {p.geom_type}.')
+                        f'MultiPolygons. Found: {p.geom_type}.'
+                    )
             bbox = self.raster_source.bbox
             bbox_geom = bbox.to_shapely()
             self.aoi_polygons = [
                 p for p in aoi_polygons if p.intersects(bbox_geom)
             ]
             self.aoi_polygons_bbox_coords = list(
-                geoms_to_bbox_coords(self.aoi_polygons, bbox))
+                geoms_to_bbox_coords(self.aoi_polygons, bbox)
+            )
 
     @property
     def extent(self) -> 'Box':

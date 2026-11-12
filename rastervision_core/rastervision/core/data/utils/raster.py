@@ -5,10 +5,9 @@ import numpy as np
 from rastervision.core.box import Box
 
 
-def fill_overflow(bbox: Box,
-                  window: Box,
-                  chip: np.ndarray,
-                  fill_value: int = 0) -> np.ndarray:
+def fill_overflow(
+    bbox: Box, window: Box, chip: np.ndarray, fill_value: int = 0
+) -> np.ndarray:
     """Where ``chip``'s ``window`` overflows bbox, fill with ``fill_value``.
 
     The chip may have been resized, i.e., its height and width do not need to
@@ -53,8 +52,9 @@ def fill_overflow(bbox: Box,
     return chip
 
 
-def pad_to_window_size(chip: np.ndarray, window: Box, bbox: Box,
-                       fill_value: int) -> np.ndarray:
+def pad_to_window_size(
+    chip: np.ndarray, window: Box, bbox: Box, fill_value: int
+) -> np.ndarray:
     """Where chip's window overflows bbox, pad chip with fill_value.
 
     Args:

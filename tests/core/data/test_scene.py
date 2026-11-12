@@ -1,7 +1,7 @@
 import unittest
 
 from rastervision.core.box import Box
-from rastervision.core.data import (ClassConfig, RasterioSource, Scene)
+from rastervision.core.data import ClassConfig, RasterioSource, Scene
 
 from tests import data_file_path
 
@@ -10,7 +10,8 @@ class TestScene(unittest.TestCase):
     def setUp(self) -> None:
         self.class_config = ClassConfig(names=['class_1'])
         self.img_uri = data_file_path(
-            'multi_raster_source/const_100_600x600.tiff')
+            'multi_raster_source/const_100_600x600.tiff'
+        )
 
     def test_raster_source_with_bbox(self):
         bbox = Box(100, 100, 200, 200)
@@ -40,8 +41,9 @@ class TestScene(unittest.TestCase):
         ]
         scene = Scene(id='', raster_source=rs, aoi_polygons=aoi_polygons)
         self.assertListEqual(scene.aoi_polygons, aoi_polygons[:2])
-        self.assertListEqual(scene.aoi_polygons_bbox_coords,
-                             aoi_polygons_bbox_coords)
+        self.assertListEqual(
+            scene.aoi_polygons_bbox_coords, aoi_polygons_bbox_coords
+        )
 
     def test_invalid_aoi_polygons(self):
         bbox = Box(100, 100, 200, 200)

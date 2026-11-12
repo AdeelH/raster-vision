@@ -6,8 +6,10 @@ from xarray import DataArray
 
 from rastervision.core.box import Box
 from rastervision.core.data.crs_transformer import IdentityCRSTransformer
-from rastervision.core.data.raster_source import (TemporalMultiRasterSource,
-                                                  XarraySource)
+from rastervision.core.data.raster_source import (
+    TemporalMultiRasterSource,
+    XarraySource,
+)
 
 
 def make_raster_source(num_channels_raw: int, channel_order: list[int]):
@@ -16,7 +18,8 @@ def make_raster_source(num_channels_raw: int, channel_order: list[int]):
     arr *= np.arange(num_channels_raw, dtype=dtype)
     da = DataArray(arr, dims=['x', 'y', 'band'])
     rs = XarraySource(
-        da, IdentityCRSTransformer(), channel_order=channel_order)
+        da, IdentityCRSTransformer(), channel_order=channel_order
+    )
     return rs
 
 
@@ -42,13 +45,15 @@ class TestTemporalMultiRasterSource(unittest.TestCase):
         rs1 = make_raster_source(3, [0, 1, 2])
         rs2 = make_raster_source(4, [0, 1, 2, 3])
         rs3 = make_raster_source(4, [0, 1, 2])
-        self.assertRaises(ValueError,
-                          lambda: TemporalMultiRasterSource([rs1, rs2]))
+        self.assertRaises(
+            ValueError, lambda: TemporalMultiRasterSource([rs1, rs2])
+        )
         self.assertNoError(lambda: TemporalMultiRasterSource([rs1, rs3]))
 
         args = dict(raster_sources=[rs1, rs3], primary_source_idx=10)
-        self.assertRaises(IndexError,
-                          lambda: TemporalMultiRasterSource(**args))
+        self.assertRaises(
+            IndexError, lambda: TemporalMultiRasterSource(**args)
+        )
 
     def test_get_chip(self):
         mrs = make_source()
@@ -59,7 +64,9 @@ class TestTemporalMultiRasterSource(unittest.TestCase):
             [
                 [[[2, 1, 0]]],
                 [[[1, 0, 2]]],
-            ], dtype=dtype)
+            ],
+            dtype=dtype,
+        )
         np.testing.assert_array_equal(chip, chip_expected)
 
         chip = mrs.get_chip(Box(0, 0, 2, 2), out_shape=(1, 1))
@@ -67,7 +74,9 @@ class TestTemporalMultiRasterSource(unittest.TestCase):
             [
                 [[[2, 1, 0]]],
                 [[[1, 0, 2]]],
-            ], dtype=dtype)
+            ],
+            dtype=dtype,
+        )
         np.testing.assert_array_equal(chip, chip_expected)
 
     def test_getitem(self):
@@ -79,7 +88,9 @@ class TestTemporalMultiRasterSource(unittest.TestCase):
             [
                 [[[2, 1, 0]]],
                 [[[1, 0, 2]]],
-            ], dtype=dtype)
+            ],
+            dtype=dtype,
+        )
         np.testing.assert_array_equal(chip, chip_expected)
 
         chip = mrs[:, :1, :1, [2]]
@@ -87,7 +98,9 @@ class TestTemporalMultiRasterSource(unittest.TestCase):
             [
                 [[[0]]],
                 [[[2]]],
-            ], dtype=dtype)
+            ],
+            dtype=dtype,
+        )
         np.testing.assert_array_equal(chip, chip_expected)
 
         chip = mrs[:, :2:2, :2:2, [0]]
@@ -95,19 +108,24 @@ class TestTemporalMultiRasterSource(unittest.TestCase):
             [
                 [[[2]]],
                 [[[1]]],
-            ], dtype=dtype)
+            ],
+            dtype=dtype,
+        )
         np.testing.assert_array_equal(chip, chip_expected)
 
         chip = mrs[1, :2:2, :2:2, [0]]
         chip_expected = np.array(
             [
                 [[1]],
-            ], dtype=dtype)
+            ],
+            dtype=dtype,
+        )
         np.testing.assert_array_equal(chip, chip_expected)
 
     def test_from_stac(self):
-        self.assertRaises(NotImplementedError,
-                          TemporalMultiRasterSource.from_stac)
+        self.assertRaises(
+            NotImplementedError, TemporalMultiRasterSource.from_stac
+        )
 
 
 if __name__ == '__main__':

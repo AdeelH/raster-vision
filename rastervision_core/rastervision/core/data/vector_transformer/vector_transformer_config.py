@@ -13,9 +13,11 @@ if TYPE_CHECKING:
 class VectorTransformerConfig(Config):
     """Configure a :class:`.VectorTransformer`."""
 
-    def update(self,
-               pipeline: 'RVPipelineConfig | None' = None,
-               scene: 'SceneConfig | None' = None) -> None:
+    def update(
+        self,
+        pipeline: 'RVPipelineConfig | None' = None,
+        scene: 'SceneConfig | None' = None,
+    ) -> None:
         pass
 
     @abstractmethod

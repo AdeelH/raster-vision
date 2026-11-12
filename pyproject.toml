@@ -116,7 +116,7 @@ line-length = 79
 target-version = "py311"
 extend-exclude = [
     "cookiecutter_template",
-    "data",
+    "./data",
     "docs",
     "**/tfod_utils",
     ".history",

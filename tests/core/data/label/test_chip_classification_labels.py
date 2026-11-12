@@ -3,10 +3,15 @@ from os.path import join
 
 from rastervision.pipeline.file_system.utils import get_tmp_dir, file_exists
 from rastervision.core.box import Box
-from rastervision.core.data import (ClassConfig, IdentityCRSTransformer,
-                                    ChipClassificationGeoJSONStore)
+from rastervision.core.data import (
+    ClassConfig,
+    IdentityCRSTransformer,
+    ChipClassificationGeoJSONStore,
+)
 from rastervision.core.data.label.chip_classification_labels import (
-    ClassificationLabel, ChipClassificationLabels)
+    ClassificationLabel,
+    ChipClassificationLabels,
+)
 
 from tests import data_file_path
 
@@ -47,16 +52,18 @@ class TestChipClassificationLabels(unittest.TestCase):
         cells = self.labels.get_cells()
         self.assertEqual(len(cells), 2)
         # ordering of cells isn't known
-        self.assertTrue((cells[0] == self.cell1 and cells[1] == self.cell2)
-                        or (cells[1] == self.cell1 and cells[0] == self.cell2))
+        self.assertTrue(
+            (cells[0] == self.cell1 and cells[1] == self.cell2)
+            or (cells[1] == self.cell1 and cells[0] == self.cell2)
+        )
 
     def test_get_class_ids(self):
         cells = self.labels.get_cells()
         class_ids = self.labels.get_class_ids()
         # check that order of class_ids corresponds to order of cells
-        if (cells[0] == self.cell1 and cells[1] == self.cell2):
+        if cells[0] == self.cell1 and cells[1] == self.cell2:
             self.assertListEqual(class_ids, [1, 2])
-        elif (cells[1] == self.cell1 and cells[0] == self.cell2):
+        elif cells[1] == self.cell1 and cells[0] == self.cell2:
             self.assertListEqual(class_ids, [2, 1])
 
     def test_extend(self):
@@ -92,7 +99,7 @@ class TestChipClassificationLabels(unittest.TestCase):
     def test_get_values(self):
         values_expected = [
             ClassificationLabel(class_id=self.class_id1),
-            ClassificationLabel(class_id=self.class_id2)
+            ClassificationLabel(class_id=self.class_id2),
         ]
         self.assertListEqual(self.labels.get_values(), values_expected)
 

@@ -5,8 +5,9 @@ from rastervision.core.data.label import ChipClassificationLabels
 from rastervision.core.data.label_store import LabelStore
 from rastervision.core.data.label_store.utils import boxes_to_geojson
 from rastervision.core.data.label_source import (
-    ChipClassificationLabelSourceConfig)
-from rastervision.core.data.vector_source import (GeoJSONVectorSourceConfig)
+    ChipClassificationLabelSourceConfig,
+)
+from rastervision.core.data.vector_source import GeoJSONVectorSourceConfig
 
 if TYPE_CHECKING:
     from rastervision.core.box import Box
@@ -16,11 +17,13 @@ if TYPE_CHECKING:
 class ChipClassificationGeoJSONStore(LabelStore):
     """Storage for chip classification predictions."""
 
-    def __init__(self,
-                 uri: str,
-                 class_config: 'ClassConfig',
-                 crs_transformer: 'CRSTransformer',
-                 bbox: 'Box | None' = None):
+    def __init__(
+        self,
+        uri: str,
+        class_config: 'ClassConfig',
+        crs_transformer: 'CRSTransformer',
+        bbox: 'Box | None' = None,
+    ):
         """Constructor.
 
         Args:
@@ -53,7 +56,8 @@ class ChipClassificationGeoJSONStore(LabelStore):
             self.crs_transformer,
             self.class_config,
             scores=scores,
-            bbox=self.bbox)
+            bbox=self.bbox,
+        )
         json_to_file(geojson, self.uri)
 
     def get_labels(self) -> ChipClassificationLabels:
@@ -61,7 +65,8 @@ class ChipClassificationGeoJSONStore(LabelStore):
         ls = ChipClassificationLabelSourceConfig(vector_source=vs).build(
             class_config=self.class_config,
             crs_transformer=self.crs_transformer,
-            bbox=self.bbox)
+            bbox=self.bbox,
+        )
         return ls.get_labels()
 
     @property

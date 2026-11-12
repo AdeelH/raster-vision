@@ -51,8 +51,9 @@ class Labels(ABC):
         """
 
     @classmethod
-    def from_predictions(cls, windows: Iterable['Box'],
-                         predictions: Iterable[Any]) -> 'Self':
+    def from_predictions(
+        cls, windows: Iterable['Box'], predictions: Iterable[Any]
+    ) -> 'Self':
         """Instantiate from windows and their corresponding predictions.
 
         This makes no assumptions about the type or format of the predictions.

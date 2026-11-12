@@ -6,14 +6,16 @@ from rastervision.core.data import RasterSource, IdentityCRSTransformer
 
 
 class MockRasterSource(RasterSource):
-    def __init__(self, channel_order, num_channels_raw,
-                 raster_transformers=[]):
+    def __init__(
+        self, channel_order, num_channels_raw, raster_transformers=[]
+    ):
         super().__init__(
             channel_order=channel_order,
             num_channels_raw=num_channels_raw,
             dtype_raw=np.uint8,
             bbox=Box.make_square(0, 0, 2),
-            raster_transformers=raster_transformers)
+            raster_transformers=raster_transformers,
+        )
         self.mock = Mock()
         self.set_return_vals()
 
@@ -28,8 +30,9 @@ class MockRasterSource(RasterSource):
             self._dtype = raster.dtype
 
             def get_chip(window):
-                return raster[window.ymin:window.ymax, window.xmin:
-                              window.xmax, :]
+                return raster[
+                    window.ymin : window.ymax, window.xmin : window.xmax, :
+                ]
 
             self.mock._get_chip.side_effect = get_chip
 

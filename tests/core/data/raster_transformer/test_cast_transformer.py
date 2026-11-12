@@ -2,8 +2,10 @@ import unittest
 
 import numpy as np
 
-from rastervision.core.data.raster_transformer import (CastTransformer,
-                                                       CastTransformerConfig)
+from rastervision.core.data.raster_transformer import (
+    CastTransformer,
+    CastTransformerConfig,
+)
 
 
 class TestCastTransformer(unittest.TestCase):

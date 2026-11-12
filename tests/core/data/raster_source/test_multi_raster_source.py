@@ -14,34 +14,45 @@ from rasterio.transform import from_origin
 from rastervision.pipeline.file_system import get_tmp_dir
 from rastervision.core.box import Box
 from rastervision.core.data import (
-    RasterioSourceConfig, MultiRasterSource, MultiRasterSourceConfig,
-    ReclassTransformerConfig, CastTransformerConfig, XarraySource,
-    IdentityCRSTransformer, TemporalMultiRasterSource, RasterioSource,
-    RasterioCRSTransformer)
+    RasterioSourceConfig,
+    MultiRasterSource,
+    MultiRasterSourceConfig,
+    ReclassTransformerConfig,
+    CastTransformerConfig,
+    XarraySource,
+    IdentityCRSTransformer,
+    TemporalMultiRasterSource,
+    RasterioSource,
+    RasterioCRSTransformer,
+)
 from rastervision.core.data.raster_source.multi_raster_source_config import (
-    multi_rs_config_upgrader)
+    multi_rs_config_upgrader,
+)
 
 from tests import data_file_path
 
 
-def make_cfg(img_path: str = 'small-rgb-tile.tif',
-             **kwargs) -> MultiRasterSourceConfig:
+def make_cfg(
+    img_path: str = 'small-rgb-tile.tif', **kwargs
+) -> MultiRasterSourceConfig:
     img_path = data_file_path(img_path)
     r_source = RasterioSourceConfig(uris=[img_path])
     g_source = RasterioSourceConfig(uris=[img_path])
     b_source = RasterioSourceConfig(uris=[img_path])
 
     cfg = MultiRasterSourceConfig(
-        raster_sources=[r_source, g_source, b_source], **kwargs)
+        raster_sources=[r_source, g_source, b_source], **kwargs
+    )
     return cfg
 
 
-def make_cfg_diverse(diff_dtypes: bool = False,
-                     **kwargs) -> MultiRasterSourceConfig:
+def make_cfg_diverse(
+    diff_dtypes: bool = False, **kwargs
+) -> MultiRasterSourceConfig:
     img_paths = [
         data_file_path('multi_raster_source/const_100_600x600.tiff'),
         data_file_path('multi_raster_source/const_175_60x60.tiff'),
-        data_file_path('multi_raster_source/const_250_6x6.tiff')
+        data_file_path('multi_raster_source/const_250_6x6.tiff'),
     ]
     transformers = [[]] * 3
     if diff_dtypes:
@@ -136,8 +147,9 @@ class TestMultiRasterSource(unittest.TestCase):
 
         self.assertEqual(rs.extent, primary_rs.extent)
         self.assertEqual(rs.dtype, primary_rs.dtype)
-        self.assertEqual(rs.crs_transformer.transform,
-                         primary_rs.crs_transformer.transform)
+        self.assertEqual(
+            rs.crs_transformer.transform, primary_rs.crs_transformer.transform
+        )
 
     def test_dtype_validation(self):
         cfg = make_cfg_diverse(diff_dtypes=True)
@@ -167,22 +179,21 @@ class TestMultiRasterSource(unittest.TestCase):
         source_2 = RasterioSourceConfig(
             uris=[path],
             channel_order=[0],
-            transformers=[ReclassTransformerConfig(mapping={100: 175})])
+            transformers=[ReclassTransformerConfig(mapping={100: 175})],
+        )
         source_3 = RasterioSourceConfig(
             uris=[path],
             channel_order=[0],
-            transformers=[ReclassTransformerConfig(mapping={100: 250})])
+            transformers=[ReclassTransformerConfig(mapping={100: 250})],
+        )
 
         cfg = MultiRasterSourceConfig(
             raster_sources=[source_1, source_2, source_3],
             channel_order=[2, 1, 0],
             transformers=[
-                ReclassTransformerConfig(mapping={
-                    100: 10,
-                    175: 17,
-                    250: 25
-                })
-            ])
+                ReclassTransformerConfig(mapping={100: 10, 175: 17, 250: 25})
+            ],
+        )
         rs = cfg.build(tmp_dir=self.tmp_dir)
 
         window = Box(0, 0, 100, 100)
@@ -190,7 +201,8 @@ class TestMultiRasterSource(unittest.TestCase):
         # sub transformers and channel_order applied
         chip = rs._get_chip(window)
         self.assertEqual(
-            tuple(chip.reshape(-1, 3).mean(axis=0)), (100, 175, 250))
+            tuple(chip.reshape(-1, 3).mean(axis=0)), (100, 175, 250)
+        )
 
         # sub transformers, channel_order, and transformer applied
         chip = rs.get_chip(window)
@@ -202,13 +214,16 @@ class TestMultiRasterSource(unittest.TestCase):
         for get_chip_fn in [rs._get_chip, rs.get_chip]:
             ch_1_only = get_chip_fn(Box(0, 0, 10, 10))
             self.assertEqual(
-                tuple(ch_1_only.reshape(-1, 3).mean(axis=0)), (100, 0, 0))
+                tuple(ch_1_only.reshape(-1, 3).mean(axis=0)), (100, 0, 0)
+            )
             ch_2_only = get_chip_fn(Box(0, 600, 10, 600 + 10))
             self.assertEqual(
-                tuple(ch_2_only.reshape(-1, 3).mean(axis=0)), (0, 175, 0))
+                tuple(ch_2_only.reshape(-1, 3).mean(axis=0)), (0, 175, 0)
+            )
             ch_3_only = get_chip_fn(Box(600, 0, 600 + 10, 10))
             self.assertEqual(
-                tuple(ch_3_only.reshape(-1, 3).mean(axis=0)), (0, 0, 250))
+                tuple(ch_3_only.reshape(-1, 3).mean(axis=0)), (0, 0, 250)
+            )
             full_img = get_chip_fn(Box(0, 0, 600, 600))
             self.assertEqual(set(np.unique(full_img[..., 0])), {100})
             self.assertEqual(set(np.unique(full_img[..., 1])), {0, 175})
@@ -246,7 +261,8 @@ class TestMultiRasterSource(unittest.TestCase):
         # test bbox
         bbox = Box(ymin=0, xmin=0, ymax=100, xmax=100)
         rs = MultiRasterSource.from_stac(
-            item, assets=['red', 'green'], bbox=bbox)
+            item, assets=['red', 'green'], bbox=bbox
+        )
         self.assertEqual(rs.bbox, bbox)
 
         # test bbox_map_coords
@@ -257,7 +273,8 @@ class TestMultiRasterSource(unittest.TestCase):
             xmax=31.136567,
         )
         rs = MultiRasterSource.from_stac(
-            item, assets=['red', 'green'], bbox_map_coords=bbox_map_coords)
+            item, assets=['red', 'green'], bbox_map_coords=bbox_map_coords
+        )
         self.assertEqual(rs.bbox, Box(ymin=51, xmin=50, ymax=207, xmax=206))
 
         # test error if both bbox and bbox_map_coords specified
@@ -265,19 +282,22 @@ class TestMultiRasterSource(unittest.TestCase):
             item=item,
             assets=['red', 'green'],
             bbox=bbox,
-            bbox_map_coords=bbox_map_coords)
-        self.assertRaises(ValueError,
-                          lambda: MultiRasterSource.from_stac(**args))
+            bbox_map_coords=bbox_map_coords,
+        )
+        self.assertRaises(
+            ValueError, lambda: MultiRasterSource.from_stac(**args)
+        )
 
 
 # The primary raster in TestMultiRasterSourceAlignment: a 200x200 1m grid in
 # UTM zone 17N, close to the eastern edge of the zone.
 PRIMARY_CRS = 'EPSG:32617'
-PRIMARY_X0, PRIMARY_Y0, PRIMARY_SIZE = 740000., 4430000., 200
+PRIMARY_X0, PRIMARY_Y0, PRIMARY_SIZE = 740000.0, 4430000.0, 200
 
 
-def write_coord_raster(path: str, crs: str, transform, height: int,
-                       width: int) -> None:
+def write_coord_raster(
+    path: str, crs: str, transform, height: int, width: int
+) -> None:
     """Write a 2-band raster where each pixel holds the (x, y) coordinates of
     its center in PRIMARY_CRS, relative to the primary raster's origin.
 
@@ -287,30 +307,33 @@ def write_coord_raster(path: str, crs: str, transform, height: int,
     """
     rows, cols = np.mgrid[0:height, 0:width]
     xs, ys = rasterio.transform.xy(
-        transform, rows.ravel(), cols.ravel(), offset='center')
+        transform, rows.ravel(), cols.ravel(), offset='center'
+    )
     tf = Transformer.from_crs(crs, PRIMARY_CRS, always_xy=True)
     x, y = tf.transform(np.array(xs), np.array(ys))
-    arr = np.stack([
-        np.reshape(x, (height, width)) - PRIMARY_X0,
-        np.reshape(y, (height, width)) - PRIMARY_Y0
-    ]).astype(np.float32)
+    arr = np.stack(
+        [
+            np.reshape(x, (height, width)) - PRIMARY_X0,
+            np.reshape(y, (height, width)) - PRIMARY_Y0,
+        ]
+    ).astype(np.float32)
     with rasterio.open(
-            path,
-            'w',
-            driver='GTiff',
-            height=height,
-            width=width,
-            count=2,
-            dtype='float32',
-            crs=crs,
-            transform=transform) as ds:
+        path,
+        'w',
+        driver='GTiff',
+        height=height,
+        width=width,
+        count=2,
+        dtype='float32',
+        crs=crs,
+        transform=transform,
+    ) as ds:
         ds.write(arr)
 
 
-def write_projected_coord_raster(path: str,
-                                 crs: str,
-                                 res: float,
-                                 margin: float = 20.) -> None:
+def write_projected_coord_raster(
+    path: str, crs: str, res: float, margin: float = 20.0
+) -> None:
     """Write a coordinate raster in the given CRS that covers the primary
     raster's extent plus a margin (in meters)."""
     xmin, xmax = PRIMARY_X0 - margin, PRIMARY_X0 + PRIMARY_SIZE + margin
@@ -331,20 +354,25 @@ class TestMultiRasterSourceAlignment(unittest.TestCase):
         self.tmp_dir_obj = get_tmp_dir()
         self.tmp_dir = self.tmp_dir_obj.name
         self.primary_path = join(self.tmp_dir, 'primary.tif')
-        write_coord_raster(self.primary_path, PRIMARY_CRS,
-                           from_origin(PRIMARY_X0, PRIMARY_Y0, 1, 1),
-                           PRIMARY_SIZE, PRIMARY_SIZE)
+        write_coord_raster(
+            self.primary_path,
+            PRIMARY_CRS,
+            from_origin(PRIMARY_X0, PRIMARY_Y0, 1, 1),
+            PRIMARY_SIZE,
+            PRIMARY_SIZE,
+        )
         self.windows = [
             Box.make_square(10, 10, 64),
             Box.make_square(100, 30, 64),
-            Box.make_square(50, 130, 64)
+            Box.make_square(50, 130, 64),
         ]
 
     def tearDown(self):
         self.tmp_dir_obj.cleanup()
 
-    def get_max_error(self, rs: MultiRasterSource, window: Box,
-                      **kwargs) -> float:
+    def get_max_error(
+        self, rs: MultiRasterSource, window: Box, **kwargs
+    ) -> float:
         chip = rs.get_chip(window, **kwargs)
         primary, other = chip[..., :2], chip[..., 2:]
         err = np.hypot(*(other - primary).transpose(2, 0, 1))
@@ -352,17 +380,17 @@ class TestMultiRasterSourceAlignment(unittest.TestCase):
 
     def test_different_grids(self):
         cases = {
-            'same CRS, offset 3m grid': (PRIMARY_CRS, 3., 0.),
+            'same CRS, offset 3m grid': (PRIMARY_CRS, 3.0, 0.0),
             'EPSG:4326': ('EPSG:4326', 1e-5, 0.15),
-            'adjacent UTM zone': ('EPSG:32618', 1., 0.15),
+            'adjacent UTM zone': ('EPSG:32618', 1.0, 0.15),
         }
         for name, (crs, res, tol) in cases.items():
             with self.subTest(name):
                 path = join(self.tmp_dir, 'other.tif')
                 write_projected_coord_raster(path, crs, res, margin=21.7)
                 rs = MultiRasterSource(
-                    [RasterioSource(self.primary_path),
-                     RasterioSource(path)])
+                    [RasterioSource(self.primary_path), RasterioSource(path)]
+                )
                 for window in self.windows:
                     err = self.get_max_error(rs, window)
                     self.assertLessEqual(err, tol + 1e-3)
@@ -373,27 +401,32 @@ class TestMultiRasterSourceAlignment(unittest.TestCase):
     def test_same_grid_with_offset(self):
         # same CRS and resolution, offset by a whole number of pixels
         path = join(self.tmp_dir, 'other.tif')
-        write_coord_raster(path, PRIMARY_CRS,
-                           from_origin(PRIMARY_X0 - 13, PRIMARY_Y0 + 7, 1, 1),
-                           PRIMARY_SIZE + 20, PRIMARY_SIZE + 20)
+        write_coord_raster(
+            path,
+            PRIMARY_CRS,
+            from_origin(PRIMARY_X0 - 13, PRIMARY_Y0 + 7, 1, 1),
+            PRIMARY_SIZE + 20,
+            PRIMARY_SIZE + 20,
+        )
         rs = MultiRasterSource(
-            [RasterioSource(self.primary_path),
-             RasterioSource(path)])
+            [RasterioSource(self.primary_path), RasterioSource(path)]
+        )
         # this case should not need any reprojection
         with patch.object(
-                RasterioSource,
-                'get_chip_reprojected',
-                side_effect=AssertionError('should not be called')):
+            RasterioSource,
+            'get_chip_reprojected',
+            side_effect=AssertionError('should not be called'),
+        ):
             for window in self.windows:
                 self.assertEqual(self.get_max_error(rs, window), 0)
 
     def test_primary_bbox(self):
         path = join(self.tmp_dir, 'other.tif')
-        write_projected_coord_raster(path, 'EPSG:32618', 1.)
+        write_projected_coord_raster(path, 'EPSG:32618', 1.0)
         rs = MultiRasterSource(
-            [RasterioSource(self.primary_path),
-             RasterioSource(path)],
-            bbox=Box(30, 40, 150, 160))
+            [RasterioSource(self.primary_path), RasterioSource(path)],
+            bbox=Box(30, 40, 150, 160),
+        )
         # windows within the extent (120 x 120) of the cropped raster source
         windows = [Box.make_square(10, 10, 64), Box.make_square(50, 40, 64)]
         for window in windows:
@@ -403,9 +436,12 @@ class TestMultiRasterSourceAlignment(unittest.TestCase):
         # pixels outside the non-primary raster source's bbox should be 0
         path = join(self.tmp_dir, 'other.tif')
         write_coord_raster(
-            path, PRIMARY_CRS,
-            from_origin(PRIMARY_X0 - 10.25, PRIMARY_Y0 + 10.25, 2, 2), 110,
-            110)
+            path,
+            PRIMARY_CRS,
+            from_origin(PRIMARY_X0 - 10.25, PRIMARY_Y0 + 10.25, 2, 2),
+            110,
+            110,
+        )
         # the bbox covers 40 x 50 pixels (80 x 100 primary pixels) starting
         # at pixel (25, 30), which is at (39.75, 49.75) in primary pixel
         # coords, i.e. between the centers of primary pixels 39 and 40 (rows)
@@ -425,7 +461,8 @@ class TestMultiRasterSourceAlignment(unittest.TestCase):
         arr = np.full((4, 4, 2), 7, dtype=np.float32)
         da = DataArray(arr, dims=['y', 'x', 'band'])
         crs_tf = RasterioCRSTransformer(
-            from_origin(PRIMARY_X0 - 3, PRIMARY_Y0 + 3, 51, 51), PRIMARY_CRS)
+            from_origin(PRIMARY_X0 - 3, PRIMARY_Y0 + 3, 51, 51), PRIMARY_CRS
+        )
         xr_rs = XarraySource(da, crs_tf)
         rs = MultiRasterSource([RasterioSource(self.primary_path), xr_rs])
         chip = rs.get_chip(Box(10, 10, 20, 20))

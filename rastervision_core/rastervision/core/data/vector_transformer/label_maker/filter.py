@@ -23,12 +23,14 @@ def create_filter(filt):
     Returns
     --------
     func: function
-        A function which evaluates whether a GeoJSON feature meets the input filter criteria
+        A function which evaluates whether a GeoJSON feature meets the input
+        filter criteria
     """
 
     def func(f):
         """evaluates whether a given feature passes its filter"""
-        p = f.get('properties', {}) if f else {}  # pylint: disable=unused-variable
+        # p is used by the eval'd filter expression
+        p = f.get('properties', {}) if f else {}  # noqa: F841
         return eval(_compile(filt))
 
     return func

@@ -33,12 +33,14 @@ class MultiRasterSource(RasterSource):
     pixel grid (using bilinear resampling).
     """
 
-    def __init__(self,
-                 raster_sources: Sequence[RasterSource],
-                 primary_source_idx: NonNegInt = 0,
-                 channel_order: Sequence[NonNegInt] | None = None,
-                 raster_transformers: Sequence['RasterTransformer'] = [],
-                 bbox: Box | None = None):
+    def __init__(
+        self,
+        raster_sources: Sequence[RasterSource],
+        primary_source_idx: NonNegInt = 0,
+        channel_order: Sequence[NonNegInt] | None = None,
+        raster_transformers: Sequence['RasterTransformer'] = [],
+        bbox: Box | None = None,
+    ):
         """Constructor.
 
         Args:
@@ -63,8 +65,9 @@ class MultiRasterSource(RasterSource):
 
         # validate primary_source_idx
         if not (0 <= primary_source_idx < len(raster_sources)):
-            raise IndexError('primary_source_idx must be in range '
-                             '[0, len(raster_sources)].')
+            raise IndexError(
+                'primary_source_idx must be in range [0, len(raster_sources)].'
+            )
 
         if bbox is None:
             bbox = raster_sources[primary_source_idx].bbox
@@ -76,27 +79,30 @@ class MultiRasterSource(RasterSource):
             num_channels_raw=num_channels_raw,
             dtype_raw=dtype_raw,
             bbox=bbox,
-            raster_transformers=raster_transformers)
+            raster_transformers=raster_transformers,
+        )
 
         self.raster_sources = raster_sources
         self.primary_source_idx = primary_source_idx
         self.non_primary_sources = [
-            rs for i, rs in enumerate(raster_sources)
+            rs
+            for i, rs in enumerate(raster_sources)
             if i != primary_source_idx
         ]
         self.validate_raster_sources()
 
     @classmethod
     def from_stac(
-            cls,
-            item: Item,
-            assets: list[str] | None,
-            primary_source_idx: NonNegInt = 0,
-            raster_transformers: list['RasterTransformer'] = [],
-            channel_order: Sequence[int] | None = None,
-            bbox: Box | tuple[int, int, int, int] | None = None,
-            bbox_map_coords: Box | tuple[int, int, int, int] | None = None,
-            allow_streaming: bool = False) -> 'Self':
+        cls,
+        item: Item,
+        assets: list[str] | None,
+        primary_source_idx: NonNegInt = 0,
+        raster_transformers: list['RasterTransformer'] = [],
+        channel_order: Sequence[int] | None = None,
+        bbox: Box | tuple[int, int, int, int] | None = None,
+        bbox_map_coords: Box | tuple[int, int, int, int] | None = None,
+        allow_streaming: bool = False,
+    ) -> 'Self':
         """Construct a ``MultiRasterSource`` from a STAC Item.
 
         This creates a :class:`.RasterioSource` for each asset and puts all
@@ -131,8 +137,9 @@ class MultiRasterSource(RasterSource):
                 assets will be downloaded. Defaults to ``True``.
         """
         if bbox is not None and bbox_map_coords is not None:
-            raise ValueError('Specify either bbox or bbox_map_coords, '
-                             'but not both.')
+            raise ValueError(
+                'Specify either bbox or bbox_map_coords, but not both.'
+            )
 
         if assets is not None:
             item = subset_assets(item, assets)
@@ -155,7 +162,8 @@ class MultiRasterSource(RasterSource):
             primary_source_idx=primary_source_idx,
             raster_transformers=raster_transformers,
             channel_order=channel_order,
-            bbox=bbox)
+            bbox=bbox,
+        )
         return raster_source
 
     def validate_raster_sources(self) -> None:
@@ -167,7 +175,8 @@ class MultiRasterSource(RasterSource):
         if not all_equal(dtypes):
             raise ValueError(
                 'dtypes of all sub raster sources must be the same. '
-                f'Got: {dtypes}.')
+                f'Got: {dtypes}.'
+            )
 
     @property
     def primary_source(self) -> RasterSource:
@@ -184,10 +193,9 @@ class MultiRasterSource(RasterSource):
     def crs_transformer(self) -> 'CRSTransformer':
         return self.primary_source.crs_transformer
 
-    def _get_sub_chips(self,
-                       window: Box,
-                       out_shape: tuple[int, int] | None = None
-                       ) -> list[np.ndarray]:
+    def _get_sub_chips(
+        self, window: Box, out_shape: tuple[int, int] | None = None
+    ) -> list[np.ndarray]:
         """Return chips from sub raster sources as a list.
 
         The chip from the primary sub raster source is read using the window.
@@ -228,8 +236,9 @@ class MultiRasterSource(RasterSource):
         sub_chips.insert(self.primary_source_idx, primary_sub_chip)
         return sub_chips
 
-    def _get_aligned_sub_chip(self, rs: RasterSource, window: Box,
-                              out_shape: tuple[int, int]) -> np.ndarray:
+    def _get_aligned_sub_chip(
+        self, rs: RasterSource, window: Box, out_shape: tuple[int, int]
+    ) -> np.ndarray:
         """Get chip from a non-primary sub raster source aligned with the
         chip from the primary sub raster source for the same window."""
         primary_rs = self.primary_source
@@ -248,22 +257,27 @@ class MultiRasterSource(RasterSource):
             if isinstance(rs, RasterioSource):
                 crs, transform = primary_grid
                 transform = _get_window_transform(
-                    transform, window.to_global_coords(primary_rs.bbox),
-                    out_shape)
+                    transform,
+                    window.to_global_coords(primary_rs.bbox),
+                    out_shape,
+                )
                 return rs.get_chip_reprojected(crs, transform, out_shape)
 
         window_map_coords = primary_rs.crs_transformer.pixel_to_map(
-            window, bbox=primary_rs.bbox)
+            window, bbox=primary_rs.bbox
+        )
         rs_window = rs.crs_transformer.map_to_pixel(
-            window_map_coords, bbox=rs.bbox)
+            window_map_coords, bbox=rs.bbox
+        )
         # Ensure the window is at least 1 pixel in size. It can otherwise be
         # empty if rs has a much coarser resolution than the primary source.
         ymin, xmin, ymax, xmax = rs_window
         rs_window = Box(ymin, xmin, max(ymax, ymin + 1), max(xmax, xmin + 1))
         return rs.get_chip(rs_window, out_shape=out_shape)
 
-    def _get_chip(self, window: Box,
-                  out_shape: tuple[int, int] | None = None) -> np.ndarray:
+    def _get_chip(
+        self, window: Box, out_shape: tuple[int, int] | None = None
+    ) -> np.ndarray:
         """Get chip w/o applying channel_order and transformers.
 
         Args:
@@ -279,8 +293,9 @@ class MultiRasterSource(RasterSource):
         chip = np.concatenate(sub_chips, axis=-1)
         return chip
 
-    def get_chip(self, window: Box,
-                 out_shape: tuple[int, int] | None = None) -> np.ndarray:
+    def get_chip(
+        self, window: Box, out_shape: tuple[int, int] | None = None
+    ) -> np.ndarray:
         """Return the transformed chip in the window.
 
         Get processed chips from sub raster sources (with their respective
@@ -316,8 +331,9 @@ def _get_grid(rs: RasterSource) -> tuple[CRS, Affine] | None:
     return crs, crs_transformer.transform
 
 
-def _get_pixel_offset(grid_a: tuple[CRS, Affine],
-                      grid_b: tuple[CRS, Affine]) -> tuple[int, int] | None:
+def _get_pixel_offset(
+    grid_a: tuple[CRS, Affine], grid_b: tuple[CRS, Affine]
+) -> tuple[int, int] | None:
     """Return the (row, col) offset of grid_a's pixels in grid_b, if the two
     grids are aligned, i.e., have the same CRS, the same resolution and
     orientation, and differ only by a whole number of pixels. Otherwise,
@@ -339,8 +355,9 @@ def _get_pixel_offset(grid_a: tuple[CRS, Affine],
     return dy, dx
 
 
-def _get_window_transform(transform: Affine, window: Box,
-                          out_shape: tuple[int, int]) -> Affine:
+def _get_window_transform(
+    transform: Affine, window: Box, out_shape: tuple[int, int]
+) -> Affine:
     """Return the transform for a chip of shape out_shape read from window
     (in global pixel coords) of a raster with the given transform."""
     ymin, xmin, ymax, xmax = window
@@ -350,6 +367,7 @@ def _get_window_transform(transform: Affine, window: Box,
     win_transform = window_transform(window, transform)
     out_h, out_w = out_shape
     if (out_h, out_w) != (win_h, win_w):
-        win_transform = win_transform * Affine.scale(win_w / out_w,
-                                                     win_h / out_h)
+        win_transform = win_transform * Affine.scale(
+            win_w / out_w, win_h / out_h
+        )
     return win_transform

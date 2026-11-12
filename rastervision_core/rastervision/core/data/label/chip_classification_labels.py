@@ -1,4 +1,4 @@
-from typing import (TYPE_CHECKING, Any, Iterable)
+from typing import TYPE_CHECKING, Any, Iterable
 from dataclasses import dataclass
 
 import numpy as np
@@ -9,7 +9,7 @@ from rastervision.core.utils.types import Vector
 
 if TYPE_CHECKING:
     from typing import Self
-    from rastervision.core.data import (ClassConfig, CRSTransformer)
+    from rastervision.core.data import ClassConfig, CRSTransformer
     from shapely.geometry import Polygon
 
 
@@ -25,23 +25,24 @@ class ClassificationLabel:
 class ChipClassificationLabels(Labels):
     """Represents a spatial grid of cells associated with classes."""
 
-    def __init__(self,
-                 cell_to_label: dict[Box, tuple[int, Vector | None]]
-                 | None = None):
+    def __init__(
+        self, cell_to_label: dict[Box, tuple[int, Vector | None]] | None = None
+    ):
         if cell_to_label is None:
             cell_to_label = {}
 
         self.cell_to_label = {
-            c: ClassificationLabel(*v)
-            for c, v in cell_to_label.items()
+            c: ClassificationLabel(*v) for c, v in cell_to_label.items()
         }
 
     def __len__(self) -> int:
         return len(self.cell_to_label)
 
     def __eq__(self, other: 'Self') -> bool:
-        return (isinstance(other, ChipClassificationLabels)
-                and self.cell_to_label == other.cell_to_label)
+        return (
+            isinstance(other, ChipClassificationLabels)
+            and self.cell_to_label == other.cell_to_label
+        )
 
     def __add__(self, other: 'Self') -> 'Self':
         result = ChipClassificationLabels()
@@ -60,8 +61,9 @@ class ChipClassificationLabels(Labels):
         self.set_cell(window, class_id, scores=scores)
 
     @classmethod
-    def from_predictions(cls, windows: Iterable['Box'],
-                         predictions: Iterable[Any]):
+    def from_predictions(
+        cls, windows: Iterable['Box'], predictions: Iterable[Any]
+    ):
         """Overrid to convert predictions to (class_id, scores) pairs."""
         predictions = ((np.argmax(p), p) for p in predictions)
         return super().from_predictions(windows, predictions)
@@ -81,10 +83,12 @@ class ChipClassificationLabels(Labels):
                     result.set_cell(cell_box, class_id, scores)
         return result
 
-    def set_cell(self,
-                 cell: Box,
-                 class_id: int,
-                 scores: 'np.ndarray | Vector | None' = None) -> None:
+    def set_cell(
+        self,
+        cell: Box,
+        class_id: int,
+        scores: 'np.ndarray | Vector | None' = None,
+    ) -> None:
         """Set cell and its class_id.
 
         Args:
@@ -150,11 +154,13 @@ class ChipClassificationLabels(Labels):
         for cell in labels.get_cells():
             self.set_cell(cell, *labels[cell])
 
-    def save(self,
-             uri: str,
-             class_config: 'ClassConfig',
-             crs_transformer: 'CRSTransformer',
-             bbox: Box | None = None) -> None:
+    def save(
+        self,
+        uri: str,
+        class_config: 'ClassConfig',
+        crs_transformer: 'CRSTransformer',
+        bbox: Box | None = None,
+    ) -> None:
         """Save labels as a GeoJSON file.
 
         Args:
@@ -171,5 +177,6 @@ class ChipClassificationLabels(Labels):
             uri=uri,
             class_config=class_config,
             crs_transformer=crs_transformer,
-            bbox=bbox)
+            bbox=bbox,
+        )
         label_store.save(self)

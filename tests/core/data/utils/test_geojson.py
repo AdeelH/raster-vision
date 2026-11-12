@@ -1,18 +1,38 @@
 import unittest
 
 import numpy as np
-from shapely.geometry import (Polygon, MultiPolygon, Point, MultiPoint,
-                              LineString, MultiLineString, mapping, shape)
+from shapely.geometry import (
+    Polygon,
+    MultiPolygon,
+    Point,
+    MultiPoint,
+    LineString,
+    MultiLineString,
+    mapping,
+    shape,
+)
 import geopandas as gpd
 
 from rastervision.core.box import Box
 from rastervision.core.data.utils import (
-    geometry_to_feature, geometries_to_geojson, is_empty_feature,
-    remove_empty_features, split_multi_geometries, map_to_pixel_coords,
-    pixel_to_map_coords, buffer_geoms, all_geoms_valid, geoms_to_geojson,
-    merge_geojsons, geojson_to_geoms, geojson_to_geodataframe,
-    get_geodataframe_extent, get_geojson_extent, filter_geojson_to_window,
-    geoms_to_bbox_coords)
+    geometry_to_feature,
+    geometries_to_geojson,
+    is_empty_feature,
+    remove_empty_features,
+    split_multi_geometries,
+    map_to_pixel_coords,
+    pixel_to_map_coords,
+    buffer_geoms,
+    all_geoms_valid,
+    geoms_to_geojson,
+    merge_geojsons,
+    geojson_to_geoms,
+    geojson_to_geodataframe,
+    get_geodataframe_extent,
+    get_geojson_extent,
+    filter_geojson_to_window,
+    geoms_to_bbox_coords,
+)
 from tests.core.data.mock_crs_transformer import DoubleCRSTransformer
 
 
@@ -38,7 +58,8 @@ class TestGeojsonUtils(unittest.TestCase):
     def test_is_empty_feature(self):
         empty_feat = {'type': 'Feature'}
         non_empty_feat = geometry_to_feature(
-            mapping(Polygon.from_bounds(0, 0, 10, 10)))
+            mapping(Polygon.from_bounds(0, 0, 10, 10))
+        )
         self.assertTrue(is_empty_feature(empty_feat))
         self.assertFalse(is_empty_feature(non_empty_feat))
 
@@ -50,13 +71,14 @@ class TestGeojsonUtils(unittest.TestCase):
         geojson = geometries_to_geojson(empty_feats + non_empty_feats)
         geojson_filtered = remove_empty_features(geojson)
         self.assertEqual(
-            len(geojson_filtered['features']), len(non_empty_feats))
+            len(geojson_filtered['features']), len(non_empty_feats)
+        )
 
     def test_split_multi_geometries(self):
         # polygons
         geoms = [
             Polygon.from_bounds(0, 0, 10, 10),
-            Polygon.from_bounds(20, 20, 30, 30)
+            Polygon.from_bounds(20, 20, 30, 30),
         ]
         multi_feats = [geometry_to_feature(mapping(MultiPolygon(geoms)))]
         single_feats = [geometry_to_feature(mapping(g)) for g in geoms]
@@ -118,8 +140,8 @@ class TestGeojsonUtils(unittest.TestCase):
         self.assertTrue(all_geoms_valid(geojson_in))
         # invalid
         geojson_in = geometries_to_geojson(
-            [mapping(normal_polygon),
-             mapping(bowtie_polygon)])
+            [mapping(normal_polygon), mapping(bowtie_polygon)]
+        )
         self.assertFalse(all_geoms_valid(geojson_in))
 
     def test_buffer_geoms(self):
@@ -131,7 +153,8 @@ class TestGeojsonUtils(unittest.TestCase):
         feat_in = geometry_to_feature(mapping(geom_in), properties)
         geojson_in = geometries_to_geojson([feat_in])
         geojson_out = buffer_geoms(
-            geojson_in, geom_type='Polygon', class_bufs=class_bufs)
+            geojson_in, geom_type='Polygon', class_bufs=class_bufs
+        )
         geom_out = shape(geojson_out['features'][0]['geometry'])
         self.assertEqual(geom_out, geom_in.buffer(5))
 
@@ -140,7 +163,8 @@ class TestGeojsonUtils(unittest.TestCase):
         feat_in = geometry_to_feature(mapping(geom_in), properties)
         geojson_in = geometries_to_geojson([feat_in])
         geojson_out = buffer_geoms(
-            geojson_in, geom_type='Point', class_bufs=class_bufs)
+            geojson_in, geom_type='Point', class_bufs=class_bufs
+        )
         geom_out = shape(geojson_out['features'][0]['geometry'])
         self.assertEqual(geom_out, geom_in.buffer(5))
 
@@ -149,7 +173,8 @@ class TestGeojsonUtils(unittest.TestCase):
         feat_in = geometry_to_feature(mapping(geom_in), properties)
         geojson_in = geometries_to_geojson([feat_in])
         geojson_out = buffer_geoms(
-            geojson_in, geom_type='LineString', class_bufs=class_bufs)
+            geojson_in, geom_type='LineString', class_bufs=class_bufs
+        )
         geom_out = shape(geojson_out['features'][0]['geometry'])
         self.assertEqual(geom_out, geom_in.buffer(5))
 

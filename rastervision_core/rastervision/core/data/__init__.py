@@ -1,4 +1,3 @@
-
 from rastervision.core.data.class_config import *
 from rastervision.core.data.raster_source import *
 from rastervision.core.data.crs_transformer import *
