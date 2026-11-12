@@ -1,3 +1,6 @@
+# The order of these imports matters (to avoid circular imports).
+# isort: skip_file
+
 TRAIN = 'train'
 VALIDATION = 'validation'
 

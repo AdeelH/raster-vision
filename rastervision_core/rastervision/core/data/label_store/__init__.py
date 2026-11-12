@@ -1,3 +1,6 @@
+# The order of these imports matters (to avoid circular imports).
+# isort: skip_file
+
 from rastervision.core.data.label_store.label_store import *
 from rastervision.core.data.label_store.label_store_config import *
 from rastervision.core.data.label_store.chip_classification_geojson_store import *
