@@ -34,7 +34,7 @@ It is meant to help the discontinuation decision in two ways: it shows what keep
 | 5 | [Dependence on GDAL outside the rasterio wheel blocks a wheel-only `uv` setup](#5-dependence-on-gdal-outside-the-rasterio-wheel) | Packaging | 🟠 | M | Yes |
 | 6 | [CI tests a stale lockfile while users install unpinned latest dependencies](#6-ci-tests-a-stale-lockfile-while-users-get-unpinned-latest-dependencies) | Packaging / CI | 🟠 | S–M | Yes |
 | 7 | ✅ ~~[`pyproj<=3.7.0` pin blocks Python 3.14](#7-pyproj370-pin-blocks-python-314)~~ (fixed) | Packaging | 🟠 | S | Master only |
-| 8 | [No-data / `null_class` handling in `SemanticSegmentationLabelSource` (#2326)](#8-no-data--null_class-handling-in-semanticsegmentationlabelsource-2326) | Correctness / API | 🟠 | S | Yes |
+| 8 | ✅ ~~[No-data / `null_class` handling in `SemanticSegmentationLabelSource` (#2326)](#8-no-data--null_class-handling-in-semanticsegmentationlabelsource-2326)~~ (docstring fixed) | Correctness / API | 🟠 | S | Yes |
 | 9 | [Five community PRs awaiting review](#9-five-community-prs-awaiting-review) | Project health | 🟠 | S–M | — |
 | 10 | [Multi-URI `RasterioSource` (`build_vrt`) has no tests](#10-multi-uri-rasteriosource-build_vrt-has-no-tests) | Tests | 🟡 | S | — |
 | 11 | [Test suite only runs inside Docker and with `unittest`](#11-test-suite-only-runs-inside-docker-and-with-unittest) | Tests | 🟡 | S | — |
@@ -153,6 +153,8 @@ A proper `rasterio.warp` reprojection gives ≤0.09 px in every case. Disabling 
 ### 8. No-data / `null_class` handling in `SemanticSegmentationLabelSource` (#2326)
 
 🟠 Medium · Effort **S**
+
+> **Status: fixed (docstring only).** The nonexistent `null_class_id` argument was removed from the docstring. Mapping label-raster nodata to the null class was not done; it is left to community PR #2329 (see #9).
 
 **Problem.**
 - The `SemanticSegmentationLabelSource.__init__` docstring documents a `null_class_id` argument that the signature doesn't have.
