@@ -133,8 +133,61 @@ A proper `rasterio.warp` reprojection gives ≤0.09 px in every case. Disabling 
 **Who is affected.** Anyone who builds a raster source from STAC items in a fresh install. This is RV's "STAC" feature, used in the `stac_plus_osm` and `temporal` tutorials. Catalogs that already publish `proj:code` (projection extension v2) presumably fail regardless of pystac version.
 
 **Fix options.**
-1. **Short term:** cap `pystac<1.12` and document the limitation. Or pass `epsg=` explicitly to `stackstac.stack()` when it can be read from the item's `proj:code`.
-2. **Proper:** replace stackstac with **odc-stac**, which is actively maintained. Check its `proj:code` support before switching. Alternatively, build the xarray stack directly with `rioxarray`.
+1. **Short term:** cap `pystac<1.12` and document the limitation. ~~Or pass `epsg=` explicitly to `stackstac.stack()` when it can be read from the item's `proj:code`.~~ **Don't do this** (see below): it silently produces a wrong grid.
+2. **Proper:** replace stackstac with **odc-stac**, which is actively maintained. Investigated below: feasible and recommended. Alternatively, build the xarray stack directly with `rioxarray`.
+
+#### Investigation: minimal replacement with odc-stac (2026-11-12)
+
+**Verdict: feasible.** The change is about 25 lines in [`XarraySource.from_stac`](../rastervision_core/rastervision/core/data/raster_source/xarray_source.py) and [`XarraySourceConfig`](../rastervision_core/rastervision/core/data/raster_source/xarray_source_config.py). It fixes this issue, and the output is identical to stackstac's. **The one real cost is slower streaming of small random chips from remote COGs** (see the caveats below). Prototyped in a scratch worktree, not committed.
+
+**Scope.** stackstac is used in exactly one place: `stackstac.stack()` in `XarraySource.from_stac`, plus the `stackstac_args` config field. `MultiRasterSource.from_stac` uses `RasterioSource` and is unaffected.
+
+**Prototype.**
+- Calls `odc.stac.load(items, bands=<all assets, in order>, chunks={'x': 1024, 'y': 1024}, dtype='float64', nodata=nan, **stac_load_args)`.
+- Converts the result to a `DataArray` with `.to_dataarray('band')`.
+- Reads the transform and CRS from `ds.odc.geobox`.
+- Renames `stackstac_args` → `stac_load_args`.
+- The rest of `XarraySource` is untouched: dimensions are matched by name, so the different dimension order (`band, time, y, x`) doesn't matter.
+
+**Dependencies.**
+- stackstac is replaced by `odc-stac` 0.5.3, `odc-geo` 0.5.3, `odc-loader` 0.6.5 and `cachetools`. All four are pure Python and need Python ≥3.10. No other locked version changes.
+- odc-stac is actively maintained (0.5.3, July 2026).
+- **Removing stackstac also removes its `pandas<3` cap.** pandas 3.1 is out, so this would otherwise block future dependency upgrades.
+- Newer `odc-geo` (0.5.4+) requires `affine>=3`. The lock currently has affine 2.4.0, so the resolver picks 0.5.3. This becomes relevant when upgrading dependencies.
+
+**Verified on the test fixtures' real Sentinel-2 COGs (read over the network):**
+
+| Check | Result |
+|---|---|
+| Grid (transform, CRS, shape), band order, time order | ✅ identical to stackstac |
+| Pixel values: single item; 10 m + 20 m assets; 3-item collection; `XarraySource` chips with `bbox_map_coords`, including zero-fill outside the bbox and temporal chips | ✅ identical |
+| **Items using `proj:code`, with pystac 1.16** (both migrated `proj:epsg` items and native projection-extension v2 items) | ✅ works. stackstac fails, as described above. |
+| Items using `proj:code`, with pystac 1.10 | ❌ fails. odc-stac reads `proj:code` through pystac's projection extension, so **this fix requires `pystac>=1.12`**. |
+| RV unit tests with odc-stac + pystac 1.16 | ✅ 563 run, only the 5 known `/opt/data` failures (#11). All 41 raster-source STAC tests pass. |
+
+**Behavior differences and caveats:**
+- **dtype and nodata.** stackstac defaults to `float64` with NaN fill. odc-stac defaults to the native dtype (e.g. `uint16`) and the nodata value. The prototype keeps float64/NaN for parity, and users can opt into native dtypes with `stac_load_args=dict(dtype=None, nodata=None)`. Native dtypes would use 4× less memory and would be a better default if we accept the behavior change.
+- **Scale/offset.** stackstac applies `raster:bands` scale/offset by default (`rescale=True`); odc-stac never does. Today, `XarraySource.from_stac` passes `rescale=False`, but `XarraySourceConfig` passes `{}`, so **config users currently get rescaled values while API users don't** (an existing inconsistency). Parity for config users would need about 10 lines that apply scale/offset lazily from the asset metadata. Alternatively, standardize on unscaled values and note it in the changelog.
+- **Grouping.** odc-stac's default `groupby='time'` merges items that have the *same* timestamp into one time step (a mosaic). stackstac keeps every item as its own time step. Merging is arguably more correct for temporal stacks. Pass `groupby='id'` to get the old behavior.
+- **Performance of streaming reads.** odc-loader reopens the file for every chunk it reads. Its source has `TODO: open file handle cache goes here`, and it disables `VSI_CACHE` during reads. stackstac keeps file handles open.
+  - From this machine to `us-west-2`, random 256×256 chips (2 bands) took **~11 s vs ~4 s** per 12 chips: about 3× slower, from roughly 0.25 s per open spent on fetching the COG header.
+  - `configure_rio(cloud_defaults=True)` did not help.
+  - The gap should be much smaller inside the same AWS region and negligible for local files, and loading with `allow_streaming=False` is unaffected.
+  - Mitigations:
+    - (a) Pass `bbox_map_coords` to `odc.stac.load(bbox=...)`, so that only the AOI is loaded and an in-memory load is practical. Today, both libraries build the full tile and crop afterwards.
+    - (b) Contribute a handle cache upstream.
+- **Argument names change.** `stackstac_args=dict(rescale=False, fill_value=0, assets=BANDS)` in the `stac_plus_osm`, `temporal` and `onnx_inference` tutorials becomes `stac_load_args=dict(bands=BANDS, dtype=..., nodata=0)`.
+
+**The `epsg=` workaround is wrong.** With pystac 1.16 and an item that has only `proj:code`, `stackstac.stack(item, epsg=32631)` no longer raises an error. Instead, it treats the item as having no native CRS and builds a grid from the item's lat/lon bbox: 9.05 m × 10.16 m pixels, 10981 × 10981, with **different pixel values** (chip sum 78,191,456 vs the correct 67,945,611). So the only stackstac-based stopgaps are pinning `pystac<1.12` or rewriting the items.
+
+**Proposed change.**
+1. Swap in odc-stac (the prototype).
+2. Raise the floor to `pystac>=1.12` and relock pystac (1.16 adds about 20 small `pystac-ext-*` packages).
+3. Decide on dtype and scale/offset defaults.
+4. Update the three tutorials and the changelog.
+5. Add a test with a `proj:code` item.
+
+Effort: **S–M**, about 1 day, including the tutorials.
 
 ### 4. AOI window sampling fails because `triangle` was dropped but is still imported
 
